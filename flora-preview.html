@@ -1,0 +1,51 @@
+<!doctype html><meta charset="utf-8"><title>flora preview</title>
+<body style="margin:0;background:#222630">
+<canvas id="c" width="1180" height="820"></canvas>
+<script type="module">
+import { drawTree } from '/src/tree-sprite.js';
+import { drawFruit } from '/src/fruit-sprite.js';
+import { OBJECT_TYPES, POINT_TYPES, TREE, TYPE_KEYS } from '/src/config.js';
+
+TREE.life = 100;                       // para poder ver un árbol secándose
+const spec = OBJECT_TYPES.arbol;
+const ctx = document.getElementById('c').getContext('2d');
+const wind = { angle: 0.4 };
+
+function frame(t){
+  ctx.fillStyle = '#222630'; ctx.fillRect(0,0,1180,820);
+
+  // un árbol grande (x4) para mirar el detalle
+  const big = { x: 190, y: 190, type:'arbol', seed: 4242, timer: (Math.sin(t/2200)*0.5+0.5)*TREE.interval, lastDrop: 0, age: 0 };
+  drawTree(ctx, big, spec, 150, wind, t);
+
+  // seis árboles a tamaño real, y los de abajo cada vez más secos
+  let i = 0;
+  for (const seed of [1,2,3,4,5,6]) {
+    const o = { x: 460 + (i%3)*110, y: 90 + ((i/3)|0)*130, type:'arbol', seed,
+                timer: ((i/6)*TREE.interval), lastDrop: i, age: (i>=3 ? (i-2)*28 : 0) };
+    drawTree(ctx, o, spec, 30, wind, t);
+    i++;
+  }
+
+  // cada fruto, a tamaño real y x4, y en tres estados de madurez
+  ctx.font = '12px system-ui'; ctx.fillStyle = '#aab';
+  let y = 420;
+  for (const key of TYPE_KEYS) {
+    const r0 = POINT_TYPES[key].radius;
+    ctx.fillText(key, 20, y + 4);
+    let x = 90;
+    for (const mad of [0, 0.5, 0.75, 0.9, 1]) {
+      const age = mad * POINT_TYPES[key].life;
+      POINT_TYPES[key].radius = r0;
+      drawFruit(ctx, { x, y, type: key, age, seed: 11 });
+      POINT_TYPES[key].radius = r0 * 5;       // el mismo, en grande
+      drawFruit(ctx, { x: x + 90, y, type: key, age, seed: 11 });
+      POINT_TYPES[key].radius = r0;
+      x += 220;
+    }
+    y += 78;
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>

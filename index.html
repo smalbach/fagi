@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fagi</title>
+  <style>
+    :root {
+      --bg: #14161c;
+      --panel: #1d2029;
+      --text: #e6e8ee;
+      --muted: #8a90a2;
+      --line: #3a3f4e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.4 system-ui, sans-serif;
+      display: flex;
+      min-height: 100vh;
+    }
+    #stage { flex: 1 1 520px; display: flex; align-items: center; justify-content: center; padding: 16px; min-width: 360px; position: relative; }
+    canvas {
+      border-radius: 8px;
+      cursor: crosshair;
+      display: block;
+      max-width: 100%;
+      max-height: calc(100vh - 32px);
+      box-shadow: 0 24px 70px rgba(0,0,0,.48), 0 0 0 1px rgba(213,224,199,.08);
+    }
+    #hud {
+      width: 290px;
+      flex: none;
+      padding: 16px;
+      background: var(--panel);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+      max-height: 100vh;
+    }
+    h1 { font-size: 18px; margin: 0; letter-spacing: 2px; }
+    h2 { font-size: 11px; margin: 0 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    button {
+      font: inherit;
+      color: var(--text);
+      background: #2a2e3a;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 7px 9px;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    button.active { border-color: currentColor; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: none; }
+    .hint { font-size: 11px; color: var(--muted); margin-left: auto; }
+    .ayuda { font-size: 11px; color: var(--muted); margin-top: 9px; line-height: 1.35; }
+    #type-buttons, #object-buttons { display: flex; flex-direction: column; gap: 6px; }
+    .bar { height: 10px; background: #2a2e3a; border-radius: 5px; overflow: hidden; }
+    .bar > i { display: block; height: 100%; width: 0; }
+    .label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .belief { margin-bottom: 9px; }
+    .belief .bar { position: relative; overflow: visible; }
+    .belief .bar::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #4a4f5e; }
+    .belief .bar > i { position: absolute; top: 0; bottom: 0; border-radius: 5px; }
+    #effects { display: flex; flex-direction: column; gap: 5px; font-size: 12px; }
+    #effects .fx { display: flex; justify-content: space-between; }
+    #effects .none { color: var(--muted); }
+    /* --- consola de decisiones --- */
+    #consola {
+      width: 330px;
+      flex: none;
+      background: #171a21;
+      border-left: 1px solid var(--line);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 100vh;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+    }
+    #c-now { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+    #c-now > span { color: var(--muted); font-size: 11px; }
+    #c-detail { display: flex; flex-direction: column; gap: 4px; color: var(--muted); }
+    #c-detail div { display: flex; align-items: center; gap: 6px; }
+    .mini { display: inline-block; width: 70px; height: 6px; background: #2a2e3a; border-radius: 3px; overflow: hidden; }
+    .mini > i { display: block; height: 100%; }
+    #c-scores { display: flex; flex-direction: column; gap: 5px; }
+    .score { border-left: 2px solid #343a49; padding-left: 7px; }
+    .score.elegido { border-left-color: #e6e8ee; }
+    .score .head { display: flex; justify-content: space-between; }
+    .score .head em { color: #6e7486; font-style: normal; font-size: 10px; }
+    .score .partes { color: #6e7486; font-size: 10.5px; }
+    .dim { color: #6e7486; }
+    #c-log {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+      min-height: 120px;
+    }
+    #c-log .line { display: flex; gap: 6px; align-items: baseline; }
+    #c-log .t { color: #5d6373; flex: none; width: 40px; text-align: right; }
+    .tag {
+      flex: none;
+      color: #14161c;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      min-width: 38px;
+      text-align: center;
+    }
+    #c-log .tx { display: flex; flex-direction: column; }
+    #c-log .tx i { color: #6e7486; font-style: normal; font-size: 11px; }
+
+    input[type=range] { width: 100%; accent-color: #4fa05a; }
+
+    /* --- cuadro de ajustes --- */
+    #topbar {
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 40;
+      display: flex;
+      gap: 6px;
+    }
+    #topbar button, #topbar select {
+      width: auto;
+      padding: 7px 14px;
+      background: #2a2e3ae6;
+      border: 1px solid #474d5e;
+      border-radius: 6px;
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0,0,0,.35);
+      backdrop-filter: blur(4px);
+    }
+    #topbar button:hover, #topbar select:hover { background: #343947; }
+    #settings-overlay {
+      position: fixed; inset: 0; background: rgba(8,9,12,.72);
+      display: flex; align-items: center; justify-content: center; z-index: 50; padding: 24px;
+    }
+    #settings-overlay[hidden] { display: none; }
+    #settings {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+      width: min(1000px, 96vw); max-height: 88vh; display: flex; flex-direction: column;
+    }
+    #settings header {
+      display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    #settings header h2 { margin: 0; flex: 1; }
+    #settings header button { width: auto; padding: 6px 12px; }
+    #settings-body {
+      padding: 12px 16px 18px; overflow-y: auto;
+      columns: 320px; column-gap: 18px;
+    }
+    #settings details {
+      break-inside: avoid; margin-bottom: 12px; border: 1px solid var(--line);
+      border-radius: 8px; padding: 6px 10px; background: #22262f;
+    }
+    #settings summary { cursor: pointer; font-size: 12px; letter-spacing: .5px; color: #cfd3dd; padding: 4px 0; }
+    #settings .campo {
+      display: flex; align-items: center; gap: 8px; justify-content: space-between;
+      font-size: 11.5px; color: var(--muted); padding: 3px 0;
+    }
+    #settings .campo input {
+      width: 76px; flex: none; background: #2a2e3a; color: var(--text);
+      border: 1px solid var(--line); border-radius: 5px; padding: 3px 6px; font: inherit;
+    }
+    #status { font-size: 12px; color: var(--muted); }
+    #status.dead { color: #d95b7e; }
+    #btn-reset { justify-content: center; }
+
+    /* La presentación natural usa toda la pantalla. Un clic en el botón de
+       modo devuelve los paneles sin perder el estado de la simulación. */
+    body.immersive { background: #0d100e; }
+    body.immersive #hud,
+    body.immersive #consola { display: none; }
+    body.immersive #stage {
+      flex-basis: 100vw;
+      min-width: 0;
+      padding: 0;
+      background: radial-gradient(circle at 50% 45%, #20241d 0, #0d100e 72%);
+    }
+    body.immersive canvas {
+      max-width: 100vw;
+      max-height: 100vh;
+      border-radius: 0;
+      box-shadow: 0 30px 100px rgba(0,0,0,.62);
+    }
+    body.immersive #topbar { opacity: .58; transition: opacity .18s ease; }
+    body.immersive #topbar:hover,
+    body.immersive #topbar:focus-within { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <div id="topbar">
+      <button id="btn-settings" data-i18n="app.settings">⚙ Settings</button>
+      <button id="btn-visual" aria-pressed="false">🌿 Immersive</button>
+      <select id="lang" title="Idioma / Language">
+        <option value="en">EN</option>
+        <option value="es">ES</option>
+      </select>
+    </div>
+    <canvas id="canvas"></canvas>
+  </div>
+  <aside id="hud">
+    <h1 data-i18n="app.title">FAGI</h1>
+    <p id="status"></p>
+
+    <div>
+      <h2 data-i18n="panel.food">Food</h2>
+      <div id="type-buttons"></div>
+    </div>
+
+    <div>
+      <h2 data-i18n="panel.map">Map</h2>
+      <div id="object-buttons"></div>
+      <p class="ayuda" data-i18n="panel.camera">Camera · wheel zooms · middle button drags · arrows move · F follows Fagi · 0 resets</p>
+      <div class="label" style="margin-top:10px">
+        <span data-i18n="panel.treeEvery">Tree drops fruit every</span><span id="tree-interval-val">8s</span>
+      </div>
+      <input id="tree-interval" type="range" min="2" max="30" step="1" value="8">
+    </div>
+
+    <div>
+      <h2 data-i18n="panel.state">State</h2>
+      <div class="label"><span data-i18n="stat.hunger">Hunger</span><span id="hunger-val">0%</span></div>
+      <div class="bar"><i id="hunger-bar" style="background:#d95b7e"></i></div>
+      <div class="label" style="margin-top:8px"><span data-i18n="stat.thirst">Thirst</span><span id="thirst-val">0%</span></div>
+      <div class="bar"><i id="thirst-bar" style="background:#3d8fd9"></i></div>
+      <div class="label" style="margin-top:8px"><span data-i18n="stat.energy">Energy</span><span id="energy-val">100%</span></div>
+      <div class="bar"><i id="energy-bar" style="background:#8fd93d"></i></div>
+      <div class="label" style="margin-top:8px"><span data-i18n="stat.age">Age</span><span id="age-val">0s</span></div>
+      <div class="label"><span data-i18n="stat.eaten">Eaten</span><span id="eaten-val">0</span></div>
+      <div class="label"><span data-i18n="stat.carrying">Carrying</span><span id="carry-val">nada</span></div>
+    </div>
+
+    <div>
+      <h2 data-i18n="panel.heading">Heading</h2>
+      <div class="label"><span data-i18n="stat.position">Position</span><span id="pos-val">x 0, y 0</span></div>
+      <div class="label"><span data-i18n="stat.movingTo">Moving</span><span id="heading-val">→ derecha</span></div>
+      <div class="label"><span data-i18n="stat.vertical">Vertical</span><span id="vertical-val">– nivelado</span></div>
+      <div class="label"><span data-i18n="stat.wind">Wind</span><span id="wind-val">→ derecha</span></div>
+    </div>
+
+    <div>
+      <h2 data-i18n="panel.pantry">Nest pantry</h2>
+      <div id="stock"></div>
+    </div>
+
+    <div>
+      <h2 data-i18n="panel.effects">Active effects</h2>
+      <div id="effects"></div>
+    </div>
+
+    <div>
+      <h2 data-i18n="panel.learned">What it has learned</h2>
+      <div id="beliefs"></div>
+    </div>
+
+    <button id="btn-reset" data-i18n="app.reset">Restart</button>
+  </aside>
+  <section id="consola">
+    <h2 data-i18n="panel.console">Decision console</h2>
+    <div id="c-now"></div>
+    <div id="c-detail"></div>
+    <div>
+      <h2 data-i18n="panel.scores">Scoring</h2>
+      <div id="c-scores"></div>
+    </div>
+    <h2 data-i18n="panel.history">History</h2>
+    <div id="c-log"></div>
+  </section>
+  <div id="settings-overlay" hidden>
+    <div id="settings">
+      <header>
+        <h2 data-i18n="set.title">Settings</h2>
+        <button id="btn-clear-trees" data-i18n="set.clearTrees">Remove trees</button>
+        <button id="btn-wipe-memory" data-i18n="set.wipe">Forget everything</button>
+        <button id="btn-settings-reset" data-i18n="set.factory">Factory values</button>
+        <button id="btn-settings-close" data-i18n="set.close">Close</button>
+      </header>
+      <div id="settings-body"></div>
+    </div>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

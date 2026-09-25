@@ -1,0 +1,35 @@
+<!doctype html><meta charset="utf-8"><title>lago preview</title>
+<body style="margin:0;background:#222630">
+<canvas id="c" width="1180" height="620"></canvas>
+<script type="module">
+import { drawLake } from '/src/water-sprite.js';
+import { drawShore } from '/src/terrain.js';
+import { OBJECT_TYPES } from '/src/config.js';
+import { setDetalle } from '/src/sprite-kit.js';
+
+const spec = OBJECT_TYPES.agua;
+const ctx = document.getElementById('c').getContext('2d');
+const wind = { angle: 0.4 };
+
+function lago(o, r, t) {
+  drawShore(ctx, o, r);
+  drawLake(ctx, o, spec, r, wind, t);
+}
+
+function frame(t) {
+  ctx.fillStyle = '#3a342a'; ctx.fillRect(0, 0, 1180, 620);   // tierra de fondo
+
+  setDetalle(1);
+  lago({ x: 250, y: 250, type: 'agua', seed: 7 }, 210, t);    // uno grande, para el detalle
+  let i = 0;
+  for (const seed of [1, 2, 3, 4]) {
+    lago({ x: 600 + (i % 2) * 220, y: 140 + ((i / 2) | 0) * 220, type: 'agua', seed }, 80, t);
+    i++;
+  }
+  // y a tamaño real, que es como se ve en el mapa
+  lago({ x: 250, y: 545, type: 'agua', seed: 9 }, 44, t);
+  lago({ x: 380, y: 545, type: 'agua', seed: 10 }, 44, t);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>

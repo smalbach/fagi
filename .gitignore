@@ -1,0 +1,30 @@
+# Dependencias: se reconstruyen con `npm install` a partir de package-lock.json.
+node_modules/
+
+# Build de Vite: sale de `npm run build`, no se versiona.
+dist/
+*.local
+.vite/
+
+# Logs y volcados de npm.
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Secretos y ajustes de máquina.
+.env
+.env.*
+!.env.example
+
+# Ajustes personales de Claude Code. launch.json SÍ se versiona: dice cómo se
+# arranca el proyecto y eso vale para todo el mundo.
+.claude/settings.local.json
+
+# Editores.
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# macOS.
+.DS_Store

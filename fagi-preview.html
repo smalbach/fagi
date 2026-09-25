@@ -1,0 +1,45 @@
+<!doctype html><meta charset="utf-8"><title>fagi preview</title>
+<body style="margin:0;background:#222630">
+<canvas id="c" width="1180" height="620"></canvas>
+<script type="module">
+import { drawFagi } from '/src/fagi-sprite.js';
+
+const ctx = document.getElementById('c').getContext('2d');
+
+// Una Fagi de mentira: solo lo que el dibujo le pregunta.
+function fagi(x, y, angle, extra = {}) {
+  return { x, y, angle, alive: true, stride: 0, targetKind: null, castSide: 1,
+    carrying: null, ...extra };
+}
+
+function bicho(f, escala, t) {
+  ctx.save();
+  ctx.translate(f.x, f.y);
+  ctx.scale(escala, escala);
+  ctx.translate(-f.x, -f.y);
+  drawFagi(ctx, { ...f, stride: f.alive ? t * 9 : 0 });
+  ctx.restore();
+}
+
+function frame(ms) {
+  const t = ms / 1000;
+  ctx.fillStyle = '#3a342a'; ctx.fillRect(0, 0, 1180, 620);   // tierra de fondo
+
+  // Grande, para mirarle la quitina.
+  bicho(fagi(230, 200, 0), 6, t);
+  // Girando: la luz tiene que quedarse quieta en el mundo.
+  for (let i = 0; i < 6; i++) {
+    bicho(fagi(600 + (i % 3) * 160, 130 + ((i / 3) | 0) * 150, (i / 6) * Math.PI * 2), 2.4, t);
+  }
+  // Cargando, muerta, y rastreando un olor.
+  bicho(fagi(180, 470, -0.6, { carrying: { type: 'nectar' } }), 3.4, t);
+  bicho(fagi(420, 470, 0.9, { alive: false }), 3.4, t);
+  bicho(fagi(680, 470, 0.2, { targetKind: 'scent', castSide: 1 }), 3.4, t);
+  // Y a tamaño real, que es como se ve en el mapa.
+  bicho(fagi(950, 470, 0.2), 1, t);
+  bicho(fagi(1010, 470, 2.4), 1, t);
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
