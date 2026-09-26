@@ -3,12 +3,13 @@
 // Junta en UNA lista todo lo perseguible: comida vista, comida olida y el agua.
 // Cada candidato lleva por qué sentido entró, para que quien decida lo sepa.
 
-import { FAGI, BRAIN, THIRST, HUNGER, ENERGY, MEMORY, TREE } from './config.js';
+import { FAGI, BRAIN, THIRST, HUNGER, ENERGY, MEMORY, TREE, NEST } from './config.js';
 import { seenPoints, seesObject, viewRangeOf, distanceTo } from './vision.js';
 import { smelledPoints, smellsObject, aromaOf, scentStrengthOfObject } from './smell.js';
 import { isWater, isTree, radiusOf } from './obstacles.js';
 import { choose } from './brain.js';
-import { nestOf } from './world.js';
+import { nestOf, stockCount } from './world.js';
+import { followPheromone } from './pheromone.js';
 import { nestUnder } from './nest.js';
 import { rememberPlace, recallPlace, forgetPlace } from './memory.js';
 
@@ -73,9 +74,18 @@ function rememberFoodSource(fagi, world) {
   return { visible, source: visible ?? place, smelled, strength };
 }
 
+// Lo que empuja a una obrera a salir a por comida: su hambre o lo que le falta
+// a la despensa según la recuerda (fagi.pantry), lo que sea mayor.
+function forageNeed(fagi, hungerU) {
+  const falta = 1 - Math.min(1, stockCount(fagi.pantry) / NEST.full);
+  return Math.max(hungerU, NEST.forageDrive * falta);
+}
+
 function buildCandidates(fagi, world, {
   hungerU, thirstU, range, visible, pool, visibleSource, source, smelledSource, sourceStrength,
 }) {
+  const nido = nestOf(world);
+  const forage = forageNeed(fagi, hungerU);
   // Si algo entra por los dos sentidos, manda la vista (es más precisa).
   const porRef = new Map();
   const add = (c) => {
@@ -108,8 +118,9 @@ function buildCandidates(fagi, world, {
 
 
   // Un árbol visto se recuerda como fuente renovable. Se persigue su zona solo
-  // cuando no estamos ya bajo su copa; allí mandan los frutos concretos.
-  if (source && hungerU > 0.15 && (!smelledSource || visibleSource)) {
+  // cuando no estamos ya bajo su copa; allí mandan los frutos concretos. Tira
+  // de ella el hambre propia o la de la colonia, la que sea mayor.
+  if (source && forage > 0.15 && (!smelledSource || visibleSource)) {
     const real = visibleSource ?? source.ref;
     const dist = Math.max(0, distanceTo(fagi, source) - radiusOf(real));
     if (dist > FAGI.eatRadius * 2) {
@@ -118,9 +129,20 @@ function buildCandidates(fagi, world, {
       add({
         key: TREE.fruit, kind: 'food', ref: source, dist,
         range: via === 'vista' ? range : MEMORY.travelRange,
-        urgency: hungerU, via, source: true,
+        urgency: forage, via, source: true,
         penalty: via === 'vista' ? 0 : BRAIN.smellPenalty * (1 + duda),
       });
+    }
+  }
+
+  // Su propio rastro bajo las antenas, en el sentido que se aleja del nido.
+  // Es un candidato más: si seguirlo merece la pena lo dice lo aprendido
+  // (la creencia 'feromona'), no una regla. Está justo debajo: distancia 0.
+  if (nido && forage > 0) {
+    const marca = followPheromone(world, fagi, Math.hypot(nido.x - fagi.x, nido.y - fagi.y), true);
+    if (marca) {
+      add({ key: 'feromona', kind: 'trail', ref: marca, dist: 0, range: 1,
+            urgency: forage, via: 'antenas', penalty: 0 });
     }
   }
 

@@ -15,7 +15,9 @@
 //   node scripts/batch.js --map-seed 42 --runs 20 --duration 900
 //   node scripts/batch.js --map-seed 42 --runs 20 --json out.json
 
-import { createWorld } from '../src/world.js';
+import { createWorld, addObject, nestOf, stockCount } from '../src/world.js';
+import { isTree, isWater } from '../src/obstacles.js';
+import { pheromoneAt } from '../src/pheromone.js';
 import { generateMap } from '../src/mapgen.js';
 import { createFagi, updateFagi } from '../src/fagi.js';
 import { stepWorld } from '../src/simulation.js';
@@ -27,7 +29,7 @@ const { WORLD } = CONFIG;
 // --- argumentos -------------------------------------------------------------
 
 function args(argv) {
-  const o = { mapSeed: 1, runs: 10, duration: 600, dt: 0.05, seed0: 1000, worldVaries: false, check: false, json: null, cell: 80, sets: [] };
+  const o = { mapSeed: 1, runs: 10, duration: 600, dt: 0.05, seed0: 1000, worldVaries: false, check: false, json: null, cell: 80, sets: [], block: null, rock: 30 };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     const next = () => argv[++i];
@@ -40,6 +42,8 @@ function args(argv) {
     else if (a === '--check') o.check = true;
     else if (a === '--json') o.json = next();
     else if (a === '--cell') o.cell = Number(next());
+    else if (a === '--block') o.block = Number(next());
+    else if (a === '--rock') o.rock = Number(next());
     else if (a === '--profile') o.sets.push(...perfil(next()));
     else if (a === '--set') o.sets.push(asignacion(next()));
     else if (a === '-h' || a === '--help') { console.log(ayuda()); process.exit(0); }
@@ -60,6 +64,9 @@ function ayuda() {
   --cell PX        tamaño de casilla del mapa de calor              [80]
   --profile FILE   JSON con parámetros a cambiar: {"HUNGER": {"rate": 0.1}}
   --set A.b=V      cambia un parámetro suelto (se puede repetir)
+  --block S        a los S segundos pone un muro de rocas en la recta nido-árbol
+                   y en la recta nido-agua, y compara antes y después
+  --rock PX        radio de cada roca del muro                      [30]
   --json FILE      guarda todos los datos en un archivo`;
 }
 
@@ -113,6 +120,28 @@ function con(random, fn) {
   try { return fn(); } finally { Math.random = original; }
 }
 
+// --- el muro ---------------------------------------------------------------
+
+// Tres rocas atravesadas a mitad de la recta que une el nido con cada recurso:
+// el camino que ya aprendió deja de valer y tiene que rodear.
+function bloquear(world, r) {
+  const nido = nestOf(world);
+  const puestas = [];
+  for (const destino of [world.objects.find(isTree), world.objects.find(isWater)]) {
+    if (!nido || !destino) continue;
+    const dx = destino.x - nido.x, dy = destino.y - nido.y;
+    const L = Math.hypot(dx, dy);
+    const [ux, uy] = [dx / L, dy / L];
+    const [mx, my] = [nido.x + dx / 2, nido.y + dy / 2];
+    for (const k of [-1, 0, 1]) {
+      const x = mx - uy * k * (2 * r + 2), y = my + ux * k * (2 * r + 2);
+      const choca = world.objects.some((o) => o.type !== 'roca' && Math.hypot(o.x - x, o.y - y) < r + (o.r ?? 0) + 10);
+      if (!choca) puestas.push(addObject(world, x, y, 'roca', r, 'user'));
+    }
+  }
+  return puestas.length;
+}
+
 // --- una corrida ------------------------------------------------------------
 
 function correr(opts, fagiSeed) {
@@ -139,8 +168,19 @@ function correr(opts, fagiSeed) {
   let sedDesde = null;
   let bebia = false;
 
+  // Viajes a por más comida: desde que sale sin carga y con la despensa sin
+  // llenar (según la recuerda) hasta que recoge algo. Con la despensa llena no
+  // va a por comida, explora: eso no cuenta como ida. Se parten en
+  // antes/después del muro (--block).
+  const fases = { antes: nuevaFase(), despues: nuevaFase() };
+  let viajeDesde = null;
+  let recogidas = 0;
+  let rocas = 0;
+  let prev = { x: fagi.x, y: fagi.y };
+
   const pasos = Math.ceil(opts.duration / opts.dt);
   for (let i = 0; i < pasos && fagi.alive; i++) {
+    if (opts.block != null && rocas === 0 && world.time >= opts.block) rocas = bloquear(world, opts.rock) || -1;
     con(mundoRng, () => stepWorld(world, opts.dt));
     con(fagiRng, () => updateFagi(fagi, world, opts.dt));
 
@@ -158,6 +198,27 @@ function correr(opts, fagiSeed) {
     if (fagi.drinking && !bebia && sedDesde != null) { latencias.push(round(fagi.age - sedDesde)); sedDesde = null; }
     if (fagi.drinking) sedDesde = null;
     bebia = fagi.drinking;
+
+    const fase = opts.block != null && world.time >= opts.block ? fases.despues : fases.antes;
+    fase.t += opts.dt;
+    const buscando = !fagi.carrying && stockCount(fagi.pantry) < CONFIG.NEST.full;
+    if ((fagi.picked ?? 0) > recogidas && viajeDesde != null) { fase.viajes.push(fagi.age - viajeDesde); viajeDesde = null; }
+    else if (!buscando) viajeDesde = null;
+    else if (viajeDesde == null) viajeDesde = fagi.age;
+    recogidas = fagi.picked ?? 0;
+    if (viajeDesde != null) {
+      fase.ida += opts.dt;
+      const rastro = pheromoneAt(world, fagi.x, fagi.y) > 0.05;
+      if (rastro) fase.idaConRastro += opts.dt;
+      if (acc === 'pheromone') fase.idaFeromona += opts.dt;
+      fase.idaAcciones[acc] = (fase.idaAcciones[acc] ?? 0) + opts.dt;
+      if (rastro && acc !== 'pheromone') fase.rastroIgnorado += opts.dt;
+      if (fagi.target && world.objects.includes(fagi.target) && isTree(fagi.target)) fase.idaMemoriaArbol += opts.dt;
+    }
+    const quieta = ['rest', 'drink', 'eatCarried', 'pantry'].includes(acc) || fagi.drinking;
+    if (!quieta && Math.hypot(fagi.x - prev.x, fagi.y - prev.y) < 5 * opts.dt) fase.atascada += opts.dt;
+    prev = { x: fagi.x, y: fagi.y };
+    if (fagi.drinking && latencias.length && latencias.at(-1) !== fase.ultimaLat) { fase.agua.push(latencias.at(-1)); fase.ultimaLat = latencias.at(-1); }
 
     if (hitos.firstDrink == null && fagi.drunk > 0) hitos.firstDrink = round(fagi.age);
     if (hitos.firstMeal == null && fagi.eaten > 0) hitos.firstMeal = round(fagi.age);
@@ -185,12 +246,34 @@ function correr(opts, fagiSeed) {
     waterFirst: latencias[0] ?? null,
     waterLater: latencias.length > 1 ? round(media(latencias.slice(1))) : null,
     waterTrips: latencias.length,
+    rocks: rocas,
+    phases: Object.fromEntries(Object.entries(fases).map(([k, f]) => [k, resumenFase(f)])),
     visited: visitados.map((id) => `${world.objects.find((o) => o.id === id)?.type ?? '?'}#${id}`),
     actions: Object.fromEntries(Object.entries(acciones).map(([k, v]) => [k, round(v)])),
     sequence: secuencia,
     heat: Array.from(calor),
     path: camino,
     fingerprint: huella(fagi, world),
+  };
+}
+
+function nuevaFase() {
+  return { t: 0, viajes: [], ida: 0, idaConRastro: 0, idaFeromona: 0, rastroIgnorado: 0, idaMemoriaArbol: 0, atascada: 0, agua: [], ultimaLat: null, idaAcciones: {} };
+}
+
+function resumenFase(f) {
+  const pct = (x) => (f.ida ? round((x / f.ida) * 100) : null);
+  return {
+    seconds: round(f.t),
+    foodTrips: f.viajes.length,
+    foodTrip: f.viajes.length ? round(media(f.viajes)) : null,
+    onTrail: pct(f.idaConRastro),         // % de la ida con feromona bajo las patas
+    followsTrail: pct(f.idaFeromona),     // % de la ida en acción 'pheromone'
+    ignoresTrail: pct(f.rastroIgnorado),  // % de la ida con rastro pero haciendo otra cosa
+    byMemory: pct(f.idaMemoriaArbol),     // % de la ida yendo al árbol que recuerda
+    stuck: round(f.atascada),
+    waterTrip: f.agua.length ? round(media(f.agua)) : null,
+    tripActions: Object.fromEntries(Object.entries(f.idaAcciones).map(([k, v]) => [k, pct(v)])),
   };
 }
 
@@ -291,6 +374,8 @@ function informe(opts, runs) {
   for (const [k, v] of Object.entries(primeros).sort()) L.push(`  ${pad(k, 20)} ${v}/${runs.length}`);
   L.push('');
 
+  L.push(...informeFases(opts, runs));
+
   if (runs.length > 1) {
     const reparto = pares(runs, (a, b) => parecidoReparto(a.actions, b.actions));
     const calor = pares(runs, (a, b) => coseno(a.heat, b.heat));
@@ -305,6 +390,41 @@ function informe(opts, runs) {
     L.push(veredicto(runs, reparto, calor));
   }
   return L.join('\n');
+}
+
+function informeFases(opts, runs) {
+  const L = [];
+  const fases = opts.block != null ? ['antes', 'despues'] : ['antes'];
+  const campos = [
+    ['foodTrip', 'ida a por comida (s)'],
+    ['onTrail', 'ida con feromona debajo (%)'],
+    ['followsTrail', 'ida siguiendo feromona (%)'],
+    ['ignoresTrail', 'feromona debajo e ignorada (%)'],
+    ['byMemory', 'ida al árbol de memoria (%)'],
+    ['stuck', 'atascada (s)'],
+    ['waterTrip', 'llegar al agua (s)'],
+  ];
+  L.push(opts.block != null
+    ? `muro a los ${opts.block}s (rocas puestas de media: ${round(media(runs.map((r) => Math.max(0, r.rocks))))})`
+    : 'viajes a por comida');
+  L.push('  ' + pad('', 34) + fases.map((f) => pad(f === 'despues' ? 'después' : f, 12)).join(''));
+  for (const [k, nombre] of campos) {
+    L.push('  ' + pad(nombre, 34) + fases.map((f) => {
+      const xs = runs.map((r) => r.phases[f]?.[k]).filter((x) => x != null);
+      return pad(xs.length ? round(media(xs)) : '-', 12);
+    }).join(''));
+  }
+  const acciones = new Set(runs.flatMap((r) => fases.flatMap((f) => Object.keys(r.phases[f]?.tripActions ?? {}))));
+  L.push('  en la ida, % del tiempo haciendo:');
+  for (const a of [...acciones].sort()) {
+    L.push('    ' + pad(a, 32) + fases.map((f) => pad(round(media(runs.map((r) => r.phases[f]?.tripActions?.[a] ?? 0))), 12)).join(''));
+  }
+  if (opts.block != null) {
+    const muertas = runs.filter((r) => !r.alive && r.lived >= opts.block).length;
+    L.push(`  mueren después del muro: ${muertas}/${runs.length}`);
+  }
+  L.push('');
+  return L;
 }
 
 function veredicto(runs, reparto, calor) {

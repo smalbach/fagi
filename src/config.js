@@ -333,7 +333,10 @@ export const CARRY = {
 // aguanta eso más que tirada al sol. Pero aguantar no es durar para siempre —
 // cumplida esa vida larga se echa a perder y desaparece de las reservas. Guardar
 // aplaza el problema del hambre, no lo elimina.
-export const NEST = { full: 12, keepFactor: 10 };
+//
+// forageDrive: cuánto tira de una obrera la despensa vacía. Sale a por comida
+// por lo que le falta a la colonia, no solo por su propia hambre.
+export const NEST = { full: 12, keepFactor: 10, forageDrive: 0.5 };
 
 // Explorar. No es deambular: Fagi lleva una rejilla basta de por dónde ha
 // pasado y tira hacia la casilla que menos conoce.
@@ -368,8 +371,14 @@ export const ATTENTION = {
 // Feromona propia: el camino que marca al volver cargada al nido.
 export const PHERO = {
   life: 600,          // segundos que tarda en evaporarse una marca (Lasius niger: ~47 min de vida media)
-  every: 0.3,         // cada cuánto deja una marca mientras acarrea
-  sense: 46,          // a qué distancia detecta una marca
+  every: 0.1,         // cada cuánto deja una marca mientras acarrea: ~7 px, un rastro continuo
+  sense: 12,          // a qué distancia detecta una marca: lo que alcanzan las antenas (~6 mm)
+  // Seguir el rastro se aprende como cualquier otra cosa: si en learnWindow
+  // segundos la lleva a comida, la creencia sobre la feromona sube (found); si
+  // no, baja (miss). Nace sin saber que el rastro sirve para algo.
+  learnWindow: 20,
+  found: 0.8,
+  miss: -0.5,
 };
 
 // Árbol: suelta fruta cada cierto tiempo a su alrededor. El intervalo se

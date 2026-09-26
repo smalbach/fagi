@@ -41,11 +41,47 @@ export function advance(fagi, world, dt) {
   }
 }
 
+// ¿Cabe el cuerpo por ahí? Mira un trecho corto en esa dirección.
+function hueco(fagi, world, a) {
+  const look = FAGI.radius + 34;
+  return !segmentBlocked(world, fagi.x, fagi.y,
+    fagi.x + Math.cos(a) * look, fagi.y + Math.sin(a) * look, FAGI.radius);
+}
+
+// El primer rumbo libre girando desde `base` hacia `side`, a pasos de 15°.
+function primerHueco(fagi, world, base, side) {
+  for (let k = 0; k <= 12; k++) {
+    const a = base + side * k * (Math.PI / 12);
+    if (hueco(fagi, world, a)) return { a, k };
+  }
+  return null;
+}
+
+// Rodear. Si la recta al objetivo cruza una roca, elige un lado al toparse
+// (el que antes deja paso) y lo MANTIENE hasta volver a tener el objetivo a la
+// vista. Decidir el lado en cada frame la hacía ir y venir a lo largo de un
+// muro sin llegar nunca a su final. Así bordean las hormigas un obstáculo.
+function rumbo(fagi, world, target) {
+  const directo = angleTo(fagi, target);
+  if (!segmentBlocked(world, fagi.x, fagi.y, target.x, target.y, FAGI.radius)) {
+    fagi.detour = null;
+    return directo;
+  }
+  if (fagi.detour?.target !== target) {
+    const izq = primerHueco(fagi, world, directo, -1);
+    const der = primerHueco(fagi, world, directo, 1);
+    const side = !izq ? 1 : !der ? -1 : izq.k < der.k ? -1 : 1;
+    fagi.detour = { target, side };
+  }
+  return primerHueco(fagi, world, directo, fagi.detour.side)?.a ?? null;
+}
+
 export function moveToward(fagi, world, target, dt) {
-  // Esquivar una roca manda sobre ir hacia el objetivo.
-  const dodge = avoidanceTurn(fagi, world);
-  const goal = dodge !== 0 ? fagi.angle + dodge * 0.9 : angleTo(fagi, target);
-  turnTowards(fagi, goal, dt);
+  // Rodear la roca manda sobre ir en línea recta. Si ni así hay hueco, el
+  // esquive de siempre, que al menos la saca de ahí.
+  const goal = rumbo(fagi, world, target);
+  const dodge = goal == null ? avoidanceTurn(fagi, world) || 1 : 0;
+  turnTowards(fagi, goal ?? fagi.angle + dodge * 0.9, dt);
   // Ya está encima del punto que perseguía: el radio de giro es menor que
   // eatRadius, así que seguir avanzando sería orbitarlo sin llegar a tocarlo.
   // Se para. Al agua y al nido no se les frena: entrar en ellos ya resuelve lo

@@ -9,7 +9,7 @@
 // Solo hay un episodio pendiente a la vez. Abrir otro cierra el anterior sin
 // más: dos bocados seguidos no pueden cargar los dos con el mismo susto.
 
-import { FEEL, NEEDS, HUNGER, THIRST } from './config.js';
+import { FEEL, NEEDS, HUNGER, THIRST, PHERO } from './config.js';
 import { learn } from './brain.js';
 import { snapshotBody, feel } from './interoception.js';
 
@@ -91,6 +91,31 @@ export function resolveEpisodes(fagi, dt) {
   const ahoraCritica = needU(fagi, ep.need) >= NEEDS.critical;   // fagi = cuerpo AHORA
   const correction = !ep.critAt && ahoraCritica ? -FEEL.perilWeight : null;
   cerrar(fagi, ep, correction);
+}
+
+// Seguir su propio rastro también es una experiencia, y se juzga por cómo
+// acaba: si en PHERO.learnWindow segundos recoge o come algo, el rastro llevó a
+// comida; si no, no llevó a nada. Si lo deja porque algo más urgente manda
+// (sed, hambre crítica), no se juzga: no es culpa del rastro.
+// Se llama después de actuar, cuando ya se sabe si recogió o comió.
+export function resolveTrail(fagi) {
+  const comida = (fagi.picked ?? 0) + fagi.eaten;
+  const siguiendo = fagi.thought?.action === 'pheromone';
+  const ep = fagi.trailEp;
+
+  if (!ep) {
+    if (siguiendo) fagi.trailEp = { at: fagi.age, comida };
+    return;
+  }
+  if (comida > ep.comida) {
+    aprender(fagi, 'feromona', PHERO.found, [{ sense: 'found', v: 1 }]);
+    fagi.trailEp = null;
+  } else if (!siguiendo && fagi.thought?.tier === 'survive') {
+    fagi.trailEp = null;
+  } else if (fagi.age - ep.at >= PHERO.learnWindow) {
+    aprender(fagi, 'feromona', PHERO.miss, [{ sense: 'lost', v: -1 }]);
+    fagi.trailEp = null;
+  }
 }
 
 // Morir con un bocado reciente en el cuerpo es la peor lección posible.

@@ -33,10 +33,11 @@ export function waterUnder(world, fagi) {
 }
 
 // ¿El segmento A-B cruza alguna roca? Sirve para cortar la visión.
-export function segmentBlocked(world, ax, ay, bx, by) {
+// `margin` engorda cada roca: para saber si cabe el cuerpo de Fagi, no solo un rayo.
+export function segmentBlocked(world, ax, ay, bx, by, margin = 0) {
   for (const o of world.objects) {
     if (!isBlock(o)) continue;
-    if (segmentHitsCircle(ax, ay, bx, by, o.x, o.y, radiusOf(o))) return true;
+    if (segmentHitsCircle(ax, ay, bx, by, o.x, o.y, radiusOf(o) + margin)) return true;
   }
   return false;
 }

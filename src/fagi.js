@@ -16,7 +16,7 @@ import { createBrain } from './brain.js';
 import { decayMemory } from './memory.js';
 import { decaySynapses, perceiveSynapses } from './synapses.js';
 import { createEffects, updateEffects } from './effects.js';
-import { resolveEpisodes } from './episodes.js';
+import { resolveEpisodes, resolveTrail } from './episodes.js';
 import { autoSave as saveLearning, save, snapshot } from './learned/store.js';
 import { nestOf } from './world.js';
 import { dropPheromone } from './pheromone.js';
@@ -55,6 +55,8 @@ export function createFagi() {
     effects: createEffects(),
     episode: null,     // la experiencia abierta (comió o bebe) hasta saber cómo acabó
     lastEpisode: null, // la última cerrada o abierta, para el narrador
+    trailEp: null,     // desde cuándo sigue su rastro, hasta saber si llevó a comida
+    homeSearched: false, // buscando agua, ya pasó por el nido: ahora explora desde allí
     directive: null,   // lo que mandó la API de decisión, mientras siga vigente
     cortex: null,      // el canal con la API de decisión. null = no hay ninguna: decide el instinto
     thought: null,     // razonamiento del último frame, lo leen consola y HUD
@@ -138,6 +140,7 @@ export function updateFagi(fagi, world, dt) {
   spendEnergy(fagi, world, dt, !parada);
   markTrail(fagi, world, dt);
   tryPickOrEat(fagi, world);
+  resolveTrail(fagi);            // ¿el rastro que seguía la llevó a comida?
   increaseNeeds(fagi, dt);
 
   // Morir guarda ya mismo, sin esperar al próximo turno de autoguardado: lo

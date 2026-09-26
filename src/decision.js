@@ -19,7 +19,6 @@ import { FAGI, ENERGY, BRAIN, CARRY, NEEDS, HUNGER, THIRST, BACKEND, ATTENTION }
 import { statMult } from './effects.js';
 import { verdict } from './learned/rules.js';
 import { labelOf } from './i18n.js';
-import { followPheromone } from './pheromone.js';
 import { stockFull } from './world.js';
 import { notice, rethink } from './attention.js';
 
@@ -81,8 +80,12 @@ function urgencia(fagi, world, ctx, dt) {
 
   // Si no sabe dónde hay agua, cualquier objetivo de comida es una distracción
   // fatal: limpia el objetivo y busca terreno nuevo hasta encontrarla.
+  // Primero vuelve a casa y desde allí explora. Una vez en el nido, esa vuelta
+  // ya está hecha hasta que beba: si no, al dar un paso fuera la volvía a
+  // mandar al nido, y se quedaba en la puerta yendo y viniendo hasta morir.
   if (risk.kind === 'water') {
-    if (ctx.nido && !ctx.enNido) {
+    if (ctx.enNido) fagi.homeSearched = true;
+    if (ctx.nido && !ctx.enNido && !fagi.homeSearched) {
       return {
         action: 'searchWaterNearHome',
         reason: razon('reason.explore'),
@@ -180,7 +183,7 @@ function despensaHecha(fagi, ctx) {
 }
 
 function inservible(fagi, ctx, candidato) {
-  return candidato.kind === 'food' && despensaHecha(fagi, ctx);
+  return (candidato.kind === 'food' || candidato.kind === 'trail') && despensaHecha(fagi, ctx);
 }
 
 // El mejor candidato de lo que ve y huele, con histéresis para no zigzaguear.
@@ -193,21 +196,37 @@ function perseguir(fagi, world, ctx, dt, onlyKind = null) {
   const { ranked, candidatos } = ctx;
   const puedePerseguir = (r) => !inservible(fagi, ctx, r)
     && (r.kind !== 'food' || verdict(fagi, 'pursue', r.key) !== 'avoid');
-  const disponibles = ranked.filter((r) => (!onlyKind || r.kind === onlyKind) && puedePerseguir(r));
+  // El rastro propio lleva a comida (o eso cree): cuenta cuando se busca comida.
+  const delTipo = (r) => !onlyKind || r.kind === onlyKind || (onlyKind === 'food' && r.kind === 'trail');
+  const disponibles = ranked.filter((r) => delTipo(r) && puedePerseguir(r));
   // La lista viene ordenada de mejor a peor: el primero que pase el mínimo es
   // el mejor que pasa el mínimo.
   const first = disponibles.find((r) => r.score > BRAIN.minScore);
-  if (!first) return null;
+  const actual = fagi.target ? disponibles.find((r) => r.ref === fagi.target) : null;
 
+  // La histéresis vale también para el mínimo: lo que ya persigue no se suelta
+  // hasta caer `stickiness` por debajo. Si no, un objetivo que ronda el mínimo
+  // (el agua que recuerda, a media distancia) se coge y se suelta cada frame.
   let elegido = first;
-  if (fagi.target) {
-    const actual = disponibles.find((r) => r.ref === fagi.target);
-    if (actual && actual.score > 0 && actual.score >= first.score - BRAIN.stickiness) {
-      elegido = actual;
-    }
+  if (actual && actual.score > 0) {
+    const aguanta = first ? actual.score >= first.score - BRAIN.stickiness
+      : actual.score > BRAIN.minScore - BRAIN.stickiness;
+    if (aguanta) elegido = actual;
   }
+  if (!elegido) return null;
 
   fagi.memory = FAGI.memorySec;
+
+  // Su propio rastro: la siguiente marca, alejándose del nido.
+  if (elegido.kind === 'trail') {
+    return {
+      action: 'pheromone',
+      reason: razon('reason.pheromone'),
+      target: elegido.ref,
+      targetKind: 'phero',
+      trailKey: null,
+    };
+  }
 
   // Lo huele pero no lo ve: no sabe dónde está, así que sigue el rastro.
   if (elegido.via === 'olfato') {
@@ -275,22 +294,6 @@ function insistirEnElOlor(fagi, world, ctx, dt) {
     }),
     targetKind: 'scent',
     trailKey: fagi.trailKey,
-  };
-}
-
-// Sin nada que percibir: tira de su propio camino marcado, alejándose del nido,
-// que es hacia donde estaba la comida la última vez.
-function seguirFeromona(fagi, world, ctx) {
-  if (!ctx.nido) return null;
-  const dNest = Math.hypot(ctx.nido.x - fagi.x, ctx.nido.y - fagi.y);
-  const marca = followPheromone(world, fagi, dNest, true);
-  if (!marca) return null;
-  return {
-    action: 'pheromone',
-    reason: razon('reason.pheromone'),
-    target: marca,
-    targetKind: 'phero',
-    trailKey: null,
   };
 }
 
@@ -365,7 +368,6 @@ const REGLAS = [
   // pistas de algo que ya percibió y perdió, de la más fresca a la más vieja
   ['clues', 'scent', insistirEnElOlor],
   ['clues', 'memory', insistirDeMemoria],
-  ['clues', 'pheromone', seguirFeromona],
 ];
 
 // Los escalones en orden, para quien quiera dibujar la jerarquía.

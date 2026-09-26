@@ -38,6 +38,7 @@ export function drink(fagi, world, dt) {
   const empieza = Boolean(pool) && !fagi.drinking;
   fagi.drinking = Boolean(pool);
   if (!pool) return;
+  fagi.homeSearched = false;   // encontró agua: la próxima búsqueda vuelve a empezar en casa
 
   // Empezar a beber abre una experiencia: se juzga tras un rato bebiendo, por
   // lo que le quitó la sed de verdad. Beber sin sed no enseña nada, porque no

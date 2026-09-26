@@ -6,6 +6,7 @@
 
 import { PHERO } from './config.js';
 import { record } from './world.js';
+import { segmentBlocked } from './obstacles.js';
 
 export function createPheromone() {
   return [];
@@ -36,6 +37,8 @@ export function followPheromone(world, fagi, dNestActual, alejandose) {
     const d = Math.hypot(m.x - fagi.x, m.y - fagi.y);
     if (d > PHERO.sense || d < 4) continue;
     if (alejandose ? m.dNest > mejorD : m.dNest < mejorD) {
+      // Las antenas tocan el suelo: una marca al otro lado de una roca no llega.
+      if (segmentBlocked(world, fagi.x, fagi.y, m.x, m.y)) continue;
       mejorD = m.dNest;
       mejor = m;
     }
