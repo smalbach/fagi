@@ -82,3 +82,34 @@ test('autoSave only writes every LEARN.autosaveEvery simulated seconds', () => {
   store.autoSave(fagi, 20, storage);
   assert.equal(store.hasSnapshot(storage), true);
 });
+
+test('the exported file carries what the body felt (feel synapses), and importing keeps it', () => {
+  const fagi = createFagi();
+  eat(fagi, 'toxico');
+  const syn = Object.values(fagi.brain.synapses).filter((s) => s.kind === 'feel');
+  assert.ok(syn.length > 0, 'comer algo malo conecta concepto→sensación');
+
+  const texto = store.exportText(fagi);
+  const otra = createFagi();
+  store.importText(otra, texto);
+  const importadas = Object.values(otra.brain.synapses).filter((s) => s.kind === 'feel');
+  assert.equal(importadas.length, syn.length);
+  for (const s of syn) {
+    const x = otra.brain.synapses[`${s.a}>${s.b}`];
+    assert.ok(x, `${s.a}>${s.b}`);
+    assert.ok(Math.abs(x.w - s.w) < 1e-3);
+  }
+  // Y el autoguardado lleva exactamente lo mismo que el archivo.
+  assert.deepEqual(Object.keys(store.snapshot(fagi).synapses).sort(), syn.map((s) => `${s.a}>${s.b}`).sort());
+});
+
+test('a malformed synapse in an imported file is dropped, not trusted', () => {
+  const fagi = createFagi();
+  const texto = store.exportText(fagi).replace(
+    /export const memoria = \{/,
+    'export const memoria = {"synapses":{"x":{"a":"sense:vista","b":"feel:hunger","w":9}},',
+  );
+  const otra = createFagi();
+  store.importText(otra, texto);
+  assert.equal(Object.keys(otra.brain.synapses).length, 0);
+});

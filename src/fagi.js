@@ -31,6 +31,7 @@ import { eatCarried, tryPickOrEat } from './feeding.js';
 import { useNest } from './nest.js';
 import { swim } from './swim.js';
 import { senseWeather } from './weather.js';
+import { refreshRules } from './learned/synth.js';
 
 export function createFagi() {
   return {
@@ -124,6 +125,16 @@ function act(fagi, world, dt) {
   else explore(fagi, world, dt);
 }
 
+// Una vez por segundo el olvido se hace visible en el código aprendido: los
+// pesos de las reglas se ponen al día y el panel se entera (brain.version).
+function tickLearnedCode(fagi, dt) {
+  fagi.codeTick = (fagi.codeTick ?? 1) - dt;
+  if (fagi.codeTick > 0) return;
+  fagi.codeTick = 1;
+  refreshRules(fagi.brain);
+  fagi.brain.version = (fagi.brain.version ?? 0) + 1;
+}
+
 export function updateFagi(fagi, world, dt) {
   if (!fagi.alive) return;
   fagi.age += dt;
@@ -131,6 +142,7 @@ export function updateFagi(fagi, world, dt) {
   updateEffects(fagi, dt);
   resolveEpisodes(fagi, dt);     // ¿ya se sabe cómo le sentó lo último que comió?
   decayMemory(fagi.brain, dt);   // la confianza baja sola y los sitios se difuminan
+  tickLearnedCode(fagi, dt);     // y el código aprendido lo refleja, una vez por segundo
   decaySynapses(fagi.brain.synapses, dt, fagi.age);   // y las conexiones sin uso se debilitan
   markVisited(fagi.explored, fagi.x, fagi.y, dt);  // estar en un sitio es conocerlo
   swim(fagi, world, dt);         // ¿se ha metido en el hondo? lo siente y aprende

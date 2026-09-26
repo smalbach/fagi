@@ -76,7 +76,7 @@ const LINEA_REGLA = /^(?:\/\/ retirada [\d.]+s: )?rule\('([a-z0-9-]{1,64})',\s*(
 const LINEA_MEMORIA = /^export const memoria = (\{.*\});$/;
 
 // El módulo completo, tal y como se exporta y se enseña en el panel.
-export function renderModule(rules, facts, { age, puddleLife = null } = {}) {
+export function renderModule(rules, facts, { age, puddleLife = null, synapses = null } = {}) {
   const activas = rules.filter((r) => !r.retired);
   const retiradas = rules.filter((r) => r.retired);
   const cabecera = `// Código aprendido por Fagi · edad ${(age ?? 0).toFixed(1)}s · ` +
@@ -84,8 +84,12 @@ export function renderModule(rules, facts, { age, puddleLife = null } = {}) {
     `// Generado por src/learned/dsl.js. Se importa sin eval: cada línea es JSON.\n`;
   const cuerpo = [...activas, ...retiradas].map((r) => '  ' + renderRule(r)).join(',\n');
   const lineaRules = cuerpo ? `export default [\n${cuerpo},\n];` : 'export default [];';
-  // Además de las creencias, lo que sabe de cómo es el mundo: cuánto dura un charco.
-  const memoria = puddleLife != null ? { facts, puddleLife: Math.round(puddleLife * 10) / 10 } : { facts };
+  // Además de las creencias, lo que sabe de cómo es el mundo (cuánto dura un
+  // charco) y qué le hizo sentir cada cosa (las sinapsis concepto→sensación).
+  // Es lo mismo que guarda el autoguardado: exportar e importar no pierde nada.
+  const memoria = { facts };
+  if (puddleLife != null) memoria.puddleLife = Math.round(puddleLife * 10) / 10;
+  if (synapses && Object.keys(synapses).length) memoria.synapses = synapses;
   const lineaMemoria = `export const memoria = ${JSON.stringify(memoria)};`;
   return `${cabecera}import { rule } from './dsl.js';\n\n${lineaRules}\n${lineaMemoria}\n`;
 }
@@ -101,6 +105,7 @@ export function parseModule(text) {
   const rules = [];
   let facts = {};
   let puddleLife = null;
+  let synapses = {};
   let vistoMemoria = false;
 
   for (const linea of text.split('\n')) {
@@ -127,6 +132,7 @@ export function parseModule(text) {
         if (typeof datos.puddleLife === 'number' && Number.isFinite(datos.puddleLife) && datos.puddleLife > 0) {
           puddleLife = datos.puddleLife;
         }
+        synapses = validarSinapsis(datos.synapses);
         vistoMemoria = true;
       }
     }
@@ -134,5 +140,20 @@ export function parseModule(text) {
   }
 
   if (!vistoMemoria && rules.length === 0) throw new Error('no se reconoce ninguna regla ni memoria en el archivo');
-  return { rules, facts, puddleLife };
+  return { rules, facts, puddleLife, synapses };
+}
+
+// Solo entran conexiones concepto→sensación con forma sana; el resto se ignora.
+function validarSinapsis(syn) {
+  const fuera = {};
+  if (!syn || typeof syn !== 'object') return fuera;
+  for (const [id, s] of Object.entries(syn).slice(0, 500)) {
+    if (!s || typeof s !== 'object') continue;
+    const { a, b, w, n } = s;
+    if (typeof a !== 'string' || typeof b !== 'string' || a.length > 80 || b.length > 80) continue;
+    if (id !== `${a}>${b}` || !a.startsWith('key:') || !b.startsWith('feel:')) continue;
+    if (!esNumero(w) || w < -1 || w > 1) continue;
+    fuera[id] = { a, b, kind: 'feel', w, n: esNumero(n) ? n : 0 };
+  }
+  return fuera;
 }

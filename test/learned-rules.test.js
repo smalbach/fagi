@@ -121,3 +121,27 @@ test('a belief that climbs back above the exit threshold retires its rule', () =
   for (let i = 0; i < 6; i++) { learn(fagi.brain, 'chispa', 1, now); now += 20; }
   assert.ok(activeRule(fagi.brain.rules, 'chispa', 'prefer'));
 });
+
+test('the learned code keeps up with learning and forgetting, not only with rule changes', async () => {
+  const { weight } = await import('../src/memory.js');
+  const { createWorld } = await import('../src/world.js');
+  const { step } = await import('../src/simulation.js');
+  const fagi = createFagi();
+  const world = createWorld();
+
+  // Aprender algo que no llega a regla también cambia lo aprendido.
+  const v0 = fagi.brain.version;
+  const seq0 = fagi.brain.rules.seq;
+  learn(fagi.brain, 'agua', 0.2, 0);
+  assert.equal(fagi.brain.rules.seq, seq0, 'no hay regla que tocar');
+  assert.ok(fagi.brain.version > v0, 'pero el panel tiene que enterarse');
+
+  // Con el olvido, el peso escrito en la regla sigue al de la creencia.
+  for (let i = 0; i < 3; i++) learn(fagi.brain, 'toxico', -0.8, i * 20);
+  const regla = () => fagi.brain.rules.list.find((r) => r.id === 'evitar-toxico');
+  const escrito = regla().weight;
+  for (let i = 0; i < 60 * 20; i++) step(world, fagi, 0.05);
+  assert.ok(Math.abs(regla().weight) < Math.abs(escrito), 'el peso de la regla baja con el olvido');
+  assert.ok(Math.abs(regla().weight - weight(fagi.brain, 'toxico')) < 0.01, 'y coincide con el de la creencia');
+  assert.equal(regla().retired, undefined, 'olvidar no la retira');
+});

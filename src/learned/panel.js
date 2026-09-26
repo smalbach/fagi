@@ -34,6 +34,7 @@ export function createLearnedPanel(fagi, { onBackendChange } = {}) {
   if (!el.code) return { update() {} };
 
   let vistoSeq = -1;
+  let vistaVersion = -1;
   let visto = fagi;
 
   function aviso(key, tipo = 'ok') {
@@ -119,12 +120,16 @@ export function createLearnedPanel(fagi, { onBackendChange } = {}) {
 
   return {
     // Repintar el código cada frame sería tirar CPU en vano: solo hace falta
-    // cuando algo cambió, y eso es justo lo que cuenta rules.seq.
+    // cuando algo cambió. rules.seq cuenta los cambios de reglas (y en una
+    // reproducción, cada foto de la mente); brain.version, todo lo demás que
+    // aprende: cada experiencia y el olvido, segundo a segundo.
     // `de`: otra Fagi que enseñar en vez de la propia (la de una sesión que se
     // reproduce). Cambiar de una a otra también obliga a repintar.
     update(de = fagi) {
-      if (de.brain.rules.seq === vistoSeq && de === visto) return;
+      const version = de.brain.version ?? 0;
+      if (de.brain.rules.seq === vistoSeq && version === vistaVersion && de === visto) return;
       vistoSeq = de.brain.rules.seq;
+      vistaVersion = version;
       visto = de;
       pintarCodigo(de);
       pintarRecuperar();

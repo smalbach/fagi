@@ -38,6 +38,26 @@ function because0(sensations) {
   return sensations && sensations.length ? sensations : [{ sense: 'contradiccion', v: 0 }];
 }
 
+// El olvido también cambia lo que pesa una creencia: la confianza cae sola
+// (memory.decayMemory) y con ella el peso. Sin esto, el `weight` y la `stage`
+// escritos en cada regla se quedaban en los del último aprendizaje sobre esa
+// clave, hasta 0,3 por encima del peso real al cabo de una hora.
+//
+// Solo refresca lo que la regla CUENTA de la creencia; no la retira. Que una
+// regla se retire es cosa de aprender lo contrario (synthAfterLearn): lo que
+// cae con el tiempo es la confianza, no lo aprendido, y MEMORY.floor mantiene
+// el poso. Un susto fuerte (el hondo) deja su regla para siempre a propósito.
+export function refreshRules(brain) {
+  for (const r of brain.rules.list) {
+    if (r.retired) continue;
+    const fact = brain.facts[r.when.key];
+    if (!fact) continue;
+    r.weight = Number(weight(brain, r.when.key).toFixed(3));
+    r.stage = fact.stage;
+    r.tries = fact.tries;
+  }
+}
+
 // Se llama desde brain.js, tras CADA learn() (bocado, corrección diferida,
 // muerte): así no hay ningún camino de aprendizaje que se olvide de escribir
 // código. `cambio` es lo que devolvió reinforce(): {before, after, kind}.

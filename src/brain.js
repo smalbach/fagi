@@ -13,8 +13,13 @@ import { createSynapses, wire } from './synapses.js';
 //   synapses : la huella de lo aprendido como conexiones (synapses.js).
 //   lastRule : la última regla escrita, revisada o retirada. Lo lee el
 //              narrador; no hace falta guardarlo en ningún otro sitio.
+//   version  : sube cada vez que cambia lo aprendido (cada experiencia, y
+//              cada segundo por el olvido). El panel del código aprendido
+//              repinta cuando cambia: con rules.seq solo se enteraba de las
+//              reglas, y las creencias que no llegan a regla (el agua, los
+//              charcos) se quedaban congeladas en pantalla.
 export function createBrain() {
-  return { ...createMemory(), rules: createRules(), lastRule: null, synapses: createSynapses() };
+  return { ...createMemory(), rules: createRules(), lastRule: null, synapses: createSynapses(), version: 0 };
 }
 
 // Candidato: { key, kind, ref, dist, range, urgency }
@@ -62,6 +67,7 @@ export function choose(brain, candidates) {
 export function learn(brain, key, reward, now, because = []) {
   const cambio = reinforce(brain, key, reward, now, BRAIN.learnRate);
   synthAfterLearn(brain, key, cambio, because, now);
+  brain.version = (brain.version ?? 0) + 1;
   // Aprender también conecta: el concepto con lo que el cuerpo sintió.
   if (brain.synapses) wire(brain.synapses, key, because, now);
   return cambio;

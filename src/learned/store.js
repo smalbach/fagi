@@ -1,5 +1,9 @@
-// Persistencia de lo aprendido: creencias y reglas, nunca las demás cosas del
-// estado de Fagi (posición, hambre, lo que lleva encima...). Vive solo en el
+// Persistencia de lo aprendido: creencias, reglas, qué le hizo sentir cada
+// cosa (sinapsis concepto→sensación) y cuánto dura un charco. Nunca las demás
+// cosas del estado de Fagi (posición, hambre, lo que lleva encima...), ni lo
+// que es de un mapa concreto (sitios recordados, lo explorado).
+//
+// El autoguardado y el módulo exportado llevan exactamente lo mismo. Vive solo en el
 // navegador de quien juega: localStorage para guardar una copia recuperable
 // entre partidas, y exportar/importar el módulo de código para llevárselo a
 // otra sesión.
@@ -13,6 +17,17 @@ import { renderModule, parseModule } from './dsl.js';
 const CLAVE = 'fagi.learning';
 
 // Una foto de lo aprendido, lista para guardar o exportar.
+// Las conexiones que deja aprender por consecuencias (concepto→sensación),
+// redondeadas: las de percibir (Hebb) se rehacen solas al volver a ver.
+function sinapsisAprendidas(fagi) {
+  const fuera = {};
+  for (const [id, s] of Object.entries(fagi.brain.synapses ?? {})) {
+    if (s.kind !== 'feel') continue;
+    fuera[id] = { a: s.a, b: s.b, kind: 'feel', w: Math.round(s.w * 1000) / 1000, n: s.n ?? 0 };
+  }
+  return fuera;
+}
+
 export function snapshot(fagi) {
   return {
     version: 1,
@@ -22,7 +37,7 @@ export function snapshot(fagi) {
     rules: fagi.brain.rules.list,
     // Solo las conexiones aprendidas por consecuencias: las de percibir se
     // rehacen solas en cuanto vuelve a ver las cosas.
-    synapses: Object.fromEntries(Object.entries(fagi.brain.synapses ?? {}).filter(([, s]) => s.kind === 'feel')),
+    synapses: sinapsisAprendidas(fagi),
     // Cuánto cree que dura un charco: no depende del mapa, vale para la próxima.
     puddleLife: fagi.brain.puddleLife ?? null,
   };
@@ -63,23 +78,27 @@ export function restore(fagi, snap) {
   fagi.brain.synapses = {};
   for (const [id, s] of Object.entries(snap.synapses ?? {})) fagi.brain.synapses[id] = { ...s, born: 0, last: 0 };
   fagi.brain.puddleLife = snap.puddleLife ?? null;
+  fagi.brain.version = (fagi.brain.version ?? 0) + 1;
 }
 
 export function exportText(fagi) {
-  return renderModule(fagi.brain.rules.list, fagi.brain.facts, { age: fagi.age, puddleLife: fagi.brain.puddleLife });
+  return renderModule(fagi.brain.rules.list, fagi.brain.facts, {
+    age: fagi.age, puddleLife: fagi.brain.puddleLife, synapses: sinapsisAprendidas(fagi),
+  });
 }
 
 // Lee un archivo importado y, si es válido, sustituye lo aprendido. Lanza con
 // un motivo legible si no lo es; en ese caso no toca la memoria de Fagi.
 export function importText(fagi, text) {
-  const { rules, facts, puddleLife } = parseModule(text);
-  restore(fagi, { facts, rules, puddleLife });
+  const { rules, facts, puddleLife, synapses } = parseModule(text);
+  restore(fagi, { facts, rules, puddleLife, synapses });
 }
 
 export function wipe(fagi, storage = safeStorage()) {
   fagi.brain.facts = {};
   fagi.brain.synapses = {};
   fagi.brain.puddleLife = null;
+  fagi.brain.version = (fagi.brain.version ?? 0) + 1;
   fagi.brain.rules.list = [];
   fagi.brain.rules.quarantined = new Set();
   fagi.brain.rules.seq += 1;
