@@ -12,6 +12,8 @@ const DICT = {
     'app.analysis': '◉ Analysis',
     'app.reset': 'Restart · new map',
     'app.language': 'Idioma / Language',
+    'app.collapseAll': '▾ Hide all',
+    'app.expandAll': '▸ Show all',
 
     'panel.food': 'Food',
     'panel.map': 'Map · right click removes · shift+wheel resizes',
@@ -241,6 +243,8 @@ const DICT = {
     'app.analysis': '◉ Análisis',
     'app.reset': 'Reiniciar · mapa nuevo',
     'app.language': 'Idioma / Language',
+    'app.collapseAll': '▾ Ocultar todo',
+    'app.expandAll': '▸ Mostrar todo',
 
     'panel.food': 'Alimento',
     'panel.map': 'Mapa · der. borra · mayús+rueda tamaño',

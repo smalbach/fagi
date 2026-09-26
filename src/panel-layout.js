@@ -12,6 +12,7 @@
 // scroll interno peleándose por el gesto del dedo.
 
 import Split from 'split.js';
+import { t, onLangChange } from './i18n.js';
 
 const CLAVE = 'fagi.panel-layout';
 const MEDIA_ESCRITORIO = '(min-width: 861px)';
@@ -138,4 +139,28 @@ export function initPanelLayout(root) {
   };
   mq.addEventListener('change', sincronizar);
   sincronizar();
+}
+
+// Un botón para abrir o cerrar TODAS las secciones del HUD (Food, Map,
+// State...) de una vez: cerrarlas una por una en el móvil, cuando lo que se
+// quiere es despejar la pantalla para mirar el mapa, era demasiado lento.
+export function initHudGroups(hud, boton) {
+  if (!hud || !boton) return;
+  const grupos = () => [...hud.querySelectorAll(':scope > .hud-group')];
+
+  function actualizarBoton() {
+    const algunoAbierto = grupos().some((g) => g.open);
+    boton.textContent = algunoAbierto ? t('app.collapseAll') : t('app.expandAll');
+  }
+
+  boton.addEventListener('click', () => {
+    const abrir = !grupos().some((g) => g.open);
+    for (const g of grupos()) g.open = abrir;
+    actualizarBoton();
+  });
+  // Cerrar o abrir una sección a mano también debe refrescar la etiqueta del
+  // botón: "toggle" en <details> no burbujea, así que se escucha en cada una.
+  for (const g of grupos()) g.addEventListener('toggle', actualizarBoton);
+  onLangChange(actualizarBoton);
+  actualizarBoton();
 }

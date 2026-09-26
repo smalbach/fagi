@@ -42,6 +42,8 @@
       max-height: 100vh;
     }
     h1 { font-size: 18px; margin: 0; letter-spacing: 2px; }
+    .hud-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    #btn-toggle-groups { width: auto; padding: 4px 8px; font-size: 10.5px; flex: none; }
     h2 { font-size: 11px; margin: 0 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
     /* Cada bloque del HUD se puede ocultar: en el móvil, con las siete
        secciones apiladas en una sola página larga, poder cerrar las que no
@@ -308,7 +310,10 @@
     <canvas id="canvas"></canvas>
   </div>
   <aside id="hud">
-    <h1 data-i18n="app.title">FAGI</h1>
+    <div class="hud-header">
+      <h1 data-i18n="app.title">FAGI</h1>
+      <button id="btn-toggle-groups" type="button" data-i18n="app.collapseAll">▾ Hide all</button>
+    </div>
     <p id="status"></p>
 
     <details class="hud-group" open>

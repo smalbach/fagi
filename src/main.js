@@ -15,7 +15,7 @@ import { createNarrator, narrate } from './narrator.js';
 import { createConsola } from './consola.js';
 import { createLearnedPanel } from './learned/panel.js';
 import { createBrainMap } from './brainmap.js';
-import { initPanelLayout } from './panel-layout.js';
+import { initPanelLayout, initHudGroups } from './panel-layout.js';
 import { save, snapshot } from './learned/store.js';
 import { createBackend } from './backend/index.js';
 import { createCortex, resetCortex } from './cortex.js';
@@ -56,6 +56,7 @@ const brainMap = createBrainMap(document.getElementById('brainmap'), document.ge
 createSettings(world, () => fagi);
 bindDom();
 initPanelLayout(document.getElementById('consola'));
+initHudGroups(document.getElementById('hud'), document.getElementById('btn-toggle-groups'));
 
 // Cerrar la pestaña no debería costarle a Fagi lo último que aprendió.
 window.addEventListener('pagehide', () => save(snapshot(fagi)));
