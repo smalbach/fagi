@@ -3,9 +3,16 @@
 
 import { BRAIN } from './config.js';
 import { createMemory, recall, weight, curious, reinforce } from './memory.js';
+import { createRules } from './learned/rules.js';
+import { synthAfterLearn } from './learned/synth.js';
 
+// El cerebro es la memoria (lo que cree) más las reglas (lo que ha escrito a
+// partir de lo que cree). La memoria es la única fuente de verdad del valor;
+// las reglas son la capa simbólica: existencia, alcance y explicación.
+//   lastRule : la última regla escrita, revisada o retirada. Lo lee el
+//              narrador; no hace falta guardarlo en ningún otro sitio.
 export function createBrain() {
-  return createMemory();
+  return { ...createMemory(), rules: createRules(), lastRule: null };
 }
 
 // Candidato: { key, kind, ref, dist, range, urgency }
@@ -46,7 +53,12 @@ export function choose(brain, candidates) {
   return { best: best && best.score > BRAIN.minScore ? best : null, ranked };
 }
 
-// Aprender de lo que acaba de pasarle.
-export function learn(brain, key, reward, now) {
-  return reinforce(brain, key, reward, now, BRAIN.learnRate);
+// Aprender de lo que acaba de pasarle. Cada aprendizaje pasa SIEMPRE por
+// synthAfterLearn: así no hace falta acordarse de sintetizar reglas en cada
+// sitio que llama a learn(), y una futura fuente de aprendizaje (la que sea)
+// las genera gratis con solo llamar a esta función.
+export function learn(brain, key, reward, now, because = []) {
+  const cambio = reinforce(brain, key, reward, now, BRAIN.learnRate);
+  synthAfterLearn(brain, key, cambio, because, now);
+  return cambio;
 }

@@ -22,7 +22,11 @@ estelas → feromona → Fagi.
 | `explore.js` | el mapa basto de por dónde ha pasado y hacia dónde tirar |
 | `feeding.js` | comer o cargar |
 | `nest.js` | depositar, tirar de despensa, descansar |
-| `brain.js` | creencias y puntuación. Es lo único que aprende |
+| `brain.js` | puntuación de lo que percibe, y la puerta única de todo aprendizaje |
+| `interoception.js` | el cuerpo se siente: comparar cómo estaba antes con cómo está después |
+| `episodes.js` | una experiencia desde que empieza hasta que se sabe cómo acabó |
+| `learned/` | el código que Fagi escribe sola a partir de lo que aprende (ver abajo) |
+| `observation.js` + `backend/` + `cortex.js` | la API de decisión externa (ver abajo) |
 
 Las reglas de `decision.js` son una jerarquía escrita en orden, y sale toda de
 la única directiva, sobrevivir:
@@ -35,6 +39,49 @@ la única directiva, sobrevivir:
 
 Para añadir una conducta nueva basta con una función más en la lista `REGLAS`,
 en el escalón que le toque. Devuelve una intención o `null`.
+
+Ya no hay ningún escalón que decida "esto es bueno" o "esto es malo": eso lo
+decide `learned/rules.js` (`verdict()`), consultado desde `feeding.js`,
+`nest.js` y aquí mismo. **Añadir un peligro o una ayuda nueva es solo física**:
+un `POINT_TYPES` con su `hunger` y sus `effects`, nada más. Fagi no sabe si es
+buena o mala hasta que la prueba; lo aprende y lo escribe sola.
+
+### Cómo aprende (lo que antes era "brain.js es lo único que aprende")
+
+1. **Comer o beber abre un episodio** (`episodes.js`) con una foto de cómo
+   estaba el cuerpo antes.
+2. **El cuerpo se siente** (`interoception.js`): comparar esa foto con la de
+   después da una recompensa de -1 a +1, de deltas reales — hambre, sed,
+   multiplicadores de stats — nunca de un número escrito a mano en la config.
+   Si el bocado sale mal más tarde (la necesidad que venía a calmar acaba
+   crítica) o Fagi muere con él encima, el episodio se corrige aparte, en
+   diferido.
+3. **`memory.js` aprende** con esa recompensa: valor + confianza, igual que
+   siempre.
+4. **`learned/synth.js` sintetiza**: si el peso de la creencia cruza un
+   umbral, escribe (o revisa, o retira) una regla en `learned/rules.js`, con
+   histéresis para no parpadear. La memoria sigue siendo la única fuente de
+   verdad del valor; la regla es la capa simbólica — existencia, alcance,
+   explicación.
+5. **`learned/dsl.js`** es la gramática de esa regla: un objeto de datos que
+   se imprime como una línea de JavaScript real (`rule('evitar-toxico',
+   {...})`) y se vuelve a leer con una expresión regular + `JSON.parse`, sin
+   `eval` en ningún sitio.
+6. **`learned/store.js`** guarda una copia recuperable en el navegador y deja
+   exportar/importar el módulo como archivo. Fagi **nace sin saber nada**
+   (`memory.js` no pre-siembra ni carga sola al crearse): recuperar lo
+   aprendido de otra sesión es un gesto explícito, nunca automático.
+
+### La API de decisión
+
+`observation.js` construye el JSON que ve una API externa (candidatos,
+creencias, reglas ya escritas, lo último que sintió). `backend/` define el
+contrato (`local.js` un emulador sin red, `http.js` uno de verdad con
+timeout). `cortex.js` pregunta sin bloquear el bucle — nunca se espera una
+respuesta dentro de un fotograma — y aplica lo que llegue como una directiva
+con caducidad, que `decision.js` consulta como una regla más. La API
+**solo decide**; nunca escribe reglas. Contrato completo en
+`docs/decision-api.md`.
 
 ## El mundo
 

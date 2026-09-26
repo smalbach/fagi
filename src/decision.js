@@ -15,9 +15,9 @@
 //
 // Una intención es: { action, reason, target, targetKind, trailKey }
 
-import { FAGI, ENERGY, BRAIN, CARRY, NEEDS, HUNGER, THIRST } from './config.js';
+import { FAGI, ENERGY, BRAIN, CARRY, NEEDS, HUNGER, THIRST, BACKEND } from './config.js';
 import { statMult } from './effects.js';
-import { weight } from './memory.js';
+import { verdict } from './learned/rules.js';
 import { labelOf } from './i18n.js';
 import { followPheromone } from './pheromone.js';
 import { stockFull } from './world.js';
@@ -36,7 +36,9 @@ function beber(fagi, world, ctx) {
   return { action: 'drink', reason: razon('reason.drinking', { thirst: pct(ctx.thirstU) }) };
 }
 
-const apremia = (ctx) => Math.max(ctx.thirstU, ctx.hungerU) >= NEEDS.critical;
+// Exportada: el córtex la usa para saber si una directiva externa puede
+// permitirse ignorar la emergencia, o si el instinto tiene que tomar el mando.
+export const apremia = (ctx) => Math.max(ctx.thirstU, ctx.hungerU) >= NEEDS.critical;
 
 function needAtRisk(fagi, ctx) {
   const risks = [];
@@ -105,7 +107,7 @@ function pantryIntent(fagi, ctx) {
   // Lo que cree tener guardado. Si se equivoca, lo descubre al llegar: entrar
   // en el nido reescribe fagi.pantry y la siguiente decisión ya es la buena.
   const hay = Object.entries(fagi.pantry).some(
-    ([type, amount]) => amount > 0 && weight(fagi.brain, type) >= 0
+    ([type, amount]) => amount > 0 && verdict(fagi, 'eat', type) !== 'avoid'
   );
   if (!hay) return null;
   return {
@@ -168,12 +170,16 @@ function inservible(fagi, ctx, candidato) {
 }
 
 // El mejor candidato de lo que ve y huele, con histéresis para no zigzaguear.
+// Nunca elige perseguir comida que ya aprendió a evitar: si lo hiciera, la
+// puntuación (que no sabe de reglas, solo de creencia+urgencia+distancia)
+// podría seguir prefiriéndola sobre cualquier otra cosa, y entonces caminaría
+// hasta ella, la rechazaría al tocarla, y volvería a elegirla el frame
+// siguiente porque nada más puntúa mejor: quieta junto al fruto para siempre.
 function perseguir(fagi, world, ctx, dt, onlyKind = null) {
   const { ranked, candidatos } = ctx;
-  const util = (r) => !inservible(fagi, ctx, r);
-  const disponibles = onlyKind
-    ? ranked.filter((r) => r.kind === onlyKind && (onlyKind !== 'food' || r.value >= 0) && util(r))
-    : ranked.filter(util);
+  const puedePerseguir = (r) => !inservible(fagi, ctx, r)
+    && (r.kind !== 'food' || verdict(fagi, 'pursue', r.key) !== 'avoid');
+  const disponibles = ranked.filter((r) => (!onlyKind || r.kind === onlyKind) && puedePerseguir(r));
   // La lista viene ordenada de mejor a peor: el primero que pase el mínimo es
   // el mejor que pasa el mínimo.
   const first = disponibles.find((r) => r.score > BRAIN.minScore);
@@ -274,6 +280,44 @@ function seguirFeromona(fagi, world, ctx) {
   };
 }
 
+// Lo que mandó la API de decisión, mientras siga vigente y su objetivo (si
+// tenía uno) siga existiendo. No decide NADA por su cuenta: solo traduce
+// fagi.directive a una intención, igual que cualquier otra regla.
+function directiva(fagi, world, ctx) {
+  const d = fagi.directive;
+  if (!d) return null;
+  if (fagi.age >= d.until) { fagi.directive = null; return null; }
+  if (d.target && !(world.points.includes(d.target) || world.objects.includes(d.target))) {
+    fagi.directive = null;
+    return null;
+  }
+  const esNido = ['toNest', 'pantry', 'carry'].includes(d.action);
+  const target = d.target ?? (esNido ? ctx.nido : null);
+  return {
+    action: d.action,
+    reason: d.reason ?? razon('reason.api', { backend: d.source }),
+    target,
+    targetKind: d.target ? d.targetKind : (target ? 'nest' : null),
+    trailKey: d.trailKey ?? null,
+  };
+}
+
+// Con autoridad plena la directiva va la primera de todas, salvo que la vida
+// dependa de algo que ella no atiende: entonces se aparta y manda el instinto.
+function directivaTemprano(fagi, world, ctx) {
+  if (BACKEND.authority !== 1) return null;
+  const d = fagi.directive;
+  if (d && apremia(ctx) && d.targetKind !== 'food' && d.targetKind !== 'water') return null;
+  return directiva(fagi, world, ctx);
+}
+
+// Con autoridad segura (la de fábrica) el instinto cubre primero lo que mata:
+// beber, comer, la urgencia y la despensa. La directiva solo entra después,
+// donde hoy entraban descansar/acarrear/perseguir.
+function directivaSegura(fagi, world, ctx) {
+  return BACKEND.authority === 0 ? directiva(fagi, world, ctx) : null;
+}
+
 // Lo tenía fichado y lo perdió de vista (pasó de largo, quedó tras una roca).
 function insistirDeMemoria(fagi, world, ctx, dt) {
   const sigueAhi = fagi.target && (
@@ -293,11 +337,13 @@ const REGLAS = [
   // 1. sobrevivir ahora
   beber,
   comerCarga,
+  directivaTemprano,   // solo contesta con BACKEND.authority === 1, y nunca si apremia sin atenderlo
   urgencia,
   irADespensa,
   // 2. aguantar
   descansar,
   // 3. proveer
+  directivaSegura,     // solo contesta con BACKEND.authority === 0 (de fábrica)
   acarrear,
   perseguir,
   // pistas de algo que ya percibió y perdió, de la más fresca a la más vieja

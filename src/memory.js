@@ -13,22 +13,21 @@
 // De los sitios se recuerda además "más o menos dónde": la posición se
 // difumina mientras no se vuelve a ver, así que hay que buscar al llegar.
 
-import { MEMORY, BELIEF_KEYS } from './config.js';
+import { MEMORY } from './config.js';
 
 const STAGES = ['corta', 'media', 'larga'];
 const DECAY = { corta: 'decayShort', media: 'decayMedium', larga: 'decayLong' };
-const CLAVE_GUARDADO = 'fagi.memory';
 
 function nuevoRecuerdo() {
   return { value: 0, confidence: 0, confirms: 0, lastAt: -Infinity, stage: 'corta', tries: 0 };
 }
 
+// Nace sin saber nada: ni una creencia sobre nada de lo que hay en el mapa.
+// Cada clave se crea la primera vez que hace falta (recall, más abajo), no
+// antes. Tampoco carga sola lo guardado de otra partida: eso es un gesto
+// aparte, "Recuperar lo aprendido" (learned/store.js), no algo automático.
 export function createMemory() {
-  const facts = {};
-  for (const k of BELIEF_KEYS) facts[k] = nuevoRecuerdo();
-  const mem = { facts, places: {} };
-  if (MEMORY.save) loadLongTerm(mem);
-  return mem;
+  return { facts: {}, places: {} };
 }
 
 export function recall(mem, key) {
@@ -136,33 +135,10 @@ export function decayMemory(mem, dt) {
   }
 }
 
-// --- guardar entre partidas ---
-// Solo sobrevive lo consolidado: lo que no llegó a memoria larga se pierde al
-// cerrar, igual que una experiencia que nunca se repitió lo suficiente.
-export function saveLongTerm(mem) {
-  if (!MEMORY.save) return;
-  const facts = {};
-  for (const [k, r] of Object.entries(mem.facts)) {
-    if (r.stage === 'larga') facts[k] = { value: r.value, confidence: r.confidence, confirms: r.confirms, stage: r.stage, tries: r.tries };
-  }
-  try {
-    localStorage.setItem(CLAVE_GUARDADO, JSON.stringify({ facts }));
-  } catch { /* sin localStorage no se guarda nada y ya está */ }
-}
-
-export function loadLongTerm(mem) {
-  try {
-    const crudo = localStorage.getItem(CLAVE_GUARDADO);
-    if (!crudo) return;
-    const datos = JSON.parse(crudo);
-    for (const [k, r] of Object.entries(datos.facts ?? {})) {
-      mem.facts[k] = { ...nuevoRecuerdo(), ...r, lastAt: -Infinity };
-    }
-  } catch { /* guardado ilegible: se empieza de cero */ }
-}
-
-export function wipeMemory(mem) {
-  for (const k of Object.keys(mem.facts)) mem.facts[k] = nuevoRecuerdo();
+// Guardar y recuperar entre partidas ya no vive aquí: es learned/store.js,
+// que guarda facts Y reglas juntos bajo un solo gesto explícito ("Recuperar
+// lo aprendido"), nunca al nacer. Esto solo olvida los SITIOS (dónde está el
+// agua, dónde el árbol), que nunca se guardan entre partidas.
+export function forgetPlaces(mem) {
   mem.places = {};
-  try { localStorage.removeItem(CLAVE_GUARDADO); } catch { /* nada que borrar */ }
 }

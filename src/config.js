@@ -93,9 +93,59 @@ export const THIRST = {
   rate: 2.2,          // puntos de sed por segundo (~45s sin beber)
   max: 100,
   drinkRate: 30,      // cuánta sed quita por segundo dentro del agua
-  reward: 1,          // tope de lo que SIENTE al beber. No lo sabe de antemano.
-  rewardFull: 0.6,    // con esta fracción de sed, beber le da la recompensa máxima
   ignoreBelow: 0.10,  // con menos sed que esto, el agua ni se plantea
+};
+
+// El cuerpo. Lo único que Fagi sabe de nacimiento es sentirse: si el hambre
+// baja se siente bien, si la velocidad cae se siente torpe. Qué COSA del mundo
+// le produce cada sensación no lo sabe: eso lo aprende probando.
+//
+//   hungerScale : puntos de hambre que valen una sensación de ±1 (35 = un néctar)
+//   effectWeight: cuánto pesa un cambio de stat frente al hambre
+//   statSense   : cómo siente el cuerpo cada stat. +1 = subir es bueno; -1 =
+//                 subir es malo. Un stat nuevo necesita su signo aquí (sin
+//                 entrada, se asume +1).
+//   window      : segundos que sigue vigilando tras comer, por si le sienta mal
+//                 después (cruzar el umbral crítico de la necesidad que atendía)
+//   perilWeight : lo que resta ese mal desenlace diferido
+//   deathPenalty: lo que resta morir con un bocado reciente en el cuerpo
+//   drinkSample : segundos bebiendo antes de juzgar cuánto le quitó la sed
+export const FEEL = {
+  hungerScale: 35,
+  thirstScale: 60,
+  effectWeight: 0.5,
+  statSense: { speed: 1, viewRange: 1, fovDeg: 1, smell: 1, hungerRate: -1 },
+  window: 10,
+  perilWeight: 0.5,
+  deathPenalty: 1,
+  drinkSample: 1.5,
+};
+
+// Aprendizaje simbólico: cuándo una creencia se convierte en una regla escrita
+// y cuándo esa regla se retira. Con histéresis, para que no parpadee.
+export const LEARN = {
+  avoidFrom: 0.2,     // peso (negativo) a partir del cual escribe "evitar X"
+  avoidUntil: 0.1,    // y por debajo del cual la retira
+  preferFrom: 0.5,    // peso a partir del cual escribe "preferir X"
+  preferUntil: 0.3,
+  autosave: 1,        // guardar una copia recuperable en el navegador (1 = sí)
+  autosaveEvery: 10,  // cada cuántos segundos
+  maxRetired: 20,     // reglas retiradas que conserva como historial
+};
+
+// Decisión externa: una API que recibe lo que Fagi percibe y devuelve qué
+// hacer. El instinto sigue mandando cuando la API calla, tarda o se equivoca.
+//
+//   authority: 0 = segura (el instinto atiende las emergencias antes);
+//              1 = plena (la API va primero, salvo emergencia que no atienda)
+export const BACKEND = {
+  enabled: 0,
+  authority: 0,
+  minInterval: 2,     // segundos mínimos entre consultas
+  timeout: 2,         // segundos de espera antes de rendirse
+  ttl: 6,             // segundos que vale una directiva si la API no dice otra cosa
+  maxTtl: 20,
+  idleAfter: 8,       // segundos explorando sin más antes de preguntar
 };
 
 export const BRAIN = {
@@ -115,8 +165,11 @@ export const BRAIN = {
 //
 //   hunger  : cuánto suma (+) o resta (-) al hambre al comerlo.
 //   effects : buffs temporales. stat = qué multiplica, mult = factor, sec = duración.
-//   reward  : lo que Fagi SIENTE al comerlo, de -1 a +1. Es la señal con la que
-//             aprende. Fagi no la conoce de antemano: la descubre probando.
+//
+// Aquí solo hay FÍSICA: lo que el bocado le hace al cuerpo. Si es bueno o malo
+// no está escrito en ningún sitio: Fagi lo siente al comerlo (FEEL) y lo
+// aprende. Un alimento nuevo, o un peligro nuevo, se añade con su física y nada
+// más.
 export const POINT_TYPES = {
   nectar: {
     color: '#5bd97e',
@@ -125,7 +178,6 @@ export const POINT_TYPES = {
     life: 45,         // segundos hasta pudrirse y volverse tóxico (0 = nunca)
     hunger: -35,
     effects: [],
-    reward: 1,
   },
   chispa: {
     color: '#4cc9f0',
@@ -134,7 +186,6 @@ export const POINT_TYPES = {
     life: 60,
     hunger: -5,
     effects: [{ stat: 'speed', mult: 1.8, sec: 8 }],
-    reward: 0.6,
   },
   ojo: {
     color: '#b57bff',
@@ -146,7 +197,6 @@ export const POINT_TYPES = {
       { stat: 'viewRange', mult: 1.6, sec: 10 },
       { stat: 'fovDeg', mult: 1.4, sec: 10 },
     ],
-    reward: 0.6,
   },
   resina: {
     color: '#e8a33d',
@@ -155,7 +205,6 @@ export const POINT_TYPES = {
     life: 80,
     hunger: -10,
     effects: [{ stat: 'hungerRate', mult: 0.5, sec: 14 }],
-    reward: 0.7,
   },
   toxico: {
     color: '#d95b7e',
@@ -164,7 +213,6 @@ export const POINT_TYPES = {
     life: 45,         // lo podrido no se pudre más: al cumplir su tiempo desaparece
     hunger: 25,
     effects: [{ stat: 'speed', mult: 0.6, sec: 5 }],
-    reward: -0.9,
   },
 };
 

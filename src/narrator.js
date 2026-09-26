@@ -5,6 +5,7 @@
 // modo que cambiar de idioma reescribe también el histórico ya anotado.
 
 import { MEMORY } from './config.js';
+import { t } from './i18n.js';
 
 const MAX_LINES = 80;
 
@@ -28,6 +29,9 @@ export const TAG_COLOR = {
   spot: '#8a90a2',
   done: '#7f869a',
   dead: '#d95b7e',
+  eatCarried: '#e8a33d',
+  searchWaterNearHome: '#3d8fd9',
+  api: '#4cc9f0',
 };
 
 export function createNarrator() {
@@ -35,7 +39,7 @@ export function createNarrator() {
     lines: [],
     prev: { action: null, drinking: false, meal: 0, drink: 0, water: 0,
             picked: 0, stored: 0, pantry: 0, alive: true,
-            stages: {}, trusted: {} },
+            stages: {}, trusted: {}, rule: 0, peril: 0 },
     seq: 0,
   };
 }
@@ -46,6 +50,13 @@ function push(nar, fagi, tag, text, detail = null) {
 }
 
 const flecha = (antes, despues) => (despues - antes >= 0 ? '↑' : '↓');
+
+// Traduce la lista de sensaciones ("hambre +25 · velocidad ×0.60") a un único
+// texto ya resuelto: log.ruleSub solo tiene que insertarlo, sin saber de
+// sensaciones ni de idiomas.
+function porQue(because) {
+  return (because ?? []).map((s) => t(`sense.${s.sense}`, { v: s.v })).join(' · ');
+}
 
 export function narrate(nar, fagi) {
   const th = fagi.thought;
@@ -115,6 +126,25 @@ export function narrate(nar, fagi) {
         { key: 'log.forgotSub' });
     }
     p.trusted[key] = fiable;
+  }
+
+  // Escribe, revisa o retira una regla: la experiencia se convirtió en código.
+  if (fagi.brain.lastRule && fagi.brain.lastRule.n !== p.rule) {
+    const r = fagi.brain.lastRule;
+    const logKey = { nueva: 'log.rule', revisada: 'log.ruleRevised', retirada: 'log.ruleRetired' }[r.kind];
+    push(nar, fagi, 'learn',
+      { key: logKey, params: { rule: r.id, what: { key: `type.${r.key}` } } },
+      { key: 'log.ruleSub', params: { because: porQue(r.because) } });
+    p.rule = r.n;
+  }
+
+  // Un bocado que parecía llevadero acabó sentando peor de lo que se notó al
+  // probarlo: la creencia se corrige aparte, más tarde.
+  if (fagi.lastEpisode?.correction && fagi.lastEpisode.n !== p.peril) {
+    push(nar, fagi, 'learn',
+      { key: 'log.peril', params: { what: { key: `type.${fagi.lastEpisode.key}` } } },
+      { key: 'log.perilSub' });
+    p.peril = fagi.lastEpisode.n;
   }
 
   // Descubre una fuente de agua: la memoriza aunque no vaya a ella.

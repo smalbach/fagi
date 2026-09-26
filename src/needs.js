@@ -2,10 +2,11 @@
 
 import { HUNGER, THIRST, ENERGY } from './config.js';
 import { statMult } from './effects.js';
-import { learn } from './brain.js';
 import { waterUnder } from './obstacles.js';
 import { nestUnder } from './nest.js';
 import { rememberPlace } from './memory.js';
+import { snapshotBody } from './interoception.js';
+import { openEpisode, closeOnDeath } from './episodes.js';
 
 // El turno primero permite beber, comer o usar la despensa y solo después
 // resuelve si una necesidad llegó al límite. Así tocar el recurso en el último
@@ -26,6 +27,8 @@ export function resolveVitalFailure(fagi) {
   fagi.cause = thirstOverflow > hungerOverflow ? 'thirst' : 'hunger';
   fagi.hunger = Math.min(fagi.hunger, HUNGER.max);
   fagi.thirst = Math.min(fagi.thirst, THIRST.max);
+  // Si murió con un bocado reciente en el cuerpo, ese bocado carga con la culpa.
+  closeOnDeath(fagi);
   return true;
 }
 
@@ -36,19 +39,12 @@ export function drink(fagi, world, dt) {
   fagi.drinking = Boolean(pool);
   if (!pool) return;
 
-  // Probar el agua siempre cuenta como experiencia (así se le pasa la curiosidad),
-  // pero solo enseña de verdad si tenía sed: beber lleno no demuestra nada.
+  // Empezar a beber abre una experiencia: se juzga tras un rato bebiendo, por
+  // lo que le quitó la sed de verdad. Beber sin sed no enseña nada, porque no
+  // siente nada.
   if (empieza) {
-    const sedU = fagi.thirst / THIRST.max;
-    const reward = Math.min(THIRST.reward, sedU / THIRST.rewardFull);
-    const cambio = learn(fagi.brain, 'agua', reward, fagi.age);
-    fagi.lastDrink = {
-      n: (fagi.lastDrink?.n ?? 0) + 1,
-      thirst: fagi.thirst,
-      beliefBefore: cambio.before.value,
-      beliefAfter: cambio.after.value,
-      kind: cambio.kind,
-    };
+    const ep = openEpisode(fagi, { action: 'drink', key: 'agua', before: snapshotBody(fagi) });
+    ep.thirstAtStart = fagi.thirst;
   }
 
   // Beber aquí confirma el sitio: vuelve a saber exactamente dónde está.

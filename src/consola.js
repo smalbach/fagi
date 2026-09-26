@@ -26,6 +26,10 @@ export function createConsola() {
     reset() {
       lineas = [];
       el.log.innerHTML = '';
+      // Fagi nueva, ids desde 1 otra vez: la marca de "hasta dónde va pintado"
+      // también tiene que volver a cero, o el histórico se queda vacío hasta
+      // que los ids nuevos alcancen la marca vieja.
+      delete el.log.dataset.last;
     },
   };
 }
@@ -103,4 +107,4 @@ const CLAVE_PARTE = {
 };
 
 // Los colores sí viven en config: no dependen del idioma.
-const COLOR_TIPO = (key) => (POINT_TYPES[key] ?? OBJECT_TYPES[key]).color;
+const COLOR_TIPO = (key) => (POINT_TYPES[key] ?? OBJECT_TYPES[key])?.color ?? '#8a90a2';

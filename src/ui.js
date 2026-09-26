@@ -2,7 +2,7 @@
 // Los botones y las barras se generan desde config, así que añadir un tipo
 // nuevo no obliga a tocar nada aquí. Los textos salen de i18n.
 
-import { HUNGER, THIRST, ENERGY, POINT_TYPES, TYPE_KEYS, OBJECT_TYPES, OBJECT_KEYS, BELIEF_KEYS, specOf } from './config.js';
+import { HUNGER, THIRST, ENERGY, POINT_TYPES, TYPE_KEYS, OBJECT_TYPES, OBJECT_KEYS, specOf } from './config.js';
 import { heading, verticalSense } from './compass.js';
 import { activeEffects } from './effects.js';
 import { nestOf, nestRipeness } from './world.js';
@@ -48,11 +48,14 @@ function buildTypeButtons(foodBox, objectBox, input) {
   select(input.selectedType);
 }
 
-function buildBeliefBars(container) {
+// Ya no hay una lista fija de "lo que se puede creer": la barra de un tipo
+// aparece la primera vez que Fagi se topa con él, ni una antes. `keys` es
+// Object.keys(fagi.brain.facts), tal cual va creciendo con la partida.
+function buildBeliefBars(container, keys) {
   container.innerHTML = '';
   const bars = {};
-  for (const key of BELIEF_KEYS) {
-    const spec = specOf(key);
+  for (const key of keys) {
+    const spec = specOf(key) ?? { color: '#8a90a2' };
     const row = document.createElement('div');
     row.className = 'belief';
     row.innerHTML =
@@ -89,13 +92,16 @@ export function createUI(input, world, onReset) {
   const beliefBox = document.getElementById('beliefs');
 
   buildTypeButtons(foodBox, objectBox, input);
-  let beliefBars = buildBeliefBars(beliefBox);
+  // Estado de las barras de creencia: qué claves tiene pintadas ahora mismo y
+  // con qué elementos. Se reconstruye cuando aparece una clave nueva o al
+  // cambiar de idioma.
+  const beliefs = { keys: [], bars: {} };
   document.getElementById('btn-reset').addEventListener('click', onReset);
 
   // Al cambiar de idioma hay que rehacer lo que se construyó una sola vez.
   onLangChange(() => {
     buildTypeButtons(foodBox, objectBox, input);
-    beliefBars = buildBeliefBars(beliefBox);
+    beliefs.bars = buildBeliefBars(beliefBox, beliefs.keys);
   });
 
   // Cada cuánto dan fruta los árboles. Vale para los que ya están puestos.
@@ -108,7 +114,7 @@ export function createUI(input, world, onReset) {
   slider.addEventListener('input', aplicar);
   aplicar();
 
-  return { update: (fagi, w) => update(el, beliefBars, fagi, w) };
+  return { update: (fagi, w) => update(el, beliefBox, beliefs, fagi, w) };
 }
 
 // Una creencia va de -1 a +1 y la barra crece desde el centro. La opacidad de
@@ -158,7 +164,7 @@ function barra(bar, val, valor, max) {
   val.textContent = `${Math.round(pct)}%`;
 }
 
-function update(el, beliefBars, fagi, world) {
+function update(el, beliefBox, beliefs, fagi, world) {
   barra(el.hungerBar, el.hungerVal, fagi.hunger, HUNGER.max);
   barra(el.thirstBar, el.thirstVal, fagi.thirst, THIRST.max);
   barra(el.energyBar, el.energyVal, fagi.energy, ENERGY.max);
@@ -178,7 +184,14 @@ function update(el, beliefBars, fagi, world) {
   el.windVal.textContent = `${viento.arrow} ${t(viento.key)}`;
 
   paintEffects(el.effects, fagi);
-  for (const key of BELIEF_KEYS) paintBelief(beliefBars[key], recall(fagi.brain, key));
+  // Nace sin creer nada de nada: la lista de claves crece sola según Fagi va
+  // conociendo el mundo, así que la barra que le toca se construye al vuelo.
+  const keys = Object.keys(fagi.brain.facts);
+  if (keys.length !== beliefs.keys.length) {
+    beliefs.keys = keys;
+    beliefs.bars = buildBeliefBars(beliefBox, keys);
+  }
+  for (const key of keys) paintBelief(beliefs.bars[key], recall(fagi.brain, key));
 
   el.status.textContent = fagi.alive
     ? t(`action.${fagi.thought?.action ?? 'explore'}`)

@@ -9,15 +9,18 @@
 //   feeding.js     comer y cargar
 //   nest.js        el nido
 
-import { WORLD, ENERGY, PHERO } from './config.js';
+import { WORLD, ENERGY, PHERO, LEARN } from './config.js';
 import { createBrain } from './brain.js';
-import { decayMemory, saveLongTerm } from './memory.js';
+import { decayMemory } from './memory.js';
 import { createEffects, updateEffects } from './effects.js';
+import { resolveEpisodes } from './episodes.js';
+import { autoSave as saveLearning, save, snapshot } from './learned/store.js';
 import { nestOf } from './world.js';
 import { dropPheromone } from './pheromone.js';
 import { increaseNeeds, resolveVitalFailure, drink, spendEnergy } from './needs.js';
 import { perceive } from './perception.js';
 import { decide } from './decision.js';
+import { updateCortex, resetCortex } from './cortex.js';
 import { moveToward, explore, trackScent } from './movement.js';
 import { createExploreMap, markVisited } from './explore.js';
 import { eatCarried, tryPickOrEat } from './feeding.js';
@@ -46,6 +49,10 @@ export function createFagi() {
     brain: createBrain(),
     explored: createExploreMap(),  // por dónde ha pasado, a casillas gordas
     effects: createEffects(),
+    episode: null,     // la experiencia abierta (comió o bebe) hasta saber cómo acabó
+    lastEpisode: null, // la última cerrada o abierta, para el narrador
+    directive: null,   // lo que mandó la API de decisión, mientras siga vigente
+    cortex: null,      // el canal con la API de decisión. null = no hay ninguna: decide el instinto
     thought: null,     // razonamiento del último frame, lo leen consola y HUD
     target: null,      // a qué va
     targetKind: null,  // 'food' | 'water' | 'nest' | 'scent' | 'phero'
@@ -73,18 +80,9 @@ export function createFagi() {
     drunk: 0,
     lastMeal: null,
     lastDrink: null,
+
+    saveIn: LEARN.autosaveEvery,  // cuenta atrás para el próximo guardado recuperable
   };
-}
-
-// Guardar es caro: basta con hacerlo de vez en cuando y al cerrar la pestaña.
-const GUARDAR_CADA = 10;
-let guardarEn = GUARDAR_CADA;
-
-function autoSave(fagi, dt) {
-  guardarEn -= dt;
-  if (guardarEn > 0) return;
-  guardarEn = GUARDAR_CADA;
-  saveLongTerm(fagi.brain);
 }
 
 // Mientras acarrea va marcando el camino con su feromona.
@@ -111,12 +109,15 @@ export function updateFagi(fagi, world, dt) {
   fagi.age += dt;
 
   updateEffects(fagi, dt);
+  resolveEpisodes(fagi, dt);     // ¿ya se sabe cómo le sentó lo último que comió?
   decayMemory(fagi.brain, dt);   // la confianza baja sola y los sitios se difuminan
   markVisited(fagi.explored, fagi.x, fagi.y, dt);  // estar en un sitio es conocerlo
   drink(fagi, world, dt);
   useNest(fagi, world);
 
-  decide(fagi, world, perceive(fagi, world), dt);
+  const ctx = perceive(fagi, world);
+  updateCortex(fagi.cortex, fagi, world, ctx, dt);   // pregunta a la API si toca; nunca espera
+  decide(fagi, world, ctx, dt);
 
   // Se queda quieta bebiendo o descansando; el resto del tiempo, en marcha.
   const parada = (fagi.drinking && fagi.thirst > 0) || fagi.thought.action === 'rest';
@@ -126,6 +127,10 @@ export function updateFagi(fagi, world, dt) {
   markTrail(fagi, world, dt);
   tryPickOrEat(fagi, world);
   increaseNeeds(fagi, dt);
-  resolveVitalFailure(fagi);
-  autoSave(fagi, dt);
+
+  // Morir guarda ya mismo, sin esperar al próximo turno de autoguardado: lo
+  // último que aprendió (incluida la lección de esta misma muerte) no se pierde.
+  // Y lo que la API tuviera en vuelo deja de contar: ya no hay a quién dirigir.
+  if (resolveVitalFailure(fagi)) { save(snapshot(fagi)); resetCortex(fagi.cortex); }
+  else saveLearning(fagi, dt);
 }

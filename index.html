@@ -98,6 +98,35 @@
     .score .head em { color: #6e7486; font-style: normal; font-size: 10px; }
     .score .partes { color: #6e7486; font-size: 10.5px; }
     .dim { color: #6e7486; }
+    /* --- mapa del cerebro --- */
+    #brainmap-panel {
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+    }
+    #brainmap-panel summary { cursor: pointer; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; padding: 4px 0; }
+    #brainmap-status { font-size: 10.5px; margin: 2px 0 6px; }
+    #brainmap { width: 100%; height: 220px; display: block; background: #12141a; border-radius: 6px; }
+    /* --- código aprendido --- */
+    #learned {
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+    }
+    #learned summary { cursor: pointer; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; padding: 4px 0; }
+    #code-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+    #code-tools button { width: auto; padding: 4px 8px; font-size: 11px; }
+    #code-tools button:disabled { opacity: .45; cursor: default; }
+    #code-tools select, #code-tools input[type=text] {
+      background: #2a2e3a; color: var(--text); border: 1px solid var(--line);
+      border-radius: 5px; padding: 4px 6px; font: inherit; font-size: 11px;
+    }
+    #code-tools input[type=text] { width: 150px; }
+    #code-status { font-size: 10.5px; color: var(--muted); flex-basis: 100%; }
+    #code-status.error { color: #d95b7e; }
+    #learned-code {
+      max-height: 220px; overflow: auto; margin: 0;
+      font-size: 10.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+      color: #cfd3dd; background: #12141a; border-radius: 6px; padding: 8px;
+    }
     #c-log {
       flex: 1;
       overflow-y: auto;
@@ -284,6 +313,32 @@
       <h2 data-i18n="panel.scores">Scoring</h2>
       <div id="c-scores"></div>
     </div>
+    <details id="brainmap-panel" open>
+      <summary data-i18n="panel.brainmap">Brain map</summary>
+      <div id="brainmap-status" class="dim"></div>
+      <canvas id="brainmap"></canvas>
+    </details>
+    <details id="learned" open>
+      <summary data-i18n="panel.code">Learned code</summary>
+      <div id="code-tools">
+        <button id="btn-recover" data-i18n="code.recover" disabled>Recover</button>
+        <button id="btn-export" data-i18n="code.export">Export</button>
+        <button id="btn-import" data-i18n="code.import">Import…</button>
+        <input id="btn-import-file" type="file" accept=".js,text/javascript" hidden>
+        <button id="btn-forget-code" data-i18n="code.forget">Forget</button>
+        <span id="code-status"></span>
+      </div>
+      <div id="code-tools">
+        <span data-i18n="code.backend">Who decides</span>
+        <select id="backend-select">
+          <option value="none" data-i18n="code.backendNone">Instinct only</option>
+          <option value="local" data-i18n="code.backendLocal">Local emulator</option>
+          <option value="http" data-i18n="code.backendHttp">HTTP API</option>
+        </select>
+        <input id="backend-url" type="text" placeholder="http://localhost:8787" hidden>
+      </div>
+      <pre id="learned-code"></pre>
+    </details>
     <h2 data-i18n="panel.history">History</h2>
     <div id="c-log"></div>
   </section>

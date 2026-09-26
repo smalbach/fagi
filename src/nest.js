@@ -1,10 +1,11 @@
 // El nido: casa, despensa y sitio de descanso.
 
-import { CARRY, POINT_TYPES } from './config.js';
+import { CARRY } from './config.js';
 import { nestOf, storeInNest, takeFromNest } from './world.js';
 import { radiusOf } from './obstacles.js';
 import { eat } from './feeding.js';
 import { weight } from './memory.js';
+import { verdict } from './learned/rules.js';
 
 export function nestUnder(fagi, world) {
   const nido = nestOf(world);
@@ -26,16 +27,17 @@ export function useNest(fagi, world) {
     fagi.carrying = null;
   }
 
-  // Con hambre tira de despensa: elige lo que mejor recuerda de lo guardado.
+  // Con hambre tira de despensa: elige lo que mejor recuerda de lo guardado,
+  // pero nunca sirve algo que aprendió que le sienta mal.
   if (fagi.hunger >= CARRY.eatBelow) {
     const guardado = Object.keys(nido.stock).filter(
-      (k) => nido.stock[k] > 0 && weight(fagi.brain, k) >= 0
+      (k) => nido.stock[k] > 0 && verdict(fagi, 'eat', k) !== 'avoid'
     );
     if (guardado.length) {
       const mejor = guardado.reduce((a, b) =>
         (weight(fagi.brain, b) > weight(fagi.brain, a) ? b : a));
       takeFromNest(nido, mejor);
-      eat(fagi, mejor, POINT_TYPES[mejor].reward);
+      eat(fagi, mejor);
       fagi.lastPantry = { n: (fagi.lastPantry?.n ?? 0) + 1, type: mejor };
     }
   }

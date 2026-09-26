@@ -6,10 +6,10 @@
 
 import {
   FAGI, HUNGER, THIRST, ENERGY, BRAIN, CARRY, NEST, EXPLORE, WIND, PLUME, PHERO, TREE, FRUIT, MEMORY,
-  MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS,
+  MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, BACKEND,
 } from './config.js';
 import { removeAllTrees } from './trees.js';
-import { wipeMemory } from './memory.js';
+import { wipe } from './learned/store.js';
 import { t, labelOf, getLang, onLangChange } from './i18n.js';
 
 const CLAVE_AJUSTES = 'fagi.settings';
@@ -24,7 +24,6 @@ function camposDeAlimento(key) {
   const vidaEs = key === FRUIT.rot ? 'Vida antes de desaparecer (0 = nunca)' : 'Vida antes de pudrirse (0 = nunca)';
   const campos = [
     n(spec, 'hunger', 'Hunger it removes (negative) or adds', 'Hambre que quita (negativo) o suma', -80, 80, 1),
-    n(spec, 'reward', 'What it feels when eating it (-1 to 1)', 'Lo que siente al comerlo (-1 a 1)', -1, 1, 0.05),
     n(spec, 'aroma', 'Aroma: length of its plume', 'Aroma: largo de su estela', 0, 400, 5),
     n(spec, 'life', vidaEn, vidaEs, 0, 300, 5),
     n(spec, 'radius', 'Size of the dot', 'Tamaño del punto', 2, 20, 1),
@@ -59,9 +58,32 @@ const GRUPOS = [
     n(THIRST, 'rate', 'Thirst per second', 'Sed por segundo', 0, 12, 0.1),
     n(THIRST, 'max', 'Thirst that kills', 'Sed que mata', 20, 300, 10),
     n(THIRST, 'drinkRate', 'Thirst removed by drinking (per second)', 'Sed que quita bebiendo (por segundo)', 1, 100, 1),
-    n(THIRST, 'reward', 'Cap on what drinking teaches', 'Tope de lo que aprende al beber', 0, 1, 0.05),
-    n(THIRST, 'rewardFull', 'Thirst needed to learn fully', 'Sed para aprender del todo', 0.1, 1, 0.05),
     n(THIRST, 'ignoreBelow', 'Thirst below which it ignores water', 'Sed por debajo de la cual ignora el agua', 0, 1, 0.05),
+  ]},
+  { titulo: { en: 'Body (what it feels)', es: 'Cuerpo (lo que siente)' }, campos: [
+    n(FEEL, 'hungerScale', 'Hunger points worth a full sensation', 'Puntos de hambre que valen una sensación entera', 5, 100, 1),
+    n(FEEL, 'thirstScale', 'Thirst points worth a full sensation', 'Puntos de sed que valen una sensación entera', 5, 150, 1),
+    n(FEEL, 'effectWeight', 'Weight of a stat change vs hunger', 'Peso de un cambio de stat frente al hambre', 0, 2, 0.05),
+    n(FEEL, 'window', 'Seconds it keeps watching after a bite', 'Segundos que vigila tras un bocado', 0, 60, 1),
+    n(FEEL, 'perilWeight', 'Penalty when a need turns critical after it', 'Castigo si la necesidad se dispara después', 0, 1, 0.05),
+    n(FEEL, 'deathPenalty', 'Penalty for dying with a recent bite', 'Castigo por morir con un bocado reciente', 0, 1, 0.05),
+    n(FEEL, 'drinkSample', 'Seconds drinking before judging water', 'Segundos bebiendo antes de juzgar el agua', 0.2, 10, 0.1),
+  ]},
+  { titulo: { en: 'Learning (written rules)', es: 'Aprendizaje (reglas escritas)' }, campos: [
+    n(LEARN, 'avoidFrom', 'Belief weight that writes "avoid X"', 'Peso de creencia que escribe "evitar X"', 0.02, 1, 0.02),
+    n(LEARN, 'avoidUntil', 'Weight below which "avoid X" is retired', 'Peso por debajo del cual retira "evitar X"', 0, 1, 0.02),
+    n(LEARN, 'preferFrom', 'Belief weight that writes "prefer X"', 'Peso de creencia que escribe "preferir X"', 0.02, 1, 0.02),
+    n(LEARN, 'preferUntil', 'Weight below which "prefer X" is retired', 'Peso por debajo del cual retira "preferir X"', 0, 1, 0.02),
+    n(LEARN, 'autosave', 'Keep a recoverable copy (1 = yes)', 'Guardar copia recuperable (1 = sí)', 0, 1, 1),
+    n(LEARN, 'autosaveEvery', 'Seconds between copies', 'Segundos entre copias', 1, 120, 1),
+  ]},
+  { titulo: { en: 'External decision API', es: 'API de decisión externa' }, campos: [
+    n(BACKEND, 'enabled', 'Ask the API (1 = yes)', 'Consultar la API (1 = sí)', 0, 1, 1),
+    n(BACKEND, 'authority', 'Authority: 0 safe, 1 full', 'Autoridad: 0 segura, 1 plena', 0, 1, 1),
+    n(BACKEND, 'minInterval', 'Seconds between queries', 'Segundos entre consultas', 0.2, 60, 0.1),
+    n(BACKEND, 'timeout', 'Seconds before giving up', 'Segundos antes de rendirse', 0.2, 30, 0.1),
+    n(BACKEND, 'ttl', 'Seconds a directive stays valid', 'Segundos que vale una directiva', 1, 60, 1),
+    n(BACKEND, 'idleAfter', 'Seconds exploring before asking', 'Segundos explorando antes de preguntar', 1, 120, 1),
   ]},
   { titulo: { en: 'Energy and rest', es: 'Energía y descanso' }, campos: [
     n(ENERGY, 'max', 'Maximum energy', 'Energía máxima', 20, 300, 10),
@@ -218,7 +240,7 @@ function tituloDe(grupo) {
   return grupo.titulo.tipo ? base.replace(grupo.titulo.tipo, labelOf(grupo.titulo.tipo)) : base;
 }
 
-export function createSettings(world, onWipe) {
+export function createSettings(world, getFagi) {
   const caja = document.getElementById('settings-body');
   const overlay = document.getElementById('settings-overlay');
   let inputs = [];
@@ -265,5 +287,5 @@ export function createSettings(world, onWipe) {
   });
 
   document.getElementById('btn-clear-trees').addEventListener('click', () => removeAllTrees(world));
-  document.getElementById('btn-wipe-memory').addEventListener('click', () => wipeMemory(onWipe()));
+  document.getElementById('btn-wipe-memory').addEventListener('click', () => wipe(getFagi()));
 }

@@ -3,8 +3,7 @@ import assert from 'node:assert/strict';
 
 import { MAPGEN, NEST, POINT_TYPES } from '../src/config.js';
 import { createFagi } from '../src/fagi.js';
-import { learn } from '../src/brain.js';
-import { tryPickOrEat } from '../src/feeding.js';
+import { eat, tryPickOrEat } from '../src/feeding.js';
 import { generateMap } from '../src/mapgen.js';
 import { step } from '../src/simulation.js';
 import { smelledPoints } from '../src/smell.js';
@@ -94,25 +93,63 @@ test('critical decisions use remaining lifetime, not the largest percentage', ()
   assert.equal(fagi.thought.action, 'seekWater');
 });
 
-test('known poison is not consumed merely because Fagi walks over it', () => {
+test('one bad experience is enough: it does not eat that again merely by walking over it', () => {
   const world = createWorld();
   const fagi = createFagi();
   fagi.hunger = 50;
-  learn(fagi.brain, 'toxico', POINT_TYPES.toxico.reward, fagi.age);
+  eat(fagi, 'toxico');            // it feels it: more hunger, slower legs
+  assert.equal(fagi.eaten, 1);
+  assert.ok(fagi.brain.facts.toxico.value < 0);
+
   fagi.target = { x: fagi.x + 100, y: fagi.y, type: 'nectar' };
   addPoint(world, fagi.x, fagi.y, 'toxico');
-
   tryPickOrEat(fagi, world);
-  assert.equal(fagi.eaten, 0);
+  assert.equal(fagi.eaten, 1);
   assert.equal(world.points.length, 1);
 });
 
-test('the pantry never serves food already learned to be harmful', () => {
+test('does not get stuck retargeting food it already learned to avoid, with nothing else around', () => {
   const world = createWorld();
   const fagi = createFagi();
+  fagi.angle = 0;
+  fagi.thirst = 0;
+
+  // Ya lo aprendió en una vida anterior (o hace un minuto): tiene la regla,
+  // y dos bocados agotan la curiosidad (BRAIN.curiosityTries=2), así que un
+  // tercer encuentro ya no es "probar otra vez", es un rechazo de verdad.
+  // Empieza sin hambre para que los dos bocados de +25 no la maten (0→50).
+  fagi.hunger = 0;
+  eat(fagi, 'toxico');
+  eat(fagi, 'toxico');
+  assert.equal(fagi.hunger, 50);   // urgente pero por debajo de NEEDS.critical: tier "proveer", no "urgencia"
+  assert.ok(fagi.brain.rules.list.some((r) => r.id === 'evitar-toxico' && !r.retired));
+
+  // Lo único que hay para comer es otro tóxico, justo delante.
+  addPoint(world, fagi.x + 30, fagi.y, 'toxico');
+
+  // Primero se acerca (eso es normal); lo que no puede pasar es que se quede
+  // clavada ahí para siempre, re-eligiéndolo y rechazándolo cada frame. Se
+  // compara la segunda mitad del tramo con la primera: si de verdad sigue su
+  // vida, la segunda mitad también se mueve. Si se congeló junto al fruto,
+  // la segunda mitad no avanza nada.
+  for (let t = 0; t < 1 && fagi.alive; t += 0.05) step(world, fagi, 0.05);
+  const xMid = fagi.x, yMid = fagi.y;
+  for (let t = 0; t < 1 && fagi.alive; t += 0.05) step(world, fagi, 0.05);
+
+  assert.notEqual(fagi.target, world.points[0]);
+  assert.ok(
+    Math.hypot(fagi.x - xMid, fagi.y - yMid) > 5,
+    'Fagi froze in place: stuck retargeting the toxic fruit it already refuses to eat',
+  );
+});
+
+test('the pantry never serves food that sat badly with it', () => {
+  const world = createWorld();
+  const fagi = createFagi();
+  fagi.hunger = 50;
+  eat(fagi, 'toxico');
   addObject(world, fagi.x, fagi.y, 'nido').stock.toxico = 2;
   fagi.hunger = 90;
-  learn(fagi.brain, 'toxico', POINT_TYPES.toxico.reward, fagi.age);
 
   useNest(fagi, world);
   assert.equal(fagi.hunger, 90);

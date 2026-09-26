@@ -11,11 +11,21 @@ export function createWorld() {
     immersive: true,
     wind: createWind(),
     pheromone: createPheromone(),
+    nextId: 1,   // cada cosa del mapa lleva un id: así se puede nombrar desde fuera
   };
 }
 
+// Un id nuevo por cosa. No se reutiliza nunca, ni al vaciar el mapa: una
+// respuesta de la API que llegue tarde no puede confundir un fruto con otro.
+function nuevoId(world) {
+  world.nextId = (world.nextId ?? 1);
+  return world.nextId++;
+}
+
 export function addPoint(world, x, y, type) {
-  world.points.push({ x, y, type });
+  const p = { id: nuevoId(world), x, y, type };
+  world.points.push(p);
+  return p;
 }
 
 export function removePoint(world, point) {
@@ -25,7 +35,7 @@ export function removePoint(world, point) {
 
 // Cada objeto lleva su propio radio: así se puede agrandar o encoger después.
 export function addObject(world, x, y, type, r = OBJECT_TYPES[type].radius) {
-  const obj = { x, y, type, r };
+  const obj = { id: nuevoId(world), x, y, type, r };
   if (OBJECT_TYPES[type].kind === 'nest') {
     obj.stock = {};   // cuántas raciones hay de cada cosa
     obj.ages = {};    // y la edad de cada una, para que también se echen a perder

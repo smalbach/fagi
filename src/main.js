@@ -13,6 +13,11 @@ import { createSettings, loadSettings } from './settings.js';
 import { bindDom, t, onLangChange } from './i18n.js';
 import { createNarrator, narrate } from './narrator.js';
 import { createConsola } from './consola.js';
+import { createLearnedPanel } from './learned/panel.js';
+import { createBrainMap } from './brainmap.js';
+import { save, snapshot } from './learned/store.js';
+import { createBackend } from './backend/index.js';
+import { createCortex, resetCortex } from './cortex.js';
 
 // Los ajustes guardados van antes que nada: hay números que solo se leen al
 // crear el mundo y a Fagi, no en cada frame.
@@ -27,6 +32,17 @@ const world = createWorld();
 const fagi = createFagi();
 generateMap(world);
 
+// Quién decide, si alguien además del instinto: se guarda en el navegador y
+// se puede cambiar en caliente desde el panel de código aprendido.
+function montarBackend(kind, url) {
+  fagi.cortex = createCortex(createBackend(kind, { url }));
+}
+{
+  const kindGuardado = (() => { try { return localStorage.getItem('fagi.backend') ?? 'none'; } catch { return 'none'; } })();
+  const urlGuardada = (() => { try { return localStorage.getItem('fagi.backend.url') ?? ''; } catch { return ''; } })();
+  montarBackend(kindGuardado, urlGuardada);
+}
+
 // La cámara es de la vista, no del mundo: reiniciar el mapa no la toca.
 const camera = encajar(createCamera(world), canvas, world);
 
@@ -34,8 +50,13 @@ const input = createInput(canvas, world, camera);
 const ui = createUI(input, world, reset);
 const narrator = createNarrator();
 const consola = createConsola();
-createSettings(world, () => fagi.brain);
+const learnedPanel = createLearnedPanel(fagi, { onBackendChange: montarBackend });
+const brainMap = createBrainMap(document.getElementById('brainmap'), document.getElementById('brainmap-status'));
+createSettings(world, () => fagi);
 bindDom();
+
+// Cerrar la pestaña no debería costarle a Fagi lo último que aprendió.
+window.addEventListener('pagehide', () => save(snapshot(fagi)));
 
 // Presentación limpia por defecto; las ayudas de simulación siguen disponibles
 // sin tocar la lógica del mundo.
@@ -56,7 +77,12 @@ updateVisualButton();
 function reset() {
   clearWorld(world);
   generateMap(world);
+  // createFagi() trae su propio cortex:null; el de verdad (con el backend que
+  // haya elegido la persona) se conserva y solo se le limpia lo pendiente.
+  const cortex = fagi.cortex;
   Object.assign(fagi, createFagi());
+  fagi.cortex = cortex;
+  resetCortex(cortex);
   Object.assign(narrator, createNarrator());
   consola.reset();
 }
@@ -74,6 +100,8 @@ function loop(now) {
   render(ctx, world, fagi, camera);
   ui.update(fagi, world);
   consola.update(fagi, narrate(narrator, fagi));
+  learnedPanel.update();
+  brainMap.update(fagi);
 
   requestAnimationFrame(loop);
 }
