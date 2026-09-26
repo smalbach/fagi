@@ -27,6 +27,9 @@ const DICT = {
     'panel.history': 'History',
     'panel.code': 'Learned code',
     'panel.brainmap': 'Brain map',
+    'panel.tabLive': 'Console & map',
+    'panel.tabHistory': 'Code & history',
+    'panel.now': 'Right now',
     'brainmap.empty': 'Nothing to show yet: no experience so far',
     'brainmap.status': '{beliefs} belief(s) · {active} active rule(s) · {retired} retired · {events} revision(s)',
 
@@ -253,6 +256,9 @@ const DICT = {
     'panel.history': 'Histórico',
     'panel.code': 'Código aprendido',
     'panel.brainmap': 'Mapa del cerebro',
+    'panel.tabLive': 'Consola y mapa',
+    'panel.tabHistory': 'Código e histórico',
+    'panel.now': 'Ahora mismo',
     'brainmap.empty': 'Todavía nada que enseñar: sin experiencia por ahora',
     'brainmap.status': '{beliefs} creencia(s) · {active} regla(s) activa(s) · {retired} retirada(s) · {events} ajuste(s)',
 

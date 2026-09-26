@@ -80,8 +80,9 @@
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       max-height: 100vh;
+      min-height: 0;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 12px;
     }
@@ -98,20 +99,8 @@
     .score .head em { color: #6e7486; font-style: normal; font-size: 10px; }
     .score .partes { color: #6e7486; font-size: 10.5px; }
     .dim { color: #6e7486; }
-    /* --- mapa del cerebro --- */
-    #brainmap-panel {
-      border-top: 1px solid var(--line);
-      padding-top: 8px;
-    }
-    #brainmap-panel summary { cursor: pointer; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; padding: 4px 0; }
     #brainmap-status { font-size: 10.5px; margin: 2px 0 6px; }
-    #brainmap { width: 100%; height: 220px; display: block; background: #12141a; border-radius: 6px; }
-    /* --- código aprendido --- */
-    #learned {
-      border-top: 1px solid var(--line);
-      padding-top: 8px;
-    }
-    #learned summary { cursor: pointer; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; padding: 4px 0; }
+    #brainmap { width: 100%; height: 100%; min-height: 120px; display: block; background: #12141a; border-radius: 6px; }
     #code-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
     #code-tools button { width: auto; padding: 4px 8px; font-size: 11px; }
     #code-tools button:disabled { opacity: .45; cursor: default; }
@@ -123,19 +112,16 @@
     #code-status { font-size: 10.5px; color: var(--muted); flex-basis: 100%; }
     #code-status.error { color: #d95b7e; }
     #learned-code {
-      max-height: 220px; overflow: auto; margin: 0;
+      height: 100%; overflow: auto; margin: 0;
       font-size: 10.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
       color: #cfd3dd; background: #12141a; border-radius: 6px; padding: 8px;
     }
     #c-log {
-      flex: 1;
+      height: 100%;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 4px;
-      border-top: 1px solid var(--line);
-      padding-top: 8px;
-      min-height: 120px;
     }
     #c-log .line { display: flex; gap: 6px; align-items: baseline; }
     #c-log .t { color: #5d6373; flex: none; width: 40px; text-align: right; }
@@ -154,6 +140,44 @@
     #c-log .tx i { color: #6e7486; font-style: normal; font-size: 11px; }
 
     input[type=range] { width: 100%; accent-color: #4fa05a; }
+
+    /* --- pestañas y paneles redimensionables de la consola --- */
+    #consola-tabs { display: flex; gap: 4px; flex: none; }
+    #consola-tabs .tab {
+      flex: 1; width: auto; justify-content: center;
+      background: transparent; border: 1px solid var(--line);
+      font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px;
+      color: var(--muted); padding: 6px 4px;
+    }
+    #consola-tabs .tab.active { background: #2a2e3a; color: var(--text); border-color: currentColor; }
+    .tab-panel {
+      flex: 1; min-height: 0;
+      display: flex; flex-direction: column;
+    }
+    .tab-panel[hidden] { display: none; }
+    .split-pane { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    .split-pane .pane { flex: 1 1 0%; min-height: 0; display: flex; flex-direction: column; }
+    .split-pane .pane.collapsed { flex: none; }
+    .pane-head {
+      display: flex; align-items: center; gap: 6px; flex: none;
+      border-top: 1px solid var(--line); padding: 6px 0;
+    }
+    .pane-head .pane-toggle {
+      width: auto; padding: 0 4px; background: transparent; border: none;
+      color: var(--muted); font-size: 11px; line-height: 1;
+    }
+    .pane-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; flex: 1; }
+    .pane-body { flex: 1; min-height: 0; overflow: auto; }
+    .pane.collapsed .pane-body { display: none; }
+    .resizer {
+      flex: none; height: 9px; cursor: row-resize; position: relative; touch-action: none;
+    }
+    .resizer::before {
+      content: ""; position: absolute; left: 0; right: 0; top: 4px; height: 2px;
+      background: var(--line); border-radius: 2px;
+    }
+    .resizer:hover::before, .resizer.dragging::before { background: #6e7486; }
+    .split-pane.resizer-hidden .resizer { display: none; }
 
     /* --- cuadro de ajustes --- */
     #topbar {
@@ -234,6 +258,16 @@
     body.immersive #topbar { opacity: .58; transition: opacity .18s ease; }
     body.immersive #topbar:hover,
     body.immersive #topbar:focus-within { opacity: 1; }
+
+    /* --- responsiva: en pantallas angostas los paneles se apilan --- */
+    @media (max-width: 860px) {
+      body { flex-direction: column; }
+      #stage { flex-basis: auto; min-width: 0; padding: 10px; }
+      canvas { max-height: 46vh; }
+      #hud, #consola {
+        width: 100%; flex: none; max-height: 42vh;
+      }
+    }
   </style>
 </head>
 <body>
@@ -307,40 +341,81 @@
   </aside>
   <section id="consola">
     <h2 data-i18n="panel.console">Decision console</h2>
-    <div id="c-now"></div>
-    <div id="c-detail"></div>
-    <div>
-      <h2 data-i18n="panel.scores">Scoring</h2>
-      <div id="c-scores"></div>
+    <div id="consola-tabs" role="tablist">
+      <button class="tab" data-tab="live" role="tab" data-i18n="panel.tabLive">Console &amp; map</button>
+      <button class="tab" data-tab="history" role="tab" data-i18n="panel.tabHistory">Code &amp; history</button>
     </div>
-    <details id="brainmap-panel" open>
-      <summary data-i18n="panel.brainmap">Brain map</summary>
-      <div id="brainmap-status" class="dim"></div>
-      <canvas id="brainmap"></canvas>
-    </details>
-    <details id="learned" open>
-      <summary data-i18n="panel.code">Learned code</summary>
-      <div id="code-tools">
-        <button id="btn-recover" data-i18n="code.recover" disabled>Recover</button>
-        <button id="btn-export" data-i18n="code.export">Export</button>
-        <button id="btn-import" data-i18n="code.import">Import…</button>
-        <input id="btn-import-file" type="file" accept=".js,text/javascript" hidden>
-        <button id="btn-forget-code" data-i18n="code.forget">Forget</button>
-        <span id="code-status"></span>
+
+    <div class="tab-panel" data-panel="live">
+      <div class="split-pane">
+        <section class="pane" data-pane="now">
+          <header class="pane-head">
+            <button class="pane-toggle" type="button" aria-expanded="true">▾</button>
+            <span class="pane-title" data-i18n="panel.now">Right now</span>
+          </header>
+          <div class="pane-body">
+            <div id="c-now"></div>
+            <div id="c-detail"></div>
+            <div>
+              <h2 data-i18n="panel.scores">Scoring</h2>
+              <div id="c-scores"></div>
+            </div>
+          </div>
+        </section>
+        <div class="resizer" data-resizer></div>
+        <section class="pane" data-pane="brainmap">
+          <header class="pane-head">
+            <button class="pane-toggle" type="button" aria-expanded="true">▾</button>
+            <span class="pane-title" data-i18n="panel.brainmap">Brain map</span>
+          </header>
+          <div class="pane-body">
+            <div id="brainmap-status" class="dim"></div>
+            <canvas id="brainmap"></canvas>
+          </div>
+        </section>
       </div>
-      <div id="code-tools">
-        <span data-i18n="code.backend">Who decides</span>
-        <select id="backend-select">
-          <option value="none" data-i18n="code.backendNone">Instinct only</option>
-          <option value="local" data-i18n="code.backendLocal">Local emulator</option>
-          <option value="http" data-i18n="code.backendHttp">HTTP API</option>
-        </select>
-        <input id="backend-url" type="text" placeholder="http://localhost:8787" hidden>
+    </div>
+
+    <div class="tab-panel" data-panel="history" hidden>
+      <div class="split-pane">
+        <section class="pane" data-pane="code">
+          <header class="pane-head">
+            <button class="pane-toggle" type="button" aria-expanded="true">▾</button>
+            <span class="pane-title" data-i18n="panel.code">Learned code</span>
+          </header>
+          <div class="pane-body">
+            <div id="code-tools">
+              <button id="btn-recover" data-i18n="code.recover" disabled>Recover</button>
+              <button id="btn-export" data-i18n="code.export">Export</button>
+              <button id="btn-import" data-i18n="code.import">Import…</button>
+              <input id="btn-import-file" type="file" accept=".js,text/javascript" hidden>
+              <button id="btn-forget-code" data-i18n="code.forget">Forget</button>
+              <span id="code-status"></span>
+            </div>
+            <div id="code-tools">
+              <span data-i18n="code.backend">Who decides</span>
+              <select id="backend-select">
+                <option value="none" data-i18n="code.backendNone">Instinct only</option>
+                <option value="local" data-i18n="code.backendLocal">Local emulator</option>
+                <option value="http" data-i18n="code.backendHttp">HTTP API</option>
+              </select>
+              <input id="backend-url" type="text" placeholder="http://localhost:8787" hidden>
+            </div>
+            <pre id="learned-code"></pre>
+          </div>
+        </section>
+        <div class="resizer" data-resizer></div>
+        <section class="pane" data-pane="log">
+          <header class="pane-head">
+            <button class="pane-toggle" type="button" aria-expanded="true">▾</button>
+            <span class="pane-title" data-i18n="panel.history">History</span>
+          </header>
+          <div class="pane-body">
+            <div id="c-log"></div>
+          </div>
+        </section>
       </div>
-      <pre id="learned-code"></pre>
-    </details>
-    <h2 data-i18n="panel.history">History</h2>
-    <div id="c-log"></div>
+    </div>
   </section>
   <div id="settings-overlay" hidden>
     <div id="settings">
