@@ -86,6 +86,9 @@ export function createUI(input, world, onReset) {
     headingVal: document.getElementById('heading-val'),
     verticalVal: document.getElementById('vertical-val'),
     windVal: document.getElementById('wind-val'),
+    bodyVal: document.getElementById('body-val'),
+    skyVal: document.getElementById('sky-val'),
+    pressureVal: document.getElementById('pressure-val'),
     effects: document.getElementById('effects'),
   };
 
@@ -166,6 +169,20 @@ function paintEffects(container, fagi) {
   ).join('');
 }
 
+// El cuerpo (empapada, en el hondo, tanteando) y el cielo tal como lo nota:
+// si llueve y cuánto ha bajado la presión, y si sigue bajando.
+function paintSky(el, fagi, world) {
+  let cuerpo = t('body.dry');
+  if (fagi.swimming) cuerpo = t('body.swimming');
+  else if (fagi.wet > 0) cuerpo = t('body.wet', { sec: { dur: fagi.wet, precise: true } });
+  if (fagi.probing && !fagi.swimming) cuerpo += ` · ${t('body.probing')}`;
+  el.bodyVal.textContent = cuerpo;
+  el.skyVal.textContent = t(world.rain?.on ? 'sky.rain' : 'sky.clear');
+  const p = fagi.pressure ?? 0;
+  el.pressureVal.textContent = p <= 0 ? t('pressure.normal')
+    : `${fagi.pressureFalling ? '↓ ' : ''}${t(fagi.pressureFalling ? 'pressure.falling' : 'pressure.low')} ${Math.round(p * 100)}%`;
+}
+
 function barra(bar, val, valor, max) {
   const pct = (valor / max) * 100;
   bar.style.width = `${pct}%`;
@@ -190,6 +207,7 @@ function update(el, beliefBox, beliefs, fagi, world) {
   el.headingVal.textContent = `${dir.arrow} ${t(dir.key)}`;
   el.verticalVal.textContent = `${vert.arrow} ${t(vert.key)}`;
   el.windVal.textContent = `${viento.arrow} ${t(viento.key)}`;
+  paintSky(el, fagi, world);
 
   paintEffects(el.effects, fagi);
   // Nace sin creer nada de nada: la lista de claves crece sola según Fagi va

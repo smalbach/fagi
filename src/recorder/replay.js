@@ -264,6 +264,11 @@ function ponerFagi(fagi, track, recorrido, t, dead, w) {
   fagi.lastScent = a[13] != null ? { x: a[13], y: a[14] } : null;
   fagi.exploreTarget = a[15] != null ? { x: a[15], y: a[16], inView: true } : null;
   fagi.exploreLegs = a[17] ?? 0;
+  fagi.wet = a[18] ?? 0;
+  fagi.swimming = !!a[19];
+  fagi.probing = !!a[20];
+  fagi.pressure = a[21] ?? 0;
+  fagi.pressureFalling = !!a[22];
   fagi.carrying = a[6] ? { type: a[6], age: 0 } : null;
   fagi.hunger = a[7];
   fagi.thirst = a[8];
@@ -290,6 +295,7 @@ function ponerMente(fagi, state, t) {
   fagi.brain.synapses = {};
   for (const [a, b, kind, w, born] of m.synapses ?? []) fagi.brain.synapses[`${a}>${b}`] = { a, b, kind, w, born, last: t, n: 0 };
   fagi.brain.places = m.places ?? {};
+  fagi.brain.puddleLife = m.puddleLife ?? null;
   if (typeof m.explored === 'string' && fagi.explored?.length === m.explored.length) {
     for (let i = 0; i < m.explored.length; i++) fagi.explored[i] = Number(m.explored[i]);
   }
@@ -302,6 +308,9 @@ function ponerMente(fagi, state, t) {
   fagi.eaten = st.eaten ?? 0;
   fagi.picked = st.picked ?? 0;
   fagi.stored = st.stored ?? 0;
+  fagi.dunks = st.dunks ?? 0;
+  fagi.rainLessons = st.rainLessons ?? 0;
+  fagi.puddleGone = st.puddleGone ?? 0;
   fagi.directive = st.directive ? {} : null;
   fagi.trailKey = st.trailKey ?? null;
 }

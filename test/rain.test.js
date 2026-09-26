@@ -100,7 +100,8 @@ test('a pressure drop means nothing until it has come before the rain; then she 
   frente();
   assert.equal(fagi.pressureFalling, true, 'la nota bajar (instinto)');
   assert.notEqual(fagi.thought.action, 'shelter', 'pero no sabe qué anuncia');
-  assert.equal(weight(fagi.brain, 'presion'), 0);
+  assert.equal(fagi.brain.facts.presion, undefined, 'ni siquiera cree nada de ella');
+  assert.equal(fagi.brain.facts.lluvia, undefined);
 
   // Llueve encima y escampa: aprende la lluvia y, con ella, lo que anunciaba el
   // frente. Dos veces, para que la asociación pese.
@@ -215,4 +216,20 @@ test('sleeping in the nest out of the rain, hunger and thirst rise far slower, a
   step(world, fagi, 0.1);
   assert.equal(nido.stock.nectar, 1);
   assert.ok(fagi.hunger < HUNGER.max * 0.5);
+});
+
+test('what it learned about weather goes into its code: rules only about pursuing, and how long a puddle lasts', async () => {
+  const { exportText, importText } = await import('../src/learned/store.js');
+  const { learn } = await import('../src/brain.js');
+  const fagi = createFagi();
+  for (let i = 0; i < 3; i++) learn(fagi.brain, 'lluvia', -0.8, i * 20);
+  fagi.brain.puddleLife = 180;
+  const regla = fagi.brain.rules.list.find((r) => r.id === 'evitar-lluvia');
+  assert.deepEqual(regla.on, ['pursue'], 'la lluvia no se come');
+
+  const texto = exportText(fagi);
+  const otra = createFagi();
+  importText(otra, texto);
+  assert.equal(otra.brain.puddleLife, 180);
+  assert.equal(verdict(otra, 'pursue', 'lluvia'), 'avoid');
 });

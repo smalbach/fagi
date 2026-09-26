@@ -173,7 +173,8 @@ export async function showHome(user, { onNew, onReplay, onAdmin, onLogout }) {
       <table>
         <thead><tr>
           <th>${t('home.started')}</th><th>${t('home.duration')}</th><th>${t('home.outcome')}</th>
-          <th>${t('home.eaten')}</th><th>${t('home.rules')}</th><th></th>
+          <th>${t('home.eaten')}</th><th>${t('home.stored')}</th><th>${t('home.rules')}</th>
+          <th>${t('home.dunks')}</th><th>${t('home.rains')}</th><th></th>
         </tr></thead>
         <tbody>${sesiones.map((s) => `
           <tr data-id="${esc(s.id)}">
@@ -181,7 +182,10 @@ export async function showHome(user, { onNew, onReplay, onAdmin, onLogout }) {
             <td>${formatDuration(s.duration ?? 0)}</td>
             <td>${resultado(s)}</td>
             <td>${esc(s.summary?.eaten ?? '—')}</td>
+            <td>${esc(s.summary?.stored ?? '—')}</td>
             <td>${esc(s.summary?.rules ?? '—')}</td>
+            <td>${esc(s.summary?.dunks ?? '—')}</td>
+            <td>${esc(s.summary?.rains ?? '—')}</td>
             <td><div class="screen-row-actions">
               <button data-act="replay" ${s.events ? '' : 'disabled'}>${t('home.replay')}</button>
               <button data-act="export" ${s.events ? '' : 'disabled'}>${t('home.export')}</button>

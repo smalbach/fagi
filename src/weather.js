@@ -20,7 +20,7 @@
 
 import { INSTINCT, RAIN, WATER } from './config.js';
 import { learn } from './brain.js';
-import { weight, recall } from './memory.js';
+import { peekWeight } from './memory.js';
 import { hebb } from './synapses.js';
 import { nestUnder } from './nest.js';
 
@@ -29,12 +29,12 @@ export const PRESSURE_KEY = 'presion';
 
 // Cuánto quiere estar a cubierto mientras llueve: instinto + lo aprendido.
 export function rainAversion(fagi) {
-  return INSTINCT.rainShelter + Math.max(0, -weight(fagi.brain, RAIN_KEY));
+  return INSTINCT.rainShelter + Math.max(0, -peekWeight(fagi.brain, RAIN_KEY));
 }
 
 // Cuánto quiere volver al nido al notar que la presión baja.
 export function pressureAversion(fagi) {
-  return INSTINCT.pressureShelter + Math.max(0, -weight(fagi.brain, PRESSURE_KEY));
+  return INSTINCT.pressureShelter + Math.max(0, -peekWeight(fagi.brain, PRESSURE_KEY));
 }
 
 function aprenderLluvia(fagi, ep) {
@@ -52,7 +52,7 @@ function aprenderLluvia(fagi, ep) {
 
 // La bajada de presión se carga con lo que vino después: la lluvia.
 function aprenderPresion(fagi) {
-  const lluvia = recall(fagi.brain, RAIN_KEY).value;
+  const lluvia = fagi.brain.facts[RAIN_KEY]?.value ?? 0;
   if (!lluvia) return;
   const cambio = learn(fagi.brain, PRESSURE_KEY, lluvia, fagi.age, [
     { sense: 'speed', v: WATER.wetSpeed },

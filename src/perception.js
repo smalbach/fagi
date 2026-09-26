@@ -12,7 +12,7 @@ import { choose, learn } from './brain.js';
 import { nestOf, stockCount } from './world.js';
 import { followPheromone } from './pheromone.js';
 import { nestUnder } from './nest.js';
-import { rememberPlace, recallPlace, forgetPlace, waterPlaceKind, weight } from './memory.js';
+import { rememberPlace, recallPlace, forgetPlace, waterPlaceKind, peekWeight } from './memory.js';
 
 // El charco visible más cercano. El agua no se aprende: es instinto.
 function nearestWater(fagi, world) {
@@ -80,7 +80,7 @@ function rememberWater(fagi, world, visible, range) {
   const vida = fagi.brain.puddleLife;
   const caducado = (p) => p.ref?.type === 'charco' && vida != null && fagi.age - p.lastAt > vida;
   if (sitios.length > 1) sitios = sitios.filter((p) => !caducado(p));
-  const recelo = 1 + Math.max(0, -weight(fagi.brain, 'charco'));
+  const recelo = 1 + Math.max(0, -peekWeight(fagi.brain, 'charco'));
   const lejania = (p) => distanceTo(fagi, p) * (p.ref?.type === 'charco' ? recelo : 1);
   const sitio = sitios.sort((a, b) => lejania(a) - lejania(b))[0] ?? null;
   return { pool: visible ?? sitio, sitio };

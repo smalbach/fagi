@@ -86,6 +86,9 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
       fagi.lastScent ? round(fagi.lastScent.x, 1) : null, fagi.lastScent ? round(fagi.lastScent.y, 1) : null,
       explorando ? round(fagi.exploreTarget.x, 1) : null, explorando ? round(fagi.exploreTarget.y, 1) : null,
       explorando ? fagi.exploreLegs ?? 0 : null,
+      // El cuerpo y el cielo que nota: empapada, en el hondo, tanteando, presión.
+      Math.ceil(fagi.wet ?? 0), !!fagi.swimming, !!fagi.probing,
+      round(fagi.pressure ?? 0, 1), !!fagi.pressureFalling,
     ];
   }
 
@@ -286,6 +289,7 @@ function mente(fagi, now) {
     places: Object.fromEntries(Object.entries(fagi.brain?.places ?? {}).map(([k, p]) => [k, {
       x: paso(p.x, 5), y: paso(p.y, 5), error: paso(p.error, 10), confidence: round(p.confidence, 1), stage: p.stage,
     }])),
+    puddleLife: fagi.brain?.puddleLife != null ? Math.round(fagi.brain.puddleLife) : null,
     explored: fagi.explored ? Array.from(fagi.explored, (v) => Math.round(v)).join('') : null,
     episode: episodio(fagi.lastEpisode),
     // Los efectos se guardan por cuándo acaban, no por lo que les queda:
@@ -296,6 +300,7 @@ function mente(fagi, now) {
     stats: {
       eaten: fagi.eaten ?? 0, picked: fagi.picked ?? 0, stored: fagi.stored ?? 0,
       directive: !!fagi.directive, trailKey: fagi.trailKey ?? null,
+      dunks: fagi.dunks ?? 0, rainLessons: fagi.rainLessons ?? 0, puddleGone: fagi.puddleGone ?? 0,
     },
   };
 }
@@ -334,6 +339,8 @@ function summarize(fagi) {
     picked: fagi.picked ?? 0,
     stored: fagi.stored ?? 0,
     rules: fagi.brain?.rules?.list?.length ?? 0,
+    dunks: fagi.dunks ?? 0,
+    rains: fagi.rainLessons ?? 0,
   };
 }
 

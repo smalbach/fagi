@@ -41,6 +41,13 @@ export function weight(mem, key) {
   return r.value * (MEMORY.floor + (1 - MEMORY.floor) * r.confidence);
 }
 
+// Lo mismo, pero sin crear la creencia si aún no existe: para consultar algo
+// que quizá no ha vivido nunca (la lluvia, un charco) sin que aparezca como
+// "sin probar" entre lo que cree.
+export function peekWeight(mem, key) {
+  return mem.facts[key] ? weight(mem, key) : 0;
+}
+
 // ¿Le queda curiosidad por esto? La tiene si no lo ha probado o si ya no se fía.
 export function curious(mem, key, triesNeeded) {
   const r = recall(mem, key);

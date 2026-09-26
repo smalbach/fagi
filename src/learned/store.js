@@ -66,14 +66,14 @@ export function restore(fagi, snap) {
 }
 
 export function exportText(fagi) {
-  return renderModule(fagi.brain.rules.list, fagi.brain.facts, { age: fagi.age });
+  return renderModule(fagi.brain.rules.list, fagi.brain.facts, { age: fagi.age, puddleLife: fagi.brain.puddleLife });
 }
 
 // Lee un archivo importado y, si es válido, sustituye lo aprendido. Lanza con
 // un motivo legible si no lo es; en ese caso no toca la memoria de Fagi.
 export function importText(fagi, text) {
-  const { rules, facts } = parseModule(text);
-  restore(fagi, { facts, rules });
+  const { rules, facts, puddleLife } = parseModule(text);
+  restore(fagi, { facts, rules, puddleLife });
 }
 
 export function wipe(fagi, storage = safeStorage()) {

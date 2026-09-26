@@ -76,7 +76,7 @@ const LINEA_REGLA = /^(?:\/\/ retirada [\d.]+s: )?rule\('([a-z0-9-]{1,64})',\s*(
 const LINEA_MEMORIA = /^export const memoria = (\{.*\});$/;
 
 // El módulo completo, tal y como se exporta y se enseña en el panel.
-export function renderModule(rules, facts, { age } = {}) {
+export function renderModule(rules, facts, { age, puddleLife = null } = {}) {
   const activas = rules.filter((r) => !r.retired);
   const retiradas = rules.filter((r) => r.retired);
   const cabecera = `// Código aprendido por Fagi · edad ${(age ?? 0).toFixed(1)}s · ` +
@@ -84,7 +84,9 @@ export function renderModule(rules, facts, { age } = {}) {
     `// Generado por src/learned/dsl.js. Se importa sin eval: cada línea es JSON.\n`;
   const cuerpo = [...activas, ...retiradas].map((r) => '  ' + renderRule(r)).join(',\n');
   const lineaRules = cuerpo ? `export default [\n${cuerpo},\n];` : 'export default [];';
-  const lineaMemoria = `export const memoria = ${JSON.stringify({ facts })};`;
+  // Además de las creencias, lo que sabe de cómo es el mundo: cuánto dura un charco.
+  const memoria = puddleLife != null ? { facts, puddleLife: Math.round(puddleLife * 10) / 10 } : { facts };
+  const lineaMemoria = `export const memoria = ${JSON.stringify(memoria)};`;
   return `${cabecera}import { rule } from './dsl.js';\n\n${lineaRules}\n${lineaMemoria}\n`;
 }
 
@@ -98,6 +100,7 @@ export function parseModule(text) {
 
   const rules = [];
   let facts = {};
+  let puddleLife = null;
   let vistoMemoria = false;
 
   for (const linea of text.split('\n')) {
@@ -121,6 +124,9 @@ export function parseModule(text) {
       try { datos = JSON.parse(mm[1]); } catch { throw new Error('la línea de memoria trae JSON inválido'); }
       if (datos && typeof datos === 'object' && datos.facts && typeof datos.facts === 'object') {
         facts = datos.facts;
+        if (typeof datos.puddleLife === 'number' && Number.isFinite(datos.puddleLife) && datos.puddleLife > 0) {
+          puddleLife = datos.puddleLife;
+        }
         vistoMemoria = true;
       }
     }
@@ -128,5 +134,5 @@ export function parseModule(text) {
   }
 
   if (!vistoMemoria && rules.length === 0) throw new Error('no se reconoce ninguna regla ni memoria en el archivo');
-  return { rules, facts };
+  return { rules, facts, puddleLife };
 }

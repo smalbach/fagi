@@ -5,18 +5,21 @@
 // regla. Los umbrales de entrada y salida son distintos (histéresis) para que
 // una creencia rondando el límite no encienda y apague la regla cada frame.
 
-import { LEARN } from '../config.js';
+import { LEARN, POINT_TYPES } from '../config.js';
 import { weight } from '../memory.js';
 import { activeRule, retireRule, upsertRule } from './rules.js';
 
 const ALCANCE = { avoid: ['eat', 'store', 'pursue'], prefer: ['eat', 'store'] };
+// Lo que no se come (el hondo, la lluvia, la bajada de presión, el agua, los
+// charcos) solo se persigue o se evita: una regla suya no habla de comer.
+const alcance = (key, verdict) => (POINT_TYPES[key] ? ALCANCE[verdict] : ['pursue']);
 const PREFIJO = { avoid: 'evitar', prefer: 'preferir' };
 const CONTRARIO = { avoid: 'prefer', prefer: 'avoid' };
 
 function nuevaRegla(now, key, verdict, w, because) {
   return {
     id: `${PREFIJO[verdict]}-${key}`,
-    on: ALCANCE[verdict],
+    on: alcance(key, verdict),
     when: { key },
     verdict,
     weight: Number(w.toFixed(3)),
