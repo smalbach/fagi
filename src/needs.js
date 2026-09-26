@@ -1,6 +1,6 @@
 // Los tres medidores que mantienen viva (o no) a Fagi: hambre, sed y energía.
 
-import { HUNGER, THIRST, ENERGY, WATER, RAIN } from './config.js';
+import { HUNGER, THIRST, ENERGY, WATER, RAIN, NEST } from './config.js';
 import { statMult } from './effects.js';
 import { waterZone } from './obstacles.js';
 import { nestUnder } from './nest.js';
@@ -12,9 +12,14 @@ import { learn } from './brain.js';
 // El turno primero permite beber, comer o usar la despensa y solo después
 // resuelve si una necesidad llegó al límite. Así tocar el recurso en el último
 // instante salva a Fagi en vez de matarla antes de poder usarlo.
-export function increaseNeeds(fagi, dt) {
-  fagi.hunger += HUNGER.rate * statMult(fagi, 'hungerRate') * dt;
-  fagi.thirst += THIRST.rate * dt;
+// Durmiendo en el nido gasta poco y, con el aire húmedo de dentro, apenas se
+// seca: el hambre y la sed suben mucho más despacio (NEST.restHunger/Thirst).
+// Por eso puede esperar a que escampe; si la lluvia se alarga y le entra
+// hambre, come de la despensa (nest.js).
+export function increaseNeeds(fagi, world, dt) {
+  const durmiendo = fagi.thought?.action === 'rest' && !fagi.swimming && Boolean(nestUnder(fagi, world));
+  fagi.hunger += HUNGER.rate * statMult(fagi, 'hungerRate') * (durmiendo ? NEST.restHunger : 1) * dt;
+  fagi.thirst += THIRST.rate * (durmiendo ? NEST.restThirst : 1) * dt;
 }
 
 export function resolveVitalFailure(fagi) {

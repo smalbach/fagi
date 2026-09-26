@@ -153,7 +153,7 @@ export function updateFagi(fagi, world, dt) {
   markTrail(fagi, world, dt);
   tryPickOrEat(fagi, world);
   resolveTrail(fagi);            // ¿el rastro que seguía la llevó a comida?
-  increaseNeeds(fagi, dt);
+  increaseNeeds(fagi, world, dt);
 
   // Morir guarda ya mismo, sin esperar al próximo turno de autoguardado: lo
   // último que aprendió (incluida la lección de esta misma muerte) no se pierde.

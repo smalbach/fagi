@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { RAIN, WATER, FAGI, THIRST, ENERGY } from '../src/config.js';
+import { RAIN, WATER, FAGI, THIRST, ENERGY, HUNGER, NEST } from '../src/config.js';
 import { createFagi } from '../src/fagi.js';
 import { step } from '../src/simulation.js';
-import { addObject, createWorld, removeObject } from '../src/world.js';
+import { addObject, createWorld, removeObject, storeInNest } from '../src/world.js';
 import { updateRain, isPuddle } from '../src/rain.js';
 import { waterZone } from '../src/obstacles.js';
 import { dropPheromone } from '../src/pheromone.js';
@@ -194,4 +194,25 @@ test('seeing a remembered puddle never makes it look worse than remembering it',
   const memoria = agua();
   assert.equal(memoria.via, 'memoria');
   assert.ok(vista.score >= memoria.score, `vista ${vista.score} < memoria ${memoria.score}`);
+});
+
+test('sleeping in the nest out of the rain, hunger and thirst rise far slower, and she eats from the pantry', () => {
+  const world = createWorld();
+  const fagi = createFagi();
+  const nido = addObject(world, fagi.x, fagi.y, 'nido');
+  llover(world);
+  world.rain.left = 999;
+  step(world, fagi, 0.05);
+  assert.equal(fagi.thought.action, 'rest');
+  const h0 = fagi.hunger, s0 = fagi.thirst;
+  for (let i = 0; i < 100; i++) step(world, fagi, 0.1);
+  assert.ok(fagi.thirst - s0 < THIRST.rate * 10 * NEST.restThirst + 1e-6, `sed ${fagi.thirst - s0}`);
+  assert.ok(fagi.hunger - h0 < HUNGER.rate * 10 * NEST.restHunger + 1e-6, `hambre ${fagi.hunger - h0}`);
+
+  // La lluvia se alarga y le entra hambre: come de lo guardado sin salir.
+  storeInNest(nido, 'nectar'); storeInNest(nido, 'nectar');
+  fagi.hunger = HUNGER.max * 0.5;
+  step(world, fagi, 0.1);
+  assert.equal(nido.stock.nectar, 1);
+  assert.ok(fagi.hunger < HUNGER.max * 0.5);
 });

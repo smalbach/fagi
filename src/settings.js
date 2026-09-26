@@ -109,6 +109,8 @@ const GRUPOS = [
     n(CARRY, 'eatBelow', 'Hunger above which it eats instead of carrying', 'Hambre a partir de la cual come en vez de cargar', 0, 100, 1),
     n(NEST, 'full', 'Stored items at which the pantry is done', 'Reservas con las que la despensa está hecha', 1, 60, 1),
     n(NEST, 'keepFactor', 'Stored food lasts × longer (then it spoils away)', 'Lo guardado dura × más (y luego se echa a perder)', 1, 50, 1),
+    n(NEST, 'restHunger', 'Hunger while sleeping in the nest (×)', 'Hambre durmiendo en el nido (×)', 0, 1, 0.05),
+    n(NEST, 'restThirst', 'Thirst while sleeping in the nest (×)', 'Sed durmiendo en el nido (×)', 0, 1, 0.05),
   ]},
   { titulo: { en: 'Exploring', es: 'Exploración' }, campos: [
     n(EXPLORE, 'cell', 'Size of a cell in its mental map', 'Tamaño de casilla del mapa mental', 30, 300, 10),

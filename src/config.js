@@ -446,7 +446,11 @@ export const CARRY = {
 //
 // forageDrive: cuánto tira de una obrera la despensa vacía. Sale a por comida
 // por lo que le falta a la colonia, no solo por su propia hambre.
-export const NEST = { full: 12, keepFactor: 10, forageDrive: 0.5 };
+//   restHunger / restThirst: cuánto hambre y sed le dan durmiendo dentro del
+//   nido, frente a estar fuera (×). Quieta gasta mucho menos (el metabolismo
+//   en reposo de una hormiga es una fracción del de ir andando) y el aire del
+//   nido va casi saturado de humedad, así que apenas pierde agua.
+export const NEST = { full: 12, keepFactor: 10, forageDrive: 0.5, restHunger: 0.35, restThirst: 0.1 };
 
 // Explorar. No es deambular: Fagi lleva una rejilla basta de por dónde ha
 // pasado y tira hacia la casilla que menos conoce.
