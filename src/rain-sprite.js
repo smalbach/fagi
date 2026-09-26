@@ -307,7 +307,6 @@ export function drawRainDrops(ctx, world, ahora) {
   const W = ctx.canvas.width;
   const H = ctx.canvas.height;
   const cx = W / 2;
-  const cy = H / 2;
   const v = vientoDe(world);
   const t = ahora / 1000;
   const escala = (W * H) / (1280 * 860);
@@ -319,7 +318,7 @@ export function drawRainDrops(ctx, world, ahora) {
   // Rachas: cortinas de lluvia más densa que cruzan la vista con el viento.
   ctx.globalCompositeOperation = 'screen';
   ctx.globalAlpha = n * 0.1;
-  teselar(ctx, ruido(), 520, v.x * t * 160, v.y * t * 160 + t * 30, 0, 0, W, H);
+  teselar(ctx, ruido(), 520, v.x * t * 90, t * 170, 0, 0, W, H);
   ctx.globalCompositeOperation = 'source-over';
   ctx.globalAlpha = 1;
 
@@ -334,9 +333,11 @@ export function drawRainDrops(ctx, world, ahora) {
       const p = u - ciclo;
       const x = hash(i, ciclo + c * 7919, 3) * (W + 80) - 40;
       const y = hash(i, ciclo + c * 7919, 4) * (H + 80) - 40;
-      // Dirección: el viento más la huida desde el centro (cae hacia nosotros).
-      const dx = v.x + (x - cx) / W * capa.abre * 10;
-      const dy = v.y + (y - cy) / H * capa.abre * 10 + 0.35;
+      // Dirección: siempre hacia abajo; el viento solo la inclina (de lado
+      // bastante, en vertical poco, para que nunca parezca que sube) y la
+      // perspectiva la abre un poco hacia los lados.
+      const dx = v.x * 0.55 + (x - cx) / W * capa.abre * 4;
+      const dy = 1 + v.y * 0.2;
       const m = Math.hypot(dx, dy) || 1;
       const largo = capa.largo * k * (0.75 + hash(i, ciclo, 5) * 0.5);
       const hx = x + (dx / m) * largo * p * 1.4;
