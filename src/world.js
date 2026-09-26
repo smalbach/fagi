@@ -12,7 +12,15 @@ export function createWorld() {
     wind: createWind(),
     pheromone: createPheromone(),
     nextId: 1,   // cada cosa del mapa lleva un id: así se puede nombrar desde fuera
+    time: 0,     // reloj del mundo en segundos; sigue corriendo aunque Fagi muera
+    rec: null,   // el grabador de la sesión, si se está grabando (recorder/)
   };
+}
+
+// Apunta un suceso en la grabación de la sesión, si la hay. Todo lo que cambia
+// el mapa pasa por aquí: así una partida se puede reproducir sin fotos.
+export function record(world, type, data) {
+  world.rec?.emit(type, data);
 }
 
 // Un id nuevo por cosa. No se reutiliza nunca, ni al vaciar el mapa: una
@@ -22,19 +30,25 @@ function nuevoId(world) {
   return world.nextId++;
 }
 
-export function addPoint(world, x, y, type) {
+// `from` es quién lo puso: el id del árbol del que cayó, o 'user'.
+export function addPoint(world, x, y, type, from = null) {
   const p = { id: nuevoId(world), x, y, type };
   world.points.push(p);
+  record(world, 'point_add', { id: p.id, what: type, x, y, from });
   return p;
 }
 
-export function removePoint(world, point) {
+// `reason`: 'eaten', 'picked', 'rotted'...
+export function removePoint(world, point, reason = 'removed') {
   const i = world.points.indexOf(point);
-  if (i !== -1) world.points.splice(i, 1);
+  if (i === -1) return;
+  world.points.splice(i, 1);
+  record(world, 'point_remove', { id: point.id, reason });
 }
 
 // Cada objeto lleva su propio radio: así se puede agrandar o encoger después.
-export function addObject(world, x, y, type, r = OBJECT_TYPES[type].radius) {
+// `source`: 'map' (generado), 'user' (colocado a mano) o 'sim'.
+export function addObject(world, x, y, type, r = OBJECT_TYPES[type].radius, source = 'sim') {
   const obj = { id: nuevoId(world), x, y, type, r };
   if (OBJECT_TYPES[type].kind === 'nest') {
     obj.stock = {};   // cuántas raciones hay de cada cosa
@@ -42,6 +56,7 @@ export function addObject(world, x, y, type, r = OBJECT_TYPES[type].radius) {
   }
   if (OBJECT_TYPES[type].kind === 'spawner') obj.timer = TREE.interval; // cuenta atrás del fruto
   world.objects.push(obj);
+  record(world, 'obj_add', { id: obj.id, what: type, x, y, r, source });
   return obj;
 }
 
@@ -144,12 +159,26 @@ export function updateNest(world, dt) {
     nido.stock[type] = Math.max(0, (nido.stock[type] ?? 0) - perdidas);
     nido.spoiled = (nido.spoiled ?? 0) + perdidas;
     nido.lastSpoiled = { type, n: perdidas, total: nido.spoiled };
+    record(world, 'nest_spoil', { what: type, count: perdidas });
   }
 }
 
-export function removeObject(world, obj) {
+export function removeObject(world, obj, source = 'sim') {
   const i = world.objects.indexOf(obj);
-  if (i !== -1) world.objects.splice(i, 1);
+  if (i === -1) return;
+  world.objects.splice(i, 1);
+  record(world, 'obj_remove', { id: obj.id, source });
+}
+
+// Mundo nuevo para una sesión nueva: vacío, con el reloj y los ids desde cero
+// y otro viento. Es el mismo objeto, así la cámara y la entrada siguen
+// apuntando a él.
+export function resetWorld(world) {
+  clearWorld(world);
+  world.nextId = 1;
+  world.time = 0;
+  world.rec = null;
+  world.wind = createWind();
 }
 
 export function clearWorld(world) {

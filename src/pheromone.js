@@ -5,6 +5,7 @@
 // menor. Se evaporan solas, así que un camino que ya no se usa desaparece.
 
 import { PHERO } from './config.js';
+import { record } from './world.js';
 
 export function createPheromone() {
   return [];
@@ -12,6 +13,7 @@ export function createPheromone() {
 
 export function dropPheromone(world, x, y, dNest) {
   world.pheromone.push({ x, y, dNest, life: PHERO.life });
+  record(world, 'phero_drop', { x, y, dNest });
 }
 
 // Evapora. Se llama una vez por frame.

@@ -2,10 +2,11 @@
 // Los botones y las barras se generan desde config, así que añadir un tipo
 // nuevo no obliga a tocar nada aquí. Los textos salen de i18n.
 
-import { HUNGER, THIRST, ENERGY, POINT_TYPES, TYPE_KEYS, OBJECT_TYPES, OBJECT_KEYS, specOf } from './config.js';
+import { HUNGER, THIRST, ENERGY, POINT_TYPES, TYPE_KEYS, OBJECT_TYPES, OBJECT_KEYS, TREE, specOf } from './config.js';
 import { heading, verticalSense } from './compass.js';
 import { activeEffects } from './effects.js';
-import { nestOf, nestRipeness } from './world.js';
+import { nestOf, nestRipeness, record } from './world.js';
+import { configIdOf } from './settings.js';
 import { setFruitInterval } from './trees.js';
 import { t, labelOf, onLangChange, formatDuration } from './i18n.js';
 import { recall } from './memory.js';
@@ -107,14 +108,20 @@ export function createUI(input, world, onReset) {
   // Cada cuánto dan fruta los árboles. Vale para los que ya están puestos.
   const slider = document.getElementById('tree-interval');
   const sliderVal = document.getElementById('tree-interval-val');
-  const aplicar = () => {
-    sliderVal.textContent = formatDuration(Number(slider.value));
-    setFruitInterval(world, Number(slider.value));
-  };
-  slider.addEventListener('input', aplicar);
-  aplicar();
+  const pintar = () => { sliderVal.textContent = formatDuration(Number(slider.value)); };
+  slider.addEventListener('input', () => {
+    const antes = TREE.interval;
+    const v = Number(slider.value);
+    setFruitInterval(world, v);
+    if (antes !== v) record(world, 'config', { id: configIdOf(TREE, 'interval'), from: antes, to: v, source: 'user' });
+    pintar();
+  });
+  // El deslizador enseña lo que hay, no lo impone: los ajustes guardados o los
+  // de la sesión mandan.
+  const sincronizar = () => { slider.value = TREE.interval; pintar(); };
+  sincronizar();
 
-  return { update: (fagi, w) => update(el, beliefBox, beliefs, fagi, w) };
+  return { update: (fagi, w) => update(el, beliefBox, beliefs, fagi, w), sync: sincronizar };
 }
 
 // Una creencia va de -1 a +1 y la barra crece desde el centro. La opacidad de

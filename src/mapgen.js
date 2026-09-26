@@ -34,7 +34,7 @@ function place(world, type, count, escala = null) {
       const y = MAPGEN.margin + r + Math.random() * (WORLD.height - 2 * (MAPGEN.margin + r));
       if (Math.hypot(x - cx, y - cy) < MAPGEN.spawnClear + r) continue; // sitio de Fagi
       if (!fits(world, x, y, r)) continue;
-      addObject(world, x, y, type, r);
+      addObject(world, x, y, type, r, 'map');
       break;
     }
   }
@@ -55,7 +55,7 @@ function placeNearSpawn(world, type, count, minDistance, maxDistance) {
     if (x < MAPGEN.margin + r || x > WORLD.width - MAPGEN.margin - r) continue;
     if (y < MAPGEN.margin + r || y > WORLD.height - MAPGEN.margin - r) continue;
     if (!fits(world, x, y, r)) continue;
-    addObject(world, x, y, type);
+    addObject(world, x, y, type, undefined, 'map');
     placed++;
   }
   if (placed < count) place(world, type, count - placed);
@@ -75,7 +75,7 @@ function placeFarFrom(world, type, count, origin, minDistance, maxDistance, pref
     const y = origin.y + Math.sin(angle) * distance;
     if (Math.hypot(x - cx, y - cy) < MAPGEN.spawnClear + r) continue;
     if (!fits(world, x, y, r)) continue;
-    addObject(world, x, y, type);
+    addObject(world, x, y, type, undefined, 'map');
     placed++;
   }
 }
@@ -85,7 +85,7 @@ export function generateMap(world) {
   const cx = WORLD.width / 2;
   const cy = WORLD.height / 2;
   const ang = Math.random() * Math.PI * 2;
-  const nest = addObject(world, cx + Math.cos(ang) * 90, cy + Math.sin(ang) * 90, 'nido');
+  const nest = addObject(world, cx + Math.cos(ang) * 90, cy + Math.sin(ang) * 90, 'nido', undefined, 'map');
 
   placeNearSpawn(world, 'agua', MAPGEN.pools, 175, 240);
   placeFarFrom(

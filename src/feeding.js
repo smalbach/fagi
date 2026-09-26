@@ -24,7 +24,7 @@ export function tryPickOrEat(fagi, world) {
 
   if (fagi.hunger >= CARRY.eatBelow) {
     eat(fagi, p.type);
-    removePoint(world, p);
+    removePoint(world, p, 'eaten');
   } else if (verdict(fagi, 'store', p.type) === 'avoid') {
     // Probarlo por curiosidad es una cosa; llenar la despensa de lo que cree
     // malo es otra. Lo deja donde está y deja de tenerlo por objetivo.
@@ -35,7 +35,7 @@ export function tryPickOrEat(fagi, world) {
     // rejuvenece.
     fagi.carrying = { type: p.type, age: p.age ?? 0 };
     fagi.picked = (fagi.picked ?? 0) + 1;
-    removePoint(world, p);
+    removePoint(world, p, 'picked');
   } else {
     suelta();
     return; // ya lleva algo, o la despensa está hecha: lo deja donde está

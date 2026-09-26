@@ -2,6 +2,8 @@
 //
 //   clic izquierdo   → coloca lo seleccionado. Con Agua elegida, MUEVE la fuente
 //                      que ya existe en vez de crear otra (el mapa tiene una sola).
+//   arrastrar        → mueve el objeto de mapa que haya debajo (nido, agua,
+//                      árbol, roca).
 //   clic derecho     → borra el objeto de mapa que haya debajo.
 //   rueda            → zoom, clavado en el punto de debajo del cursor.
 //   Mayús + rueda    → agranda o encoge el objeto bajo el cursor.
@@ -12,8 +14,10 @@
 //
 // El ratón trabaja en píxeles del lienzo y el mundo en sus propias coordenadas:
 // todo lo que viene del ratón pasa por la cámara antes de tocar el mundo.
+//
+// `editable = false` (reproduciendo una partida grabada) deja solo la cámara.
 
-import { addPoint, addObject, removeObject, waterSource, nestOf } from './world.js';
+import { addPoint, addObject, removeObject, waterSource, nestOf, record } from './world.js';
 import { objectAt, radiusOf } from './obstacles.js';
 import { TYPE_KEYS, OBJECT_TYPES, CAMERA } from './config.js';
 import { aPunto, acercar, mover, encajar } from './camera.js';
@@ -28,7 +32,7 @@ const PANEO = {
 
 export function createInput(canvas, world, camera) {
   // selected = clave de POINT_TYPES o de OBJECT_TYPES.
-  const state = { selectedType: TYPE_KEYS[0] };
+  const state = { selectedType: TYPE_KEYS[0], editable: true };
   const pulsadas = new Set();
 
   // Del lienzo puede verse una versión escalada por CSS: este factor lo deshace.
@@ -46,28 +50,66 @@ export function createInput(canvas, world, camera) {
     return { ...aPunto(camera, canvas, sx, sy), sx, sy };
   }
 
+  function mover(obj, x, y) {
+    obj.x = x; obj.y = y;
+    record(world, 'obj_move', { id: obj.id, x, y });
+  }
+
+  // Arrastrar con el izquierdo mueve el objeto de debajo. Hasta que el ratón
+  // no se aleja unos píxeles es un clic normal, que coloca.
+  let agarre = null;
+  let acabaDeArrastrar = false;
+  canvas.addEventListener('mousedown', (e) => {
+    if (e.button !== 0 || !state.editable) return;
+    const p = puntoMundo(e);
+    const obj = objectAt(world, p.x, p.y);
+    if (obj) agarre = { obj, x0: e.clientX, y0: e.clientY, dx: obj.x - p.x, dy: obj.y - p.y, moviendo: false };
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!agarre) return;
+    if (!agarre.moviendo && Math.hypot(e.clientX - agarre.x0, e.clientY - agarre.y0) < 5) return;
+    agarre.moviendo = true;
+    canvas.style.cursor = 'grabbing';
+    const p = puntoMundo(e);
+    // Mientras se arrastra no se graba cada píxel: solo donde se suelta.
+    agarre.obj.x = Math.max(0, Math.min(world.width, p.x + agarre.dx));
+    agarre.obj.y = Math.max(0, Math.min(world.height, p.y + agarre.dy));
+  });
+  window.addEventListener('mouseup', () => {
+    if (!agarre) return;
+    if (agarre.moviendo) {
+      mover(agarre.obj, agarre.obj.x, agarre.obj.y);
+      acabaDeArrastrar = true;
+      canvas.style.cursor = 'crosshair';
+    }
+    agarre = null;
+  });
+
   canvas.addEventListener('click', (e) => {
+    if (acabaDeArrastrar) { acabaDeArrastrar = false; return; }
+    if (!state.editable) return;
     const { x, y } = puntoMundo(e);
 
     // De agua y nido solo hay uno: el clic los MUEVE en vez de duplicarlos.
     const unicos = { agua: waterSource, nido: nestOf };
     if (unicos[state.selectedType]) {
       const existente = unicos[state.selectedType](world);
-      if (existente) { existente.x = x; existente.y = y; return; }
-      addObject(world, x, y, state.selectedType);
+      if (existente) { mover(existente, x, y); return; }
+      addObject(world, x, y, state.selectedType, undefined, 'user');
       return;
     }
 
-    if (OBJECT_TYPES[state.selectedType]) addObject(world, x, y, state.selectedType);
-    else addPoint(world, x, y, state.selectedType);
+    if (OBJECT_TYPES[state.selectedType]) addObject(world, x, y, state.selectedType, undefined, 'user');
+    else addPoint(world, x, y, state.selectedType, 'user');
   });
 
   // Clic derecho: quitar el objeto del mapa que haya debajo.
   canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
+    if (!state.editable) return;
     const { x, y } = puntoMundo(e);
     const obj = objectAt(world, x, y);
-    if (obj) removeObject(world, obj);
+    if (obj) removeObject(world, obj, 'user');
   });
 
   // Rueda: zoom. Con Mayús, el tamaño del objeto de debajo, que es lo que hacía
@@ -77,10 +119,12 @@ export function createInput(canvas, world, camera) {
     const p = puntoMundo(e);
 
     if (e.shiftKey) {
+      if (!state.editable) return;
       const obj = objectAt(world, p.x, p.y);
       if (!obj) return;
       const paso = e.deltaY < 0 ? 6 : -6;
       obj.r = Math.max(SIZE_LIMITS.min, Math.min(SIZE_LIMITS.max, radiusOf(obj) + paso));
+      record(world, 'obj_resize', { id: obj.id, r: obj.r });
       return;
     }
 

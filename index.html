@@ -286,6 +286,126 @@
     body.immersive #topbar:hover,
     body.immersive #topbar:focus-within { opacity: 1; }
 
+    /* --- pantallas fuera del juego: login, espera, inicio, admin --- */
+    #screen {
+      position: fixed; inset: 0; z-index: 60; overflow-y: auto;
+      background: radial-gradient(circle at 50% 30%, #20241d 0, #0d100e 75%);
+      display: flex; justify-content: center; align-items: flex-start; padding: 6vh 16px 32px;
+    }
+    #screen[hidden] { display: none; }
+    body.screen-open { overflow: hidden; }
+    .screen-card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+      width: min(920px, 100%); box-shadow: 0 30px 90px rgba(0,0,0,.5);
+    }
+    .screen-head {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 16px 20px; border-bottom: 1px solid var(--line);
+    }
+    .screen-head h1 { margin-right: 4px; }
+    .screen-sub { color: var(--muted); flex: 1; }
+    .screen-user { color: var(--muted); font-size: 12px; }
+    .screen-body, .screen-form { padding: 18px 20px 22px; display: flex; flex-direction: column; gap: 12px; }
+    .screen-form { max-width: 380px; margin: 0 auto; width: 100%; }
+    .screen-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+    .screen-form small { color: var(--muted); font-size: 11px; }
+    .screen-form input {
+      background: #2a2e3a; color: var(--text); border: 1px solid var(--line);
+      border-radius: 6px; padding: 8px 10px; font: inherit; font-size: 14px;
+    }
+    .screen-card button { width: auto; padding: 7px 14px; }
+    button.primary { background: #3c7a4f; border-color: #4e9563; color: #fff; }
+    button.primary:hover { background: #468a5b; }
+    .screen-error { color: #e07a8f; font-size: 12px; min-height: 1em; margin: 0; }
+    .screen-muted { color: var(--muted); }
+    .screen-big { font-size: 16px; margin: 0; }
+    .screen-alt { font-size: 12px; color: var(--muted); text-align: center; margin: 0; }
+    .screen-alt a { color: #9fd3a9; }
+    .screen-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .screen-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .screen-tabs button.active { background: #343947; border-color: #6a7186; }
+    .screen-list { overflow-x: auto; }
+    .screen-list table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .screen-list th { text-align: left; color: var(--muted); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .screen-list td { padding: 7px 8px; border-bottom: 1px solid #2a2e3a; vertical-align: middle; }
+    .screen-row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .screen-row-actions button { padding: 4px 10px; font-size: 12px; }
+    .tag { font-size: 10px; padding: 1px 6px; border-radius: 8px; background: #3a3f4e; color: #cfd3dd; }
+    .status { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #2a2e3a; }
+    .status-pending { color: #e8c35d; }
+    .status-approved { color: #7fd99a; }
+    .status-rejected, .status-disabled { color: #e07a8f; }
+
+    /* --- modos del juego --- */
+    #setup-bar, #replay-bar, #btn-end { display: none; }
+    body.mode-idle #hud, body.mode-idle #consola, body.mode-idle #topbar { display: none; }
+
+    /* Preparar: el mapa sin Fagi, los botones para poner cosas y los ajustes
+       al lado. Nada de estado, consola ni efectos: todavía no hay nadie. */
+    body.mode-setup #setup-bar { display: flex; }
+    body.mode-setup #consola { display: none; }
+    body.mode-setup #hud { display: flex; }
+    body.mode-setup .play-only { display: none; }
+    body.mode-setup #btn-settings { display: none; }
+    body.mode-setup #settings-overlay {
+      position: static; inset: auto; background: none; padding: 0; z-index: auto;
+      width: 340px; flex: none; display: flex;
+    }
+    body.mode-setup #settings { width: 100%; max-height: 100vh; border-radius: 0; border-width: 0 0 0 1px; }
+    body.mode-setup #settings-body { columns: auto; }
+    body.mode-setup #btn-settings-close { display: none; }
+    body.mode-setup #settings header { flex-wrap: wrap; }
+    body.mode-setup #settings header h2 { flex-basis: 100%; }
+    /* Preparando, el modo inmersivo no se come la pantalla: hacen falta los
+       paneles de al lado. */
+    body.mode-setup.immersive #stage { flex: 1 1 420px; min-width: 300px; padding: 16px; background: none; }
+    body.mode-setup.immersive canvas { max-width: 100%; max-height: calc(100vh - 32px); border-radius: 8px; }
+    body.mode-setup #hud { width: 250px; }
+
+    body.mode-play #btn-end { display: inline-block; }
+    body.mode-play #btn-reset { display: none; }
+
+    /* Reproducir: el mapa y el estado de Fagi, sin nada que edite. */
+    body.mode-replay #replay-bar { display: flex; }
+    body.mode-replay .edit-only, body.mode-replay #btn-settings, body.mode-replay #btn-reset { display: none; }
+    /* La consola sí se ve, pero lo que cambia a Fagi (recuperar, importar,
+       olvidar, quién decide) no pinta nada en una sesión que ya pasó. */
+    body.mode-replay [id="code-tools"] { display: none; }
+
+    .stage-bar {
+      position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 5;
+      background: rgba(29,32,41,.92); border: 1px solid var(--line); border-radius: 12px;
+      padding: 10px 12px; gap: 10px; align-items: center; flex-wrap: wrap;
+      box-shadow: 0 10px 30px rgba(0,0,0,.45); backdrop-filter: blur(4px);
+      width: max-content; max-width: calc(100% - 32px);
+    }
+    .stage-bar button { width: auto; padding: 6px 12px; }
+    .stage-bar label { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
+    .stage-bar .ayuda { width: 100%; margin: 0; font-size: 11px; color: var(--muted); }
+    #setup-error { color: #e07a8f; font-size: 12px; }
+    #replay-bar { width: min(820px, calc(100% - 32px)); }
+    #rp-track { position: relative; flex: 1; min-width: 200px; padding-top: 12px; }
+    #rp-slider { width: 100%; margin: 0; }
+    #rp-marks { position: absolute; left: 0; right: 0; top: 0; height: 12px; }
+    .rp-mark {
+      position: absolute; top: 2px; width: 6px !important; height: 10px; padding: 0 !important;
+      margin-left: -3px; border-radius: 2px; border: 0; background: #8a90a2; cursor: pointer;
+    }
+    .rp-fagi_eat { background: #e8a33d; }
+    .rp-fagi_pick, .rp-fagi_deposit, .rp-fagi_pantry { background: #c9a227; }
+    .rp-fagi_rule { background: #b57bff; }
+    .rp-fagi_death { background: #d95b7e; width: 8px !important; }
+    .rp-config { background: #4cc9f0; }
+    #rp-time { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--muted); white-space: nowrap; }
+    #rp-event { width: 100%; font-size: 12px; color: #cfd3dd; min-height: 1.2em; }
+    #rp-speed { background: #2a2e3a; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
+
+    @media (max-width: 860px) {
+      body.mode-setup #settings-overlay, body.mode-setup #hud { width: 100%; }
+      .stage-bar { position: static; transform: none; margin-top: 10px; }
+      #stage { flex-direction: column; }
+    }
+
     /* --- responsiva: en pantallas angostas los paneles se apilan ---
        En vez de meter #hud y #consola cada uno en su propia caja con
        overflow-y:auto (dos "ventanas" con scroll propio, más el de la
@@ -310,9 +430,10 @@
     }
   </style>
 </head>
-<body>
+<body class="mode-idle">
   <div id="stage">
     <div id="topbar">
+      <button id="btn-end" data-i18n="app.endSession">■ End session</button>
       <button id="btn-settings" data-i18n="app.settings">⚙ Settings</button>
       <button id="btn-visual" aria-pressed="false">🌿 Immersive</button>
       <select id="lang" title="Idioma / Language">
@@ -321,6 +442,31 @@
       </select>
     </div>
     <canvas id="canvas"></canvas>
+    <div id="setup-bar" class="stage-bar">
+      <button id="btn-regen" data-i18n="setup.regen">↻ New map</button>
+      <label><input id="chk-recover" type="checkbox"> <span data-i18n="setup.recover">Recover what it learned</span></label>
+      <button id="btn-setup-cancel" data-i18n="setup.cancel">Cancel</button>
+      <button id="btn-start" class="primary" data-i18n="setup.start">▶ Start session</button>
+      <span id="setup-error" role="alert"></span>
+      <p class="ayuda" data-i18n="setup.help">Click places · drag moves · right click removes · shift+wheel resizes</p>
+    </div>
+    <div id="replay-bar" class="stage-bar">
+      <button id="rp-play">⏸</button>
+      <select id="rp-speed" title="Speed">
+        <option value="1">×1</option>
+        <option value="4">×4</option>
+        <option value="16">×16</option>
+        <option value="64">×64</option>
+      </select>
+      <div id="rp-track">
+        <div id="rp-marks"></div>
+        <input id="rp-slider" type="range" min="0" max="1" step="0.01" value="0">
+      </div>
+      <span id="rp-time">0s</span>
+      <button id="rp-follow" data-i18n="replay.find">⦿ Fagi</button>
+      <button id="rp-exit" data-i18n="replay.exit">✕ Exit</button>
+      <div id="rp-event"></div>
+    </div>
   </div>
   <aside id="hud">
     <div class="hud-header">
@@ -331,14 +477,14 @@
       </div>
     </div>
     <div id="hud-body">
-    <p id="status"></p>
+    <p id="status" class="play-only"></p>
 
-    <details class="hud-group" open>
+    <details class="hud-group edit-only" open>
       <summary data-i18n="panel.food">Food</summary>
       <div id="type-buttons"></div>
     </details>
 
-    <details class="hud-group" open>
+    <details class="hud-group edit-only" open>
       <summary data-i18n="panel.map">Map</summary>
       <div id="object-buttons"></div>
       <p class="ayuda" data-i18n="panel.camera">Camera · wheel zooms · middle button drags · arrows move · F follows Fagi · 0 resets</p>
@@ -348,7 +494,7 @@
       <input id="tree-interval" type="range" min="2" max="30" step="1" value="8">
     </details>
 
-    <details class="hud-group" open>
+    <details class="hud-group play-only" open>
       <summary data-i18n="panel.state">State</summary>
       <div class="label"><span data-i18n="stat.hunger">Hunger</span><span id="hunger-val">0%</span></div>
       <div class="bar"><i id="hunger-bar" style="background:#d95b7e"></i></div>
@@ -361,7 +507,7 @@
       <div class="label"><span data-i18n="stat.carrying">Carrying</span><span id="carry-val">nada</span></div>
     </details>
 
-    <details class="hud-group" open>
+    <details class="hud-group play-only" open>
       <summary data-i18n="panel.heading">Heading</summary>
       <div class="label"><span data-i18n="stat.position">Position</span><span id="pos-val">x 0, y 0</span></div>
       <div class="label"><span data-i18n="stat.movingTo">Moving</span><span id="heading-val">→ derecha</span></div>
@@ -369,22 +515,22 @@
       <div class="label"><span data-i18n="stat.wind">Wind</span><span id="wind-val">→ derecha</span></div>
     </details>
 
-    <details class="hud-group" open>
+    <details class="hud-group play-only" open>
       <summary data-i18n="panel.pantry">Nest pantry</summary>
       <div id="stock"></div>
     </details>
 
-    <details class="hud-group" open>
+    <details class="hud-group play-only" open>
       <summary data-i18n="panel.effects">Active effects</summary>
       <div id="effects"></div>
     </details>
 
-    <details class="hud-group" open>
+    <details class="hud-group play-only" open>
       <summary data-i18n="panel.learned">What it has learned</summary>
       <div id="beliefs"></div>
     </details>
 
-    <button id="btn-reset" data-i18n="app.reset">Restart</button>
+    <button id="btn-reset" class="play-only" data-i18n="app.reset">End session</button>
     </div>
   </aside>
   <section id="consola">
@@ -480,6 +626,7 @@
       <div id="settings-body"></div>
     </div>
   </div>
-  <script type="module" src="/src/main.js"></script>
+  <div id="screen" hidden></div>
+  <script type="module" src="/src/app/boot.js"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 // El nido: casa, despensa y sitio de descanso.
 
 import { CARRY } from './config.js';
-import { nestOf, storeInNest, takeFromNest } from './world.js';
+import { nestOf, storeInNest, takeFromNest, record } from './world.js';
 import { radiusOf } from './obstacles.js';
 import { eat } from './feeding.js';
 import { weight } from './memory.js';
@@ -22,6 +22,7 @@ export function useNest(fagi, world) {
   if (fagi.carrying) {
     const t = fagi.carrying.type;
     const total = storeInNest(nido, t, fagi.carrying.age ?? 0);
+    record(world, 'nest_store', { what: t, age: fagi.carrying.age ?? 0 });
     fagi.stored = (fagi.stored ?? 0) + 1;
     fagi.lastDeposit = { n: fagi.stored, type: t, total };
     fagi.carrying = null;
@@ -37,6 +38,7 @@ export function useNest(fagi, world) {
       const mejor = guardado.reduce((a, b) =>
         (weight(fagi.brain, b) > weight(fagi.brain, a) ? b : a));
       takeFromNest(nido, mejor);
+      record(world, 'nest_take', { what: mejor });
       eat(fagi, mejor);
       fagi.lastPantry = { n: (fagi.lastPantry?.n ?? 0) + 1, type: mejor };
     }

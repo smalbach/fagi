@@ -6,7 +6,7 @@
 // deshace y se va del mapa, con su estela y todo.
 
 import { POINT_TYPES, FRUIT } from './config.js';
-import { removePoint } from './world.js';
+import { removePoint, record } from './world.js';
 
 export function updateFood(world, dt) {
   // De atrás hacia delante: alguno se borra por el camino.
@@ -19,13 +19,14 @@ export function updateFood(world, dt) {
 
     // Lo podrido no se pudre otra vez: desaparece.
     if (p.type === FRUIT.rot) {
-      removePoint(world, p);
+      removePoint(world, p, 'rotted');
       continue;
     }
 
     p.type = FRUIT.rot;
     p.age = 0;
     p.podrido = true;
+    record(world, 'point_rot', { id: p.id, what: p.type });
     // El rastro no se borra: sigue por donde iba, pero a partir de ahora
     // huele y se ve como lo que es. De eso se encarga smell.js.
   }

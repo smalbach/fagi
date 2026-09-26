@@ -128,3 +128,25 @@ partida.
 
 Todos en `config.js`. El panel de ajustes los edita en caliente porque el juego
 los lee en cada frame: no hay copias.
+
+## Sesiones: grabar y reproducir
+
+`app/boot.js` es la entrada: pregunta quién eres y decide la pantalla
+(`app/screens.js`: entrar, lista de espera, inicio, admin). `main.js` ya no
+arranca solo: `createGame()` monta la vista una vez y la usa en tres modos,
+preparar (mapa sin Fagi, editable), jugar (grabando) y reproducir.
+
+| archivo | de qué se ocupa |
+|---|---|
+| `recorder/events.js` | el catálogo de eventos y su validación; lo usa también el servidor |
+| `recorder/recorder.js` | apunta los eventos en orden y los manda por lotes |
+| `recorder/sink.js` | los lleva al servidor; sin red, los guarda en IndexedDB y reintenta |
+| `recorder/replay.js` | reconstruye el mundo en cualquier instante aplicando eventos |
+
+Todo lo que cambia el mapa pasa por `world.js` (`addPoint`, `removePoint`,
+`addObject`, `removeObject`) o llama a `record(world, tipo, datos)`: **un
+cambio nuevo en el mundo que no pase por ahí no se verá al reproducir**. Lo de
+Fagi (comer, recoger, beber, reglas, morir) y el viento no se enganchan en su
+lógica: el grabador los saca comparando cada frame con el anterior, como el
+narrador. El tipo del objeto va en `what`, porque `type` es el del evento.
+

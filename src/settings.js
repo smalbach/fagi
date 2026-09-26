@@ -199,6 +199,39 @@ function escribir({ obj, key }, valor) {
 
 const acotar = ({ min, max }, v) => Math.min(max, Math.max(min, v));
 
+// --- la configuración de una sesión ---
+// Una sesión graba con qué números empezó y cada cambio que se hizo después:
+// así al reproducirla el mundo se comporta (y se dibuja) con los de entonces.
+
+// Todos los ajustes, id -> valor.
+export function configSnapshot() {
+  const datos = {};
+  for (const [id, campo] of POR_ID) datos[id] = leer(campo);
+  return datos;
+}
+
+// Aplica un id -> valor (entero o parcial). Lo que no reconoce lo ignora.
+export function applyConfig(datos) {
+  for (const [id, valor] of Object.entries(datos ?? {})) {
+    const campo = POR_ID.get(id);
+    if (campo && Number.isFinite(valor)) escribir(campo, acotar(campo, valor));
+  }
+  refrescar?.();
+}
+
+// El id de ajuste de un número de config.js, o null si no se expone.
+export function configIdOf(obj, key) {
+  for (const [id, campo] of POR_ID) if (campo.obj === obj && campo.key === key) return id;
+  return null;
+}
+
+// Quien quiera enterarse de cada cambio hecho a mano (el grabador).
+let alCambiar = null;
+export function onConfigChange(fn) { alCambiar = fn; }
+
+// Repinta las casillas con los valores actuales; lo pone createSettings.
+let refrescar = null;
+
 // --- guardar los ajustes entre partidas ---
 // Solo se guarda lo que se tocó: así un valor de fábrica nuevo le llega a quien
 // nunca cambió ese campo, en vez de quedarse congelado el de la vez anterior.
@@ -262,7 +295,9 @@ export function createSettings(world, getFagi) {
         input.addEventListener('input', () => {
           const v = Number(input.value);
           if (!Number.isFinite(v)) return;
+          const antes = leer(campo);
           escribir(campo, v);
+          if (antes !== v) alCambiar?.(campo.id, antes, v, 'user');
           guardarPronto();
         });
         fila.append(input);
@@ -275,13 +310,18 @@ export function createSettings(world, getFagi) {
 
   construir();
   onLangChange(construir);
+  refrescar = () => { for (const { campo, input } of inputs) input.value = leer(campo); };
 
   document.getElementById('btn-settings').addEventListener('click', () => { overlay.hidden = false; });
   document.getElementById('btn-settings-close').addEventListener('click', () => { overlay.hidden = true; });
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.hidden = true; });
 
   document.getElementById('btn-settings-reset').addEventListener('click', () => {
-    for (const { c, valor } of ORIGINAL) escribir(c, valor);
+    for (const { c, valor } of ORIGINAL) {
+      const antes = leer(c);
+      escribir(c, valor);
+      if (antes !== valor) alCambiar?.(c.id, antes, valor, 'reset');
+    }
     for (const { campo, input } of inputs) input.value = leer(campo);
     saveSettings();   // todo de fábrica: borra el guardado
   });

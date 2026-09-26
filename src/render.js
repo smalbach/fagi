@@ -70,11 +70,13 @@ function escena(ctx, world, fagi, camera) {
     drawTrail(ctx, src, color);
   }
 
-  const dentro = escondida(fagi, world);
+  // Sin Fagi (preparando una sesión) solo se dibuja el mapa.
+  const dentro = fagi ? escondida(fagi, world) : false;
 
   drawPheromone(ctx, world);
   for (const o of world.objects) drawObject(ctx, o, dentro, world.wind);
   for (const p of world.points) drawFruit(ctx, p);
+  if (!fagi) return;
 
   // El cono es percepción, no depuración: debe verse también en el modo limpio.
   if (!dentro) drawVisionCone(ctx, fagi);

@@ -25,7 +25,7 @@ export function updateTrees(world, dt) {
     // Los árboles también tienen su tiempo: si TREE.life > 0, se secan y caen.
     arbol.age = (arbol.age ?? 0) + dt;
     if (TREE.life > 0 && arbol.age >= TREE.life) {
-      removeObject(world, arbol);
+      removeObject(world, arbol, 'died');
       continue;
     }
 
@@ -41,7 +41,7 @@ export function updateTrees(world, dt) {
     const dist = r * 0.55 + Math.random() * (r * TREE.dropRadius - r * 0.55);
     const x = Math.min(world.width - 10, Math.max(10, arbol.x + Math.cos(ang) * dist));
     const y = Math.min(world.height - 10, Math.max(10, arbol.y + Math.sin(ang) * dist));
-    addPoint(world, x, y, TREE.fruit);
+    addPoint(world, x, y, TREE.fruit, arbol.id);
     arbol.lastDrop = (arbol.lastDrop ?? 0) + 1;
   }
 }
@@ -60,5 +60,5 @@ export function treeAge(arbol) {
 
 // Quitar de golpe todos los árboles del mapa.
 export function removeAllTrees(world) {
-  for (const arbol of treesOf(world)) removeObject(world, arbol);
+  for (const arbol of treesOf(world)) removeObject(world, arbol, 'user');
 }

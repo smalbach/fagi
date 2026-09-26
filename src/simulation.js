@@ -11,6 +11,7 @@ import { updateNest } from './world.js';
 import { updateFagi } from './fagi.js';
 
 export function stepWorld(world, dt) {
+  world.time = (world.time ?? 0) + dt;
   updateWind(world.wind, dt);
   updateTrees(world, dt);
   updateFood(world, dt);
