@@ -5,7 +5,7 @@
 // direcciones distintas. Fagi huele si está cerca de algún tramo del hilo, y
 // huele más fuerte cuanto más cerca de la fuente esté ese tramo.
 
-import { specOf, FAGI, PLUME, WORLD, TREE } from './config.js';
+import { specOf, FAGI, PLUME, WORLD, TREE, RAIN } from './config.js';
 import { statMult } from './effects.js';
 import { distanceTo, normalizeAngle } from './vision.js';
 import { radiusOf, isTree, isWater } from './obstacles.js';
@@ -84,9 +84,26 @@ export function scentSources(world) {
   return out.filter(({ key }) => (specOf(key)?.aroma ?? 0) > 0);
 }
 
-// Hace crecer todos los hilos del mapa. Se llama una vez por frame.
+// La lluvia arrastra el olor: el hilo se acorta desde la punta hasta quedarse
+// en la fuente, en RAIN.washScent segundos si estaba entero. Mientras cae no
+// crece; al escampar grow() lo vuelve a tender desde la fuente.
+function wash(src, key, dt) {
+  const trail = src.trail;
+  if (!trail || trail.nodes.length <= 1) return;
+  trail.washed = (trail.washed ?? 0) + dt * maxNodes(key) / Math.max(0.1, RAIN.washScent);
+  const quitar = Math.floor(trail.washed);
+  trail.washed -= quitar;
+  trail.nodes.length = Math.max(1, trail.nodes.length - quitar);
+  trail.timer = Math.max(trail.timer, 0);
+}
+
+// Hace crecer (o lava, si llueve) todos los hilos del mapa. Una vez por frame.
 export function updateTrails(world, dt) {
-  for (const { src, key } of scentSources(world)) grow(src, key, world.wind, dt);
+  const llueve = world.rain?.on;
+  for (const { src, key } of scentSources(world)) {
+    if (llueve) wash(src, key, dt);
+    else grow(src, key, world.wind, dt);
+  }
 }
 
 // Intensidad que llega desde UNA fuente concreta. Mantener este cálculo separado

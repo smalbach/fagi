@@ -140,7 +140,7 @@ export const WATER = {
 
 // Lluvia (rain.js). Chaparrones cortos cada cierto tiempo que dejan charcos
 // poco hondos; el sol los va encogiendo hasta secarlos. Mientras llueve la
-// feromona se lava y Fagi, fuera del nido, se empapa (WATER.wetSpeed).
+// feromona y los olores se lavan y Fagi, fuera del nido, se empapa (WATER.wetSpeed).
 //   every        : segundos entre chaparrones (min, max). ~1-2 días de hormiga
 //   duration     : cuánto dura cada uno
 //   puddles      : charcos que deja cada chaparrón
@@ -149,6 +149,9 @@ export const WATER = {
 //   evaporate    : px de radio que pierde por segundo con el sol (~4 min = ~1,5 días)
 //   minRadius    : por debajo de esto ya está seco
 //   washPhero    : cuántas veces más rápido se borra la feromona bajo la lluvia
+//                  (100: una marca fresca desaparece en ~6 s de chaparrón)
+//   washScent    : segundos que tarda la lluvia en lavar un hilo de olor entero.
+//                  Mientras llueve no crece; al escampar vuelve a salir de la fuente
 //   front        : segundos que la presión lleva bajando antes de que caiga
 //                  (el frente llega antes que el agua)
 //   recover      : segundos que tarda la presión en volver tras escampar
@@ -168,7 +171,8 @@ export const RAIN = {
   grow: 0.15,
   evaporate: 0.05,
   minRadius: 5,
-  washPhero: 8,
+  washPhero: 100,
+  washScent: 5,
   front: { min: 30, max: 60 },
   recover: 40,
   effort: 1.5,

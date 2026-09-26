@@ -233,3 +233,22 @@ test('what it learned about weather goes into its code: rules only about pursuin
   assert.equal(otra.brain.puddleLife, 180);
   assert.equal(verdict(otra, 'pursue', 'lluvia'), 'avoid');
 });
+
+test('rain washes scent trails away and they grow back once it clears', async () => {
+  const { updateTrails } = await import('../src/smell.js');
+  const { addPoint } = await import('../src/world.js');
+  const world = createWorld();
+  addPoint(world, 400, 400, 'nectar');
+  world.rain.timer = Infinity;
+  for (let t = 0; t < 30; t += 0.1) updateTrails(world, 0.1);
+  const largos = () => world.points.map((p) => p.trail?.nodes.length ?? 0);
+  assert.ok(largos().some((n) => n > 5), 'con sol el olor se extiende');
+
+  llover(world);
+  for (let t = 0; t < RAIN.washScent + 1; t += 0.1) updateTrails(world, 0.1);
+  assert.ok(largos().every((n) => n <= 1), 'la lluvia deja el olor solo en la fuente');
+
+  world.rain.on = false;
+  for (let t = 0; t < 5; t += 0.1) updateTrails(world, 0.1);
+  assert.ok(largos().some((n) => n > 5), 'al escampar vuelve a tenderse');
+});

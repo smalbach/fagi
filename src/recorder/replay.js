@@ -8,7 +8,7 @@
 // segundos se guarda en memoria una copia del estado ya reconstruido. Nunca va
 // a disco: la sesión guardada son solo sus eventos.
 
-import { OBJECT_TYPES, TREE, PHERO, WIND } from '../config.js';
+import { OBJECT_TYPES, TREE, PHERO, WIND, RAIN } from '../config.js';
 import { createWorld } from '../world.js';
 import { createFagi } from '../fagi.js';
 import { normalizeAngle } from '../vision.js';
@@ -24,6 +24,7 @@ export function createReplayState() {
     config: {},        // id -> valor, tal como estaba en este instante
     configSeq: 0,      // sube con cada cambio de config: quien dibuja reaplica
     windAt: 0,         // cuándo se fijó el último viento
+    rainSpans: [],     // [inicio, fin|null] de cada chaparrón: la lluvia lava la feromona
     dead: null,        // { t, cause } si Fagi murió
     ended: null,
     mind: {},          // parte -> valor: lo último que se grabó de su cabeza
@@ -68,9 +69,13 @@ export function applyEvent(state, ev) {
       if (o) { o.x = ev.x; o.y = ev.y; o.trail = null; }
       break;
     }
-    case 'rain':
+    case 'rain': {
       w.rain = { ...(w.rain ?? {}), on: Boolean(ev.on) };
+      const ultimo = state.rainSpans.at(-1);
+      if (ev.on && !(ultimo && ultimo[1] == null)) state.rainSpans.push([ev.t, null]);
+      else if (!ev.on && ultimo && ultimo[1] == null) ultimo[1] = ev.t;
       break;
+    }
     case 'obj_resize': {
       const o = w.objects[byId(w.objects, ev.id)];
       if (o) o.r = ev.r;
@@ -206,7 +211,9 @@ export function createPlayer(eventos, { checkpointEvery = 60 } = {}) {
     for (const p of w.points) p.age = time - p.born;
     for (const o of w.objects) if (o.born !== undefined) o.age = time - o.born;
     w.pheromone = w.pheromone.filter((m) => {
-      m.life = PHERO.life - (time - m.born);
+      // Bajo la lluvia se borra RAIN.washPhero veces más rápido, como en vivo.
+      const mojada = lluviaEntre(state.rainSpans, m.born, time);
+      m.life = PHERO.life - (time - m.born) - (RAIN.washPhero - 1) * mojada;
       return m.life > 0;
     });
     // El viento gira hacia su objetivo a velocidad fija.
@@ -313,6 +320,13 @@ function ponerMente(fagi, state, t) {
   fagi.puddleGone = st.puddleGone ?? 0;
   fagi.directive = st.directive ? {} : null;
   fagi.trailKey = st.trailKey ?? null;
+}
+
+// Segundos de lluvia entre a y b.
+function lluviaEntre(spans, a, b) {
+  let total = 0;
+  for (const [ini, fin] of spans) total += Math.max(0, Math.min(b, fin ?? b) - Math.max(a, ini));
+  return total;
 }
 
 function clonar(state) {
