@@ -35,6 +35,15 @@ function mensajeDeError(err) {
   return txt === clave ? t('err.generic') : txt;
 }
 
+// Cada celda lleva el título de su columna: en el móvil la tabla se pinta como
+// tarjetas y la cabecera no se ve.
+function etiquetar(lista) {
+  const titulos = [...lista.querySelectorAll('thead th')].map((th) => th.textContent);
+  for (const tr of lista.querySelectorAll('tbody tr')) {
+    [...tr.children].forEach((td, i) => { if (titulos[i]) td.dataset.label = titulos[i]; });
+  }
+}
+
 const fecha = (iso) => (iso ? new Date(iso).toLocaleString(getLang(), { dateStyle: 'medium', timeStyle: 'short' }) : '—');
 
 const cabecera = (titulo, extra = '') => `
@@ -196,6 +205,7 @@ export async function showHome(user, { onNew, onReplay, onAdmin, onLogout }) {
           </tr>`).join('')}
         </tbody>
       </table>`;
+    etiquetar(lista);
     lista.querySelectorAll('button[data-act]').forEach((b) => b.addEventListener('click', async () => {
       const fila = b.closest('tr');
       const id = fila.dataset.id;
@@ -283,6 +293,7 @@ export async function showAdmin(user, { onBack }) {
           </tr>`).join('')}
         </tbody>
       </table>`;
+    etiquetar(lista);
     lista.querySelectorAll('button[data-act]').forEach((b) => b.addEventListener('click', async () => {
       error.textContent = '';
       b.disabled = true;

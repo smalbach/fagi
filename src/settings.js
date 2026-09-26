@@ -335,14 +335,20 @@ export function createSettings(world, getFagi) {
         input.type = 'number';
         input.min = campo.min; input.max = campo.max; input.step = campo.step;
         input.value = leer(campo);
+        input.inputMode = 'decimal';
         input.addEventListener('input', () => {
-          const v = Number(input.value);
+          // Campo vacío (se está borrando para escribir otro número): no es 0.
+          if (input.value.trim() === '') return;
+          const v = acotar(campo, Number(input.value));
           if (!Number.isFinite(v)) return;
           const antes = leer(campo);
           escribir(campo, v);
           if (antes !== v) alCambiar?.(campo.id, antes, v, 'user');
           guardarPronto();
         });
+        // Al salir del campo enseña lo que de verdad quedó (acotado, o el de
+        // antes si se dejó vacío).
+        input.addEventListener('change', () => { input.value = leer(campo); });
         fila.append(input);
         det.append(fila);
         inputs.push({ campo, input });
