@@ -7,6 +7,7 @@
 
 import { get, post, del } from './api.js';
 import { t, formatDuration, getLang } from '../i18n.js';
+import { versionLabel, versionTitle } from '../version.js';
 
 const raiz = () => document.getElementById('screen');
 
@@ -41,6 +42,7 @@ const cabecera = (titulo, extra = '') => `
     <h1>${t('app.title')}</h1>
     <span class="screen-sub">${titulo}</span>
     ${extra}
+    <span class="app-version" title="${esc(versionTitle())}">${esc(versionLabel())}</span>
   </header>`;
 
 // --- entrar y registrarse ---

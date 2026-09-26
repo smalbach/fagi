@@ -43,6 +43,7 @@
     }
     h1 { font-size: 18px; margin: 0; letter-spacing: 2px; }
     .hud-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: none; }
+    .app-version { color: var(--muted); font-size: 10.5px; font-variant-numeric: tabular-nums; margin-right: auto; white-space: nowrap; }
     .hud-header-actions { display: flex; align-items: center; gap: 6px; flex: none; }
     #btn-toggle-groups { width: auto; padding: 4px 8px; font-size: 10.5px; flex: none; }
     /* El cuerpo entero del HUD (todo menos el título) se puede ocultar de
@@ -318,6 +319,7 @@
     .screen-head h1 { margin-right: 4px; }
     .screen-sub { color: var(--muted); flex: 1; }
     .screen-user { color: var(--muted); font-size: 12px; }
+    .screen-head .app-version { margin-right: 0; }
     .screen-body, .screen-form { padding: 18px 20px 22px; display: flex; flex-direction: column; gap: 12px; }
     .screen-form { max-width: 380px; margin: 0 auto; width: 100%; }
     .screen-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
@@ -483,6 +485,7 @@
   <aside id="hud">
     <div class="hud-header">
       <h1 data-i18n="app.title">FAGI</h1>
+      <span id="app-version" class="app-version"></span>
       <div class="hud-header-actions">
         <button id="btn-toggle-groups" type="button" data-i18n="app.collapseAll">▾ Hide all</button>
         <button id="btn-toggle-hud" class="panel-toggle" type="button" aria-expanded="true" aria-controls="hud-body">▾</button>

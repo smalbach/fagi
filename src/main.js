@@ -18,6 +18,7 @@ import { render } from './render.js';
 import { createInput } from './input.js';
 import { createCamera, centrarEn, encajar } from './camera.js';
 import { createUI } from './ui.js';
+import { versionLabel, versionTitle } from './version.js';
 import { createSettings, loadSettings, configSnapshot, applyConfig, onConfigChange } from './settings.js';
 import { bindDom, t, onLangChange, formatDuration } from './i18n.js';
 import { createNarrator, narrate } from './narrator.js';
@@ -64,6 +65,9 @@ export function createGame({ onExit } = {}) {
 
   const input = createInput(canvas, world, camera);
   const ui = createUI(input, world, () => terminar('user'));
+  // Qué versión corre: para saber qué hay en producción.
+  const etiqueta = document.getElementById('app-version');
+  if (etiqueta) { etiqueta.textContent = versionLabel(); etiqueta.title = versionTitle(); }
   const narrator = createNarrator();
   const consola = createConsola();
   const learnedPanel = createLearnedPanel(fagi, { onBackendChange: montarBackend });

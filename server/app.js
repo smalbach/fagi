@@ -5,7 +5,7 @@ import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { COOKIE, hashToken } from './auth.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
@@ -41,6 +41,12 @@ export async function buildApp({ pool, adminEmail = process.env.ADMIN_EMAIL, sec
     );
     req.user = rows[0] ?? null;
   });
+
+  // Qué versión corre el servidor, para comprobar qué hay en producción.
+  const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+  const commit = process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) ?? null;
+  const startedAt = new Date().toISOString();
+  app.get('/api/version', async () => ({ version, commit, startedAt }));
 
   await app.register(authRoutes, { prefix: '/api/auth' });
   await app.register(adminRoutes, { prefix: '/api/admin' });
