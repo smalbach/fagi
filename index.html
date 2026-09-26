@@ -43,6 +43,18 @@
     }
     h1 { font-size: 18px; margin: 0; letter-spacing: 2px; }
     h2 { font-size: 11px; margin: 0 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    /* Cada bloque del HUD se puede ocultar: en el móvil, con las siete
+       secciones apiladas en una sola página larga, poder cerrar las que no
+       hacen falta ahora mismo es lo que evita el scroll interminable. */
+    .hud-group summary {
+      cursor: pointer; font-size: 11px; margin: 0 0 6px; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 1px; list-style: none;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .hud-group summary::-webkit-details-marker { display: none; }
+    .hud-group summary::before { content: "▾"; font-size: 9px; }
+    .hud-group:not([open]) summary { margin-bottom: 0; }
+    .hud-group:not([open]) summary::before { content: "▸"; }
     button {
       font: inherit;
       color: var(--text);
@@ -299,23 +311,23 @@
     <h1 data-i18n="app.title">FAGI</h1>
     <p id="status"></p>
 
-    <div>
-      <h2 data-i18n="panel.food">Food</h2>
+    <details class="hud-group" open>
+      <summary data-i18n="panel.food">Food</summary>
       <div id="type-buttons"></div>
-    </div>
+    </details>
 
-    <div>
-      <h2 data-i18n="panel.map">Map</h2>
+    <details class="hud-group" open>
+      <summary data-i18n="panel.map">Map</summary>
       <div id="object-buttons"></div>
       <p class="ayuda" data-i18n="panel.camera">Camera · wheel zooms · middle button drags · arrows move · F follows Fagi · 0 resets</p>
       <div class="label" style="margin-top:10px">
         <span data-i18n="panel.treeEvery">Tree drops fruit every</span><span id="tree-interval-val">8s</span>
       </div>
       <input id="tree-interval" type="range" min="2" max="30" step="1" value="8">
-    </div>
+    </details>
 
-    <div>
-      <h2 data-i18n="panel.state">State</h2>
+    <details class="hud-group" open>
+      <summary data-i18n="panel.state">State</summary>
       <div class="label"><span data-i18n="stat.hunger">Hunger</span><span id="hunger-val">0%</span></div>
       <div class="bar"><i id="hunger-bar" style="background:#d95b7e"></i></div>
       <div class="label" style="margin-top:8px"><span data-i18n="stat.thirst">Thirst</span><span id="thirst-val">0%</span></div>
@@ -325,30 +337,30 @@
       <div class="label" style="margin-top:8px"><span data-i18n="stat.age">Age</span><span id="age-val">0s</span></div>
       <div class="label"><span data-i18n="stat.eaten">Eaten</span><span id="eaten-val">0</span></div>
       <div class="label"><span data-i18n="stat.carrying">Carrying</span><span id="carry-val">nada</span></div>
-    </div>
+    </details>
 
-    <div>
-      <h2 data-i18n="panel.heading">Heading</h2>
+    <details class="hud-group" open>
+      <summary data-i18n="panel.heading">Heading</summary>
       <div class="label"><span data-i18n="stat.position">Position</span><span id="pos-val">x 0, y 0</span></div>
       <div class="label"><span data-i18n="stat.movingTo">Moving</span><span id="heading-val">→ derecha</span></div>
       <div class="label"><span data-i18n="stat.vertical">Vertical</span><span id="vertical-val">– nivelado</span></div>
       <div class="label"><span data-i18n="stat.wind">Wind</span><span id="wind-val">→ derecha</span></div>
-    </div>
+    </details>
 
-    <div>
-      <h2 data-i18n="panel.pantry">Nest pantry</h2>
+    <details class="hud-group" open>
+      <summary data-i18n="panel.pantry">Nest pantry</summary>
       <div id="stock"></div>
-    </div>
+    </details>
 
-    <div>
-      <h2 data-i18n="panel.effects">Active effects</h2>
+    <details class="hud-group" open>
+      <summary data-i18n="panel.effects">Active effects</summary>
       <div id="effects"></div>
-    </div>
+    </details>
 
-    <div>
-      <h2 data-i18n="panel.learned">What it has learned</h2>
+    <details class="hud-group" open>
+      <summary data-i18n="panel.learned">What it has learned</summary>
       <div id="beliefs"></div>
-    </div>
+    </details>
 
     <button id="btn-reset" data-i18n="app.reset">Restart</button>
   </aside>
