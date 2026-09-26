@@ -1,9 +1,21 @@
-// La consola lateral tiene demasiado dentro para caber cómoda a la vez:
-// esto la organiza en pestañas (consola+mapa / código+histórico) y deja que
-// cada mitad se colapse o se redimensione arrastrando el separador. El
-// tamaño y qué pestaña estaba abierta se recuerdan entre visitas.
+// La consola lateral tiene demasiado dentro para caber cómoda a la vez: esto
+// la organiza en pestañas (consola+mapa / código+histórico) y dentro de cada
+// una dos mitades que se pueden colapsar o redimensionar arrastrando el
+// tirador. Ese arrastre lo hace Split.js (github.com/nathancahill/split),
+// no código propio: en el escritorio hacía falta algo probado con el dedo y
+// con el ratón a la vez, y reinventarlo a mano se quedaba corto en móvil.
+//
+// En pantallas angostas ni se monta Split.js ni se fuerza ningún alto: cada
+// mitad simplemente se apila en el flujo normal de la página (ver el media
+// query junto a #consola en index.html), así que solo hay un sitio con
+// scroll — la página entera — en vez de varias "ventanas" con su propio
+// scroll interno peleándose por el gesto del dedo.
+
+import Split from 'split.js';
 
 const CLAVE = 'fagi.panel-layout';
+const MEDIA_ESCRITORIO = '(min-width: 861px)';
+const ALTO_CABECERA = 32; // px de un .pane-head: mínimo al arrastrar y tamaño al colapsar
 
 function leerEstado() {
   try {
@@ -37,9 +49,15 @@ function initTabs(root, estado) {
   activar(inicial);
 }
 
-function initSplitPane(split, estado) {
-  const panes = [...split.querySelectorAll(':scope > .pane')];
-  const resizer = split.querySelector(':scope > .resizer');
+// Un controlador por `.split-pane`: sabe colapsar/expandir cada mitad (algo
+// que vale tanto en escritorio como en móvil) y, solo cuando hace falta,
+// montar o desmontar la instancia de Split.js que permite arrastrar.
+function crearControlador(split, estado) {
+  const clave = split.dataset.split;
+  const [a, b] = split.querySelectorAll(':scope > .pane');
+  const guardado = estado[clave] ?? {};
+  let tamanos = guardado.sizes ?? [50, 50];
+  let instancia = null;
 
   function marcarColapso(pane, colapsado) {
     pane.classList.toggle('collapsed', colapsado);
@@ -48,62 +66,61 @@ function initSplitPane(split, estado) {
     boton.setAttribute('aria-expanded', String(!colapsado));
   }
 
-  function actualizarResizer() {
-    const algunoColapsado = panes.some((p) => p.classList.contains('collapsed'));
+  function actualizarGutter() {
+    const algunoColapsado = a.classList.contains('collapsed') || b.classList.contains('collapsed');
     split.classList.toggle('resizer-hidden', algunoColapsado);
   }
 
-  for (const pane of panes) {
-    const clave = pane.dataset.pane;
-    const guardado = estado[clave];
-    if (guardado?.collapsed) marcarColapso(pane, true);
-    if (guardado?.flex) pane.style.flex = guardado.flex;
-
-    pane.querySelector('.pane-toggle').addEventListener('click', () => {
-      const colapsado = !pane.classList.contains('collapsed');
-      marcarColapso(pane, colapsado);
-      estado[clave] = { ...estado[clave], collapsed: colapsado };
-      guardarEstado(estado);
-      actualizarResizer();
-    });
-  }
-  actualizarResizer();
-
-  if (!resizer || panes.length !== 2) return;
-  const [a, b] = panes;
-  const MINIMO = 60;
-  let arrastre = null;
-
-  resizer.addEventListener('pointerdown', (ev) => {
-    if (a.classList.contains('collapsed') || b.classList.contains('collapsed')) return;
-    arrastre = {
-      y: ev.clientY,
-      alturaA: a.getBoundingClientRect().height,
-      total: a.getBoundingClientRect().height + b.getBoundingClientRect().height,
+  function guardar() {
+    estado[clave] = {
+      sizes: tamanos,
+      collapsed: [a.classList.contains('collapsed'), b.classList.contains('collapsed')],
     };
-    resizer.setPointerCapture(ev.pointerId);
-    resizer.classList.add('dragging');
-  });
-
-  resizer.addEventListener('pointermove', (ev) => {
-    if (!arrastre) return;
-    const propuesta = arrastre.alturaA + (ev.clientY - arrastre.y);
-    const alturaA = Math.min(Math.max(propuesta, MINIMO), Math.max(arrastre.total - MINIMO, MINIMO));
-    const pctA = (alturaA / arrastre.total) * 100;
-    a.style.flex = `${pctA} 1 0%`;
-    b.style.flex = `${100 - pctA} 1 0%`;
-  });
-
-  function soltar() {
-    if (!arrastre) return;
-    arrastre = null;
-    resizer.classList.remove('dragging');
-    estado[a.dataset.pane] = { ...estado[a.dataset.pane], flex: a.style.flex };
-    estado[b.dataset.pane] = { ...estado[b.dataset.pane], flex: b.style.flex };
     guardarEstado(estado);
   }
-  resizer.addEventListener('pointerup', soltar);
-  resizer.addEventListener('pointercancel', soltar);
+
+  if (guardado.collapsed?.[0]) marcarColapso(a, true);
+  if (guardado.collapsed?.[1]) marcarColapso(b, true);
+  actualizarGutter();
+
+  function alternar(pane, otro, indice) {
+    const colapsado = !pane.classList.contains('collapsed');
+    // Las dos mitades no pueden colapsarse a la vez: no quedaría nada que mostrar.
+    if (colapsado && otro.classList.contains('collapsed')) marcarColapso(otro, false);
+    marcarColapso(pane, colapsado);
+    actualizarGutter();
+    if (instancia) {
+      if (colapsado) instancia.collapse(indice);
+      else instancia.setSizes(tamanos);
+    }
+    guardar();
+  }
+  a.querySelector('.pane-toggle').addEventListener('click', () => alternar(a, b, 0));
+  b.querySelector('.pane-toggle').addEventListener('click', () => alternar(b, a, 1));
+
+  return {
+    // Solo se llama en escritorio: aquí sí hay un tirador que arrastrar.
+    montar() {
+      if (instancia) return;
+      instancia = Split([a, b], {
+        direction: 'vertical',
+        sizes: tamanos,
+        minSize: ALTO_CABECERA,
+        gutterSize: 8,
+        snapOffset: 0,
+        onDragEnd(sizes) { tamanos = sizes; guardar(); },
+      });
+      if (a.classList.contains('collapsed')) instancia.collapse(0);
+      else if (b.classList.contains('collapsed')) instancia.collapse(1);
+    },
+    // Solo se llama en móvil: sin Split.js, cada mitad usa su alto natural
+    // (definido por el CSS de móvil), sin estilos inline que lo compliquen.
+    desmontar() {
+      if (!instancia) return;
+      instancia.destroy(false, false);
+      instancia = null;
+    },
+  };
 }
 
 // `root` es la sección #consola: sin ella (una página que solo prueba otra
@@ -112,5 +129,13 @@ export function initPanelLayout(root) {
   if (!root) return;
   const estado = leerEstado();
   initTabs(root, estado);
-  for (const split of root.querySelectorAll('.split-pane')) initSplitPane(split, estado);
+
+  const controladores = [...root.querySelectorAll('.split-pane')].map((sp) => crearControlador(sp, estado));
+
+  const mq = window.matchMedia(MEDIA_ESCRITORIO);
+  const sincronizar = () => {
+    for (const c of controladores) (mq.matches ? c.montar() : c.desmontar());
+  };
+  mq.addEventListener('change', sincronizar);
+  sincronizar();
 }

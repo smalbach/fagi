@@ -155,9 +155,10 @@
       display: flex; flex-direction: column;
     }
     .tab-panel[hidden] { display: none; }
-    .split-pane { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-    .split-pane .pane { flex: 1 1 0%; min-height: 0; display: flex; flex-direction: column; }
-    .split-pane .pane.collapsed { flex: none; }
+    /* El alto real de cada .pane lo pone Split.js (o el CSS de móvil, más
+       abajo): aquí solo el flujo de bloque normal en el que puede repartirlo. */
+    .split-pane { flex: 1; min-height: 0; }
+    .split-pane .pane { display: flex; flex-direction: column; overflow: hidden; }
     .pane-head {
       display: flex; align-items: center; gap: 6px; flex: none;
       border-top: 1px solid var(--line); padding: 6px 0;
@@ -169,15 +170,15 @@
     .pane-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; flex: 1; }
     .pane-body { flex: 1; min-height: 0; overflow: auto; }
     .pane.collapsed .pane-body { display: none; }
-    .resizer {
-      flex: none; height: 9px; cursor: row-resize; position: relative; touch-action: none;
+    /* Tirador que inserta Split.js entre los dos .pane. */
+    .gutter { position: relative; touch-action: none; }
+    .gutter-vertical { cursor: row-resize; }
+    .gutter-vertical::before {
+      content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px;
+      transform: translateY(-50%); background: var(--line); border-radius: 2px;
     }
-    .resizer::before {
-      content: ""; position: absolute; left: 0; right: 0; top: 4px; height: 2px;
-      background: var(--line); border-radius: 2px;
-    }
-    .resizer:hover::before, .resizer.dragging::before { background: #6e7486; }
-    .split-pane.resizer-hidden .resizer { display: none; }
+    .gutter-vertical:hover::before { background: #6e7486; }
+    .split-pane.resizer-hidden .gutter { display: none; }
 
     /* --- cuadro de ajustes --- */
     #topbar {
@@ -259,14 +260,26 @@
     body.immersive #topbar:hover,
     body.immersive #topbar:focus-within { opacity: 1; }
 
-    /* --- responsiva: en pantallas angostas los paneles se apilan --- */
+    /* --- responsiva: en pantallas angostas los paneles se apilan ---
+       En vez de meter #hud y #consola cada uno en su propia caja con
+       overflow-y:auto (dos "ventanas" con scroll propio, más el de la
+       página, atrapando el gesto de arrastre del dedo), en móvil se
+       desactiva ese scroll interno: todo pasa a fluir en una sola página
+       que se desplaza entera, como cualquier web. Split.js tampoco se monta
+       en este ancho (ver panel-layout.js), así que no hay tirador que
+       arrastrar por error mientras se hace scroll. */
     @media (max-width: 860px) {
       body { flex-direction: column; }
       #stage { flex-basis: auto; min-width: 0; padding: 10px; }
       canvas { max-height: 46vh; }
-      #hud, #consola {
-        width: 100%; flex: none; max-height: 42vh;
-      }
+      #hud, #consola { width: 100%; flex: none; max-height: none; }
+      #hud { overflow-y: visible; }
+      .tab-panel { flex: none; }
+      .split-pane { flex: none; }
+      .split-pane .pane { overflow: visible; }
+      .pane-body { flex: none; overflow: visible; }
+      #brainmap { height: 200px; }
+      #learned-code, #c-log { height: auto; max-height: 260px; }
     }
   </style>
 </head>
@@ -347,7 +360,7 @@
     </div>
 
     <div class="tab-panel" data-panel="live">
-      <div class="split-pane">
+      <div class="split-pane" data-split="live">
         <section class="pane" data-pane="now">
           <header class="pane-head">
             <button class="pane-toggle" type="button" aria-expanded="true">▾</button>
@@ -362,7 +375,6 @@
             </div>
           </div>
         </section>
-        <div class="resizer" data-resizer></div>
         <section class="pane" data-pane="brainmap">
           <header class="pane-head">
             <button class="pane-toggle" type="button" aria-expanded="true">▾</button>
@@ -377,7 +389,7 @@
     </div>
 
     <div class="tab-panel" data-panel="history" hidden>
-      <div class="split-pane">
+      <div class="split-pane" data-split="history">
         <section class="pane" data-pane="code">
           <header class="pane-head">
             <button class="pane-toggle" type="button" aria-expanded="true">▾</button>
@@ -404,7 +416,6 @@
             <pre id="learned-code"></pre>
           </div>
         </section>
-        <div class="resizer" data-resizer></div>
         <section class="pane" data-pane="log">
           <header class="pane-head">
             <button class="pane-toggle" type="button" aria-expanded="true">▾</button>
