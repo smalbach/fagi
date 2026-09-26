@@ -32,7 +32,7 @@ const TEXTO = '#d9dce4';
 const DIM = '#7d8396';
 const FONDO_FILA = '#1b1e27';
 
-const SENTIDO = { vista: 'eye', olfato: 'nose', memoria: 'memory' };
+const SENTIDO = { vista: 'eye', olfato: 'nose', memoria: 'memory', antenas: 'antennae', presion: 'pressure' };
 const COLOR_PARTE = {
   creencia: MORADO, curiosidad: AMARILLO, necesidad: ROJO, distancia: '#7f869a', olfato: '#e8a33d',
 };
@@ -570,7 +570,11 @@ export function createBrainMap(canvas, statusEl, expandBtn) {
     y += 16 * s;
 
     // Qué neuronas existen: las que tienen alguna conexión o alguna creencia.
+    // Antenas y presión solo aparecen cuando ya han conectado con algo.
     const sentidos = ['vista', 'olfato', 'memoria'];
+    for (const k of ['antenas', 'presion']) {
+      if (syn.some((x) => x.a === `sense:${k}`)) sentidos.push(k);
+    }
     const conceptos = new Set(Object.keys(fagi.brain.facts));
     const derecha = [];   // { id, label, color, kind }
     const vistoDer = new Set();
@@ -614,6 +618,8 @@ export function createBrainMap(canvas, statusEl, expandBtn) {
     // Qué está disparando ahora mismo.
     const activas = new Set();
     for (const c of th.ranked ?? []) { activas.add(`sense:${c.via}`); activas.add(`key:${c.key}`); }
+    if (fagi.probing) activas.add('sense:antenas');
+    if (fagi.pressure > 0) activas.add('sense:presion');
     if (ganadora) activas.add(`key:${ganadora}`);
     const ep = fagi.lastEpisode;
     const sintiendo = ep && ahora - (ep.at ?? -99) < 6;

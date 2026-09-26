@@ -135,6 +135,7 @@ export const WATER = {
   dryTime: 8,
   probeReach: 7,
   probeSpeed: 0.45,
+  edgeGiveUp: 1,      // segundos topando con el borde del hondo antes de darse la vuelta
 };
 
 // Lluvia (rain.js). Chaparrones cortos cada cierto tiempo que dejan charcos
@@ -148,6 +149,17 @@ export const WATER = {
 //   evaporate    : px de radio que pierde por segundo con el sol (~4 min = ~1,5 días)
 //   minRadius    : por debajo de esto ya está seco
 //   washPhero    : cuántas veces más rápido se borra la feromona bajo la lluvia
+//   front        : segundos que la presión lleva bajando antes de que caiga
+//                  (el frente llega antes que el agua)
+//   recover      : segundos que tarda la presión en volver tras escampar
+//   effort       : energía que gasta bajo la lluvia, fuera del nido (× andar):
+//                  cada gota pesa como ella
+//   sample       : segundos a la intemperie que forman una experiencia de lluvia
+//   lesson       : cuánto enseña esa experiencia (lo mala que le parece)
+//   puddleLesson : cuánto enseña un charco: encontrarlo seco resta, beber de
+//                  él suma. Con eso aprende si fiarse de los charcos
+//   puddleLifeRate: cuánto corrige, con cada charco que encuentra seco, lo que
+//                  cree que dura un charco
 export const RAIN = {
   every: { min: 240, max: 420 },
   duration: { min: 18, max: 35 },
@@ -157,6 +169,40 @@ export const RAIN = {
   evaporate: 0.05,
   minRadius: 5,
   washPhero: 8,
+  front: { min: 30, max: 60 },
+  recover: 40,
+  effort: 1.5,
+  sample: 3,
+  lesson: 0.8,
+  puddleLesson: 0.5,
+  puddleLifeRate: 0.3,
+};
+
+// Instintos: lo que trae de nacimiento, sin haberlo aprendido. Todo lo demás
+// (qué es bueno, qué evitar, qué anuncia qué) sale de la experiencia. Poner
+// uno a 0 lo apaga y deja la conducta entera en manos del aprendizaje.
+//
+// Siempre activos (física y reflejos, sin número que tocar): patalear hacia la
+// orilla en el hondo, frenar tanteando cuando las antenas tocan agua, sentir
+// el cuerpo (interoception.js) y la curiosidad por lo desconocido (BRAIN).
+//
+//   rainShelter   : ganas innatas de ponerse a cubierto cuando le cae lluvia
+//                   (0-1). Lo aprendido de mojarse ('lluvia') se les suma; se
+//                   refugia si superan lo que le tiran el hambre y la sed.
+//   pressureSense : sensibilidad a la presión del aire (0 = no la nota). Las
+//                   hormigas notan su caída (Sujimoto et al. 2020, Ethology).
+//   pressureMin   : caída mínima (0-1) que llega a notar.
+//   pressureHaste : se apresura al notar que baja (× velocidad extra). Es lo
+//                   que se ha medido en cortadoras: salen antes y acarrean más.
+//   pressureShelter: ganas innatas de volver al nido al notar que baja. De
+//                   fábrica 0: que la bajada anuncia lluvia lo APRENDE
+//                   (creencia 'presion'), no lo sabe de nacimiento.
+export const INSTINCT = {
+  rainShelter: 0.2,
+  pressureSense: 1,
+  pressureMin: 0.2,
+  pressureHaste: 0.15,
+  pressureShelter: 0,
 };
 
 // El cuerpo. Lo único que Fagi sabe de nacimiento es sentirse: si el hambre
@@ -379,7 +425,10 @@ export const ENERGY = {
 
 // A partir de esta fracción, una necesidad es urgente: comer o beber pasa por
 // delante de descansar y de acarrear. Nadie se echa la siesta muriéndose de sed.
-export const NEEDS = { critical: 0.55 };
+// critical     : a partir de aquí la necesidad manda sobre todo lo demás
+// shelterMargin: segundos de colchón que deja al salir del refugio para que la
+//                sed no se le haga crítica por el camino al agua
+export const NEEDS = { critical: 0.55, shelterMargin: 10 };
 
 // Acarreo: puede llevar UN punto a la vez hasta el nido.
 export const CARRY = {

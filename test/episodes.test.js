@@ -96,3 +96,20 @@ test('drinking without thirst teaches nothing because nothing is felt', () => {
   assert.equal(fagi.brain.facts.agua.tries, 1);
   assert.ok(Math.abs(fagi.brain.facts.agua.value) < 0.05, `value ${fagi.brain.facts.agua.value}`);
 });
+
+test('walking through the shallows without stopping is not drinking and teaches nothing', () => {
+  const world = createWorld();
+  const fagi = createFagi();
+  const pool = addObject(world, fagi.x + OBJECT_TYPES.agua.radius - WATER.vado / 2, fagi.y, 'agua');
+  // Apenas tiene sed: el vado se la quita al pisarlo y ni se para a beber.
+  // Rodeando el lago esto pasa a menudo; si contara, el agua "no quitaría sed".
+  fagi.thirst = 0.1;
+  step(world, fagi, 0.05);
+  assert.equal(fagi.episode?.action, 'drink');
+  assert.notEqual(fagi.thought.action, 'drink');
+  fagi.x = pool.x - 200;
+  step(world, fagi, 0.05);   // sale del agua
+  step(world, fagi, 0.05);   // y el episodio se cierra sin juzgar
+  assert.equal(fagi.brain.facts.agua?.tries ?? 0, 0, 'un sorbo de paso no se juzga');
+  assert.equal(fagi.episode, null);
+});

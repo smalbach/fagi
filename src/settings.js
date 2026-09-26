@@ -6,7 +6,7 @@
 
 import {
   FAGI, HUNGER, THIRST, ENERGY, BRAIN, CARRY, NEST, EXPLORE, WIND, PLUME, PHERO, TREE, FRUIT, MEMORY,
-  MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, BACKEND, RAIN, WATER,
+  MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, BACKEND, RAIN, WATER, INSTINCT,
 } from './config.js';
 import { startRain } from './rain.js';
 import { removeAllTrees } from './trees.js';
@@ -177,6 +177,20 @@ const GRUPOS = [
     n(RAIN, 'grow', 'Puddle growth while raining (px/s)', 'Crecimiento del charco lloviendo (px/s)', 0, 2, 0.05),
     n(RAIN, 'evaporate', 'Puddle drying in the sun (px/s)', 'Secado del charco al sol (px/s)', 0, 2, 0.01),
     n(RAIN, 'washPhero', 'Rain washes pheromone (× faster)', 'La lluvia borra la feromona (× más rápido)', 1, 50, 1),
+    n(RAIN, 'front.min', 'Min seconds the pressure drops before rain', 'Mín. segundos que baja la presión antes de llover', 0, 300, 5),
+    n(RAIN, 'front.max', 'Max seconds the pressure drops before rain', 'Máx. segundos que baja la presión antes de llover', 0, 300, 5),
+    n(RAIN, 'recover', 'Seconds for the pressure to recover', 'Segundos en recuperarse la presión', 1, 300, 5),
+    n(RAIN, 'effort', 'Energy spent out in the rain (× walking)', 'Energía a la intemperie bajo la lluvia (× andar)', 1, 5, 0.1),
+    n(RAIN, 'sample', 'Seconds out in the rain per lesson', 'Segundos bajo la lluvia por lección', 0.5, 30, 0.5),
+    n(RAIN, 'lesson', 'How much getting rained on teaches', 'Cuánto enseña mojarse', 0, 1, 0.05),
+    n(RAIN, 'puddleLesson', 'How much a puddle teaches (dry or not)', 'Cuánto enseña un charco (seco o no)', 0, 1, 0.05),
+  ]},
+  { titulo: { en: 'Instincts', es: 'Instintos' }, campos: [
+    n(INSTINCT, 'rainShelter', 'Innate urge to shelter from rain', 'Ganas innatas de refugiarse de la lluvia', 0, 1, 0.05),
+    n(INSTINCT, 'pressureSense', 'Sensitivity to air pressure (0 = none)', 'Sensibilidad a la presión del aire (0 = ninguna)', 0, 2, 0.1),
+    n(INSTINCT, 'pressureMin', 'Smallest pressure drop it notices', 'Bajada de presión mínima que nota', 0, 1, 0.05),
+    n(INSTINCT, 'pressureHaste', 'Hurry when pressure drops (× speed)', 'Prisa al bajar la presión (× velocidad)', 0, 1, 0.05),
+    n(INSTINCT, 'pressureShelter', 'Innate urge to go home when pressure drops', 'Ganas innatas de volver al nido si baja la presión', 0, 1, 0.05),
   ]},
   { titulo: { en: 'Trees', es: 'Árboles' }, campos: [
     n(TREE, 'interval', 'Fruit every (seconds)', 'Fruta cada (segundos)', 1, 120, 1),

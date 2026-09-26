@@ -1,12 +1,13 @@
 // Los tres medidores que mantienen viva (o no) a Fagi: hambre, sed y energía.
 
-import { HUNGER, THIRST, ENERGY, WATER } from './config.js';
+import { HUNGER, THIRST, ENERGY, WATER, RAIN } from './config.js';
 import { statMult } from './effects.js';
 import { waterZone } from './obstacles.js';
 import { nestUnder } from './nest.js';
 import { rememberPlace, waterPlaceKind } from './memory.js';
 import { snapshotBody } from './interoception.js';
 import { openEpisode, closeOnDeath } from './episodes.js';
+import { learn } from './brain.js';
 
 // El turno primero permite beber, comer o usar la despensa y solo después
 // resuelve si una necesidad llegó al límite. Así tocar el recurso en el último
@@ -47,6 +48,10 @@ export function drink(fagi, world, dt) {
   if (empieza) {
     const ep = openEpisode(fagi, { action: 'drink', key: 'agua', before: snapshotBody(fagi) });
     ep.thirstAtStart = fagi.thirst;
+    // Llegar con sed a un charco y que haya agua: los charcos sirven.
+    if (waterPlaceKind(pool) === 'charco' && fagi.thirst / THIRST.max > THIRST.ignoreBelow) {
+      learn(fagi.brain, 'charco', RAIN.puddleLesson, fagi.age);
+    }
   }
 
   // Beber aquí confirma el sitio: vuelve a saber exactamente dónde está.
@@ -64,7 +69,9 @@ export function spendEnergy(fagi, world, dt, moviendose) {
   if (fagi.swimming) {
     fagi.energy -= ENERGY.drain * WATER.swimEffort * dt;
   } else if (moviendose) {
-    fagi.energy -= ENERGY.drain * statMult(fagi, 'speed') * dt;
+    // Bajo la lluvia, fuera del nido, cada gota la zarandea: cuesta más.
+    const gotas = fagi.raining && !enNido ? RAIN.effort : 1;
+    fagi.energy -= ENERGY.drain * statMult(fagi, 'speed') * gotas * dt;
   } else {
     fagi.energy += (enNido ? ENERGY.restNest : ENERGY.restOutside) * dt;
   }

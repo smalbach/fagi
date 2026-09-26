@@ -1,7 +1,7 @@
 // Cómo se mueve Fagi: girar, avanzar, esquivar, explorar y rastrear un olor.
 // Nada de esto decide A DÓNDE ir; solo ejecuta el movimiento.
 
-import { FAGI, ENERGY, EXPLORE, WORLD, WATER } from './config.js';
+import { FAGI, ENERGY, EXPLORE, WORLD, WATER, INSTINCT } from './config.js';
 import { angleTo, normalizeAngle } from './vision.js';
 import { statMult } from './effects.js';
 import { pushOutOfBlocks, avoidanceTurn, segmentBlocked, deepBlocked, waterZone, shorePoint, poolOf, radiusOf } from './obstacles.js';
@@ -21,31 +21,42 @@ export function turnTowards(fagi, targetAngle, dt) {
 // Lo que frena el suelo que pisa: nada en seco, el barro del vado, y el hondo,
 // donde la tensión superficial la atrapa y apenas avanza pataleando.
 // Con las antenas sobre el hondo avanza tanteando, y empapada va lastrada
-// hasta secarse.
+// hasta secarse. Al notar que se acerca un frente, se apresura.
 function arrastre(world, fagi) {
   const zona = waterZone(world, fagi.x, fagi.y);
   let f = !zona ? 1 : zona.deep ? WATER.swimSpeed : WATER.wadeSpeed;
   if (zona?.deep) return f;
   if (fagi.probing) f *= WATER.probeSpeed;
   if (fagi.wet > 0) f *= 1 - (1 - WATER.wetSpeed) * (fagi.wet / WATER.dryTime);
+  // Nota que baja la presión: instinto de darse prisa (INSTINCT.pressureHaste).
+  if (fagi.pressureFalling) f *= 1 + INSTINCT.pressureHaste * fagi.pressure;
   return f;
 }
 
 // Quien ya aprendió lo que es el hondo no pone la pata en él: las antenas tocan
-// el agua y se frena en el borde, girando a lo largo de la orilla. Planear el
-// rodeo (rumbo, más abajo) evita la mayoría de las veces llegar hasta aquí;
-// esto cubre lo que el plan no ve, como el radio de giro al rozar la orilla.
-function frenarEnElBorde(fagi, world, antes) {
+// el agua y se frena en el borde. Planear el rodeo (rumbo, más abajo) evita la
+// mayoría de las veces llegar hasta aquí; esto cubre lo que el plan no ve, como
+// el radio de giro al rozar la orilla.
+//
+// Solo la frena: el rumbo lo sigue decidiendo quien lo decidía. Si el reflejo
+// también girase, podría llevarle la contraria al plan (el plan gira por dentro
+// para dar media vuelta, el reflejo la devuelve de cara al otro lado) y
+// quedarse clavada en la orilla. Si aun así lleva un rato topando, se da la
+// vuelta hacia fuera: nunca se queda ahí para siempre.
+function frenarEnElBorde(fagi, world, antes, dt) {
   if (!fearsDeep(fagi)) return;
   const ahora = waterZone(world, fagi.x, fagi.y);
-  if (!ahora?.deep || waterZone(world, antes.x, antes.y)?.deep) return;
+  if (!ahora?.deep || waterZone(world, antes.x, antes.y)?.deep) {
+    fagi.edgeStuck = 0;
+    return;
+  }
   fagi.x = antes.x;
   fagi.y = antes.y;
-  // Sigue la orilla: se queda con la parte del rumbo que no apunta al agua.
-  const nx = antes.x - ahora.pool.x;
-  const ny = antes.y - ahora.pool.y;
-  const cruz = Math.cos(fagi.angle) * ny - Math.sin(fagi.angle) * nx;
-  fagi.angle = normalizeAngle(Math.atan2(ny, nx) + (cruz >= 0 ? -1 : 1) * Math.PI / 2);
+  fagi.edgeStuck = (fagi.edgeStuck ?? 0) + dt;
+  if (fagi.edgeStuck > WATER.edgeGiveUp) {
+    fagi.angle = Math.atan2(antes.y - ahora.pool.y, antes.x - ahora.pool.x);
+    fagi.edgeStuck = 0;
+  }
 }
 
 export function advance(fagi, world, dt) {
@@ -56,7 +67,7 @@ export function advance(fagi, world, dt) {
   fagi.stride += speed * dt;
   fagi.x += Math.cos(fagi.angle) * speed * dt;
   fagi.y += Math.sin(fagi.angle) * speed * dt;
-  frenarEnElBorde(fagi, world, antes);
+  frenarEnElBorde(fagi, world, antes, dt);
 
   // Rebota en los bordes del mundo.
   if (fagi.x < FAGI.radius || fagi.x > WORLD.width - FAGI.radius) {

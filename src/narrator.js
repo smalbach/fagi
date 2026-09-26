@@ -44,7 +44,7 @@ export const TAG_COLOR = {
 export function createNarrator() {
   return {
     lines: [],
-    prev: { action: null, drinking: false, swimming: false, dunk: 0, probed: false, raining: false, puddleGone: 0, meal: 0, drink: 0, water: 0,
+    prev: { action: null, drinking: false, swimming: false, dunk: 0, probed: false, raining: false, pressureFalling: false, rainLesson: 0, pressureLesson: 0, puddleGone: 0, meal: 0, drink: 0, water: 0,
             picked: 0, stored: 0, pantry: 0, alive: true,
             stages: {}, trusted: {}, rule: 0, peril: 0, rethink: 0, leg: 0 },
     seq: 0,
@@ -186,6 +186,32 @@ export function narrate(nar, fagi) {
       { key: fagi.raining ? 'log.rainSub' : 'log.rainStopSub' });
     p.raining = fagi.raining;
   }
+
+  // Nota que baja la presión (una vez por frente).
+  if (fagi.pressureFalling && !p.pressureFalling) {
+    push(nar, fagi, 'rain', { key: 'log.pressure' }, { key: 'log.pressureSub' });
+  }
+  p.pressureFalling = Boolean(fagi.pressureFalling);
+
+  // La primera vez que la lluvia la pilla fuera: lo que le cuesta.
+  const lr = fagi.lastRainLesson;
+  if (lr && lr.n === 1 && p.rainLesson !== 1) {
+    push(nar, fagi, 'learn', { key: 'log.rainLearn' }, { key: 'log.rainLearnSub', params: {
+      arrow: flecha(lr.beliefBefore, lr.beliefAfter),
+      before: lr.beliefBefore.toFixed(2), after: lr.beliefAfter.toFixed(2),
+    } });
+  }
+  p.rainLesson = lr?.n ?? 0;
+
+  // Escampa y relaciona el frente que notó con la lluvia que vino.
+  const pl = fagi.lastPressureLesson;
+  if (pl && pl.n !== p.pressureLesson) {
+    push(nar, fagi, 'learn', { key: 'log.pressureLearn' }, { key: 'log.pressureLearnSub', params: {
+      arrow: flecha(pl.beliefBefore, pl.beliefAfter),
+      before: pl.beliefBefore.toFixed(2), after: pl.beliefAfter.toFixed(2),
+    } });
+  }
+  p.pressureLesson = pl?.n ?? 0;
 
   // Va al charco que recordaba y ya se ha secado.
   if ((fagi.puddleGone ?? 0) !== p.puddleGone) {

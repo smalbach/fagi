@@ -6,6 +6,11 @@
 //
 // Mientras llueve, además, el agua borra la feromona (pheromone.js) y moja a
 // quien esté a la intemperie (swim.js).
+//
+// Antes de cada chaparrón llega el frente: la presión del aire baja durante
+// RAIN.front segundos, se queda baja mientras llueve y se recupera al escampar
+// (lluvia.drop: 0 = normal, 1 = lo más baja). Es la señal que Fagi puede
+// notar (weather.js); que anuncia agua lo tiene que aprender.
 
 import { RAIN, WORLD, MAPGEN } from './config.js';
 import { addObject, removeObject, record } from './world.js';
@@ -13,8 +18,10 @@ import { radiusOf } from './obstacles.js';
 
 const entre = ({ min, max }) => min + Math.random() * (max - min);
 
+// El primer chaparrón se sortea al primer paso, no al crear el mundo: así crear
+// el mundo no gasta azar y el mapa sale igual con la misma semilla.
 export function createRain() {
-  return { on: false, timer: entre(RAIN.every), left: 0, pending: 0, spawnIn: 0, n: 0 };
+  return { on: false, timer: null, front: 0, drop: 0, left: 0, pending: 0, spawnIn: 0, n: 0 };
 }
 
 export const isPuddle = (o) => o.type === 'charco';
@@ -37,6 +44,12 @@ function nuevoCharco(world) {
   if (sitio) addObject(world, sitio.x, sitio.y, 'charco', r, 'rain');
 }
 
+// Sortea el próximo chaparrón y cuánto se le adelanta el frente.
+function proximo(lluvia) {
+  lluvia.timer = entre(RAIN.every);
+  lluvia.front = Math.min(lluvia.timer, entre(RAIN.front));
+}
+
 // Empieza a llover ya (el reloj normal, o el botón de ajustes).
 export function startRain(world) {
   const lluvia = (world.rain ??= createRain());
@@ -54,9 +67,15 @@ export function updateRain(world, dt) {
   const lluvia = (world.rain ??= createRain());
 
   if (!lluvia.on) {
+    if (lluvia.timer == null) proximo(lluvia);
     lluvia.timer -= dt;
+    // Tras escampar la presión sube poco a poco; al acercarse el frente, baja.
+    const frente = lluvia.front > 0 ? Math.max(0, 1 - lluvia.timer / lluvia.front) : 0;
+    const vuelve = Math.max(0, lluvia.drop - dt / Math.max(1e-6, RAIN.recover));
+    lluvia.drop = Math.min(1, Math.max(frente, vuelve));
     if (lluvia.timer <= 0) startRain(world);
   } else {
+    lluvia.drop = 1;
     lluvia.left -= dt;
     lluvia.spawnIn -= dt;
     if (lluvia.pending > 0 && lluvia.spawnIn <= 0) {
@@ -66,7 +85,7 @@ export function updateRain(world, dt) {
     }
     if (lluvia.left <= 0) {
       lluvia.on = false;
-      lluvia.timer = entre(RAIN.every);
+      proximo(lluvia);
       record(world, 'rain', { on: false });
     }
   }

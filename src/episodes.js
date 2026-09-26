@@ -72,6 +72,11 @@ export function resolveEpisodes(fagi, dt) {
   if (!ep) return;
 
   if (ep.action === 'drink') {
+    // Pasar por el vado sin pararse (rodeando el agua, de camino a otra cosa)
+    // moja las patas y quita un poco de sed, pero no es beber: si se juzgara,
+    // el sorbo de paso enseñaría que el agua apenas quita sed.
+    if (fagi.thought?.action === 'drink') ep.stopped = true;
+    if (!fagi.drinking && !ep.stopped) { cerrar(fagi, ep, null); return; }
     const basta = fagi.age - ep.at >= FEEL.drinkSample || !fagi.drinking;
     if (basta) {
       sentir(fagi, ep);

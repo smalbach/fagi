@@ -77,3 +77,23 @@ test('she drinks from the shallow edge, never needing to swim', () => {
   assert.ok(bebio);
   assert.ok(Math.hypot(fagi.x - 420, fagi.y - 400) > R - WATER.vado, 'en el vado');
 });
+
+test('pressed against the deep edge she never gets stuck turning around', () => {
+  for (const lado of [1, -1]) {
+    const world = createWorld();
+    const fagi = createFagi();
+    const pool = addObject(world, 400, 400, 'agua');
+    fagi.brain.rules.list.push({ id: `evitar-${DEEP}`, on: ['pursue'], when: { key: DEEP }, verdict: 'avoid' });
+    // En el borde del hondo, mirando a lo largo de la orilla, con la meta al otro lado.
+    const d = R - WATER.vado + 0.05;
+    fagi.x = pool.x - d; fagi.y = pool.y;
+    fagi.angle = lado * Math.PI / 2;
+    fagi.energy = 0;                                 // arrastrándose, como en el caso real
+    const meta = { x: pool.x + R + 60, y: pool.y };
+    for (let t = 0; t < 60 && Math.hypot(meta.x - fagi.x, meta.y - fagi.y) > 12; t += 0.05) {
+      moveToward(fagi, world, meta, 0.05);
+      assert.ok(!waterZone(world, fagi.x, fagi.y)?.deep);
+    }
+    assert.ok(Math.hypot(meta.x - fagi.x, meta.y - fagi.y) <= 12, `lado ${lado}: llega rodeando`);
+  }
+});

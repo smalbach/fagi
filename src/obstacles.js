@@ -72,11 +72,24 @@ export function deepBlocked(world, ax, ay, bx, by, margin = 0) {
     const hondo = deepRadius(o);
     if (hondo <= 0) continue;
     const d = Math.hypot(o.x - ax, o.y - ay);
-    if (d <= hondo) continue;
-    const r = d <= hondo + margin ? hondo : hondo + margin;
-    if (segmentHitsCircle(ax, ay, bx, by, o.x, o.y, r)) return true;
+    if (d < hondo) continue;   // el mismo límite que waterZone: dentro es hondo
+    const r = d < hondo + margin ? hondo : hondo + margin;
+    if (segmentEntersCircle(ax, ay, bx, by, o.x, o.y, r)) return true;
   }
   return false;
+}
+
+// Como segmentHitsCircle, pero solo cuenta si el tramo se METE en el círculo.
+// Desde el mismo borde, un tramo que se aleja o lo roza no está cerrado: si lo
+// estuviera, pegada a la orilla todo rumbo saldría cerrado y se quedaría clavada.
+function segmentEntersCircle(ax, ay, bx, by, cx, cy, r) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const len2 = dx * dx + dy * dy;
+  if (len2 === 0) return false;
+  const t = Math.min(1, ((cx - ax) * dx + (cy - ay) * dy) / len2);
+  if (t <= 0) return false;
+  return Math.hypot(cx - (ax + dx * t), cy - (ay + dy * t)) < r;
 }
 
 // ¿El segmento A-B cruza alguna roca? Sirve para cortar la visión.

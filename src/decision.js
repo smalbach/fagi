@@ -22,6 +22,7 @@ import { labelOf } from './i18n.js';
 import { stockFull } from './world.js';
 import { notice, rethink } from './attention.js';
 import { waterZone, shorePoint, radiusOf } from './obstacles.js';
+import { rainAversion, pressureAversion } from './weather.js';
 
 const pct = (u) => `${Math.round(u * 100)}%`;
 
@@ -166,15 +167,43 @@ function descansar(fagi, world, ctx) {
   };
 }
 
-// Llueve: a cubierto. Una gota pesa como ella, la empapa y le borra el rastro;
-// las obreras se meten en el nido hasta que escampa. Lo que apremia va antes:
-// con sed de verdad, la lluvia no la para (y hasta deja charcos donde beber).
+// Lo que la tira hacia fuera: el hambre o la sed que tenga. Refugiarse
+// compite con eso; lo que apremia, además, gana siempre (va antes en REGLAS).
+//
+// Y siente cómo sube la sed: si esperando se le haría crítica antes de llegar
+// al agua que recuerda, sale ya. Si no, con lo aprendido pesando más que
+// cualquier sed no crítica, se quedaba hasta el límite y el camino al agua lo
+// hacía ya en crítico.
+function tiron(fagi, ctx) {
+  const pull = Math.max(ctx.thirstU, ctx.hungerU);
+  if (!ctx.pool || THIRST.rate <= 0) return pull;
+  const hastaCritica = (NEEDS.critical * THIRST.max - fagi.thirst) / THIRST.rate;
+  const viaje = Math.hypot(ctx.pool.x - fagi.x, ctx.pool.y - fagi.y) / FAGI.speed;
+  return hastaCritica < viaje * 1.5 + NEEDS.shelterMargin ? 1 : pull;
+}
+
+// Llueve: a cubierto, si las ganas pueden más que lo que la tira hacia fuera.
+// Las ganas son un poco de instinto y, sobre todo, lo que aprendió mojándose
+// (weather.js): la primera vez sigue a lo suyo y lo paga; luego se refugia.
+// Se queda en el nido hasta que escampa.
 function refugiarse(fagi, world, ctx) {
-  if (!world.rain?.on || !ctx.nido || apremia(ctx)) return null;
+  if (!fagi.raining || !ctx.nido || apremia(ctx)) return null;
+  if (rainAversion(fagi) <= tiron(fagi, ctx)) return null;
   if (ctx.enNido) {
     return { action: 'rest', reason: razon('reason.shelterIn'), target: null, targetKind: null };
   }
   return { action: 'shelter', reason: razon('reason.shelter'), target: ctx.nido, targetKind: 'nest' };
+}
+
+// Nota que la presión baja. Qué anuncia eso lo aprendió ('presion', weather.js):
+// si ya sabe que detrás viene lluvia, vuelve al nido antes de que caiga.
+function anticiparse(fagi, world, ctx) {
+  if (!fagi.pressureFalling || !ctx.nido || apremia(ctx)) return null;
+  if (pressureAversion(fagi) <= tiron(fagi, ctx)) return null;
+  if (ctx.enNido) {
+    return { action: 'rest', reason: razon('reason.pressureIn'), target: null, targetKind: null };
+  }
+  return { action: 'shelter', reason: razon('reason.pressure'), target: ctx.nido, targetKind: 'nest' };
 }
 
 // Lo que lleva encima va al nido. Lo único que la aparta del camino, sin
@@ -390,6 +419,7 @@ const REGLAS = [
   // 2. aguantar
   ['endure', 'rest', descansar],
   ['endure', 'shelter', refugiarse],
+  ['endure', 'anticipate', anticiparse],
   // 3. proveer
   ['provide', 'directive', directivaSegura],     // solo contesta con BACKEND.authority === 0 (de fábrica)
   ['provide', 'carry', acarrear],

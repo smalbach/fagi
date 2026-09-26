@@ -30,6 +30,7 @@ import { createExploreMap, markVisited } from './explore.js';
 import { eatCarried, tryPickOrEat } from './feeding.js';
 import { useNest } from './nest.js';
 import { swim } from './swim.js';
+import { senseWeather } from './weather.js';
 
 export function createFagi() {
   return {
@@ -52,6 +53,9 @@ export function createFagi() {
     dunk: null,        // el rato en el hondo que lleva, hasta saber cuánto le costó
     wet: 0,            // segundos que le quedan para secarse tras salir del hondo
     probing: false,    // tiene las antenas sobre el hondo: avanza tanteando
+    pressure: 0,       // cuánto nota que ha bajado la presión del aire (0-1)
+    pressureFalling: false,   // la nota bajar ahora mismo: se acerca un frente
+    rainEp: null,      // el rato a la intemperie bajo la lluvia, hasta juzgarlo
     pheroTimer: 0,
 
     // cabeza
@@ -130,6 +134,7 @@ export function updateFagi(fagi, world, dt) {
   decaySynapses(fagi.brain.synapses, dt, fagi.age);   // y las conexiones sin uso se debilitan
   markVisited(fagi.explored, fagi.x, fagi.y, dt);  // estar en un sitio es conocerlo
   swim(fagi, world, dt);         // ¿se ha metido en el hondo? lo siente y aprende
+  senseWeather(fagi, world, dt); // la presión que nota, y lo que le enseña la lluvia
   drink(fagi, world, dt);
   useNest(fagi, world);
 
