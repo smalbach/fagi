@@ -34,9 +34,9 @@ export function resetCortex(cortex) {
   cortex.wasApremiando = false;
 }
 
-// ¿Hay algo que justifique preguntar ahora? Una clave que no había visto, una
-// experiencia recién cerrada, empezar a apurar, llevar mucho explorando sin
-// más, o quedarse sin directiva.
+// ¿Hay algo que justifique preguntar ahora? Una clave que no había visto, algo
+// nuevo en lo que percibe, una experiencia recién cerrada, empezar a apurar,
+// llevar mucho explorando sin más, o quedarse sin directiva.
 function tocaPreguntar(cortex, fagi, ctx) {
   let claveNueva = false;
   for (const c of ctx.ranked) {
@@ -51,7 +51,11 @@ function tocaPreguntar(cortex, fagi, ctx) {
   cortex.wasApremiando = apremiaAhora;
   if (fagi.lastEpisode) cortex.lastEpisodeN = fagi.lastEpisode.n;
 
-  return claveNueva || episodioNuevo || apremiaSube || inactivaMucho || sinDirectiva;
+  // Algo nuevo en lo que percibe (no solo un tipo nuevo): la directiva vigente
+  // se pensó sin eso, así que se vuelve a preguntar con la situación de ahora.
+  const hayNovedad = (ctx.nuevas?.length ?? 0) > 0;
+
+  return claveNueva || episodioNuevo || apremiaSube || inactivaMucho || sinDirectiva || hayNovedad;
 }
 
 export function updateCortex(cortex, fagi, world, ctx, dt) {

@@ -1,5 +1,10 @@
 // Todos los números ajustables del juego viven aquí.
 
+// Escala y relojes. 1 px = 0,5 mm: Fagi mide ~9 mm, como una obrera de
+// Formica, y el mapa es un trozo de suelo de 64 x 43 cm. Moverse, ver, oler y
+// la feromona van a tiempo real. Solo la biología (sed, hambre, olvido, lo que
+// se pudre) va comprimida: 1 s de juego = ~8 min de hormiga, con las
+// proporciones reales entre unas cosas y otras.
 export const WORLD = {
   width: 1280,
   height: 860,
@@ -71,8 +76,9 @@ export const FAGI = {
   speed: 70,          // px por segundo
   turnSpeed: 6.0,     // radianes por segundo. Radio de giro = speed/turnSpeed = 11.6px.
                       // Debe quedar POR DEBAJO de eatRadius o Fagi orbita la comida sin tocarla.
-  fovDeg: 120,        // ángulo total del cono de visión
-  viewRange: 230,     // px
+  fovDeg: 280,        // ángulo total del cono de visión: los ojos compuestos
+                      // ven casi todo alrededor, menos justo detrás
+  viewRange: 120,     // px. Poca resolución: una gota de 3 mm deja de verse a ~6 cm
   eatRadius: 14,      // distancia de contacto para comer
   memorySec: 2.0,     // segundos que recuerda un objetivo tras perderlo de vista
   smell: 1.0,         // sensibilidad del olfato. Multiplica el aroma de cada cosa.
@@ -83,16 +89,17 @@ export const FAGI = {
 };
 
 export const HUNGER = {
-  rate: 1.4,          // puntos de hambre por segundo (~71s de vida sin comer)
+  rate: 0.08,         // puntos de hambre por segundo (~1250s = ~1 semana sin comer,
+                      // con agua: 5-7 veces más de lo que aguanta sin beber)
   max: 100,
 };
 
 // La sed es la segunda necesidad: sube más rápido que el hambre, pero el agua
 // del mapa no se gasta. Fagi tiene que repartir su tiempo entre comer y beber.
 export const THIRST = {
-  rate: 2.2,          // puntos de sed por segundo (~45s sin beber)
+  rate: 0.55,         // puntos de sed por segundo (~180s = ~1 día hasta desecarse)
   max: 100,
-  drinkRate: 30,      // cuánta sed quita por segundo dentro del agua
+  drinkRate: 5,       // cuánta sed quita por segundo dentro del agua (~20s para llenar el buche)
   ignoreBelow: 0.10,  // con menos sed que esto, el agua ni se plantea
 };
 
@@ -118,7 +125,7 @@ export const FEEL = {
   window: 10,
   perilWeight: 0.5,
   deathPenalty: 1,
-  drinkSample: 1.5,
+  drinkSample: 9,     // con drinkRate 5 son ~45 puntos de sed: la misma señal que antes
 };
 
 // Aprendizaje simbólico: cuándo una creencia se convierte en una regla escrita
@@ -175,7 +182,7 @@ export const POINT_TYPES = {
     color: '#5bd97e',
     radius: 6,
     aroma: 175,       // huele fuerte: se detecta de lejos aunque no se vea
-    life: 45,         // segundos hasta pudrirse y volverse tóxico (0 = nunca)
+    life: 180,        // segundos hasta pudrirse y volverse tóxico (0 = nunca). ~1 día
     hunger: -35,
     effects: [],
   },
@@ -183,7 +190,7 @@ export const POINT_TYPES = {
     color: '#4cc9f0',
     radius: 5,
     aroma: 85,
-    life: 60,
+    life: 240,
     hunger: -5,
     effects: [{ stat: 'speed', mult: 1.8, sec: 8 }],
   },
@@ -191,7 +198,7 @@ export const POINT_TYPES = {
     color: '#b57bff',
     radius: 5,
     aroma: 85,
-    life: 60,
+    life: 240,
     hunger: -5,
     effects: [
       { stat: 'viewRange', mult: 1.6, sec: 10 },
@@ -202,7 +209,7 @@ export const POINT_TYPES = {
     color: '#e8a33d',
     radius: 6,
     aroma: 145,
-    life: 80,
+    life: 320,
     hunger: -10,
     effects: [{ stat: 'hungerRate', mult: 0.5, sec: 14 }],
   },
@@ -210,7 +217,7 @@ export const POINT_TYPES = {
     color: '#d95b7e',
     radius: 6,
     aroma: 130,       // el veneno también huele, y huele parecido
-    life: 45,         // lo podrido no se pudre más: al cumplir su tiempo desaparece
+    life: 180,        // lo podrido no se pudre más: al cumplir su tiempo desaparece
     hunger: 25,
     effects: [{ stat: 'speed', mult: 0.6, sec: 5 }],
   },
@@ -257,6 +264,15 @@ export const PLUME = {
 // Memoria. Un recuerdo no es un número: es un valor MÁS la confianza que le
 // tiene. La confianza sube al confirmarse, baja sola con el tiempo, y solo
 // aguanta si las confirmaciones vienen espaciadas, como en los insectos reales.
+// Sinapsis (synapses.js): la huella del aprendizaje como red de conexiones.
+export const SYNAPSE = {
+  hebbRate: 0.6,      // cuánto se refuerza por segundo sentido→concepto al percibirlo
+  hebbDecay: 0.01,    // lo que pierde por segundo sin usarse (~1.5 min de fuerte a podada)
+  learnRate: 0.45,    // cuánto se acerca concepto→sensación a lo que sintió cada vez
+  feelDecay: 0.0008,  // lo aprendido por consecuencias se olvida mucho más despacio
+  prune: 0.03,        // por debajo de esto la conexión se poda
+};
+
 export const MEMORY = {
   spacing: 12,         // segundos mínimos entre confirmaciones para que "cuenten"
   massedGain: 0.4,     // lo que vale una confirmación seguida frente a una espaciada
@@ -267,11 +283,13 @@ export const MEMORY = {
   contradiction: 0.45, // con qué se multiplica la confianza al llevarse un chasco
   toMedium: 2,         // confirmaciones espaciadas para pasar a memoria media
   toLong: 4,           // y para consolidarla como memoria larga
-  decayShort: 0.012,   // confianza perdida por segundo en cada etapa (~33s de vida)
-  decayMedium: 0.004,  // ~3 minutos
-  decayLong: 0.0008,   // ~20 minutos: casi permanente
+  // El olvido es biología: va al reloj comprimido, como la sed y el hambre.
+  decayShort: 0.003,   // confianza perdida por segundo en cada etapa (~3 min = ~1 día)
+  decayMedium: 0.0008, // ~10 min = unos días
+  decayLong: 0.0003,   // ~1 h = semanas: casi permanente
   minConfidence: 0.18, // por debajo vuelve la curiosidad: ya no se fía
-  placeDrift: 1.6,     // px de imprecisión que gana un sitio por segundo sin verlo
+  placeDrift: 0.2,     // px de imprecisión que gana un sitio por segundo sin verlo.
+                       // Poca: la integración de caminos falla al andar, no al esperar
   placeErrorMax: 260,  // tope de esa imprecisión
   travelRange: 700,    // hasta dónde le parece razonable viajar a un sitio que
                        // recuerda. Sin esto, todo lo que no ve queda "lejísimos"
@@ -323,17 +341,33 @@ export const EXPLORE = {
   cell: 90,           // px de lado de cada casilla del mapa mental
   visitGain: 1.0,     // cuánto se conoce una casilla por segundo estando en ella
   visitMax: 3,        // tope de conocimiento de una casilla
-  fade: 0.005,        // cuánto se olvida por segundo: una casilla vuelve a ser
-                      // terreno nuevo a los ~3 min de no pisarla
+  fade: 0.001,        // cuánto se olvida por segundo: una casilla vuelve a ser
+                      // terreno nuevo a los ~15 min (días de hormiga) de no pisarla
   distanceWeight: 1.4, // cuánto pesa lo lejos que queda una casilla al elegirla
-  homeBias: 0.25,     // cuánto prefiere las casillas lejos del nido
+  homeBias: 0,        // cuánto prefiere las casillas lejos del nido. 0: las obreras
+                      // no nacen con prisa por alejarse, amplían el radio con la experiencia
   reach: 55,          // a qué distancia da por pisada la casilla a la que iba
   giveUp: 12,         // segundos insistiendo en una casilla antes de elegir otra
+  // Explorar por tramos: cada tramo va a un punto que VE, dentro de su cono.
+  // Al llegar mira otra vez y elige el siguiente con lo que tenga delante.
+  rays: 9,            // direcciones que tantea dentro del cono
+  depths: [0.45, 0.7, 0.92],  // a qué fracción de la vista pone cada punto
+  compassWeight: 1.2, // cuánto tira el rumbo hacia la zona menos conocida del mapa
+  farWeight: 0.3,     // preferencia por llegar hasta el fondo de lo que ve
+  turnWeight: 0.4,    // lo que cuesta un tramo que obliga a darse la vuelta entera
+  waypointReach: 18,  // a qué distancia da por alcanzado el punto del tramo
+};
+
+// Atención: lo que acaba de entrar en lo que percibe. Algo que no percibía
+// desde hace `forget` segundos cuenta como nuevo y le hace replantearse el plan.
+export const ATTENTION = {
+  forget: 3,
+  opportunisticThirst: 0.35,  // con esta sed, ver agua cerca le desvía aunque vaya cargada
 };
 
 // Feromona propia: el camino que marca al volver cargada al nido.
 export const PHERO = {
-  life: 45,           // segundos que tarda en evaporarse una marca
+  life: 600,          // segundos que tarda en evaporarse una marca (Lasius niger: ~47 min de vida media)
   every: 0.3,         // cada cuánto deja una marca mientras acarrea
   sense: 46,          // a qué distancia detecta una marca
 };

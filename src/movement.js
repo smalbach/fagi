@@ -4,9 +4,9 @@
 import { FAGI, ENERGY, EXPLORE, WORLD } from './config.js';
 import { angleTo, normalizeAngle } from './vision.js';
 import { statMult } from './effects.js';
-import { pushOutOfBlocks, avoidanceTurn } from './obstacles.js';
+import { pushOutOfBlocks, avoidanceTurn, segmentBlocked } from './obstacles.js';
 import { scentAt } from './smell.js';
-import { exploreTarget } from './explore.js';
+import { waypointInView } from './explore.js';
 import { nestOf } from './world.js';
 
 export function turnTowards(fagi, targetAngle, dt) {
@@ -56,17 +56,32 @@ export function moveToward(fagi, world, target, dt) {
   advance(fagi, world, dt);
 }
 
-// Explorar: se elige una casilla poco conocida y se va a ella como a cualquier
-// otro objetivo, esquivando rocas por el camino. Se cambia de casilla al
-// pisarla, o cuando lleva demasiado tiempo intentándolo.
+// Explorar por tramos: va a un punto que ve (explore.js/waypointInView) y, al
+// llegar, elige el siguiente con lo que tenga delante entonces. El tramo se
+// replantea antes si una roca se cruza en medio o si lleva demasiado.
+//
+// Si vuelve a explorar después de que algo la apartara (fagi.exploreResume),
+// el tramo que dejó a medias entra en la decisión como una opción más, contra
+// los puntos que ve ahora. Si ya no vale (lo alcanzó, se tapó o lo abandonó
+// por tiempo), no entra.
 export function explore(fagi, world, dt) {
   const destino = fagi.exploreTarget;
   fagi.exploreTimer -= dt;
-  const llegó = destino && Math.hypot(destino.x - fagi.x, destino.y - fagi.y) <= EXPLORE.reach;
+  const llegó = destino && Math.hypot(destino.x - fagi.x, destino.y - fagi.y)
+    <= (destino.inView ? EXPLORE.waypointReach : EXPLORE.reach);
+  const tapado = destino?.inView && segmentBlocked(world, fagi.x, fagi.y, destino.x, destino.y);
+  const vale = destino && !llegó && !tapado && fagi.exploreTimer > 0;
 
-  if (!destino || llegó || fagi.exploreTimer <= 0) {
-    fagi.exploreTarget = exploreTarget(fagi, fagi.explored, nestOf(world));
+  if (!vale || fagi.exploreResume) {
+    const previo = fagi.exploreResume && vale && destino.inView ? destino : null;
+    fagi.exploreTarget = waypointInView(fagi, fagi.explored, nestOf(world), world, previo);
+    fagi.exploreLegs = (fagi.exploreLegs ?? 0) + 1;
     fagi.exploreTimer = EXPLORE.giveUp;
+    if (previo) {
+      const e = fagi.exploreTarget;
+      fagi.legChoice = { n: (fagi.legChoice?.n ?? 0) + 1, resumed: e.resumed, score: e.score, rival: e.rival };
+    }
+    fagi.exploreResume = false;
   }
   moveToward(fagi, world, fagi.exploreTarget, dt);
 }

@@ -67,7 +67,7 @@ export function createGame({ onExit } = {}) {
   const narrator = createNarrator();
   const consola = createConsola();
   const learnedPanel = createLearnedPanel(fagi, { onBackendChange: montarBackend });
-  const brainMap = createBrainMap(document.getElementById('brainmap'), document.getElementById('brainmap-status'));
+  const brainMap = createBrainMap(document.getElementById('brainmap'), document.getElementById('brainmap-status'), document.getElementById('brainmap-expand'));
   createSettings(world, () => fagi);
   bindDom();
   initPanelLayout(document.getElementById('consola'));
@@ -232,7 +232,7 @@ export function createGame({ onExit } = {}) {
       ui.update(fagi, world);
       consola.update(fagi, lineas);
       learnedPanel.update();
-      brainMap.update(fagi);
+      brainMap.update(fagi, world);
     } else if (mode === 'replay' && player) {
       if (reproduciendo.on) {
         player.advance(dt * reproduciendo.speed);
@@ -253,7 +253,7 @@ export function createGame({ onExit } = {}) {
       }
       consola.update(player.fagi, player.log);
       learnedPanel.update(player.fagi);
-      brainMap.update(player.fagi);
+      brainMap.update(player.fagi, player.world);
       onReplayFrame?.(player, reproduciendo);
     }
 

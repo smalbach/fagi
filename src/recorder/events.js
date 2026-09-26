@@ -41,7 +41,7 @@ export const EVENT_TYPES = {
 
 // Columnas de cada punto de un bloque `track`, en este orden.
 export const TRACK_FIELDS = ['t', 'x', 'y', 'angle', 'action', 'targetId', 'carrying', 'hunger', 'thirst', 'energy',
-  'targetKind', 'drinking', 'castSide', 'scentX', 'scentY'];
+  'targetKind', 'drinking', 'castSide', 'scentX', 'scentY', 'legX', 'legY', 'leg'];
 
 // Sucesos que merecen una marca en la barra de tiempo del reproductor.
 export const MARKER_TYPES = new Set(['fagi_eat', 'fagi_pick', 'fagi_deposit', 'fagi_pantry', 'fagi_rule', 'fagi_death', 'config']);

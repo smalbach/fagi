@@ -1,0 +1,52 @@
+{
+  "_escala": "1 px = 0.5 mm (Fagi mide ~9 mm, como una obrera de Formica). El mapa es 64 x 43 cm.",
+  "_reloj": "Movimiento, vista, olfato y feromona van a tiempo real. Solo la fisiología se comprime: 1 s de juego = 8 min de hormiga, con las proporciones reales entre sed y hambre.",
+  "THIRST": {
+    "_nota": "Sin agua una obrera se deseca en ~1 día (humedad media) -> 180 s. Beber hasta llenar el buche lleva ~20 s.",
+    "rate": 0.55,
+    "drinkRate": 5
+  },
+  "HUNGER": {
+    "_nota": "Con agua aguanta ~1 semana sin comer: 5-7 veces más que sin agua -> ~1250 s.",
+    "rate": 0.08
+  },
+  "POINT_TYPES": {
+    "_nota": "Una gota de néctar o fruta caída dura ~1 día antes de fermentar -> 180 s. Lo demás en proporción.",
+    "nectar": {
+      "life": 180
+    },
+    "toxico": {
+      "life": 180
+    },
+    "chispa": {
+      "life": 240
+    },
+    "ojo": {
+      "life": 240
+    },
+    "resina": {
+      "life": 320
+    }
+  },
+  "FAGI": {
+    "_nota": "Los ojos compuestos de una hormiga cubren casi todo alrededor (~280 grados), pero con poca resolución: una gota de 3 mm deja de verse a ~6 cm (120 px). Velocidad 70 px/s = 3.5 cm/s, ya realista.",
+    "fovDeg": 280,
+    "viewRange": 120
+  },
+  "PHERO": {
+    "_nota": "La pista de Lasius niger tiene una vida media de ~47 min. 600 s ya es el orden de magnitud (antes 45 s).",
+    "life": 600
+  },
+  "EXPLORE": {
+    "_nota": "Las obreras nuevas hacen paseos de aprendizaje cerca del nido y amplían el radio con la experiencia; no tienen un impulso innato a alejarse. El terreno conocido se olvida en días, no en horas.",
+    "homeBias": 0,
+    "fade": 0.001
+  },
+  "MEMORY": {
+    "_nota": "El olvido es biología: va al reloj fisiológico (1 s = 8 min). Una hormiga recuerda un comedero visitado una vez ~1 día, unos pocos días si lo repite y semanas si lo consolida. Su integración de caminos falla por distancia recorrida, no por tiempo quieto: el sitio apenas deriva.",
+    "decayShort": 0.003,
+    "decayMedium": 0.0008,
+    "decayLong": 0.0003,
+    "placeDrift": 0.2
+  }
+}

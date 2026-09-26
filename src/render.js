@@ -90,6 +90,7 @@ function escena(ctx, world, fagi, camera) {
   // Rastreando un olor no lo sabe: se marca el último sitio donde olía.
   if (!world.immersive && fagi.targetKind === 'scent') drawScentMark(ctx, fagi);
   else if (!world.immersive && fagi.target) drawTargetLine(ctx, fagi);
+  else if (!world.immersive && fagi.thought?.action === 'explore' && fagi.exploreTarget) drawLeg(ctx, fagi);
   drawFagi(ctx, fagi);
   drawBuffRings(ctx, fagi);
   if (!world.immersive) drawCoords(ctx, fagi, camera.zoom);
@@ -275,6 +276,22 @@ function drawTargetLine(ctx, fagi) {
   ctx.lineTo(fagi.target.x, fagi.target.y);
   ctx.stroke();
   ctx.setLineDash([]);
+}
+
+// Explorando: el punto de su campo de visión al que va este tramo. Al llegar
+// elige el siguiente con lo que vea entonces.
+function drawLeg(ctx, fagi) {
+  const w = fagi.exploreTarget;
+  ctx.strokeStyle = 'rgba(240,199,94,0.35)';
+  ctx.setLineDash([2, 5]);
+  ctx.beginPath();
+  ctx.moveTo(fagi.x, fagi.y);
+  ctx.lineTo(w.x, w.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.arc(w.x, w.y, 4, 0, Math.PI * 2);
+  ctx.stroke();
 }
 
 // Cruz en el último punto donde le llegó el olor: es a donde vuelve si lo pierde.

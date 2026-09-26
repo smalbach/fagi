@@ -126,7 +126,20 @@
     .score .partes { color: #6e7486; font-size: 10.5px; }
     .dim { color: #6e7486; }
     #brainmap-status { font-size: 10.5px; margin: 2px 0 6px; }
-    #brainmap { width: 100%; height: 100%; min-height: 120px; display: block; background: #12141a; border-radius: 6px; }
+    #brainmap { width: 100%; height: 200px; display: block; background: #12141a; border-radius: 6px; }
+    .pane-expand {
+      width: auto; padding: 2px 7px; font-size: 11px; line-height: 1.2;
+      background: #2a2e3a; border: 1px solid var(--line); color: var(--text); border-radius: 5px;
+    }
+    /* Mapa del cerebro ampliado: el panel sale del reparto de Split.js
+       (de ahí los !important sobre su alto en línea) y ocupa casi toda la
+       pantalla. Esc o el mismo botón lo devuelven a su sitio. */
+    .pane.brainmap-big {
+      position: fixed !important; inset: 3vh 3vw; height: auto !important; width: auto !important;
+      z-index: 60; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+      padding: 4px 14px 14px; box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    }
+    .pane.brainmap-big .pane-body { display: block; overflow: auto; }
     #code-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
     #code-tools button { width: auto; padding: 4px 8px; font-size: 11px; }
     #code-tools button:disabled { opacity: .45; cursor: default; }
@@ -425,7 +438,6 @@
       .split-pane { flex: none; }
       .split-pane .pane { overflow: visible; }
       .pane-body { flex: none; overflow: visible; }
-      #brainmap { height: 200px; }
       #learned-code, #c-log { height: auto; max-height: 260px; }
     }
   </style>
@@ -564,6 +576,7 @@
           <header class="pane-head">
             <button class="pane-toggle" type="button" aria-expanded="true">▾</button>
             <span class="pane-title" data-i18n="panel.brainmap">Brain map</span>
+            <button id="brainmap-expand" class="pane-expand" type="button" data-i18n="brainmap.expand">Enlarge</button>
           </header>
           <div class="pane-body">
             <div id="brainmap-status" class="dim"></div>

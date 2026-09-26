@@ -49,8 +49,10 @@ test('opening a new episode closes the previous one without blaming it', () => {
 test('dying with a recent bite in the body blames that bite', () => {
   const world = createWorld();
   const fagi = createFagi();
-  fagi.hunger = 70;
-  eat(fagi, 'toxico');              // 95
+  // Al borde: con el hambre realista (lenta) tiene que morir dentro de
+  // FEEL.window para que el bocado cargue con la culpa.
+  fagi.hunger = 74.5;
+  eat(fagi, 'toxico');              // 99.5
   const antes = fagi.brain.facts.toxico.value;
   for (let t = 0; t < 8 && fagi.alive; t += 0.05) step(world, fagi, 0.05);
   assert.equal(fagi.alive, false);

@@ -3,15 +3,18 @@
 // Este archivo solo la define y ordena su turno. Cada parte vive aparte:
 //   needs.js       hambre, sed y energía
 //   perception.js  qué ve, qué huele y cómo lo puntúa
+//   attention.js   qué de eso es nuevo, y qué decidió con ello
 //   decision.js    qué hace con eso
 //   movement.js    cómo se mueve
 //   explore.js     el mapa basto de por dónde ha pasado
+//   synapses.js    lo aprendido como conexiones entre neuronas
 //   feeding.js     comer y cargar
 //   nest.js        el nido
 
 import { WORLD, ENERGY, PHERO, LEARN } from './config.js';
 import { createBrain } from './brain.js';
 import { decayMemory } from './memory.js';
+import { decaySynapses, perceiveSynapses } from './synapses.js';
 import { createEffects, updateEffects } from './effects.js';
 import { resolveEpisodes } from './episodes.js';
 import { autoSave as saveLearning, save, snapshot } from './learned/store.js';
@@ -20,6 +23,7 @@ import { dropPheromone } from './pheromone.js';
 import { increaseNeeds, resolveVitalFailure, drink, spendEnergy } from './needs.js';
 import { perceive } from './perception.js';
 import { decide } from './decision.js';
+import { createAttention, notice } from './attention.js';
 import { updateCortex, resetCortex } from './cortex.js';
 import { moveToward, explore, trackScent } from './movement.js';
 import { createExploreMap, markVisited } from './explore.js';
@@ -54,6 +58,8 @@ export function createFagi() {
     directive: null,   // lo que mandó la API de decisión, mientras siga vigente
     cortex: null,      // el canal con la API de decisión. null = no hay ninguna: decide el instinto
     thought: null,     // razonamiento del último frame, lo leen consola y HUD
+    attention: createAttention(),  // qué percibió hace nada: lo que no, es nuevo
+    rethink: null,     // la última vez que algo nuevo le hizo replantearse el plan
     target: null,      // a qué va
     targetKind: null,  // 'food' | 'water' | 'nest' | 'scent' | 'phero'
     memory: 0,         // le queda insistiendo en algo que perdió de vista
@@ -66,6 +72,9 @@ export function createFagi() {
     // andares
     exploreTarget: null,  // la casilla poco conocida a la que va a asomarse
     exploreTimer: 0,      // cuánto le queda insistiendo en ella
+    exploreLegs: 0,       // tramos de exploración trazados: cada uno, una decisión
+    exploreResume: false, // vuelve a explorar tras otra cosa: ¿retoma el tramo o traza otro?
+    legChoice: null,      // la última vez que decidió entre retomar y trazar uno nuevo
     stride: 0,         // distancia recorrida: mueve las patas al dibujar
 
     // Lo que CREE que hay guardado en el nido. No es el nido: es su recuerdo
@@ -111,11 +120,14 @@ export function updateFagi(fagi, world, dt) {
   updateEffects(fagi, dt);
   resolveEpisodes(fagi, dt);     // ¿ya se sabe cómo le sentó lo último que comió?
   decayMemory(fagi.brain, dt);   // la confianza baja sola y los sitios se difuminan
+  decaySynapses(fagi.brain.synapses, dt, fagi.age);   // y las conexiones sin uso se debilitan
   markVisited(fagi.explored, fagi.x, fagi.y, dt);  // estar en un sitio es conocerlo
   drink(fagi, world, dt);
   useNest(fagi, world);
 
   const ctx = perceive(fagi, world);
+  perceiveSynapses(fagi, ctx, dt);  // percibir algo refuerza sentido→concepto (Hebb)
+  ctx.nuevas = notice(fagi, ctx);   // lo que acaba de entrar: obliga a replantearse el plan
   updateCortex(fagi.cortex, fagi, world, ctx, dt);   // pregunta a la API si toca; nunca espera
   decide(fagi, world, ctx, dt);
 

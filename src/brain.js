@@ -5,14 +5,16 @@ import { BRAIN } from './config.js';
 import { createMemory, recall, weight, curious, reinforce } from './memory.js';
 import { createRules } from './learned/rules.js';
 import { synthAfterLearn } from './learned/synth.js';
+import { createSynapses, wire } from './synapses.js';
 
 // El cerebro es la memoria (lo que cree) más las reglas (lo que ha escrito a
 // partir de lo que cree). La memoria es la única fuente de verdad del valor;
 // las reglas son la capa simbólica: existencia, alcance y explicación.
+//   synapses : la huella de lo aprendido como conexiones (synapses.js).
 //   lastRule : la última regla escrita, revisada o retirada. Lo lee el
 //              narrador; no hace falta guardarlo en ningún otro sitio.
 export function createBrain() {
-  return { ...createMemory(), rules: createRules(), lastRule: null };
+  return { ...createMemory(), rules: createRules(), lastRule: null, synapses: createSynapses() };
 }
 
 // Candidato: { key, kind, ref, dist, range, urgency }
@@ -60,5 +62,7 @@ export function choose(brain, candidates) {
 export function learn(brain, key, reward, now, because = []) {
   const cambio = reinforce(brain, key, reward, now, BRAIN.learnRate);
   synthAfterLearn(brain, key, cambio, because, now);
+  // Aprender también conecta: el concepto con lo que el cuerpo sintió.
+  if (brain.synapses) wire(brain.synapses, key, because, now);
   return cambio;
 }

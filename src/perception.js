@@ -167,7 +167,7 @@ export function perceive(fagi, world) {
   return {
     thirstU, hungerU, range, visible, pool, candidatos, seen, olidos, best, ranked,
     energyU: fagi.energy / ENERGY.max,
-    nido: nestOf(world), source,
+    nido: nestOf(world), source, visibleSource,
     enNido: Boolean(nestUnder(fagi, world)),
     sitioAgua: sitio,
     smellsWater: Boolean(pool) && smellsObject(fagi, visible ?? pool.ref, world),

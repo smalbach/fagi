@@ -35,6 +35,8 @@ export function observe(fagi, world, ctx) {
       dist: r2(c.dist), score: r2(c.score),
       belief: { value: r2(c.value), confidence: r2(c.confidence), stage: c.stage },
       verdict: c.kind === 'food' ? verdict(fagi, 'pursue', c.key) : null,
+      // Acaba de entrar en lo que percibe: la directiva anterior no contaba con esto.
+      new: Boolean(ctx.nuevas?.some((n) => n.ref === c.ref)),
     };
     byId.set(id, resumen);
     candidates.push(resumen);

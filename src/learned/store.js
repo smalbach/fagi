@@ -20,6 +20,9 @@ export function snapshot(fagi) {
     age: fagi.age,
     facts: fagi.brain.facts,
     rules: fagi.brain.rules.list,
+    // Solo las conexiones aprendidas por consecuencias: las de percibir se
+    // rehacen solas en cuanto vuelve a ver las cosas.
+    synapses: Object.fromEntries(Object.entries(fagi.brain.synapses ?? {}).filter(([, s]) => s.kind === 'feel')),
   };
 }
 
@@ -55,6 +58,8 @@ export function restore(fagi, snap) {
   fagi.brain.rules.list = (snap.rules ?? []).map((r) => ({ ...r }));
   fagi.brain.rules.quarantined = new Set();
   fagi.brain.rules.seq += 1;
+  fagi.brain.synapses = {};
+  for (const [id, s] of Object.entries(snap.synapses ?? {})) fagi.brain.synapses[id] = { ...s, born: 0, last: 0 };
 }
 
 export function exportText(fagi) {
@@ -70,6 +75,7 @@ export function importText(fagi, text) {
 
 export function wipe(fagi, storage = safeStorage()) {
   fagi.brain.facts = {};
+  fagi.brain.synapses = {};
   fagi.brain.rules.list = [];
   fagi.brain.rules.quarantined = new Set();
   fagi.brain.rules.seq += 1;

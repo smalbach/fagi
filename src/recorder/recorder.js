@@ -19,8 +19,8 @@ import { TRACK_FIELDS } from './events.js';
 import { normalizeAngle } from '../vision.js';
 
 // Columnas de la fila que, si cambian, piden punto nuevo: acción, objetivo,
-// carga, tipo de objetivo, si bebe.
-const DISCRETOS = [4, 5, 6, 10, 11];
+// carga, tipo de objetivo, si bebe, tramo de exploración.
+const DISCRETOS = [4, 5, 6, 10, 11, 17];
 
 // El recorrido no se muestrea a ritmo fijo: Fagi gira hasta 6 rad/s y frena
 // al beber o comer, así que cada medio segundo la reproducción uniría con
@@ -41,6 +41,7 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
   let lastLog = 0;
   const mindPrev = {};    // parte -> JSON de lo último grabado
   let thoughtAt = -Infinity;
+  let muerteApuntada = false;
   const prev = { meal: 0, picked: 0, stored: 0, pantry: 0, rule: 0, drinking: false, alive: true, windTarget: null };
 
   function emit(type, data = {}) {
@@ -76,12 +77,15 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
   }
 
   function fila(fagi) {
+    const explorando = fagi.thought?.action === 'explore' && fagi.exploreTarget;
     return [
       round(world.time, 3), round(fagi.x, 1), round(fagi.y, 1), round(fagi.angle, 3),
       fagi.thought?.action ?? null, fagi.target?.id ?? null, fagi.carrying?.type ?? null,
       round(fagi.hunger, 1), round(fagi.thirst, 1), round(fagi.energy, 1),
       fagi.targetKind ?? null, !!fagi.drinking, fagi.castSide ?? 1,
       fagi.lastScent ? round(fagi.lastScent.x, 1) : null, fagi.lastScent ? round(fagi.lastScent.y, 1) : null,
+      explorando ? round(fagi.exploreTarget.x, 1) : null, explorando ? round(fagi.exploreTarget.y, 1) : null,
+      explorando ? fagi.exploreLegs ?? 0 : null,
     ];
   }
 
@@ -159,12 +163,18 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
   }
 
   // Solo las partes de la mente que cambiaron desde la última vez.
+  const lentasAt = {};
   function observeMind(fagi) {
     const cambios = {};
     let hay = false;
     for (const [parte, valor] of Object.entries(mente(fagi, world.time))) {
       const json = JSON.stringify(valor) ?? 'null';
       if (json === mindPrev[parte]) continue;
+      // Lo que cambia poco a poco (la red, los sitios, el mapa de por dónde
+      // ha pasado) no hace falta a cada muestra: con una cada pocos segundos
+      // se ve igual, y la sesión pesa la mitad.
+      if (LENTAS[parte] && fagi.alive && world.time - (lentasAt[parte] ?? -Infinity) < LENTAS[parte]) continue;
+      if (LENTAS[parte]) lentasAt[parte] = world.time;
       // El pensamiento trae distancias y puntuaciones que se mueven en cada
       // muestra: si solo cambian esos números, basta con uno por segundo.
       if (parte === 'thought') {
@@ -206,8 +216,11 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     }
     observeFagi(fagi);
     if (fagi.alive) sampleFagi(fagi);
-    if (!fagi.alive) {
+    if (!fagi.alive && !muerteApuntada) {
+      // El frame en que muere también se movió: ese es el último sitio.
+      muerteApuntada = true;
       cerrarPendiente();
+      apuntar(fila(fagi));
       cerrarTrack();
     }
     if (world.time >= nextFlush) {
@@ -238,6 +251,9 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
 // Lo que pintan los cuadros de la mente de Fagi (ui.js, consola.js,
 // brainmap.js, learned/panel.js), sin referencias al mundo y con los números
 // redondeados a lo que se ve: así no cambia cada frame por decimales.
+// Partes de la mente que se graban como mucho cada tantos segundos.
+const LENTAS = { synapses: 4, places: 4, explored: 5 };
+
 function mente(fagi, now) {
   const th = fagi.thought;
   const facts = {};
@@ -251,6 +267,8 @@ function mente(fagi, now) {
       seesPoints: th.seesPoints ?? 0, smellsPoints: th.smellsPoints ?? 0,
       seesWater: !!th.seesWater, smellsWater: !!th.smellsWater, recuerdaAgua: !!th.recuerdaAgua,
       carrying: th.carrying ?? null,
+      rethink: th.rethink ? { ...th.rethink, score: round(th.rethink.score, 2), current: round(th.rethink.current, 2) } : null,
+      tier: th.tier ?? null, rule: th.rule ?? null, news: th.news ?? [],
       ranked: (th.ranked ?? []).slice(0, 6).map((r) => ({
         key: r.key, kind: r.kind ?? null, via: r.via ?? null,
         score: round(r.score, 2), dist: round(r.dist, 0),
@@ -261,7 +279,15 @@ function mente(fagi, now) {
     facts,
     rules: fagi.brain?.rules?.list ?? [],
     quarantined: [...(fagi.brain?.rules?.quarantined ?? [])],
-    lastRule: fagi.brain?.lastRule?.n ?? 0,
+    lastRule: ultimaRegla(fagi.brain?.lastRule),
+    // La red y lo que recuerda del sitio, con la resolución que se ve: así
+    // solo se graba cuando algo cambia de verdad.
+    synapses: Object.values(fagi.brain?.synapses ?? {}).map((s) => [s.a, s.b, s.kind, round(s.w, 1), round(s.born, 0)]),
+    places: Object.fromEntries(Object.entries(fagi.brain?.places ?? {}).map(([k, p]) => [k, {
+      x: paso(p.x, 5), y: paso(p.y, 5), error: paso(p.error, 10), confidence: round(p.confidence, 1), stage: p.stage,
+    }])),
+    explored: fagi.explored ? Array.from(fagi.explored, (v) => Math.round(v)).join('') : null,
+    episode: episodio(fagi.lastEpisode),
     // Los efectos se guardan por cuándo acaban, no por lo que les queda:
     // si no, cambiarían en cada muestra.
     effects: Object.values(fagi.effects ?? {}).map((e) => ({
@@ -274,12 +300,28 @@ function mente(fagi, now) {
   };
 }
 
+function ultimaRegla(r) {
+  return r ? { n: r.n, id: r.id ?? null, kind: r.kind ?? null, key: r.key ?? null, verdict: r.verdict ?? null } : null;
+}
+
+// La última experiencia: qué probó, qué sintió y cómo le movió la creencia.
+function episodio(ep) {
+  if (!ep) return null;
+  const foto = (x) => (x ? { value: round(x.value, 3), confidence: round(x.confidence, 2), stage: x.stage } : null);
+  return {
+    n: ep.n, action: ep.action, key: ep.key, at: round(ep.at, 1), pending: !!ep.pending,
+    reward: round(ep.reward, 2), correction: round(ep.correction ?? null, 2),
+    sensations: (ep.sensations ?? []).map((x) => ({ sense: x.sense, v: round(x.v, 2) })),
+    kind: ep.cambio?.kind ?? null, before: foto(ep.cambio?.before), after: foto(ep.cambio?.after),
+  };
+}
+
 // Lo que, si cambia, se graba al momento: qué hace, por qué (la clave, no sus
 // números), qué lleva, qué sabe del agua y cuál es su primer candidato.
 function firmaPensamiento(th) {
   if (!th) return 'null';
   return JSON.stringify([th.action, th.reason?.key ?? th.reason, th.carrying, th.seesWater, th.smellsWater,
-    th.recuerdaAgua, th.ranked[0]?.key ?? null]);
+    th.recuerdaAgua, th.ranked[0]?.key ?? null, th.rethink?.n ?? 0, th.rule ?? null]);
 }
 
 function summarize(fagi) {
@@ -293,6 +335,10 @@ function summarize(fagi) {
     stored: fagi.stored ?? 0,
     rules: fagi.brain?.rules?.list?.length ?? 0,
   };
+}
+
+function paso(v, k) {
+  return typeof v === 'number' && Number.isFinite(v) ? Math.round(v / k) * k : null;
 }
 
 function round(v, d) {

@@ -3,7 +3,7 @@
 
 import { BRAIN, POINT_TYPES, OBJECT_TYPES } from './config.js';
 import { t, tx, labelOf, onLangChange, formatClock } from './i18n.js';
-import { TAG_COLOR } from './narrator.js';
+import { TAG_COLOR, rethinkLine, rethinkWhy } from './narrator.js';
 
 export function createConsola() {
   const el = {
@@ -61,6 +61,8 @@ function paintThought(el, fagi) {
     `<div>${t('stat.energy').toLowerCase()} ${bar((th.energyU ?? 1) * 100, '#8fd93d')} ${Math.round((th.energyU ?? 1) * 100)}%</div>`,
     `<div>${t('word.eye')} ${th.seesPoints} · ${t('word.nose')} ${th.smellsPoints} · ${t('word.water')}: ${agua}</div>`,
     `<div>${t('word.carries')}: ${th.carrying ? labelOf(th.carrying) : t('word.nothing')}</div>`,
+    tramo(fagi, th),
+    novedad(th),
   ].join('');
 
   // Cómo puntúa cada cosa que percibe. Esta es la cuenta real del cerebro.
@@ -81,6 +83,24 @@ function paintThought(el, fagi) {
       `<div class="partes">${t('word.confidence')} ${Math.round((r.confidence ?? 0) * 100)}%` +
       ` · ${t(`stage.${r.stage ?? 'corta'}`)}</div></div>`;
   }).join('');
+}
+
+// Explorando va por tramos: hasta un punto que ve, y ahí decide el siguiente.
+function tramo(fagi, th) {
+  const w = fagi.exploreTarget;
+  if (th.action !== 'explore' || !w) return '';
+  const d = Math.round(Math.hypot(w.x - fagi.x, w.y - fagi.y));
+  return `<div>${t('word.leg')} ${fagi.exploreLegs ?? ''} · ${d}px</div>`;
+}
+
+// Lo último nuevo que percibió y qué hizo con ello.
+function novedad(th) {
+  const r = th.rethink;
+  if (!r) return '';
+  const linea = rethinkLine(r, th) ?? { text: { key: 'log.rethinkKeep', params: {
+    what: { key: `type.${r.what}` }, more: '', side: { key: `side.${r.side}` }, action: { key: `action.${r.to}` },
+  } }, detail: rethinkWhy(r) };
+  return `<div class="dim">${t('word.lastNews')}: ${tx(linea.text)}${linea.detail ? ` · ${tx(linea.detail)}` : ''}</div>`;
 }
 
 function pintarLog(box, lineas, todas) {

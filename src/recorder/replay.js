@@ -259,6 +259,8 @@ function ponerFagi(fagi, track, recorrido, t, dead, w) {
   fagi.drinking = !!a[11];
   fagi.castSide = a[12] ?? 1;
   fagi.lastScent = a[13] != null ? { x: a[13], y: a[14] } : null;
+  fagi.exploreTarget = a[15] != null ? { x: a[15], y: a[16], inView: true } : null;
+  fagi.exploreLegs = a[17] ?? 0;
   fagi.carrying = a[6] ? { type: a[6], age: 0 } : null;
   fagi.hunger = a[7];
   fagi.thirst = a[8];
@@ -279,7 +281,15 @@ function ponerMente(fagi, state, t) {
   fagi.brain.rules.list = m.rules ?? [];
   fagi.brain.rules.quarantined = new Set(m.quarantined ?? []);
   fagi.brain.rules.seq = state.mindSeq;
-  fagi.brain.lastRule = m.lastRule ? { n: m.lastRule } : null;
+  // Sesiones viejas guardaban solo el contador.
+  fagi.brain.lastRule = typeof m.lastRule === 'number' ? (m.lastRule ? { n: m.lastRule } : null) : (m.lastRule ?? null);
+  fagi.lastEpisode = m.episode ?? null;
+  fagi.brain.synapses = {};
+  for (const [a, b, kind, w, born] of m.synapses ?? []) fagi.brain.synapses[`${a}>${b}`] = { a, b, kind, w, born, last: t, n: 0 };
+  fagi.brain.places = m.places ?? {};
+  if (typeof m.explored === 'string' && fagi.explored?.length === m.explored.length) {
+    for (let i = 0; i < m.explored.length; i++) fagi.explored[i] = Number(m.explored[i]);
+  }
   fagi.effects = {};
   for (const e of m.effects ?? []) {
     const queda = e.until - t;

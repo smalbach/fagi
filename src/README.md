@@ -17,11 +17,13 @@ estelas → feromona → Fagi.
 | `fagi.js` | la define y ordena su turno. Nada más |
 | `needs.js` | hambre, sed, energía: subir, bajar, morir |
 | `perception.js` | qué ve y qué huele, todo junto en una lista puntuada |
+| `attention.js` | qué acaba de entrar en lo que percibe; anota si eso le hizo seguir o cambiar de plan |
 | `decision.js` | reglas en orden de prioridad; la primera que contesta manda |
 | `movement.js` | girar, avanzar, esquivar, explorar, rastrear un olor |
-| `explore.js` | el mapa basto de por dónde ha pasado y hacia dónde tirar |
+| `explore.js` | el mapa basto de por dónde ha pasado; explorar va por tramos hasta un punto que ve |
 | `feeding.js` | comer o cargar |
 | `nest.js` | depositar, tirar de despensa, descansar |
+| `synapses.js` | la huella del aprendizaje como red: sentido→concepto (Hebb, se poda sin uso) y concepto→sensación (por consecuencias). No decide nada |
 | `brain.js` | puntuación de lo que percibe, y la puerta única de todo aprendizaje |
 | `interoception.js` | el cuerpo se siente: comparar cómo estaba antes con cómo está después |
 | `episodes.js` | una experiencia desde que empieza hasta que se sabe cómo acabó |
@@ -37,7 +39,7 @@ la única directiva, sobrevivir:
 4. **explorar** — sin necesidad, sin pistas y con la despensa hecha, conocer el
    mapa es lo único que prepara las tres anteriores.
 
-Para añadir una conducta nueva basta con una función más en la lista `REGLAS`,
+Para añadir una conducta nueva basta con una entrada más en la lista `REGLAS` (escalón, nombre, función),
 en el escalón que le toque. Devuelve una intención o `null`.
 
 Ya no hay ningún escalón que decida "esto es bueno" o "esto es malo": eso lo

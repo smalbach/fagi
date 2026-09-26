@@ -4,7 +4,9 @@
 // Guarda claves y datos, nunca frases: la consola las traduce al pintarlas, de
 // modo que cambiar de idioma reescribe también el histórico ya anotado.
 
-import { MEMORY } from './config.js';
+import { MEMORY, BRAIN } from './config.js';
+
+const MIN_SCORE = BRAIN.minScore;
 import { t } from './i18n.js';
 
 const MAX_LINES = 80;
@@ -32,6 +34,7 @@ export const TAG_COLOR = {
   eatCarried: '#e8a33d',
   searchWaterNearHome: '#3d8fd9',
   api: '#4cc9f0',
+  rethink: '#f0c75e',
 };
 
 export function createNarrator() {
@@ -39,7 +42,7 @@ export function createNarrator() {
     lines: [],
     prev: { action: null, drinking: false, meal: 0, drink: 0, water: 0,
             picked: 0, stored: 0, pantry: 0, alive: true,
-            stages: {}, trusted: {}, rule: 0, peril: 0 },
+            stages: {}, trusted: {}, rule: 0, peril: 0, rethink: 0, leg: 0 },
     seq: 0,
   };
 }
@@ -173,6 +176,24 @@ export function narrate(nar, fagi) {
     p.drinking = fagi.drinking;
   }
 
+  // Algo nuevo entró en lo que percibe: qué hizo con ello.
+  if (fagi.rethink && fagi.rethink.n !== p.rethink) {
+    p.rethink = fagi.rethink.n;
+    const linea = rethinkLine(fagi.rethink, th);
+    if (linea) {
+      push(nar, fagi, 'rethink', linea.text, linea.detail);
+      p.action = th.action;   // el cambio ya queda contado aquí
+    }
+  }
+
+  // Vuelve a explorar y decide entre el tramo que dejó a medias y uno nuevo.
+  if (fagi.legChoice && fagi.legChoice.n !== p.leg) {
+    p.leg = fagi.legChoice.n;
+    const l = legLine(fagi.legChoice);
+    push(nar, fagi, 'rethink', l.text, l.detail);
+    if (th.action === 'explore') p.action = th.action;
+  }
+
   // Cambio de decisión.
   if (th.action !== p.action) {
     push(nar, fagi, th.action, { key: `action.${th.action}` }, th.reason);
@@ -180,4 +201,50 @@ export function narrate(nar, fagi) {
   }
 
   return nar.lines;
+}
+
+// La línea de una reconsideración: qué vio, dónde, y si siguió o cambió.
+// Lo que no le hace falta ni cambia nada no se escribe: la consola se llenaría
+// de cada charco y cada árbol que cruza por delante.
+export function rethinkLine(r, th) {
+  const base = {
+    what: { key: `type.${r.what}` },
+    more: r.count > 1 ? { key: 'log.rethinkMore', params: { n: r.count - 1 } } : '',
+    side: { key: `side.${r.side}` },
+  };
+  if (r.changed && r.forNew) {
+    return { text: { key: 'log.rethinkFor', params: base }, detail: th?.reason ?? null };
+  }
+  if (r.why === 'notNeeded') return null;
+  if (r.changed) {
+    // Cambió de plan en el mismo momento, pero no por lo nuevo: lo nuevo no
+    // le vale y lo que pasa a hacer viene de otra parte (la sed que sube...).
+    return {
+      text: { key: 'log.rethinkSwitch', params: { ...base, to: { key: `action.${r.to}` } } },
+      detail: rethinkWhy(r),
+    };
+  }
+  return {
+    text: { key: 'log.rethinkKeep', params: { ...base, action: { key: `action.${r.to}` } } },
+    detail: rethinkWhy(r),
+  };
+}
+
+export function rethinkWhy(r) {
+  if (!r.why) return null;
+  return { key: `rethink.${r.why}`, params: {
+    score: r.score != null ? r.score.toFixed(2) : '–',
+    current: r.current != null ? r.current.toFixed(2) : '–',
+    min: MIN_SCORE.toFixed(2),
+    stick: BRAIN.stickiness.toFixed(2),
+    action: { key: `action.${r.to}` },
+  } };
+}
+
+// Retomar el tramo viejo o trazar otro: cuál ganó y por cuánto.
+export function legLine(c) {
+  const f = (v) => (v == null ? '–' : v.toFixed(2));
+  return c.resumed
+    ? { text: { key: 'log.legResume' }, detail: { key: 'log.legResumeSub', params: { score: f(c.score), rival: f(c.rival) } } }
+    : { text: { key: 'log.legNew' }, detail: { key: 'log.legNewSub', params: { score: f(c.score), rival: f(c.rival) } } };
 }

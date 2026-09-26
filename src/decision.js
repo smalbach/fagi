@@ -15,12 +15,13 @@
 //
 // Una intención es: { action, reason, target, targetKind, trailKey }
 
-import { FAGI, ENERGY, BRAIN, CARRY, NEEDS, HUNGER, THIRST, BACKEND } from './config.js';
+import { FAGI, ENERGY, BRAIN, CARRY, NEEDS, HUNGER, THIRST, BACKEND, ATTENTION } from './config.js';
 import { statMult } from './effects.js';
 import { verdict } from './learned/rules.js';
 import { labelOf } from './i18n.js';
 import { followPheromone } from './pheromone.js';
 import { stockFull } from './world.js';
+import { notice, rethink } from './attention.js';
 
 const pct = (u) => `${Math.round(u * 100)}%`;
 
@@ -146,9 +147,22 @@ function descansar(fagi, world, ctx) {
   };
 }
 
-// Lo que lleva encima va al nido. Nada la distrae salvo comer o beber de verdad.
+// Lo que lleva encima va al nido. Lo único que la aparta del camino, sin
+// llegar a apurarse, es ver agua cerca con algo de sed: beber ahora, de paso,
+// sale más barato que volver luego. La comida no la desvía: ya lleva una.
 function acarrear(fagi, world, ctx) {
   if (!fagi.carrying || !ctx.nido || apremia(ctx)) return null;
+  const agua = ctx.thirstU >= ATTENTION.opportunisticThirst
+    && ctx.ranked.find((r) => r.kind === 'water' && r.via === 'vista' && r.score > BRAIN.minScore);
+  if (agua) {
+    return {
+      action: 'seekWater',
+      reason: razon('reason.detourWater', { thirst: pct(ctx.thirstU), what: labelOf(fagi.carrying.type) }),
+      target: agua.ref,
+      targetKind: 'water',
+      trailKey: null,
+    };
+  }
   return {
     action: 'carry',
     reason: razon('reason.carry', { what: labelOf(fagi.carrying.type) }),
@@ -333,24 +347,29 @@ function insistirDeMemoria(fagi, world, ctx, dt) {
   };
 }
 
+// Cada regla con su escalón y un nombre: el mapa del cerebro enseña cuál
+// contestó (el nombre de la función no sirve, se pierde al minificar).
 const REGLAS = [
   // 1. sobrevivir ahora
-  beber,
-  comerCarga,
-  directivaTemprano,   // solo contesta con BACKEND.authority === 1, y nunca si apremia sin atenderlo
-  urgencia,
-  irADespensa,
+  ['survive', 'drink', beber],
+  ['survive', 'eatCarried', comerCarga],
+  ['survive', 'directiveEarly', directivaTemprano],   // solo contesta con BACKEND.authority === 1, y nunca si apremia sin atenderlo
+  ['survive', 'urgency', urgencia],
+  ['survive', 'pantry', irADespensa],
   // 2. aguantar
-  descansar,
+  ['endure', 'rest', descansar],
   // 3. proveer
-  directivaSegura,     // solo contesta con BACKEND.authority === 0 (de fábrica)
-  acarrear,
-  perseguir,
+  ['provide', 'directive', directivaSegura],     // solo contesta con BACKEND.authority === 0 (de fábrica)
+  ['provide', 'carry', acarrear],
+  ['provide', 'pursue', perseguir],
   // pistas de algo que ya percibió y perdió, de la más fresca a la más vieja
-  insistirEnElOlor,
-  insistirDeMemoria,
-  seguirFeromona,
+  ['clues', 'scent', insistirEnElOlor],
+  ['clues', 'memory', insistirDeMemoria],
+  ['clues', 'pheromone', seguirFeromona],
 ];
+
+// Los escalones en orden, para quien quiera dibujar la jerarquía.
+export const ESCALONES = ['survive', 'endure', 'provide', 'clues', 'explore'];
 
 // Ninguna regla ha contestado: no hay necesidad que calmar ni pista que seguir.
 // Entonces lo útil es conocer mapa, que es lo que hace posible todo lo demás la
@@ -371,12 +390,18 @@ function explorar(fagi, world, ctx) {
 }
 
 export function decide(fagi, world, ctx, dt) {
+  // Lo que acaba de entrar en lo que percibe (fagi.js lo mira antes, para que
+  // el córtex también se entere). Las reglas deciden igual en cada frame; lo
+  // nuevo hace que se anote si ese frame cambió el plan o no.
+  const nuevas = ctx.nuevas ?? notice(fagi, ctx);
+  const antes = { action: fagi.thought?.action ?? null, target: fagi.target };
   let intencion = null;
-  for (const regla of REGLAS) {
+  let quien = null;
+  for (const [escalon, nombre, regla] of REGLAS) {
     intencion = regla(fagi, world, ctx, dt);
-    if (intencion) break;
+    if (intencion) { quien = { tier: escalon, rule: nombre }; break; }
   }
-  if (!intencion) intencion = explorar(fagi, world, ctx);
+  if (!intencion) { intencion = explorar(fagi, world, ctx); quien = { tier: 'explore', rule: 'explore' }; }
 
   // Las claves que la intención no menciona se quedan como estaban: así una
   // regla solo tiene que hablar de lo que le importa.
@@ -384,6 +409,11 @@ export function decide(fagi, world, ctx, dt) {
   if ('targetKind' in intencion) fagi.targetKind = intencion.targetKind;
   if ('trailKey' in intencion) fagi.trailKey = intencion.trailKey;
   if (intencion.action === 'explore') fagi.memory = 0;
+  // Vuelve a explorar después de otra cosa: el tramo que dejó a medias no se
+  // retoma ni se tira por norma. Al moverse (movement.js/explore) decide entre
+  // él y lo que vea ahora, con la misma cuenta.
+  if (intencion.action === 'explore' && antes.action !== 'explore') fagi.exploreResume = true;
+  rethink(fagi, nuevas, antes, intencion, ctx.ranked);
 
   fagi.thought = {
     ...ctx,
@@ -394,5 +424,9 @@ export function decide(fagi, world, ctx, dt) {
     carrying: fagi.carrying?.type ?? null,
     action: intencion.action,
     reason: intencion.reason,
+    news: nuevas.map((c) => c.key),
+    rethink: fagi.rethink,
+    tier: quien.tier,
+    rule: quien.rule,
   };
 }

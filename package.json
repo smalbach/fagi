@@ -14,7 +14,8 @@
     "start:dev": "node --env-file-if-exists=.env --watch server/index.js",
     "migrate": "node --env-file-if-exists=.env server/db.js migrate",
     "make-admin": "node --env-file-if-exists=.env server/scripts/make-admin.js",
-    "test": "node --env-file-if-exists=.env --test --test-concurrency=1"
+    "test": "node --env-file-if-exists=.env --test --test-concurrency=1",
+    "batch": "node scripts/batch.js"
   },
   "devDependencies": {
     "vite": "^5.4.0"
