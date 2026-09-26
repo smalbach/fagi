@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { FEEL, THIRST } from '../src/config.js';
+import { FEEL, THIRST, OBJECT_TYPES, WATER } from '../src/config.js';
 import { createFagi } from '../src/fagi.js';
 import { eat } from '../src/feeding.js';
 import { step } from '../src/simulation.js';
@@ -66,7 +66,8 @@ test('dying with a recent bite in the body blames that bite', () => {
 test('water teaches by the thirst it actually removes while drinking', () => {
   const world = createWorld();
   const fagi = createFagi();
-  addObject(world, fagi.x, fagi.y, 'agua');
+  // En el vado, donde hace pie: en el hondo no bebe, patalea.
+  addObject(world, fagi.x + OBJECT_TYPES.agua.radius - WATER.vado / 2, fagi.y, 'agua');
   fagi.thirst = 80;
   step(world, fagi, 0.05);
   assert.equal(fagi.episode?.action, 'drink');
@@ -82,13 +83,14 @@ test('water teaches by the thirst it actually removes while drinking', () => {
 test('drinking without thirst teaches nothing because nothing is felt', () => {
   const world = createWorld();
   const fagi = createFagi();
-  const pool = addObject(world, fagi.x, fagi.y, 'agua');
+  const orilla = OBJECT_TYPES.agua.radius - WATER.vado / 2;
+  const pool = addObject(world, fagi.x + orilla, fagi.y, 'agua');
   fagi.thirst = 0.5;
   // Sin sed no tiene motivo para quedarse: se pone a explorar y se saldría del
   // charco por su cuenta. Se la mantiene dentro a la fuerza para que la prueba
   // no dependa de hacia dónde tira el paseo aleatorio.
   for (let t = 0; t < FEEL.drinkSample + 0.2; t += 0.05) {
-    fagi.x = pool.x; fagi.y = pool.y;
+    fagi.x = pool.x - orilla; fagi.y = pool.y;
     step(world, fagi, 0.05);
   }
   assert.equal(fagi.brain.facts.agua.tries, 1);

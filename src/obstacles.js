@@ -1,7 +1,7 @@
 // Objetos del mapa: agua donde beber y rocas que estorban.
 // Geometría pura, sin estado propio.
 
-import { OBJECT_TYPES, FAGI } from './config.js';
+import { OBJECT_TYPES, FAGI, WATER } from './config.js';
 
 export function isWater(obj) {
   return OBJECT_TYPES[obj.type].kind === 'water';
@@ -25,11 +25,58 @@ export function radiusOf(obj) {
 
 // ¿Fagi está dentro de algún charco? Devuelve el charco o null.
 export function waterUnder(world, fagi) {
+  return waterZone(world, fagi.x, fagi.y)?.pool ?? null;
+}
+
+// Radio del hondo de un charco: todo menos la franja del vado.
+export function deepRadius(o) {
+  if (OBJECT_TYPES[o.type].shallow) return 0;
+  return Math.max(0, radiusOf(o) - WATER.vado);
+}
+
+// Qué hay bajo (x, y): { pool, deep } si es agua (deep = no hace pie), o null.
+export function waterZone(world, x, y) {
   for (const o of world.objects) {
     if (!isWater(o)) continue;
-    if (Math.hypot(o.x - fagi.x, o.y - fagi.y) <= radiusOf(o)) return o;
+    const d = Math.hypot(o.x - x, o.y - y);
+    if (d <= radiusOf(o)) return { pool: o, deep: d < deepRadius(o) };
   }
   return null;
+}
+
+// El charco detrás de un objetivo: el propio charco o el sitio que recuerda de
+// él (memory.js guarda el objeto real en `ref`). null si no es agua.
+export function poolOf(target) {
+  const o = target?.ref ?? target;
+  return OBJECT_TYPES[o?.type]?.kind === 'water' ? o : null;
+}
+
+// El punto de la orilla más cercano a `from`, `inset` px por dentro del borde.
+// `center` es dónde cree que está el charco (el de verdad, o el recordado).
+export function shorePoint(center, r, from, inset) {
+  let dx = from.x - center.x;
+  let dy = from.y - center.y;
+  const d = Math.hypot(dx, dy);
+  if (d === 0) { dx = Math.cos(from.angle ?? 0); dy = Math.sin(from.angle ?? 0); }
+  else { dx /= d; dy /= d; }
+  return { x: center.x + dx * (r - inset), y: center.y + dy * (r - inset) };
+}
+
+// ¿El segmento A-B se mete en el hondo de algún charco? No corta la vista: solo
+// lo usa para andar quien ya aprendió a temerlo. Un hondo que ya contiene A no
+// cuenta: si está dentro, lo que le toca es salir, no quedarse sin rumbo. Y si
+// A ya pisa el margen, el margen se olvida: si no, todo rumbo saldría cerrado.
+export function deepBlocked(world, ax, ay, bx, by, margin = 0) {
+  for (const o of world.objects) {
+    if (!isWater(o)) continue;
+    const hondo = deepRadius(o);
+    if (hondo <= 0) continue;
+    const d = Math.hypot(o.x - ax, o.y - ay);
+    if (d <= hondo) continue;
+    const r = d <= hondo + margin ? hondo : hondo + margin;
+    if (segmentHitsCircle(ax, ay, bx, by, o.x, o.y, r)) return true;
+  }
+  return false;
 }
 
 // ¿El segmento A-B cruza alguna roca? Sirve para cortar la visión.
@@ -74,17 +121,21 @@ export function pushOutOfBlocks(fagi, world) {
 }
 
 // Mira un poco por delante: si hay roca, devuelve hacia qué lado esquivarla.
+// Con `fearDeep` también esquiva el hondo del agua, como si fuera roca.
 // 0 = camino libre.
-export function avoidanceTurn(fagi, world) {
+export function avoidanceTurn(fagi, world, fearDeep = false) {
   const look = FAGI.radius + 34;
   const ahead = {
     x: fagi.x + Math.cos(fagi.angle) * look,
     y: fagi.y + Math.sin(fagi.angle) * look,
   };
   for (const o of world.objects) {
-    if (!isBlock(o)) continue;
+    const r = isBlock(o) ? radiusOf(o) + FAGI.radius
+      : fearDeep && isWater(o) && deepRadius(o) > 0 && !waterZone(world, fagi.x, fagi.y)?.deep ? deepRadius(o) + WATER.vado / 2
+      : null;
+    if (r === null) continue;
     const dist = Math.hypot(o.x - ahead.x, o.y - ahead.y);
-    if (dist > radiusOf(o) + FAGI.radius) continue;
+    if (dist > r) continue;
     // Producto cruzado: dice si la roca queda a la izquierda o a la derecha.
     const side = Math.sign(
       Math.cos(fagi.angle) * (o.y - fagi.y) - Math.sin(fagi.angle) * (o.x - fagi.x)

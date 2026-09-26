@@ -68,6 +68,9 @@ export function applyEvent(state, ev) {
       if (o) { o.x = ev.x; o.y = ev.y; o.trail = null; }
       break;
     }
+    case 'rain':
+      w.rain = { ...(w.rain ?? {}), on: Boolean(ev.on) };
+      break;
     case 'obj_resize': {
       const o = w.objects[byId(w.objects, ev.id)];
       if (o) o.r = ev.r;

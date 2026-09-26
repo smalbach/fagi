@@ -3,7 +3,7 @@
 
 import { TREE } from './config.js';
 import { addPoint, removeObject } from './world.js';
-import { isTree, radiusOf } from './obstacles.js';
+import { isTree, radiusOf, waterZone } from './obstacles.js';
 
 export function treesOf(world) {
   return world.objects.filter(isTree);
@@ -41,6 +41,8 @@ export function updateTrees(world, dt) {
     const dist = r * 0.55 + Math.random() * (r * TREE.dropRadius - r * 0.55);
     const x = Math.min(world.width - 10, Math.max(10, arbol.x + Math.cos(ang) * dist));
     const y = Math.min(world.height - 10, Math.max(10, arbol.y + Math.sin(ang) * dist));
+    // La que cae al agua se la lleva el agua: nadie la puede recoger.
+    if (waterZone(world, x, y)) continue;
     addPoint(world, x, y, TREE.fruit, arbol.id);
     arbol.lastDrop = (arbol.lastDrop ?? 0) + 1;
   }

@@ -110,6 +110,11 @@ export function rememberPlace(mem, kind, obj, now) {
   return p;
 }
 
+// Bajo qué nombre se recuerda un agua: el lago o un charco de lluvia.
+export function waterPlaceKind(obj) {
+  return obj?.type === 'charco' ? 'charco' : 'agua';
+}
+
 export function recallPlace(mem, kind) {
   const p = mem.places[kind];
   return p && p.confidence > 0 ? p : null;

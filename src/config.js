@@ -103,6 +103,62 @@ export const THIRST = {
   ignoreBelow: 0.10,  // con menos sed que esto, el agua ni se plantea
 };
 
+// El agua por dentro. Una hormiga no nada: pesa tan poco que la tensión
+// superficial la atrapa y patalea casi sin avanzar. Bebe desde la orilla, en el
+// vado, donde las patas aún tocan fondo. Todo esto es física, no se aprende. Lo
+// que SÍ aprende, a base de hundirse, es a no meterse en el hondo: la creencia
+// 'hondo', igual que aprende qué fruto le sienta mal.
+//
+//   vado       : px de agua por dentro de la orilla donde aún hace pie y bebe
+//   wadeSpeed  : velocidad en el vado (barro, patas mojadas)
+//   swimSpeed  : velocidad en el hondo, pataleando
+//   swimEffort : cuánta más energía gasta pataleando que andando
+//   shock      : parte del susto que da perder pie, aunque salga enseguida
+//   sample     : segundos en el hondo que valen el susto entero
+//   lesson     : lo que resta ese susto entero a la creencia 'hondo'
+//
+// Al salir del hondo va empapada: el agua pesa y se le pega a las patas hasta
+// que se seca (wetSpeed al salir, que vuelve a 1 en dryTime segundos).
+//
+// Nota el agua antes de pisarla: las antenas (probeReach px por delante del
+// cuerpo) captan la humedad y el tacto del agua, y avanza tanteando
+// (probeSpeed) mientras las tenga sobre el hondo.
+export const WATER = {
+  vado: 10,
+  wadeSpeed: 0.6,
+  swimSpeed: 0.2,
+  swimEffort: 3,
+  shock: 0.6,
+  sample: 1.5,
+  lesson: 1,
+  wetSpeed: 0.7,
+  dryTime: 8,
+  probeReach: 7,
+  probeSpeed: 0.45,
+};
+
+// Lluvia (rain.js). Chaparrones cortos cada cierto tiempo que dejan charcos
+// poco hondos; el sol los va encogiendo hasta secarlos. Mientras llueve la
+// feromona se lava y Fagi, fuera del nido, se empapa (WATER.wetSpeed).
+//   every        : segundos entre chaparrones (min, max). ~1-2 días de hormiga
+//   duration     : cuánto dura cada uno
+//   puddles      : charcos que deja cada chaparrón
+//   puddleRadius : tamaño de un charco al nacer (px)
+//   grow         : px de radio que gana un charco por segundo mientras llueve
+//   evaporate    : px de radio que pierde por segundo con el sol (~4 min = ~1,5 días)
+//   minRadius    : por debajo de esto ya está seco
+//   washPhero    : cuántas veces más rápido se borra la feromona bajo la lluvia
+export const RAIN = {
+  every: { min: 240, max: 420 },
+  duration: { min: 18, max: 35 },
+  puddles: { min: 2, max: 4 },
+  puddleRadius: [12, 22],
+  grow: 0.15,
+  evaporate: 0.05,
+  minRadius: 5,
+  washPhero: 8,
+};
+
 // El cuerpo. Lo único que Fagi sabe de nacimiento es sentirse: si el hambre
 // baja se siente bien, si la velocidad cae se siente torpe. Qué COSA del mundo
 // le produce cada sensación no lo sabe: eso lo aprende probando.
@@ -117,6 +173,7 @@ export const THIRST = {
 //   perilWeight : lo que resta ese mal desenlace diferido
 //   deathPenalty: lo que resta morir con un bocado reciente en el cuerpo
 //   drinkSample : segundos bebiendo antes de juzgar cuánto le quitó la sed
+//   energyScale : puntos de energía perdidos que valen una sensación de -1
 export const FEEL = {
   hungerScale: 35,
   thirstScale: 60,
@@ -126,6 +183,7 @@ export const FEEL = {
   perilWeight: 0.5,
   deathPenalty: 1,
   drinkSample: 9,     // con drinkRate 5 son ~45 puntos de sed: la misma señal que antes
+  energyScale: 20,    // puntos de energía que valen una sensación de ±1
 };
 
 // Aprendizaje simbólico: cuándo una creencia se convierte en una regla escrita
@@ -227,10 +285,13 @@ export const TYPE_KEYS = Object.keys(POINT_TYPES);
 
 // Objetos del mapa. No se comen: se quedan puestos.
 //
-//   water : Fagi bebe mientras esté dentro del círculo.
+//   water : Fagi bebe en el vado, por dentro del borde (WATER). El hondo la atrapa.
+//           Un charco (shallow) no tiene hondo: todo él es vado.
 //   block : roca. Corta el paso y también la línea de visión.
 export const OBJECT_TYPES = {
   agua: { color: '#3d8fd9', radius: 44, kind: 'water', aroma: 150 },
+  // Charco de lluvia (rain.js): agua poco honda que se seca. Apenas huele.
+  charco: { color: '#6f9fbf', radius: 16, kind: 'water', aroma: 0, shallow: true },
   nido: { color: '#c9a227', radius: 42, kind: 'nest', aroma: 60 },
   arbol: { color: '#4f9552', radius: 44, kind: 'spawner', aroma: 70 },
   roca: { color: '#565c6b', radius: 28, kind: 'block', aroma: 0 },

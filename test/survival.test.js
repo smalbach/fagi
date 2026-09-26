@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { MAPGEN, NEST, POINT_TYPES } from '../src/config.js';
+import { MAPGEN, NEST, POINT_TYPES, OBJECT_TYPES, WATER } from '../src/config.js';
 import { createFagi } from '../src/fagi.js';
 import { eat, tryPickOrEat } from '../src/feeding.js';
 import { generateMap } from '../src/mapgen.js';
@@ -55,7 +55,7 @@ test('a scent trail is attributed only to the source that emitted it', () => {
 test('food and water can save Fagi during the last viable turn', () => {
   const waterWorld = createWorld();
   const drinking = createFagi();
-  addObject(waterWorld, drinking.x, drinking.y, 'agua');
+  addObject(waterWorld, drinking.x + OBJECT_TYPES.agua.radius - WATER.vado / 2, drinking.y, 'agua');
   drinking.thirst = 99.99;
   step(waterWorld, drinking, 0.05);
   assert.equal(drinking.alive, true);

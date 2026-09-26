@@ -8,11 +8,13 @@ import { updatePheromone } from './pheromone.js';
 import { updateTrees } from './trees.js';
 import { updateFood } from './food.js';
 import { updateNest } from './world.js';
+import { updateRain } from './rain.js';
 import { updateFagi } from './fagi.js';
 
 export function stepWorld(world, dt) {
   world.time = (world.time ?? 0) + dt;
   updateWind(world.wind, dt);
+  updateRain(world, dt);
   updateTrees(world, dt);
   updateFood(world, dt);
   updateNest(world, dt);

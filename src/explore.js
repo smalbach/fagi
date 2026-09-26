@@ -19,7 +19,8 @@
 // ser terreno nuevo. Así no explora una vez y se le acaba el mundo.
 
 import { EXPLORE, WORLD, FAGI } from './config.js';
-import { segmentBlocked } from './obstacles.js';
+import { segmentBlocked, deepBlocked, waterZone } from './obstacles.js';
+import { fearsDeep } from './swim.js';
 import { fovOf, viewRangeOf, normalizeAngle } from './vision.js';
 
 const cols = () => Math.ceil(WORLD.width / EXPLORE.cell);
@@ -105,6 +106,8 @@ export function waypointInView(fagi, map, nido, world, previo = null) {
   const range = viewRangeOf(fagi);
   const half = fovOf(fagi) / 2;
   const margen = FAGI.radius * 2;
+  // Quien ya se hundió una vez no traza tramos que acaben o pasen por el hondo.
+  const teme = world && fearsDeep(fagi);
 
   let mejor = null;
   for (let i = 0; i < EXPLORE.rays; i++) {
@@ -114,6 +117,7 @@ export function waypointInView(fagi, map, nido, world, previo = null) {
       const y = fagi.y + Math.sin(a) * range * f;
       if (x < margen || y < margen || x > WORLD.width - margen || y > WORLD.height - margen) continue;
       if (world && segmentBlocked(world, fagi.x, fagi.y, x, y)) continue;
+      if (teme && (waterZone(world, x, y) || deepBlocked(world, fagi.x, fagi.y, x, y))) continue;
       const puntos = puntuarTramo(fagi, map, x, y, brujula);
       if (!mejor || puntos > mejor.puntos) mejor = { x, y, puntos };
     }

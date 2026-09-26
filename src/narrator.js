@@ -4,7 +4,7 @@
 // Guarda claves y datos, nunca frases: la consola las traduce al pintarlas, de
 // modo que cambiar de idioma reescribe también el histórico ya anotado.
 
-import { MEMORY, BRAIN } from './config.js';
+import { MEMORY, BRAIN, WATER } from './config.js';
 
 const MIN_SCORE = BRAIN.minScore;
 import { t } from './i18n.js';
@@ -33,6 +33,10 @@ export const TAG_COLOR = {
   dead: '#d95b7e',
   eatCarried: '#e8a33d',
   searchWaterNearHome: '#3d8fd9',
+  swimOut: '#d95b7e',
+  swim: '#d95b7e',
+  rain: '#6f9fbf',
+  shelter: '#6f9fbf',
   api: '#4cc9f0',
   rethink: '#f0c75e',
 };
@@ -40,7 +44,7 @@ export const TAG_COLOR = {
 export function createNarrator() {
   return {
     lines: [],
-    prev: { action: null, drinking: false, meal: 0, drink: 0, water: 0,
+    prev: { action: null, drinking: false, swimming: false, dunk: 0, probed: false, raining: false, puddleGone: 0, meal: 0, drink: 0, water: 0,
             picked: 0, stored: 0, pantry: 0, alive: true,
             stages: {}, trusted: {}, rule: 0, peril: 0, rethink: 0, leg: 0 },
     seq: 0,
@@ -166,6 +170,43 @@ export function narrate(nar, fagi) {
         before: d.beliefBefore.toFixed(2), after: d.beliefAfter.toFixed(2),
       } });
     p.drink = d.n;
+  }
+
+  // Se mete en el hondo: no hace pie.
+  if (fagi.swimming && !p.swimming) push(nar, fagi, 'swim', { key: 'log.sink' }, { key: 'log.sinkSub' });
+  // Sale del hondo: empapada hasta secarse.
+  if (!fagi.swimming && p.swimming && fagi.alive) {
+    push(nar, fagi, 'swim', { key: 'log.soaked' }, { key: 'log.soakedSub', params: { sec: WATER.dryTime } });
+  }
+  p.swimming = fagi.swimming;
+
+  // Empieza y deja de llover.
+  if (fagi.raining !== p.raining) {
+    push(nar, fagi, 'rain', { key: fagi.raining ? 'log.rain' : 'log.rainStop' },
+      { key: fagi.raining ? 'log.rainSub' : 'log.rainStopSub' });
+    p.raining = fagi.raining;
+  }
+
+  // Va al charco que recordaba y ya se ha secado.
+  if ((fagi.puddleGone ?? 0) !== p.puddleGone) {
+    push(nar, fagi, 'spot', { key: 'log.puddleGone' }, { key: 'log.puddleGoneSub' });
+    p.puddleGone = fagi.puddleGone ?? 0;
+  }
+
+  // La primera vez que las antenas le avisan del agua antes de pisarla.
+  if (fagi.probed && !p.probed) push(nar, fagi, 'spot', { key: 'log.probe' }, { key: 'log.probeSub' });
+  p.probed = Boolean(fagi.probed);
+
+  // Lo que le costó el rato en el hondo, y lo que aprende de ello.
+  if (fagi.lastDunk && fagi.lastDunk.n !== p.dunk) {
+    const d = fagi.lastDunk;
+    push(nar, fagi, 'learn', { key: 'log.dunk' },
+      { key: 'log.dunkSub', params: {
+        secs: d.secs.toFixed(1),
+        arrow: flecha(d.beliefBefore, d.beliefAfter),
+        before: d.beliefBefore.toFixed(2), after: d.beliefAfter.toFixed(2),
+      } });
+    p.dunk = d.n;
   }
 
   // Empieza y termina de beber.

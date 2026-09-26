@@ -25,6 +25,7 @@ export const EVENT_TYPES = {
   nest_spoil: ['count'],
   phero_drop: ['x', 'y'],
   wind: ['angle', 'target'],
+  rain: ['on'],
   config: ['id', 'to'],
   fagi_eat: ['what'],
   fagi_pick: ['what'],

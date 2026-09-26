@@ -21,6 +21,7 @@ function hintOfFood(spec) {
 }
 
 function hintOfObject(spec) {
+  if (spec.shallow) return t('hint.puddle');
   return t({ water: 'hint.water', nest: 'hint.nest', spawner: 'hint.tree' }[spec.kind] ?? 'hint.rock');
 }
 

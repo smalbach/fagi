@@ -21,6 +21,7 @@ import { verdict } from './learned/rules.js';
 import { labelOf } from './i18n.js';
 import { stockFull } from './world.js';
 import { notice, rethink } from './attention.js';
+import { waterZone, shorePoint, radiusOf } from './obstacles.js';
 
 const pct = (u) => `${Math.round(u * 100)}%`;
 
@@ -29,6 +30,21 @@ const pct = (u) => `${Math.round(u * 100)}%`;
 const razon = (key, params) => ({ key, params });
 
 // --- las reglas, de más urgente a menos ---
+
+// Atrapada en el hondo: lo primero es salir, por la orilla más cercana. Es
+// instinto, no aprendido; lo aprendido es no volver a meterse (swim.js).
+function salirDelAgua(fagi, world) {
+  const zona = waterZone(world, fagi.x, fagi.y);
+  if (!zona?.deep) return null;
+  const orilla = shorePoint(zona.pool, radiusOf(zona.pool), fagi, -FAGI.radius);
+  return {
+    action: 'swimOut',
+    reason: razon('reason.swimOut'),
+    target: { x: orilla.x, y: orilla.y },
+    targetKind: 'shore',
+    trailKey: null,
+  };
+}
 
 // Ya está en el agua y le queda sed: no se mueve de ahí.
 function beber(fagi, world, ctx) {
@@ -148,6 +164,17 @@ function descansar(fagi, world, ctx) {
     target: ctx.nido,
     targetKind: 'nest',
   };
+}
+
+// Llueve: a cubierto. Una gota pesa como ella, la empapa y le borra el rastro;
+// las obreras se meten en el nido hasta que escampa. Lo que apremia va antes:
+// con sed de verdad, la lluvia no la para (y hasta deja charcos donde beber).
+function refugiarse(fagi, world, ctx) {
+  if (!world.rain?.on || !ctx.nido || apremia(ctx)) return null;
+  if (ctx.enNido) {
+    return { action: 'rest', reason: razon('reason.shelterIn'), target: null, targetKind: null };
+  }
+  return { action: 'shelter', reason: razon('reason.shelter'), target: ctx.nido, targetKind: 'nest' };
 }
 
 // Lo que lleva encima va al nido. Lo único que la aparta del camino, sin
@@ -354,6 +381,7 @@ function insistirDeMemoria(fagi, world, ctx, dt) {
 // contestó (el nombre de la función no sirve, se pierde al minificar).
 const REGLAS = [
   // 1. sobrevivir ahora
+  ['survive', 'swimOut', salirDelAgua],
   ['survive', 'drink', beber],
   ['survive', 'eatCarried', comerCarga],
   ['survive', 'directiveEarly', directivaTemprano],   // solo contesta con BACKEND.authority === 1, y nunca si apremia sin atenderlo
@@ -361,6 +389,7 @@ const REGLAS = [
   ['survive', 'pantry', irADespensa],
   // 2. aguantar
   ['endure', 'rest', descansar],
+  ['endure', 'shelter', refugiarse],
   // 3. proveer
   ['provide', 'directive', directivaSegura],     // solo contesta con BACKEND.authority === 0 (de fábrica)
   ['provide', 'carry', acarrear],

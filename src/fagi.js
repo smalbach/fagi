@@ -29,6 +29,7 @@ import { moveToward, explore, trackScent } from './movement.js';
 import { createExploreMap, markVisited } from './explore.js';
 import { eatCarried, tryPickOrEat } from './feeding.js';
 import { useNest } from './nest.js';
+import { swim } from './swim.js';
 
 export function createFagi() {
   return {
@@ -47,6 +48,10 @@ export function createFagi() {
     carrying: null,    // el punto que lleva a cuestas, o null
     resting: false,
     drinking: false,
+    swimming: false,   // atrapada en el hondo del agua, pataleando
+    dunk: null,        // el rato en el hondo que lleva, hasta saber cuánto le costó
+    wet: 0,            // segundos que le quedan para secarse tras salir del hondo
+    probing: false,    // tiene las antenas sobre el hondo: avanza tanteando
     pheroTimer: 0,
 
     // cabeza
@@ -124,6 +129,7 @@ export function updateFagi(fagi, world, dt) {
   decayMemory(fagi.brain, dt);   // la confianza baja sola y los sitios se difuminan
   decaySynapses(fagi.brain.synapses, dt, fagi.age);   // y las conexiones sin uso se debilitan
   markVisited(fagi.explored, fagi.x, fagi.y, dt);  // estar en un sitio es conocerlo
+  swim(fagi, world, dt);         // ¿se ha metido en el hondo? lo siente y aprende
   drink(fagi, world, dt);
   useNest(fagi, world);
 
@@ -134,7 +140,8 @@ export function updateFagi(fagi, world, dt) {
   decide(fagi, world, ctx, dt);
 
   // Se queda quieta bebiendo o descansando; el resto del tiempo, en marcha.
-  const parada = (fagi.drinking && fagi.thirst > 0) || fagi.thought.action === 'rest';
+  const parada = !fagi.swimming
+    && ((fagi.drinking && fagi.thirst > 0) || fagi.thought.action === 'rest');
   if (!parada) act(fagi, world, dt);
 
   spendEnergy(fagi, world, dt, !parada);

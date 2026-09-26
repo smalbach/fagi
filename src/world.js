@@ -3,6 +3,7 @@
 import { WORLD, FAGI, NEST, OBJECT_TYPES, POINT_TYPES, TREE } from './config.js';
 import { createWind } from './wind.js';
 import { createPheromone } from './pheromone.js';
+import { createRain } from './rain.js';
 
 export function createWorld() {
   return {
@@ -11,6 +12,7 @@ export function createWorld() {
     immersive: true,
     wind: createWind(),
     pheromone: createPheromone(),
+    rain: createRain(),   // chaparrones y charcos (rain.js)
     nextId: 1,   // cada cosa del mapa lleva un id: así se puede nombrar desde fuera
     time: 0,     // reloj del mundo en segundos; sigue corriendo aunque Fagi muera
     rec: null,   // el grabador de la sesión, si se está grabando (recorder/)
@@ -60,9 +62,9 @@ export function addObject(world, x, y, type, r = OBJECT_TYPES[type].radius, sour
   return obj;
 }
 
-// La fuente de agua del mapa (solo hay una).
+// La fuente de agua del mapa (solo hay una). Los charcos de lluvia no cuentan.
 export function waterSource(world) {
-  return world.objects.find((o) => OBJECT_TYPES[o.type].kind === 'water') ?? null;
+  return world.objects.find((o) => o.type === 'agua') ?? null;
 }
 
 // El nido: casa, despensa y sitio donde mejor se descansa.
@@ -179,6 +181,7 @@ export function resetWorld(world) {
   world.time = 0;
   world.rec = null;
   world.wind = createWind();
+  world.rain = createRain();
 }
 
 export function clearWorld(world) {

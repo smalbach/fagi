@@ -50,6 +50,7 @@ export function valorDe(x) {
   if (x.sense === 'hunger') return clamp(-x.v / FEEL.hungerScale);
   if (x.sense === 'thirst') return clamp(-x.v / FEEL.thirstScale);
   if (x.sense === 'peril') return clamp(x.v);
+  if (x.sense === 'energy') return clamp(x.v / FEEL.energyScale);
   if (x.v > 0 && FEEL.statSense[x.sense] !== undefined) {
     return clamp(FEEL.effectWeight * FEEL.statSense[x.sense] * Math.log2(x.v));
   }

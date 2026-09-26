@@ -21,6 +21,7 @@ import { drawTree } from './tree-sprite.js';
 import { drawFruit } from './fruit-sprite.js';
 import { drawTerrain, drawShore, drawGranoZoom, drawDetalleCerca } from './terrain.js';
 import { drawLake } from './water-sprite.js';
+import { drawPuddle, drawRain } from './rain-sprite.js';
 import { setDetalle } from './sprite-kit.js';
 import { aplicar, sinCamara, detalleDe } from './camera.js';
 import { nestUnder } from './nest.js';
@@ -72,9 +73,15 @@ function escena(ctx, world, fagi, camera) {
 
   // Sin Fagi (preparando una sesión) solo se dibuja el mapa.
   const dentro = fagi ? escondida(fagi, world) : false;
+  primerPlano(ctx, world, fagi, camera, dentro);
+  // La lluvia cae por encima de todo, Fagi incluida.
+  if (world.rain?.on) drawRain(ctx, world, performance.now());
+}
+
+function primerPlano(ctx, world, fagi, camera, dentro) {
 
   drawPheromone(ctx, world);
-  for (const o of world.objects) drawObject(ctx, o, dentro, world.wind);
+  for (const o of world.objects) drawObject(ctx, o, dentro, world.wind, world.rain?.on);
   for (const p of world.points) drawFruit(ctx, p);
   if (!fagi) return;
 
@@ -227,10 +234,12 @@ function drawPheromone(ctx, world) {
 
 // Cada cosa del mapa la pinta su módulo: el lago, la roca, el nido y el árbol.
 // `ocupado` es Fagi durmiendo dentro del nido.
-function drawObject(ctx, o, ocupado, wind) {
+function drawObject(ctx, o, ocupado, wind, lloviendo) {
   const spec = OBJECT_TYPES[o.type];
   const r = radiusOf(o);
-  if (isWater(o)) {
+  if (spec.shallow) {
+    drawPuddle(ctx, o, r, lloviendo, performance.now());
+  } else if (isWater(o)) {
     drawLake(ctx, o, spec, r, wind, performance.now());
   } else if (isNest(o)) {
     drawNest(ctx, o, spec, r);

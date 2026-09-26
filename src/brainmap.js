@@ -799,7 +799,7 @@ export function createBrainMap(canvas, statusEl, expandBtn) {
     }
     // sitios recordados: dónde cree que están y cuánto puede fallar
     for (const [kind, p] of Object.entries(fagi.brain.places ?? {})) {
-      const color = kind === 'agua' ? '#3d8fd9' : '#5bd97e';
+      const color = kind === 'agua' || kind === 'charco' ? '#3d8fd9' : '#5bd97e';
       const conf = p.confidence ?? 0.5;
       g.globalAlpha = 0.35 + 0.65 * conf;
       g.beginPath();

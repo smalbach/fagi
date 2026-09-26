@@ -4,7 +4,7 @@
 // basta seguir marcas con distancia MAYOR que la suya; para volver al nido,
 // menor. Se evaporan solas, así que un camino que ya no se usa desaparece.
 
-import { PHERO } from './config.js';
+import { PHERO, RAIN } from './config.js';
 import { record } from './world.js';
 import { segmentBlocked } from './obstacles.js';
 
@@ -20,8 +20,10 @@ export function dropPheromone(world, x, y, dNest) {
 // Evapora. Se llama una vez por frame.
 export function updatePheromone(world, dt) {
   const marcas = world.pheromone;
+  // La lluvia lava el rastro: se borra RAIN.washPhero veces más rápido.
+  const paso = dt * (world.rain?.on ? RAIN.washPhero : 1);
   for (let i = marcas.length - 1; i >= 0; i--) {
-    marcas[i].life -= dt;
+    marcas[i].life -= paso;
     if (marcas[i].life <= 0) marcas.splice(i, 1);
   }
 }

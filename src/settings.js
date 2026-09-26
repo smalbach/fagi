@@ -6,8 +6,9 @@
 
 import {
   FAGI, HUNGER, THIRST, ENERGY, BRAIN, CARRY, NEST, EXPLORE, WIND, PLUME, PHERO, TREE, FRUIT, MEMORY,
-  MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, BACKEND,
+  MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, BACKEND, RAIN, WATER,
 } from './config.js';
+import { startRain } from './rain.js';
 import { removeAllTrees } from './trees.js';
 import { wipe } from './learned/store.js';
 import { t, labelOf, getLang, onLangChange } from './i18n.js';
@@ -150,6 +151,32 @@ const GRUPOS = [
     n(PHERO, 'life', 'Seconds until it evaporates', 'Segundos hasta evaporarse', 2, 300, 5),
     n(PHERO, 'every', 'Seconds between marks', 'Segundos entre marcas', 0.05, 3, 0.05),
     n(PHERO, 'sense', 'Distance at which it is detected', 'Distancia a la que la detecta', 5, 150, 1),
+  ]},
+  { titulo: { en: 'Water', es: 'Agua' }, campos: [
+    n(WATER, 'vado', 'Shallow edge where it stands and drinks (px)', 'Vado donde hace pie y bebe (px)', 0, 40, 1),
+    n(WATER, 'wadeSpeed', 'Speed in the shallows (×)', 'Velocidad en el vado (×)', 0.05, 1, 0.05),
+    n(WATER, 'swimSpeed', 'Speed paddling in deep water (×)', 'Velocidad pataleando en el hondo (×)', 0.05, 1, 0.05),
+    n(WATER, 'swimEffort', 'Energy spent paddling (× walking)', 'Energía al patalear (× andar)', 1, 10, 0.5),
+    n(WATER, 'shock', 'Fright of losing footing (0-1)', 'Susto de perder pie (0-1)', 0, 1, 0.05),
+    n(WATER, 'sample', 'Seconds in deep water for the full fright', 'Segundos en el hondo para el susto entero', 0.2, 10, 0.1),
+    n(WATER, 'lesson', 'How much the fright teaches', 'Cuánto enseña el susto', 0, 1, 0.05),
+    n(WATER, 'wetSpeed', 'Speed when soaked (×)', 'Velocidad empapada (×)', 0.1, 1, 0.05),
+    n(WATER, 'dryTime', 'Seconds to dry off', 'Segundos en secarse', 0, 60, 1),
+    n(WATER, 'probeReach', 'Antenna reach ahead (px)', 'Alcance de las antenas (px)', 0, 30, 1),
+    n(WATER, 'probeSpeed', 'Speed while probing water (×)', 'Velocidad tanteando el agua (×)', 0.1, 1, 0.05),
+  ]},
+  { titulo: { en: 'Rain', es: 'Lluvia' }, campos: [
+    n(RAIN, 'every.min', 'Min seconds between showers', 'Mín. segundos entre chaparrones', 10, 3600, 10),
+    n(RAIN, 'every.max', 'Max seconds between showers', 'Máx. segundos entre chaparrones', 10, 3600, 10),
+    n(RAIN, 'duration.min', 'Min shower length (s)', 'Duración mínima del chaparrón (s)', 1, 300, 1),
+    n(RAIN, 'duration.max', 'Max shower length (s)', 'Duración máxima del chaparrón (s)', 1, 300, 1),
+    n(RAIN, 'puddles.min', 'Min puddles per shower', 'Mín. charcos por chaparrón', 0, 20, 1),
+    n(RAIN, 'puddles.max', 'Max puddles per shower', 'Máx. charcos por chaparrón', 0, 20, 1),
+    n(RAIN, 'puddleRadius.0', 'Min puddle size (px)', 'Tamaño mínimo del charco (px)', 5, 80, 1),
+    n(RAIN, 'puddleRadius.1', 'Max puddle size (px)', 'Tamaño máximo del charco (px)', 5, 80, 1),
+    n(RAIN, 'grow', 'Puddle growth while raining (px/s)', 'Crecimiento del charco lloviendo (px/s)', 0, 2, 0.05),
+    n(RAIN, 'evaporate', 'Puddle drying in the sun (px/s)', 'Secado del charco al sol (px/s)', 0, 2, 0.01),
+    n(RAIN, 'washPhero', 'Rain washes pheromone (× faster)', 'La lluvia borra la feromona (× más rápido)', 1, 50, 1),
   ]},
   { titulo: { en: 'Trees', es: 'Árboles' }, campos: [
     n(TREE, 'interval', 'Fruit every (seconds)', 'Fruta cada (segundos)', 1, 120, 1),
@@ -327,5 +354,6 @@ export function createSettings(world, getFagi) {
   });
 
   document.getElementById('btn-clear-trees').addEventListener('click', () => removeAllTrees(world));
+  document.getElementById('btn-rain-now').addEventListener('click', () => startRain(world));
   document.getElementById('btn-wipe-memory').addEventListener('click', () => wipe(getFagi()));
 }
