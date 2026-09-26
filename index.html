@@ -37,13 +37,19 @@
       background: var(--panel);
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
       overflow-y: auto;
       max-height: 100vh;
     }
     h1 { font-size: 18px; margin: 0; letter-spacing: 2px; }
-    .hud-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .hud-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: none; }
+    .hud-header-actions { display: flex; align-items: center; gap: 6px; flex: none; }
     #btn-toggle-groups { width: auto; padding: 4px 8px; font-size: 10.5px; flex: none; }
+    /* El cuerpo entero del HUD (todo menos el título) se puede ocultar de
+       un tirón con el botón ▾/▸ de la cabecera: en vez de cerrar sección
+       por sección, deja el panel entero reducido a su barra de título. */
+    #hud-body { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+    #hud-body.collapsed { display: none; }
     h2 { font-size: 11px; margin: 0 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
     /* Cada bloque del HUD se puede ocultar: en el móvil, con las siete
        secciones apiladas en una sola página larga, poder cerrar las que no
@@ -100,6 +106,12 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 12px;
     }
+    .consola-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: none; }
+    .consola-header h2 { margin: 0; }
+    /* Igual que #hud-body: todo el contenido de la consola (pestañas +
+       paneles) colapsa junto con un solo botón en la cabecera. */
+    #consola-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+    #consola-body.collapsed { display: none; }
     #c-now { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
     #c-now > span { color: var(--muted); font-size: 11px; }
     #c-detail { display: flex; flex-direction: column; gap: 4px; color: var(--muted); }
@@ -177,7 +189,7 @@
       display: flex; align-items: center; gap: 6px; flex: none;
       border-top: 1px solid var(--line); padding: 6px 0;
     }
-    .pane-head .pane-toggle {
+    .pane-toggle, .panel-toggle {
       width: auto; padding: 0 4px; background: transparent; border: none;
       color: var(--muted); font-size: 11px; line-height: 1;
     }
@@ -288,6 +300,7 @@
       canvas { max-height: 46vh; }
       #hud, #consola { width: 100%; flex: none; max-height: none; }
       #hud { overflow-y: visible; }
+      #consola-body { flex: none; }
       .tab-panel { flex: none; }
       .split-pane { flex: none; }
       .split-pane .pane { overflow: visible; }
@@ -312,8 +325,12 @@
   <aside id="hud">
     <div class="hud-header">
       <h1 data-i18n="app.title">FAGI</h1>
-      <button id="btn-toggle-groups" type="button" data-i18n="app.collapseAll">▾ Hide all</button>
+      <div class="hud-header-actions">
+        <button id="btn-toggle-groups" type="button" data-i18n="app.collapseAll">▾ Hide all</button>
+        <button id="btn-toggle-hud" class="panel-toggle" type="button" aria-expanded="true" aria-controls="hud-body">▾</button>
+      </div>
     </div>
+    <div id="hud-body">
     <p id="status"></p>
 
     <details class="hud-group" open>
@@ -368,9 +385,14 @@
     </details>
 
     <button id="btn-reset" data-i18n="app.reset">Restart</button>
+    </div>
   </aside>
   <section id="consola">
-    <h2 data-i18n="panel.console">Decision console</h2>
+    <div class="consola-header">
+      <h2 data-i18n="panel.console">Decision console</h2>
+      <button id="btn-toggle-consola" class="panel-toggle" type="button" aria-expanded="true" aria-controls="consola-body">▾</button>
+    </div>
+    <div id="consola-body">
     <div id="consola-tabs" role="tablist">
       <button class="tab" data-tab="live" role="tab" data-i18n="panel.tabLive">Console &amp; map</button>
       <button class="tab" data-tab="history" role="tab" data-i18n="panel.tabHistory">Code &amp; history</button>
@@ -443,6 +465,7 @@
           </div>
         </section>
       </div>
+    </div>
     </div>
   </section>
   <div id="settings-overlay" hidden>

@@ -30,8 +30,8 @@ function guardarEstado(estado) {
 }
 
 function initTabs(root, estado) {
-  const tabs = [...root.querySelectorAll(':scope > #consola-tabs > .tab')];
-  const paneles = [...root.querySelectorAll(':scope > .tab-panel')];
+  const tabs = [...root.querySelectorAll('#consola-tabs > .tab')];
+  const paneles = [...root.querySelectorAll('.tab-panel')];
   if (tabs.length === 0) return;
 
   function activar(nombre) {
@@ -146,7 +146,7 @@ export function initPanelLayout(root) {
 // quiere es despejar la pantalla para mirar el mapa, era demasiado lento.
 export function initHudGroups(hud, boton) {
   if (!hud || !boton) return;
-  const grupos = () => [...hud.querySelectorAll(':scope > .hud-group')];
+  const grupos = () => [...hud.querySelectorAll('.hud-group')];
 
   function actualizarBoton() {
     const algunoAbierto = grupos().some((g) => g.open);
@@ -163,4 +163,29 @@ export function initHudGroups(hud, boton) {
   for (const g of grupos()) g.addEventListener('toggle', actualizarBoton);
   onLangChange(actualizarBoton);
   actualizarBoton();
+}
+
+// El botón ▾/▸ de una cabecera (#hud o #consola): oculta o muestra TODO el
+// contenido de ese panel de un tirón, dejando solo la barra de título — para
+// cuando lo que estorba no es una sección, sino el panel entero.
+export function initContainerToggle(boton, cuerpo, clave) {
+  if (!boton || !cuerpo) return;
+
+  function marcar(colapsado) {
+    cuerpo.classList.toggle('collapsed', colapsado);
+    boton.textContent = colapsado ? '▸' : '▾';
+    boton.setAttribute('aria-expanded', String(!colapsado));
+    boton.title = colapsado ? t('app.showPanel') : t('app.hidePanel');
+  }
+
+  let colapsado = false;
+  try { colapsado = localStorage.getItem(clave) === '1'; } catch { /* sin localStorage, empieza abierto */ }
+  marcar(colapsado);
+
+  boton.addEventListener('click', () => {
+    colapsado = !cuerpo.classList.contains('collapsed');
+    marcar(colapsado);
+    try { localStorage.setItem(clave, colapsado ? '1' : '0'); } catch { /* sin localStorage, no persiste */ }
+  });
+  onLangChange(() => marcar(cuerpo.classList.contains('collapsed')));
 }

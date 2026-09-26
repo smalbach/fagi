@@ -14,6 +14,8 @@ const DICT = {
     'app.language': 'Idioma / Language',
     'app.collapseAll': '▾ Hide all',
     'app.expandAll': '▸ Show all',
+    'app.hidePanel': 'Hide panel',
+    'app.showPanel': 'Show panel',
 
     'panel.food': 'Food',
     'panel.map': 'Map · right click removes · shift+wheel resizes',
@@ -245,6 +247,8 @@ const DICT = {
     'app.language': 'Idioma / Language',
     'app.collapseAll': '▾ Ocultar todo',
     'app.expandAll': '▸ Mostrar todo',
+    'app.hidePanel': 'Ocultar panel',
+    'app.showPanel': 'Mostrar panel',
 
     'panel.food': 'Alimento',
     'panel.map': 'Mapa · der. borra · mayús+rueda tamaño',
