@@ -21,7 +21,7 @@ import { drawTree } from './tree-sprite.js';
 import { drawFruit } from './fruit-sprite.js';
 import { drawTerrain, drawShore, drawGranoZoom, drawDetalleCerca } from './terrain.js';
 import { drawLake } from './water-sprite.js';
-import { drawPuddle, drawRain } from './rain-sprite.js';
+import { drawPuddle, drawRipples, drawWetGround, drawOvercast, drawSplashes, drawRainDrops, rainLook } from './rain-sprite.js';
 import { setDetalle } from './sprite-kit.js';
 import { aplicar, sinCamara, detalleDe } from './camera.js';
 import { nestUnder } from './nest.js';
@@ -41,12 +41,15 @@ function escondida(fagi, world) {
 export function render(ctx, world, fagi, camera) {
   setDetalle(detalleDe(camera));
   aplicar(ctx, camera, ctx.canvas);
-  escena(ctx, world, fagi, camera);
+  const lluvia = rainLook(world, performance.now());
+  escena(ctx, world, fagi, camera, lluvia);
   sinCamara(ctx);
+  // Las gotas caen entre la cámara y el suelo: no crecen con el zoom.
+  if (lluvia > 0) drawRainDrops(ctx, world, performance.now());
   drawZoom(ctx, camera);
 }
 
-function escena(ctx, world, fagi, camera) {
+function escena(ctx, world, fagi, camera, lluvia) {
   drawTerrain(ctx, world);
   // Lo que el suelo pierde al estirarse con el zoom: el grano, en píxeles de
   // pantalla, y las cosas pequeñas —chinas, briznas, hoja— en píxeles de mundo.
@@ -54,6 +57,8 @@ function escena(ctx, world, fagi, camera) {
   drawDetalleCerca(ctx, world, camera, ctx.canvas);
   // La tierra mojada va antes que las estelas y que todo lo demás: es suelo.
   for (const o of world.objects) if (isWater(o)) drawShore(ctx, o, radiusOf(o));
+  // El suelo mojado tarda en secarse, así que va aunque ya no llueva.
+  drawWetGround(ctx, world);
 
   // Una sombra común ata todos los objetos al mismo suelo y a la misma luz.
   // Los sprites conservan sus sombras finas de contacto; esta es la sombra
@@ -73,15 +78,18 @@ function escena(ctx, world, fagi, camera) {
 
   // Sin Fagi (preparando una sesión) solo se dibuja el mapa.
   const dentro = fagi ? escondida(fagi, world) : false;
-  primerPlano(ctx, world, fagi, camera, dentro);
-  // La lluvia cae por encima de todo, Fagi incluida.
-  if (world.rain?.on) drawRain(ctx, world, performance.now());
+  primerPlano(ctx, world, fagi, camera, dentro, lluvia);
+  // La luz del día nublado y sus nubes caen sobre todo, Fagi incluida.
+  if (lluvia > 0) {
+    drawOvercast(ctx, world, performance.now());
+    drawSplashes(ctx, world, performance.now());
+  }
 }
 
-function primerPlano(ctx, world, fagi, camera, dentro) {
+function primerPlano(ctx, world, fagi, camera, dentro, lluvia) {
 
   drawPheromone(ctx, world);
-  for (const o of world.objects) drawObject(ctx, o, dentro, world.wind, world.rain?.on);
+  for (const o of world.objects) drawObject(ctx, o, dentro, world.wind, lluvia);
   for (const p of world.points) drawFruit(ctx, p);
   if (!fagi) return;
 
@@ -241,6 +249,7 @@ function drawObject(ctx, o, ocupado, wind, lloviendo) {
     drawPuddle(ctx, o, r, lloviendo, performance.now());
   } else if (isWater(o)) {
     drawLake(ctx, o, spec, r, wind, performance.now());
+    drawRipples(ctx, o, r * 0.8, lloviendo, performance.now());
   } else if (isNest(o)) {
     drawNest(ctx, o, spec, r);
     drawNestMouth(ctx, o, r, ocupado, performance.now());
