@@ -1,0 +1,12 @@
+/* Estilos de index.html, repartidos por zona. El orden de los @import es el
+   de la cascada: una regla posterior pisa a otra anterior de la misma
+   especificidad, así que no se reordenan sin mirar qué pisa a qué (mobile.css,
+   con los @media de pantalla angosta, va siempre al final). */
+@import './base.css';
+@import './hud.css';
+@import './consola.css';
+@import './settings.css';
+@import './immersive.css';
+@import './screens.css';
+@import './modes.css';
+@import './mobile.css';

@@ -1,0 +1,63 @@
+/* --- panel del estado (HUD) y controles comunes: botones, barras --- */
+#hud {
+  width: 290px;
+  flex: none;
+  padding: 16px;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  max-height: 100vh;
+}
+h1 { font-size: 18px; margin: 0; letter-spacing: 2px; }
+.hud-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: none; }
+.app-version { color: var(--muted); font-size: 10.5px; font-variant-numeric: tabular-nums; margin-right: auto; white-space: nowrap; }
+.hud-header-actions { display: flex; align-items: center; gap: 6px; flex: none; }
+#btn-toggle-groups { width: auto; padding: 4px 8px; font-size: 10.5px; flex: none; }
+/* El cuerpo entero del HUD (todo menos el título) se puede ocultar de
+   un tirón con el botón ▾/▸ de la cabecera: en vez de cerrar sección
+   por sección, deja el panel entero reducido a su barra de título. */
+#hud-body { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+#hud-body.collapsed { display: none; }
+h2 { font-size: 11px; margin: 0 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+/* Cada bloque del HUD se puede ocultar: en el móvil, con las siete
+   secciones apiladas en una sola página larga, poder cerrar las que no
+   hacen falta ahora mismo es lo que evita el scroll interminable. */
+.hud-group summary {
+  cursor: pointer; font-size: 11px; margin: 0 0 6px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1px; list-style: none;
+  display: flex; align-items: center; gap: 6px;
+}
+.hud-group summary::-webkit-details-marker { display: none; }
+.hud-group summary::before { content: "▾"; font-size: 9px; }
+.hud-group:not([open]) summary { margin-bottom: 0; }
+.hud-group:not([open]) summary::before { content: "▸"; }
+button {
+  font: inherit;
+  color: var(--text);
+  background: #2a2e3a;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 7px 9px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+button.active { border-color: currentColor; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: none; }
+.hint { font-size: 11px; color: var(--muted); margin-left: auto; }
+.ayuda { font-size: 11px; color: var(--muted); margin-top: 9px; line-height: 1.35; }
+#type-buttons, #object-buttons { display: flex; flex-direction: column; gap: 6px; }
+.bar { height: 10px; background: #2a2e3a; border-radius: 5px; overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0; }
+.label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.belief { margin-bottom: 9px; }
+.belief .bar { position: relative; overflow: visible; }
+.belief .bar::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #4a4f5e; }
+.belief .bar > i { position: absolute; top: 0; bottom: 0; border-radius: 5px; }
+#effects { display: flex; flex-direction: column; gap: 5px; font-size: 12px; }
+#effects .fx { display: flex; justify-content: space-between; }
+#effects .none { color: var(--muted); }

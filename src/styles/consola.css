@@ -1,0 +1,127 @@
+/* --- consola de decisiones --- */
+#consola {
+  width: 330px;
+  flex: none;
+  background: #171a21;
+  border-left: 1px solid var(--line);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 100vh;
+  min-height: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+.consola-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: none; }
+.consola-header h2 { margin: 0; }
+/* Igual que #hud-body: todo el contenido de la consola (pestañas +
+   paneles) colapsa junto con un solo botón en la cabecera. */
+#consola-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+#consola-body.collapsed { display: none; }
+#c-now { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+#c-now > span { color: var(--muted); font-size: 11px; }
+#c-detail { display: flex; flex-direction: column; gap: 4px; color: var(--muted); }
+#c-detail div { display: flex; align-items: center; gap: 6px; }
+.mini { display: inline-block; width: 70px; height: 6px; background: #2a2e3a; border-radius: 3px; overflow: hidden; }
+.mini > i { display: block; height: 100%; }
+#c-scores { display: flex; flex-direction: column; gap: 5px; }
+.score { border-left: 2px solid #343a49; padding-left: 7px; }
+.score.elegido { border-left-color: #e6e8ee; }
+.score .head { display: flex; justify-content: space-between; }
+.score .head em { color: #6e7486; font-style: normal; font-size: 10px; }
+.score .partes { color: #6e7486; font-size: 10.5px; }
+.dim { color: #6e7486; }
+#brainmap-status { font-size: 10.5px; margin: 2px 0 6px; }
+#brainmap { width: 100%; height: 200px; display: block; background: #12141a; border-radius: 6px; }
+.pane-expand {
+  width: auto; padding: 2px 7px; font-size: 11px; line-height: 1.2;
+  background: #2a2e3a; border: 1px solid var(--line); color: var(--text); border-radius: 5px;
+}
+/* Mapa del cerebro ampliado: el panel sale del reparto de Split.js
+   (de ahí los !important sobre su alto en línea) y ocupa casi toda la
+   pantalla. Esc o el mismo botón lo devuelven a su sitio. */
+.pane.brainmap-big {
+  position: fixed !important; inset: 3vh 3vw; height: auto !important; width: auto !important;
+  z-index: 60; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 4px 14px 14px; box-shadow: 0 20px 60px rgba(0,0,0,.6);
+}
+.pane.brainmap-big .pane-body { display: block; overflow: auto; }
+#code-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+#code-tools button { width: auto; padding: 4px 8px; font-size: 11px; }
+#code-tools button:disabled { opacity: .45; cursor: default; }
+#code-tools select, #code-tools input[type=text] {
+  background: #2a2e3a; color: var(--text); border: 1px solid var(--line);
+  border-radius: 5px; padding: 4px 6px; font: inherit; font-size: 11px;
+}
+#code-tools input[type=text] { width: 150px; }
+#code-status { font-size: 10.5px; color: var(--muted); flex-basis: 100%; }
+#code-status.error { color: #d95b7e; }
+#learned-code {
+  height: 100%; overflow: auto; margin: 0;
+  font-size: 10.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+  color: #cfd3dd; background: #12141a; border-radius: 6px; padding: 8px;
+}
+#c-log {
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+#c-log .line { display: flex; gap: 6px; align-items: baseline; }
+#c-log .t { color: #5d6373; flex: none; width: 40px; text-align: right; }
+.tag {
+  flex: none;
+  color: #14161c;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  min-width: 38px;
+  text-align: center;
+}
+#c-log .tx { display: flex; flex-direction: column; }
+#c-log .tx i { color: #6e7486; font-style: normal; font-size: 11px; }
+
+input[type=range] { width: 100%; accent-color: #4fa05a; }
+
+/* --- pestañas y paneles redimensionables de la consola --- */
+#consola-tabs { display: flex; gap: 4px; flex: none; }
+#consola-tabs .tab {
+  flex: 1; width: auto; justify-content: center;
+  background: transparent; border: 1px solid var(--line);
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--muted); padding: 6px 4px;
+}
+#consola-tabs .tab.active { background: #2a2e3a; color: var(--text); border-color: currentColor; }
+.tab-panel {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+}
+.tab-panel[hidden] { display: none; }
+/* El alto real de cada .pane lo pone Split.js (o el CSS de móvil, más
+   abajo): aquí solo el flujo de bloque normal en el que puede repartirlo. */
+.split-pane { flex: 1; min-height: 0; }
+.split-pane .pane { display: flex; flex-direction: column; overflow: hidden; }
+.pane-head {
+  display: flex; align-items: center; gap: 6px; flex: none;
+  border-top: 1px solid var(--line); padding: 6px 0;
+}
+.pane-toggle, .panel-toggle {
+  width: auto; padding: 0 4px; background: transparent; border: none;
+  color: var(--muted); font-size: 11px; line-height: 1;
+}
+.pane-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; flex: 1; }
+.pane-body { flex: 1; min-height: 0; overflow: auto; }
+.pane.collapsed .pane-body { display: none; }
+/* Tirador que inserta Split.js entre los dos .pane. */
+.gutter { position: relative; touch-action: none; }
+.gutter-vertical { cursor: row-resize; }
+.gutter-vertical::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px;
+  transform: translateY(-50%); background: var(--line); border-radius: 2px;
+}
+.gutter-vertical:hover::before { background: #6e7486; }
+.split-pane.resizer-hidden .gutter { display: none; }

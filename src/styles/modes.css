@@ -1,0 +1,69 @@
+/* --- modos del juego --- */
+#setup-bar, #replay-bar, #btn-end { display: none; }
+body.mode-idle #hud, body.mode-idle #consola, body.mode-idle #topbar { display: none; }
+
+/* Preparar: el mapa sin Fagi, los botones para poner cosas y los ajustes
+   al lado. Nada de estado, consola ni efectos: todavía no hay nadie. */
+body.mode-setup #setup-bar { display: flex; }
+body.mode-setup #consola { display: none; }
+body.mode-setup #hud { display: flex; }
+body.mode-setup .play-only { display: none; }
+body.mode-setup #btn-settings { display: none; }
+body.mode-setup #settings-overlay {
+  position: static; inset: auto; background: none; padding: 0; z-index: auto;
+  width: 340px; flex: none; display: flex;
+}
+body.mode-setup #settings { width: 100%; max-height: 100vh; border-radius: 0; border-width: 0 0 0 1px; }
+body.mode-setup #settings-body { columns: auto; }
+body.mode-setup #btn-settings-close { display: none; }
+body.mode-setup #settings header { flex-wrap: wrap; }
+body.mode-setup #settings header h2 { flex-basis: 100%; }
+/* Preparando, el modo inmersivo no se come la pantalla: hacen falta los
+   paneles de al lado. */
+body.mode-setup.immersive #stage { flex: 1 1 420px; min-width: 300px; padding: 16px; background: none; }
+body.mode-setup.immersive #canvas { max-width: 100%; max-height: calc(100vh - 32px); border-radius: 8px; }
+body.mode-setup #hud { width: 250px; }
+
+body.mode-play #btn-end { display: inline-block; }
+body.mode-play #btn-reset { display: none; }
+
+/* Reproducir: el mapa y el estado de Fagi, sin nada que edite. */
+body.mode-replay #replay-bar { display: flex; }
+body.mode-replay .edit-only, body.mode-replay #btn-settings, body.mode-replay #btn-reset { display: none; }
+/* La consola sí se ve, pero lo que cambia a Fagi (recuperar, importar,
+   olvidar, quién decide) no pinta nada en una sesión que ya pasó. */
+body.mode-replay [id="code-tools"] { display: none; }
+
+.stage-bar {
+  position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 5;
+  background: rgba(29,32,41,.92); border: 1px solid var(--line); border-radius: 12px;
+  padding: 10px 12px; gap: 10px; align-items: center; flex-wrap: wrap;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45); backdrop-filter: blur(4px);
+  width: max-content; max-width: calc(100% - 32px);
+}
+.stage-bar button { width: auto; padding: 6px 12px; }
+.stage-bar label { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
+.stage-bar .ayuda { width: 100%; margin: 0; font-size: 11px; color: var(--muted); }
+#setup-error { color: #e07a8f; font-size: 12px; }
+#replay-bar { width: min(820px, calc(100% - 32px)); }
+#rp-track { position: relative; flex: 1; min-width: 200px; padding-top: 12px; }
+#rp-slider { width: 100%; margin: 0; }
+#rp-marks { position: absolute; left: 0; right: 0; top: 0; height: 12px; }
+.rp-mark {
+  position: absolute; top: 2px; width: 6px !important; height: 10px; padding: 0 !important;
+  margin-left: -3px; border-radius: 2px; border: 0; background: #8a90a2; cursor: pointer;
+}
+.rp-fagi_eat { background: #e8a33d; }
+.rp-fagi_pick, .rp-fagi_deposit, .rp-fagi_pantry { background: #c9a227; }
+.rp-fagi_rule { background: #b57bff; }
+.rp-fagi_death { background: #d95b7e; width: 8px !important; }
+.rp-config { background: #4cc9f0; }
+#rp-time { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--muted); white-space: nowrap; }
+#rp-event { width: 100%; font-size: 12px; color: #cfd3dd; min-height: 1.2em; }
+#rp-speed { background: #2a2e3a; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
+
+@media (max-width: 860px) {
+  body.mode-setup #settings-overlay, body.mode-setup #hud { width: 100%; }
+  .stage-bar { position: static; transform: none; margin-top: 10px; }
+  #stage { flex-direction: column; }
+}
