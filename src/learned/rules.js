@@ -19,9 +19,16 @@ function liveRules(rules) {
   return rules.list.filter((r) => !r.retired && !rules.quarantined.has(r.id));
 }
 
-// What a rule is about: a species key ('nectar') or a trait ('smell:sour').
-// The two never collide: only traits carry a colon.
-export const subjectOf = (r) => r.when.key ?? r.when.cue;
+// What a rule is about: a species key ('nectar') or a set of traits
+// ('shape:drop+smell:sour'). The two never collide: only traits carry a colon.
+export const subjectOf = (r) => r.when.key ?? r.when.all.join('+');
+
+// Does a rule about traits hold for this fruit? It has all the traits and none
+// of the exceptions.
+export function traitsMatch(r, key, traits) {
+  return r.when.all.every((c) => traits.includes(c))
+    && !(r.except ?? []).some((e) => e === key || traits.includes(e));
+}
 
 export function activeRule(rules, subject, verdict) {
   return liveRules(rules).find((r) => subjectOf(r) === subject && r.verdict === verdict) ?? null;
@@ -73,7 +80,7 @@ export function verdict(fagi, scope, key, { deliberate = false } = {}) {
   let result = null;
   for (const r of liveRules(rules)) {
     try {
-      const about = r.when.cue ? traits.includes(r.when.cue) : r.when.key === key;
+      const about = r.when.all ? traitsMatch(r, key, traits) : r.when.key === key;
       if (r.on.includes(scope) && about) {
         if (r.verdict === 'avoid') result = 'avoid';
         else if (r.verdict === 'prefer' && result === null) result = 'prefer';

@@ -9,7 +9,7 @@ import { stepWorld } from '../../src/simulation.js';
 import * as CONFIG from '../../src/config.js';
 import { rng, withRng } from './random.js';
 import { round, mean } from './stats.js';
-import { isHarmful, isHelpful } from '../../src/chemistry.js';
+import { isHarmful, isHelpful, ruleTruth } from '../../src/chemistry.js';
 
 const { WORLD } = CONFIG;
 
@@ -116,7 +116,8 @@ function learningSummary(l, fagi) {
   const bitten = new Set(l.bites.map((b) => b.type));
   const harmfulMet = kinds.filter(isHarmful);
   const helpfulMet = kinds.filter(isHelpful);
-  const cueRules = fagi.brain.rules.list.filter((r) => !r.retired && r.when.cue).map((r) => r.id);
+  const traitRules = fagi.brain.rules.list.filter((r) => !r.retired && r.when.all)
+    .map((r) => ({ id: r.id, ...ruleTruth(r), ...(r.except ? { except: r.except } : {}) }));
   return {
     bites: l.bites.length,
     harmfulBites: l.bites.filter((b) => isHarmful(b.type)).length,
@@ -129,7 +130,7 @@ function learningSummary(l, fagi) {
     helpfulTried: helpfulMet.filter((k) => bitten.has(k)).length,
     // First bites of harmful kinds: each is a lesson paid for with her body.
     harmfulFirstBites: l.bites.filter((b) => b.first && isHarmful(b.type)).length,
-    cueRules,
+    traitRules,
     biteLog: l.bites,
   };
 }

@@ -15,6 +15,7 @@ import { normalizeAngle } from '../vision.js';
 import { MARKER_TYPES } from './events.js';
 import { modernize } from '../legacy.js';
 import { addSpecies } from '../chemistry.js';
+import { modernWhen } from '../learned/dsl.js';
 
 // --- the state: a world with the same shape as the real one ---
 
@@ -303,7 +304,7 @@ function putMind(fagi, state, t) {
   if (m.thought) fagi.thought = { ...m.thought, ranked: m.thought.ranked ?? [] };
   else fagi.thought = { ...fagi.thought, ranked: [] };
   fagi.brain.facts = m.facts ?? {};
-  fagi.brain.rules.list = m.rules ?? [];
+  fagi.brain.rules.list = (m.rules ?? []).map(modernWhen);
   fagi.brain.rules.quarantined = new Set(m.quarantined ?? []);
   fagi.brain.rules.seq = state.mindSeq;
   // Old sessions only stored the counter.

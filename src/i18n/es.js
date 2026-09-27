@@ -113,6 +113,7 @@ export default {
   'brainmap.rk.new': 'escrita',
   'brainmap.rk.revised': 'revisada',
   'brainmap.rk.retired': 'retirada',
+  'brainmap.rk.refined': 'reescrita',
   'brainmap.noRuleYet': 'sin regla: peso {w} de {need}',
 
   'stat.hunger': 'Hambre',
@@ -475,6 +476,13 @@ export default {
 
   // Especies silvestres y sus rasgos (chemistry.js). Una especie se nombra por sus rasgos.
   'brainmap.traits': 'rasgos: {list}',
+  'brainmap.induced': '{pro} a favor · {con} en contra',
+  'brainmap.except': 'salvo {list}',
+  'brainmap.from': 'viene de {id}',
+  // Comparado con la química oculta del mapa, que Fagi nunca ve.
+  'brainmap.truth': 'en este mapa: {ok} de {total} frutos que cubre de verdad {does}',
+  'brainmap.truth.avoid': 'dañan',
+  'brainmap.truth.prefer': 'sientan bien',
   'species.label': '{shape} {color}, olor {smell}',
   'cue.color': 'color {v}',
   'cue.shape': 'forma de {v}',

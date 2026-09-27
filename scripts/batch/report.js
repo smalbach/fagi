@@ -61,9 +61,19 @@ function reportLearning(runs) {
   L.push(`  ${pad('helpful kinds tried', 22)} ${sum('helpfulTried')}/${sum('helpfulMet')} (${pctOf(sum('helpfulTried'), sum('helpfulMet'))})`);
   L.push(`  ${pad('first harmful bites', 22)} ${sum('harmfulFirstBites')}   (${round(sum('harmfulFirstBites') / runs.length)} per run)`);
   const rules = {};
-  for (const r of runs) for (const id of r.learning?.cueRules ?? []) rules[id] = (rules[id] ?? 0) + 1;
+  const traitRules = runs.flatMap((r) => r.learning?.traitRules ?? []);
+  for (const { id } of traitRules) rules[id] = (rules[id] ?? 0) + 1;
   const top = Object.entries(rules).sort((a, b) => b[1] - a[1]).slice(0, 6);
   if (top.length) L.push(`  ${pad('trait rules at the end', 22)} ${top.map(([k, v]) => `${k} ${v}/${runs.length}`).join(' · ')}`);
+  // Against the hidden chemistry: a rule is right if every fruit it covers on
+  // the map really does what it says; a superstition covers some that do not.
+  if (traitRules.length) {
+    const right = traitRules.filter((r) => r.total > 0 && r.ok === r.total).length;
+    const covered = traitRules.reduce((a, r) => a + r.total, 0);
+    const ok = traitRules.reduce((a, r) => a + r.ok, 0);
+    const exceptions = traitRules.filter((r) => r.except).length;
+    L.push(`  ${pad('trait rules vs truth', 22)} ${traitRules.length} rules, ${right} fully right (${pctOf(right, traitRules.length)}); ${pctOf(ok, covered)} of the fruit they cover really do what they say; ${exceptions} with exceptions`);
+  }
   L.push('');
   return L;
 }

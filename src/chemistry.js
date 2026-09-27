@@ -136,9 +136,30 @@ export function speciesKeys() {
   return Object.keys(POINT_TYPES).filter((k) => POINT_TYPES[k].species);
 }
 
-// Ground truth, for measuring only (scripts/batch): Fagi never calls these.
+// Ground truth, for measuring and showing only (scripts/batch, the brain map):
+// Fagi never calls these.
 export const isHarmful = (key) => (POINT_TYPES[key]?.hunger ?? 0) > 0;
 export const isHelpful = (key) => {
   const s = POINT_TYPES[key];
   return Boolean(s) && s.hunger <= 0 && (s.hunger < 0 || s.effects.length > 0);
 };
+
+// The fruit that can be on this map: its species and rotten fruit, or the
+// classic ones on a map without chemistry.
+function fruitOnMap() {
+  const wild = speciesKeys();
+  if (wild.length) return [...wild, 'toxic'];
+  return Object.keys(POINT_TYPES).filter((k) => POINT_TYPES[k].traits);
+}
+
+// How a rule about traits compares with the hidden chemistry: of the fruit on
+// this map it covers, how many really do what it says.
+export function ruleTruth(rule) {
+  const covered = fruitOnMap().filter((k) => {
+    const traits = cuesOfTraits(POINT_TYPES[k].traits);
+    return rule.when.all.every((c) => traits.includes(c))
+      && !(rule.except ?? []).some((e) => e === k || traits.includes(e));
+  });
+  const right = rule.verdict === 'avoid' ? isHarmful : isHelpful;
+  return { ok: covered.filter(right).length, total: covered.length };
+}

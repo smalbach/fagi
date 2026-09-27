@@ -255,7 +255,9 @@ export const CUES = {
   rate: 0.3,          // how far each present trait moves toward what she felt
   evidence: 1,        // experiences with a trait until she half trusts it
   wary: 0.35,         // predicted harm (x confidence) that kills her curiosity
-  ruleEvidence: 2,    // experiences with a trait before she writes a rule about it
+  ruleEvidence: 2,    // experiences with a trait before she writes a rule about it (induce = 0)
+  induce: 1,          // 1 = trait rules are induced from whole species (learned/induce.js)
+  induceMin: 2,       // species that must agree before she generalizes from them
 };
 
 // External decision: an API that receives what Fagi perceives and returns what

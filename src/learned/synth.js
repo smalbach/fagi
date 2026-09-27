@@ -8,6 +8,7 @@
 import { LEARN, POINT_TYPES, CUES, MEMORY } from '../config.js';
 import { weight } from '../memory.js';
 import { activeRule, retireRule, upsertRule } from './rules.js';
+import { induce } from './induce.js';
 
 const SCOPE = { avoid: ['eat', 'store', 'pursue'], prefer: ['eat', 'store'] };
 // What isn't eaten (deep water, rain, the pressure drop, water,
@@ -16,16 +17,16 @@ const scope = (key, verdict) => (POINT_TYPES[key] ? SCOPE[verdict] : ['pursue'])
 const PREFIX = { avoid: 'avoid', prefer: 'prefer' };
 const OPPOSITE = { avoid: 'prefer', prefer: 'avoid' };
 
-// A rule is about a species ({ key }) or about a trait ({ cue: 'smell:sour' }).
-// A trait says nothing about a species she has already tasted: that one has its
+// A rule is about a species ({ key }) or about traits ({ all: ['smell:sour'] }).
+// Traits say nothing about a species she has already tasted: that one has its
 // own belief (rules.js, verdict).
-const cueId = (cue) => cue.replace(':', '-');
+const traitsId = (all) => all.map((c) => c.replace(':', '-')).join('-');
 
 function newRule(now, key, verdict, w, because, cue = null) {
   return {
-    id: `${PREFIX[verdict]}-${cue ? cueId(cue) : key}`,
+    id: `${PREFIX[verdict]}-${cue ? traitsId([cue]) : key}`,
     on: cue ? SCOPE.avoid : scope(key, verdict),
-    when: cue ? { cue } : { key },
+    when: cue ? { all: [cue] } : { key },
     verdict,
     weight: Number(w.toFixed(3)),
     because,
@@ -55,8 +56,13 @@ function because0(sensations) {
 export function refreshRules(brain) {
   for (const r of brain.rules.list) {
     if (r.retired) continue;
-    if (r.when.cue) {
-      const e = brain.cues?.[r.when.cue];
+    if (r.cases) {
+      const w = r.cases.reduce((sum, k) => sum + (brain.facts[k] ? weight(brain, k) : 0), 0) / r.cases.length;
+      r.weight = Number(w.toFixed(3));
+      continue;
+    }
+    if (r.when.all) {
+      const e = brain.cues?.[r.when.all[0]];
       if (e) r.weight = Number(cueWeight(e).toFixed(3));
       continue;
     }
@@ -91,6 +97,55 @@ export function synthCues(brain, cues, sensations, now) {
     const e = brain.cues[cue];
     if (!e) continue;
     synth(brain, cue, cueWeight(e), cueStage(e.n), e.n, sensations, now, cue);
+  }
+}
+
+const sameList = (a = [], b = []) => a.length === b.length && a.every((x, i) => x === b[i]);
+
+// After learning about a fruit (`key`): rewrites the trait rules from what
+// induce.js finds now. A description that holds on is revised in place; one
+// that changed (a trait dropped, another species joined) is a new rule that
+// says which one it grew out of (`from`), and the old one is retired. That is
+// how a rule can be seen growing more general, or picking up exceptions.
+export function synthInduced(brain, key, sensations, now) {
+  const rules = brain.rules;
+  const found = induce(brain).map((d) => ({ ...d, id: `${PREFIX[d.verdict]}-${traitsId(d.all)}` }));
+  const foundIds = new Set(found.map((d) => d.id));
+  const current = rules.list.filter((r) => !r.retired && r.when.all && !rules.quarantined.has(r.id));
+  const because = because0(sensations);
+
+  for (const d of found) {
+    const existing = current.find((r) => r.id === d.id);
+    if (existing && sameList(existing.cases, d.cases) && sameList(existing.except, d.except)) continue;
+    const tries = d.cases.reduce((sum, k) => sum + (brain.facts[k]?.tries ?? 0), 0);
+    const parent = existing ? null : current.find((r) => r.verdict === d.verdict && !foundIds.has(r.id)
+      && (r.cases ?? []).some((k) => d.cases.includes(k)));
+    const r = upsertRule(rules, {
+      id: d.id,
+      on: SCOPE[d.verdict],
+      when: { all: d.all },
+      ...(d.except.length ? { except: d.except } : {}),
+      verdict: d.verdict,
+      weight: Number(d.weight.toFixed(3)),
+      pro: d.pro,
+      con: d.con,
+      cases: d.cases,
+      because,
+      learnedAt: existing?.learnedAt ?? now,
+      ...(existing ? { revisedAt: now } : {}),
+      ...(existing?.from ?? parent?.id ? { from: existing?.from ?? parent.id } : {}),
+      tries,
+      stage: cueStage(tries),
+    });
+    markRule(brain, r.id, existing ? 'revised' : parent ? 'refined' : 'new', key, d.verdict, because);
+  }
+  for (const r of current) {
+    if (foundIds.has(r.id)) continue;
+    retireRule(rules, r, now);
+    // A rule that grew into another is not news: its successor already is.
+    if (!found.some((d) => d.verdict === r.verdict && (r.cases ?? []).some((k) => d.cases.includes(k)))) {
+      markRule(brain, r.id, 'retired', key, r.verdict, because);
+    }
   }
 }
 

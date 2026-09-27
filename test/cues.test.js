@@ -64,41 +64,135 @@ test('registering species replaces the previous map\'s and leaves the classic fr
   registerSpecies([]);
 });
 
-test('a trait rule needs more than one experience, then blocks untasted fruit that share it', async () => {
-  const { createFagi } = await import('../src/fagi.js');
-  const { eat } = await import('../src/feeding.js');
-  const { verdict } = await import('../src/learned/rules.js');
-  const rnd = seeded(11);
-  const chem = createChemistry(rnd);
-  registerSpecies(createSpecies(chem, 6, rnd));
-  const poisonSmell = Object.keys(chem.smell).find((s) => chem.smell[s] === 'poison');
-  const poisonous = speciesKeys().filter((k) => POINT_TYPES[k].traits.smell === poisonSmell);
-  assert.ok(poisonous.length >= 2);
+// Hand-made species, so each test knows exactly what shares what.
+// `name` is color-shape-smell; `feed` is what it does to hunger.
+function species(list) {
+  registerSpecies(list.map(([name, feed]) => {
+    const [color, shape, smell] = name.split('-');
+    return {
+      key: name,
+      spec: { color: '#fff', radius: 6, aroma: 130, life: 200, hunger: feed, effects: [], traits: { color, shape, smell }, painter: 'berry', species: true },
+    };
+  }));
+}
 
+// Eats until her own rule about it is written ('avoid' or 'prefer').
+async function taste(fagi, key) {
+  const { eat } = await import('../src/feeding.js');
+  const { activeRule } = await import('../src/learned/rules.js');
+  for (let i = 0; i < 12; i++) {
+    fagi.hunger = 50;
+    eat(fagi, key);
+    fagi.episode = null;
+    if (activeRule(fagi.brain.rules, key, 'avoid') || activeRule(fagi.brain.rules, key, 'prefer')) return;
+  }
+  throw new Error(`no rule about ${key}`);
+}
+
+const traitRules = (fagi) => fagi.brain.rules.list.filter((r) => !r.retired && r.when.all);
+
+test('one species is never generalized; two that agree give a rule with only what they share', async () => {
+  const { createFagi } = await import('../src/fagi.js');
+  const { verdict } = await import('../src/learned/rules.js');
+  species([['red-drop-sour', 25], ['blue-drop-sour', 25], ['green-drop-sour', 25], ['yellow-crystal-sour', 25]]);
   const fagi = createFagi();
-  fagi.hunger = 50;
-  eat(fagi, poisonous[0]);
-  assert.equal(fagi.brain.rules.list.some((r) => r.when.cue), false, 'one bite writes no trait rule');
-  eat(fagi, poisonous[0]);
-  const rule = fagi.brain.rules.list.find((r) => r.when.cue === `smell:${poisonSmell}`);
-  assert.ok(rule && !rule.retired, 'two bad bites write "avoid" for the smell');
-  assert.equal(verdict(fagi, 'eat', poisonous[1]), 'avoid', 'an untasted fruit with that smell is avoided');
-  assert.equal(verdict(fagi, 'eat', poisonous[1], { deliberate: true }), null, 'unless she goes for it on purpose: curiosity');
+
+  await taste(fagi, 'red-drop-sour');
+  assert.deepEqual(traitRules(fagi), [], 'one bad species says nothing about its traits yet');
+
+  await taste(fagi, 'blue-drop-sour');
+  const [rule] = traitRules(fagi);
+  assert.equal(rule.id, 'avoid-shape-drop-smell-sour', 'color differs, so it is dropped');
+  assert.deepEqual(rule.cases, ['blue-drop-sour', 'red-drop-sour']);
+  assert.equal(rule.pro, 2);
+  assert.equal(rule.con, 0);
+  assert.equal(verdict(fagi, 'eat', 'green-drop-sour'), 'avoid', 'an untasted sour drop is avoided');
+  assert.equal(verdict(fagi, 'eat', 'yellow-crystal-sour'), null, 'a sour crystal is not a drop');
+  assert.equal(verdict(fagi, 'eat', 'green-drop-sour', { deliberate: true }), null, 'unless she goes for it on purpose: curiosity');
   registerSpecies([]);
 });
 
-test('trait rules and trait weights survive export and import', async () => {
+test('a third case generalizes the rule, and the new rule says where it came from', async () => {
+  const { createFagi } = await import('../src/fagi.js');
+  species([['red-drop-sour', 25], ['blue-drop-sour', 25], ['yellow-crystal-sour', 25]]);
+  const fagi = createFagi();
+  await taste(fagi, 'red-drop-sour');
+  await taste(fagi, 'blue-drop-sour');
+  await taste(fagi, 'yellow-crystal-sour');
+
+  const [rule] = traitRules(fagi);
+  assert.equal(rule.id, 'avoid-smell-sour');
+  assert.equal(rule.from, 'avoid-shape-drop-smell-sour');
+  assert.equal(rule.pro, 3);
+  const old = fagi.brain.rules.list.find((r) => r.id === 'avoid-shape-drop-smell-sour');
+  assert.ok(old.retired, 'the narrower rule is retired, kept as history');
+  assert.equal(fagi.brain.lastRule.kind, 'refined');
+  registerSpecies([]);
+});
+
+test('a counterexample becomes an exception, not the end of the rule', async () => {
+  const { createFagi } = await import('../src/fagi.js');
+  const { verdict } = await import('../src/learned/rules.js');
+  species([
+    ['red-drop-sour', 25], ['blue-round-sour', 25], ['yellow-crystal-sour', 25],
+    ['purple-orb-sour', -35], ['purple-drop-sour', 25], ['green-drop-sour', 25],
+  ]);
+  const fagi = createFagi();
+  for (const k of ['red-drop-sour', 'blue-round-sour', 'yellow-crystal-sour']) await taste(fagi, k);
+  await taste(fagi, 'purple-orb-sour');
+
+  const [rule] = traitRules(fagi).filter((r) => r.verdict === 'avoid');
+  assert.equal(rule.id, 'avoid-smell-sour', 'still about sour things');
+  assert.equal(rule.con, 1);
+  assert.deepEqual(rule.except, ['color:purple'], 'what sets the good one apart');
+  assert.equal(verdict(fagi, 'eat', 'green-drop-sour'), 'avoid');
+  assert.equal(verdict(fagi, 'eat', 'purple-drop-sour'), null, 'a purple sour fruit is the exception');
+  registerSpecies([]);
+});
+
+test('a description contradicted as often as it holds is not a rule', async () => {
+  const { induce } = await import('../src/learned/induce.js');
+  const { createFagi } = await import('../src/fagi.js');
+  species([['red-drop-sour', 25], ['red-round-sweet', 25], ['red-orb-musky', -35], ['red-crystal-sharp', -35]]);
+  const fagi = createFagi();
+  for (const k of ['red-drop-sour', 'red-round-sweet', 'red-orb-musky', 'red-crystal-sharp']) await taste(fagi, k);
+  assert.deepEqual(induce(fagi.brain), [], 'red is as often good as bad: nothing to say about red');
+  registerSpecies([]);
+});
+
+test('with induction off, a trait rule comes from the trait\'s own weight', async () => {
   const { createFagi } = await import('../src/fagi.js');
   const { eat } = await import('../src/feeding.js');
+  const { CUES } = await import('../src/config.js');
+  CUES.induce = 0;
+  try {
+    const fagi = createFagi();
+    fagi.hunger = 50;
+    eat(fagi, 'toxic');
+    assert.deepEqual(traitRules(fagi), [], 'one bite writes no trait rule');
+    eat(fagi, 'toxic');
+    assert.ok(traitRules(fagi).some((r) => r.id === 'avoid-smell-rotten'), 'two bad bites write "avoid" for its smell');
+  } finally {
+    CUES.induce = 1;
+  }
+});
+
+test('induced rules survive export and import, and old one-trait rules still load', async () => {
+  const { createFagi } = await import('../src/fagi.js');
   const store = await import('../src/learned/store.js');
+  species([['red-drop-sour', 25], ['blue-drop-sour', 25]]);
   const fagi = createFagi();
-  fagi.hunger = 50;
-  eat(fagi, 'toxic');
-  eat(fagi, 'toxic');
+  await taste(fagi, 'red-drop-sour');
+  await taste(fagi, 'blue-drop-sour');
   const text = store.exportText(fagi);
-  assert.match(text, /"cue":"smell:rotten"/);
+  assert.match(text, /"all":\["shape:drop","smell:sour"\]/);
   const other = createFagi();
   store.importText(other, text);
   assert.deepEqual(Object.keys(other.brain.cues).sort(), Object.keys(fagi.brain.cues).sort());
-  assert.ok(other.brain.rules.list.some((r) => r.when.cue === 'smell:rotten'));
+  assert.deepEqual(traitRules(other), traitRules(fagi));
+
+  const old = `rule('avoid-smell-rotten', {"on":["eat"],"when":{"cue":"smell:rotten"},"verdict":"avoid","weight":-0.3,"because":[],"learnedAt":1,"tries":2,"stage":"short"})`;
+  store.importText(other, old);
+  assert.deepEqual(other.brain.rules.list[0].when, { all: ['smell:rotten'] });
+  registerSpecies([]);
 });

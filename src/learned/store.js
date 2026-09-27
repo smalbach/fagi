@@ -13,7 +13,7 @@
 
 import { modernize } from '../legacy.js';
 import { LEARN } from '../config.js';
-import { renderModule, parseModule } from './dsl.js';
+import { renderModule, parseModule, modernWhen } from './dsl.js';
 
 const KEY = 'fagi.learning';
 
@@ -76,7 +76,7 @@ export function restore(fagi, saved) {
   const facts = {};
   for (const [k, r] of Object.entries(snap.facts ?? {})) facts[k] = { ...r, lastAt: -Infinity };
   fagi.brain.facts = facts;
-  fagi.brain.rules.list = (snap.rules ?? []).map((r) => ({ ...r }));
+  fagi.brain.rules.list = (snap.rules ?? []).map((r) => ({ ...modernWhen(r) }));
   fagi.brain.rules.quarantined = new Set();
   fagi.brain.rules.seq += 1;
   fagi.brain.synapses = {};

@@ -43,8 +43,10 @@ export function paintNetwork(brushes, fagi, y) {
     concepts.add(placeConcept(k));
     right.push({ id: `place:${k}`, label: t('brainmap.place', { what: labelOf(k === 'foodSource' ? 'tree' : k) }), color: '#e8a33d', kind: 'place' });
   }
+  // A rule about traits hangs off the species it was induced from.
+  const aboutOf = (r) => (r.when.key ? [r.when.key] : r.cases ?? []);
   for (const r of rules) {
-    concepts.add(r.when.key);
+    for (const k of aboutOf(r)) concepts.add(k);
     right.push({ id: `rule:${r.id}`, label: r.id, color: r.verdict === 'avoid' ? RED : GREEN, kind: 'rule' });
   }
   const listC = [...concepts];
@@ -86,7 +88,9 @@ export function paintNetwork(brushes, fagi, y) {
     edges.push({ a: `key:${placeConcept(k)}`, b: `place:${k}`, w: p.confidence ?? 0.5, kind: 'place', born: p.born ?? -99 });
   }
   for (const r of rules) {
-    edges.push({ a: `key:${r.when.key}`, b: `rule:${r.id}`, w: Math.min(1, Math.abs(r.weight ?? 0.6) + 0.3), kind: 'rule', born: r.revisedAt ?? r.learnedAt ?? -99 });
+    for (const k of aboutOf(r)) {
+      edges.push({ a: `key:${k}`, b: `rule:${r.id}`, w: Math.min(1, Math.abs(r.weight ?? 0.6) + 0.3), kind: 'rule', born: r.revisedAt ?? r.learnedAt ?? -99 });
+    }
   }
 
   const edgeColor = (e) => (e.kind === 'hebb' ? '#6fa8dc'

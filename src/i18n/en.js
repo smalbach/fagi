@@ -114,6 +114,7 @@ export default {
   'brainmap.rk.new': 'written',
   'brainmap.rk.revised': 'revised',
   'brainmap.rk.retired': 'retired',
+  'brainmap.rk.refined': 'rewritten',
   'brainmap.noRuleYet': 'no rule yet: weight {w} of {need}',
 
   'stat.hunger': 'Hunger',
@@ -476,6 +477,13 @@ export default {
 
   // Wild species and their traits (chemistry.js). A species is named by its traits.
   'brainmap.traits': 'traits: {list}',
+  'brainmap.induced': '{pro} for · {con} against',
+  'brainmap.except': 'except {list}',
+  'brainmap.from': 'grew out of {id}',
+  // Checked against the map's hidden chemistry, which Fagi never sees.
+  'brainmap.truth': 'on this map: {ok} of {total} fruit it covers really {does}',
+  'brainmap.truth.avoid': 'harm',
+  'brainmap.truth.prefer': 'do good',
   'species.label': '{color} {shape}, {smell}',
   'cue.color': '{v}',
   'cue.shape': '{v} shape',

@@ -6,6 +6,7 @@ import { labelOf, t } from '../i18n.js';
 import { GREEN, RED, PURPLE, TEXT, DIM } from './palette.js';
 import { weightOf, changeOf, sign } from './reading.js';
 import { cuesOf } from '../learned/cues.js';
+import { ruleTruth } from '../chemistry.js';
 
 export function paintLearn(brushes, fagi, y) {
   const { s, text, chain, header } = brushes;
@@ -52,10 +53,29 @@ export function paintLearn(brushes, fagi, y) {
   if (aboutIt && lastRule.id) {
     items.push({ text: t('brainmap.ruleWritten', { id: lastRule.id, kind: t(`brainmap.rk.${lastRule.kind}`) }),
       color: lastRule.verdict === 'avoid' ? RED : GREEN, filled: lastRule.kind !== 'retired', bold: true });
+    const written = fagi.brain.rules.list.find((x) => x.id === lastRule.id);
+    if (written?.cases && !written.retired) items.push(...induced(written));
   } else if (r) {
     const w = weightOf(r);
     const missing = w >= 0 ? LEARN.preferFrom : LEARN.avoidFrom;
     items.push({ text: t('brainmap.noRuleYet', { w: Math.abs(w).toFixed(2), need: missing.toFixed(2) }), color: DIM });
   }
   return chain(items, pad, y, W - pad, lineH + 2 * s) + lineH;
+}
+
+// A rule induced from several species (learned/induce.js): the evidence for
+// and against it, its exceptions, the rule it grew out of, and how it compares
+// with the map's hidden chemistry, which Fagi herself never sees.
+function induced(rule) {
+  const items = [{ text: t('brainmap.induced', { pro: rule.pro, con: rule.con }), color: PURPLE }];
+  if (rule.except?.length) items.push({ text: t('brainmap.except', { list: rule.except.map(labelOf).join(', ') }), color: PURPLE });
+  if (rule.from) items.push({ text: t('brainmap.from', { id: rule.from }), color: DIM });
+  const truth = ruleTruth(rule);
+  if (truth.total) {
+    items.push({
+      text: t('brainmap.truth', { ok: truth.ok, total: truth.total, does: t(`brainmap.truth.${rule.verdict}`) }),
+      color: truth.ok === truth.total ? GREEN : RED,
+    });
+  }
+  return items;
 }

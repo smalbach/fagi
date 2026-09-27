@@ -13,6 +13,8 @@ const VERDICTS = ['avoid', 'prefer'];
 const STAGE_NAMES = ['short', 'medium', 'long'];
 const VALID_ID = /^[a-z0-9-]{1,64}$/;
 const CUE_FORM = /^[a-z]{1,20}:[a-z]{1,20}$/;
+const MAX_TRAITS = 6;
+const MAX_LIST = 12;
 
 function fail(msg) {
   throw new Error(`invalid rule: ${msg}`);
@@ -31,41 +33,86 @@ function validateBecause(because) {
   }
 }
 
+const isKey = (k) => typeof k === 'string' && k.length > 0 && k.length <= 80;
+const isCount = (v) => Number.isInteger(v) && v >= 0;
+
+// What a rule is about: a species ({ key: 'nectar' }) or every fruit that has
+// all of some traits ({ all: ['smell:sour', 'shape:drop'] }). The old form
+// { cue: 'smell:sour' } is a one-trait `all`.
+function validateWhen(when) {
+  if (!when || typeof when !== 'object') fail('"when" is missing');
+  const all = typeof when.cue === 'string' ? [when.cue] : when.all;
+  const aboutKey = isKey(when.key);
+  const aboutTraits = Array.isArray(all);
+  if (aboutKey === aboutTraits) fail('"when" must have either a "key" or "all" (a list of dimension:value)');
+  if (aboutKey) return { key: when.key };
+  if (all.length === 0 || all.length > MAX_TRAITS) fail(`"all" must list 1 to ${MAX_TRAITS} traits`);
+  if (all.some((c) => typeof c !== 'string' || !CUE_FORM.test(c))) fail('"all" has a malformed trait');
+  if (new Set(all).size !== all.length) fail('"all" repeats a trait');
+  return { all: [...all] };
+}
+
 // rule(id, spec) → the validated rule, or throws with a readable reason.
-// spec: { on, when:{key}, verdict, weight, because, learnedAt, revisedAt?,
-//         tries, stage, retired?, retiredAt? }
+// spec: { on, when:{key}|{all}, except?, verdict, weight, pro?, con?, cases?,
+//         because, learnedAt, revisedAt?, from?, tries, stage, retired?, retiredAt? }
+//   except: traits or species the rule does not hold for (its exceptions);
+//   pro/con: how many species she has tasted back it and contradict it;
+//   cases: the species that back it; from: the rule it grew out of.
 export function rule(id, spec) {
   if (typeof id !== 'string' || !VALID_ID.test(id)) fail(`id "${id}" is malformed`);
   if (!spec || typeof spec !== 'object') fail('the rule body is missing');
 
-  const { on, when, verdict, weight, because, learnedAt, revisedAt, tries, stage, retired, retiredAt, ...rest } = spec;
+  const {
+    on, when, except, verdict, weight, pro, con, cases, because, learnedAt, revisedAt, from,
+    tries, stage, retired, retiredAt, ...rest
+  } = spec;
   const extra = Object.keys(rest);
   if (extra.length) fail(`unknown fields: ${extra.join(', ')}`);
 
   if (!Array.isArray(on) || on.length === 0 || on.some((a) => !SCOPES.includes(a))) {
     fail(`"on" must be a non-empty list within ${SCOPES.join('|')}`);
   }
-  // About a species ({ key }) or about a trait ({ cue: 'smell:sour' }), never both.
-  const aboutKey = when && typeof when.key === 'string' && when.key && when.key.length <= 80;
-  const aboutCue = when && typeof when.cue === 'string' && CUE_FORM.test(when.cue);
-  if (!when || aboutKey === aboutCue) fail('"when" must have either a "key" or a "cue" (dimension:value)');
+  const about = validateWhen(when);
+  if (except !== undefined) {
+    if (!about.all) fail('only a rule about traits can have exceptions');
+    if (!Array.isArray(except) || except.length > MAX_LIST) fail(`"except" must be a list of at most ${MAX_LIST}`);
+    if (except.some((e) => !CUE_FORM.test(e) && !isKey(e))) fail('"except" has a malformed trait or species');
+  }
   if (!VERDICTS.includes(verdict)) fail(`"verdict" must be ${VERDICTS.join('|')}`);
   if (!isNumber(weight)) fail('"weight" must be numeric');
+  if (pro !== undefined && !isCount(pro)) fail('"pro" must be an integer ≥ 0');
+  if (con !== undefined && !isCount(con)) fail('"con" must be an integer ≥ 0');
+  if (cases !== undefined && (!Array.isArray(cases) || cases.length > MAX_LIST || !cases.every(isKey))) {
+    fail(`"cases" must be a list of at most ${MAX_LIST} species`);
+  }
   validateBecause(because);
   if (!isNumber(learnedAt)) fail('"learnedAt" must be numeric');
   if (revisedAt !== undefined && !isNumber(revisedAt)) fail('"revisedAt" must be numeric');
-  if (!Number.isInteger(tries) || tries < 0) fail('"tries" must be an integer ≥ 0');
+  if (from !== undefined && (typeof from !== 'string' || !VALID_ID.test(from))) fail('"from" must be a rule id');
+  if (!isCount(tries)) fail('"tries" must be an integer ≥ 0');
   if (!STAGE_NAMES.includes(stage)) fail(`"stage" must be ${STAGE_NAMES.join('|')}`);
   if (retired !== undefined && typeof retired !== 'boolean') fail('"retired" must be a boolean');
   if (retiredAt !== undefined && !isNumber(retiredAt)) fail('"retiredAt" must be numeric');
 
   return {
-    id, on: [...on], when: aboutKey ? { key: when.key } : { cue: when.cue }, verdict, weight,
+    id, on: [...on], when: about,
+    ...(except?.length ? { except: [...except] } : {}),
+    verdict, weight,
+    ...(pro !== undefined ? { pro } : {}),
+    ...(con !== undefined ? { con } : {}),
+    ...(cases !== undefined ? { cases: [...cases] } : {}),
     because: because.map((s) => ({ sense: s.sense, v: s.v })),
     learnedAt, ...(revisedAt !== undefined ? { revisedAt } : {}),
+    ...(from !== undefined ? { from } : {}),
     tries, stage,
     ...(retired ? { retired: true, retiredAt: retiredAt ?? learnedAt } : {}),
   };
+}
+
+// A rule kept from before `when.all` existed ({ cue }) in today's shape. For
+// rules that were never validated by rule() (the autosave in localStorage).
+export function modernWhen(r) {
+  return typeof r.when?.cue === 'string' ? { ...r, when: { all: [r.when.cue] } } : r;
 }
 
 // One line of code per rule. No commas or pretty formatting: the object is
