@@ -7,12 +7,14 @@ import { createRules } from './learned/rules.js';
 import { synthAfterLearn, synthCues, synthInduced } from './learned/synth.js';
 import { createCues, cuesOf, learnCues, predict, wariness } from './learned/cues.js';
 import { createSynapses, wire } from './synapses.js';
+import { logBite } from './learned/explain.js';
 
 // The brain is memory (what she believes) plus rules (what she has written
 // from what she believes). Memory is the single source of truth for value;
 // rules are the symbolic layer: existence, scope and explanation.
 //   synapses : the trace of what was learned, as connections (synapses.js).
 //   cues     : what each trait tends to mean (learned/cues.js).
+//   bites    : the last experiences with fruit, to explain herself (learned/explain.js).
 //   lastRule : the last rule written, revised or retired. The narrator
 //              reads it; no need to store it anywhere else.
 //   version  : goes up every time what she learned changes (each experience, and
@@ -23,7 +25,7 @@ import { createSynapses, wire } from './synapses.js';
 export function createBrain() {
   return {
     ...createMemory(), rules: createRules(), lastRule: null, synapses: createSynapses(),
-    cues: createCues(), version: 0,
+    cues: createCues(), bites: [], version: 0,
   };
 }
 
@@ -81,6 +83,8 @@ export function choose(brain, candidates) {
 export function learn(brain, key, reward, now, because = []) {
   const change = reinforce(brain, key, reward, now, BRAIN.learnRate);
   synthAfterLearn(brain, key, change, because, now);
+  // Kept to point at later, when she explains herself (learned/explain.js).
+  logBite(brain, key, reward, now, because.some((s) => s.sense === 'peril'));
   // The same experience teaches about each trait of what she ate.
   const traits = CUES.enabled ? cuesOf(key) : [];
   if (traits.length) {

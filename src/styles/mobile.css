@@ -65,3 +65,8 @@
   #screen { padding: 16px 10px 24px; }
   .screen-form input, #code-tools select, #code-tools input[type=text], #rp-speed, #lang { font-size: 16px; }
 }
+
+/* The ask card sits under the map instead of over it on narrow screens. */
+@media (max-width: 860px) {
+  #ask-card { left: 10px; right: 10px; bottom: 10px; width: auto; max-height: 40vh; }
+}

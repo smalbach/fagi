@@ -31,8 +31,12 @@ const PAN_KEYS = {
   a: [-1, 0], d: [1, 0], w: [0, -1], s: [0, 1],
 };
 
+// Not a type to place: the tool that asks Fagi what she thinks of a fruit (ask.js).
+export const ASK = 'ask';
+
 export function createInput(canvas, world, camera) {
-  // selected = a POINT_TYPES or OBJECT_TYPES key.
+  // selected = a POINT_TYPES or OBJECT_TYPES key, or ASK.
+  // onAsk(x, y) = what to do when asking at a world point (main.js sets it).
   const state = { selectedType: TYPE_KEYS[0], editable: true };
   const pressed = new Set();
 
@@ -61,7 +65,7 @@ export function createInput(canvas, world, camera) {
   let grip = null;
   let justDragged = false;
   canvas.addEventListener('mousedown', (e) => {
-    if (e.button !== 0 || !state.editable) return;
+    if (e.button !== 0 || !state.editable || state.selectedType === ASK) return;
     const p = worldPoint(e);
     const obj = objectAt(world, p.x, p.y);
     if (obj) grip = { obj, x0: e.clientX, y0: e.clientY, dx: obj.x - p.x, dy: obj.y - p.y, moving: false };
@@ -88,6 +92,8 @@ export function createInput(canvas, world, camera) {
 
   canvas.addEventListener('click', (e) => {
     if (justDragged) { justDragged = false; return; }
+    // Asking changes nothing in the world: it works while replaying too.
+    if (state.selectedType === ASK) { const p = worldPoint(e); state.onAsk?.(p.x, p.y); return; }
     if (!state.editable) return;
     const { x, y } = worldPoint(e);
 

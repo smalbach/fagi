@@ -4,7 +4,8 @@
 // It stores keys and data, never sentences: the console translates them when
 // painting, so switching language also rewrites the history already written.
 
-import { MEMORY, BRAIN, WATER } from './config.js';
+import { MEMORY, BRAIN, WATER, POINT_TYPES } from './config.js';
+import { explain, lines, stance } from './learned/explain.js';
 
 const MIN_SCORE = BRAIN.minScore;
 import { t } from './i18n.js';
@@ -39,6 +40,7 @@ export const TAG_COLOR = {
   shelter: '#6f9fbf',
   api: '#4cc9f0',
   rethink: '#f0c75e',
+  why: '#b57bff',
 };
 
 export function createNarrator() {
@@ -46,7 +48,7 @@ export function createNarrator() {
     lines: [],
     prev: { action: null, drinking: false, swimming: false, dunk: 0, probed: false, raining: false, pressureFalling: false, rainLesson: 0, pressureLesson: 0, puddleGone: 0, meal: 0, drink: 0, water: 0,
             picked: 0, stored: 0, pantry: 0, alive: true,
-            stages: {}, trusted: {}, rule: 0, peril: 0, rethink: 0, leg: 0 },
+            stages: {}, trusted: {}, why: {}, rule: 0, peril: 0, rethink: 0, leg: 0 },
     seq: 0,
   };
 }
@@ -243,6 +245,17 @@ export function narrate(narr, fagi) {
     p.drinking = fagi.drinking;
   }
 
+  // A fruit she has never tasted: what she makes of it, and why. Told the
+  // first time she perceives each kind, and again whenever her opinion of it
+  // changes (a rule written, a bite of something like it).
+  for (const c of fagi.perceived?.ranked ?? []) {
+    if (c.kind !== 'food' || !POINT_TYPES[c.key]?.traits || fagi.brain.facts[c.key]?.tries > 0) continue;
+    const now = stance(fagi, c.key);
+    if (p.why[c.key] === now) continue;
+    p.why[c.key] = now;
+    push(narr, fagi, 'why', { key: 'log.why', params: { what: { key: `type.${c.key}` } } }, whyDetail(explain(fagi, c.key)));
+  }
+
   // Something new entered what she perceives: what she did about it.
   if (fagi.rethink && fagi.rethink.n !== p.rethink) {
     p.rethink = fagi.rethink.n;
@@ -268,6 +281,17 @@ export function narrate(narr, fagi) {
   }
 
   return narr.lines;
+}
+
+// The explanation in a console line: the stance, the reason that weighs most,
+// one bite behind it and the counterfactual. The full list is for the ask card.
+function whyDetail(ex) {
+  const all = lines(ex);
+  const [stanceLine, , ...rest] = all;
+  const reason = rest.find((l) => /^why\.(rule|ruleInduced|traitBad|traitGood|nothingLikeIt)$/.test(l.key));
+  const bite = rest.find((l) => l.key.startsWith('why.bite.'));
+  const ifLine = rest.find((l) => l.key.startsWith('why.if'));
+  return [stanceLine, reason, bite, ifLine].filter(Boolean);
 }
 
 // The line for a rethink: what she saw, where, and whether she kept going or

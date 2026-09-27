@@ -10,6 +10,7 @@ import { configIdOf } from './settings.js';
 import { setFruitInterval } from './trees.js';
 import { t, labelOf, onLangChange, formatDuration } from './i18n.js';
 import { recall } from './memory.js';
+import { ASK } from './input.js';
 
 // Short summary of what each type does, for the button.
 function hintOfFood(spec) {
@@ -42,6 +43,7 @@ function buildTypeButtons(foodBox, objectBox, input) {
 
   for (const key of TYPE_KEYS) make(key, POINT_TYPES[key], hintOfFood(POINT_TYPES[key]), foodBox);
   for (const key of OBJECT_KEYS) make(key, OBJECT_TYPES[key], hintOfObject(OBJECT_TYPES[key]), objectBox);
+  make(ASK, { color: '#b57bff' }, t('why.askHint'), objectBox);
 
   function select(key) {
     input.selectedType = key;

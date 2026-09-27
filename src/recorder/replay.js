@@ -314,6 +314,8 @@ function putMind(fagi, state, t) {
   for (const [a, b, kind, w, born] of m.synapses ?? []) fagi.brain.synapses[`${a}>${b}`] = { a, b, kind, w, born, last: t, n: 0 };
   fagi.brain.places = m.places ?? {};
   fagi.brain.puddleLife = m.puddleLife ?? null;
+  fagi.brain.cues = m.cues ?? {};
+  fagi.brain.bites = m.bites ?? [];
   if (typeof m.explored === 'string' && fagi.explored?.length === m.explored.length) {
     for (let i = 0; i < m.explored.length; i++) fagi.explored[i] = Number(m.explored[i]);
   }

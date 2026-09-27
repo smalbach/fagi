@@ -74,6 +74,18 @@ function reportLearning(runs) {
     const exceptions = traitRules.filter((r) => r.except).length;
     L.push(`  ${pad('trait rules vs truth', 22)} ${traitRules.length} rules, ${right} fully right (${pctOf(right, traitRules.length)}); ${pctOf(ok, covered)} of the fruit they cover really do what they say; ${exceptions} with exceptions`);
   }
+  // Opinions about untasted fruit (each change of her stance on one): every
+  // cautious or eager one should trace back to bites she really took.
+  const opinions = runs.flatMap((r) => r.learning?.opinions ?? []);
+  if (opinions.length) {
+    const by = {};
+    for (const o of opinions) by[o.stance] = (by[o.stance] ?? 0) + 1;
+    const formed = opinions.filter((o) => o.stance !== 'curious');
+    const traced = formed.filter((o) => o.traced).length;
+    const hanging = formed.filter((o) => o.without).length;
+    L.push(`  ${pad('opinions on untasted', 22)} ${opinions.length}: ${Object.entries(by).map(([k, v]) => `${k} ${v}`).join(' · ')}`);
+    L.push(`  ${pad('traced to real bites', 22)} ${traced}/${formed.length} (${pctOf(traced, formed.length)}); ${hanging} would change with one trait less`);
+  }
   L.push('');
   return L;
 }

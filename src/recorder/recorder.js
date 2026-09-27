@@ -296,6 +296,9 @@ function mind(fagi, now) {
       x: step(p.x, 5), y: step(p.y, 5), error: step(p.error, 10), confidence: round(p.confidence, 1), stage: p.stage,
     }])),
     puddleLife: fagi.brain?.puddleLife != null ? Math.round(fagi.brain.puddleLife) : null,
+    // What each trait means to her and the bites she explains herself with.
+    cues: Object.fromEntries(Object.entries(fagi.brain?.cues ?? {}).map(([c, e]) => [c, { w: round(e.w, 2), n: e.n }])),
+    bites: fagi.brain?.bites ?? [],
     explored: fagi.explored ? Array.from(fagi.explored, (v) => Math.round(v)).join('') : null,
     episode: episode(fagi.lastEpisode),
     // Effects are stored by when they end, not by how much is left:

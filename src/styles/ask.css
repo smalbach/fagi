@@ -1,0 +1,23 @@
+/* --- "Ask Fagi" card (ask.js): what she thinks of a fruit, and why --- */
+#ask-card {
+  position: absolute;
+  left: 28px;
+  bottom: 28px;
+  width: min(360px, calc(100% - 56px));
+  max-height: 60%;
+  overflow-y: auto;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  border: 1px solid var(--line);
+  border-left: 3px solid #b57bff;
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.45);
+  font-size: 12.5px;
+  z-index: 5;
+}
+#ask-card[hidden] { display: none; }
+#ask-card header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+#ask-card header b { flex: 1; }
+#ask-card header button { width: auto; padding: 0 6px; line-height: 1.4; background: none; border: 0; color: var(--muted); font-size: 16px; cursor: pointer; }
+#ask-card p { margin: 3px 0; color: var(--muted); }
+#ask-card p.stance { color: var(--text); font-weight: 600; }

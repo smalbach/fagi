@@ -127,7 +127,7 @@ const RULE_LINE = /^(?:\/\/ (?:retired|retirada) [\d.]+s: )?rule\('([a-z0-9-]{1,
 const MEMORY_LINE = /^export const (?:memory|memoria) = (\{.*\});$/;
 
 // The complete module, exactly as it's exported and shown in the panel.
-export function renderModule(rules, facts, { age, puddleLife = null, synapses = null, cues = null } = {}) {
+export function renderModule(rules, facts, { age, puddleLife = null, synapses = null, cues = null, bites = null } = {}) {
   const activeOnes = rules.filter((r) => !r.retired);
   const retiredList = rules.filter((r) => r.retired);
   const header = `// Code learned by Fagi · age ${(age ?? 0).toFixed(1)}s · ` +
@@ -144,6 +144,7 @@ export function renderModule(rules, facts, { age, puddleLife = null, synapses = 
   if (cues && Object.keys(cues).length) {
     memoryOf.cues = Object.fromEntries(Object.entries(cues).map(([c, e]) => [c, { w: Math.round(e.w * 1000) / 1000, n: e.n }]));
   }
+  if (bites?.length) memoryOf.bites = bites;
   const memoryLine = `export const memory = ${JSON.stringify(memoryOf)};`;
   return `${header}import { rule } from './dsl.js';\n\n${rulesLine}\n${memoryLine}\n`;
 }
@@ -161,6 +162,7 @@ export function parseModule(text) {
   let puddleLife = null;
   let synapses = {};
   let cues = {};
+  let bites = [];
   let seenMemory = false;
 
   for (const line of text.split('\n')) {
@@ -189,6 +191,7 @@ export function parseModule(text) {
         }
         synapses = validateSynapses(data.synapses);
         cues = validateCues(data.cues);
+        bites = validateBites(data.bites);
         seenMemory = true;
       }
     }
@@ -196,7 +199,14 @@ export function parseModule(text) {
   }
 
   if (!seenMemory && rules.length === 0) throw new Error('no rule or memory recognized in the file');
-  return { rules, facts, puddleLife, synapses, cues };
+  return { rules, facts, puddleLife, synapses, cues, bites };
+}
+
+// Only well-formed experiences get in: a fruit, when, and how it felt.
+function validateBites(bites) {
+  if (!Array.isArray(bites)) return [];
+  return bites.slice(-200).filter((b) => b && isKey(b.key) && isNumber(b.at) && isNumber(b.reward))
+    .map((b) => ({ key: b.key, at: b.at, reward: b.reward, ...(b.late === true ? { late: true } : {}) }));
 }
 
 // Only well-formed traits get in: 'dimension:value' with a weight in [-1, 1].

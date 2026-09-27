@@ -43,6 +43,8 @@ export function snapshot(fagi) {
     puddleLife: fagi.brain.puddleLife ?? null,
     // What each trait tends to mean (learned/cues.js).
     cues: fagi.brain.cues ?? {},
+    // The experiences she points at when she explains herself (learned/explain.js).
+    bites: fagi.brain.bites ?? [],
   };
 }
 
@@ -84,26 +86,29 @@ export function restore(fagi, saved) {
   fagi.brain.puddleLife = snap.puddleLife ?? null;
   fagi.brain.cues = {};
   for (const [c, e] of Object.entries(snap.cues ?? {})) fagi.brain.cues[c] = { ...e, lastAt: 0 };
+  fagi.brain.bites = (snap.bites ?? []).map((b) => ({ ...b }));
   fagi.brain.version = (fagi.brain.version ?? 0) + 1;
 }
 
 export function exportText(fagi) {
   return renderModule(fagi.brain.rules.list, fagi.brain.facts, {
     age: fagi.age, puddleLife: fagi.brain.puddleLife, synapses: learnedSynapses(fagi), cues: fagi.brain.cues,
+    bites: fagi.brain.bites,
   });
 }
 
 // Reads an imported file and, if valid, replaces what was learned. Throws with
 // a readable reason if it isn't; in that case it doesn't touch Fagi's memory.
 export function importText(fagi, text) {
-  const { rules, facts, puddleLife, synapses, cues } = parseModule(text);
-  restore(fagi, { facts, rules, puddleLife, synapses, cues });
+  const { rules, facts, puddleLife, synapses, cues, bites } = parseModule(text);
+  restore(fagi, { facts, rules, puddleLife, synapses, cues, bites });
 }
 
 export function wipe(fagi, storage = safeStorage()) {
   fagi.brain.facts = {};
   fagi.brain.synapses = {};
   fagi.brain.cues = {};
+  fagi.brain.bites = [];
   fagi.brain.puddleLife = null;
   fagi.brain.version = (fagi.brain.version ?? 0) + 1;
   fagi.brain.rules.list = [];

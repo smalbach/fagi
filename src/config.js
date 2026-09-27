@@ -261,6 +261,14 @@ export const CUES = {
   induceMin: 2,       // species that must agree before she generalizes from them
 };
 
+// Explanations (learned/explain.js): why she thinks what she thinks of a fruit.
+export const EXPLAIN = {
+  log: 80,            // experiences with fruit she keeps to point at
+  examples: 4,        // bites quoted in one explanation
+  wary: 0.5,          // wariness from which she won't go out of her way for it
+  tempted: 0.1,       // predicted good (x confidence) from which it looks good
+};
+
 // External decision: an API that receives what Fagi perceives and returns what
 // to do. Instinct stays in charge when the API is silent, slow or wrong.
 //

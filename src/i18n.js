@@ -107,8 +107,10 @@ function two(n) {
 }
 
 // A text that can be a key with parameters: { key, params } or already a string.
+// A list of them reads as sentences one after another.
 export function tx(value) {
   if (!value) return '';
+  if (Array.isArray(value)) return value.map(tx).filter(Boolean).join(' ');
   return typeof value === 'string' ? value : t(value.key, value.params);
 }
 
@@ -127,9 +129,11 @@ function traitLabel(key) {
   }
   const traits = POINT_TYPES[key]?.species ? POINT_TYPES[key].traits : null;
   if (!traits) return null;
-  return t('species.label', {
-    color: t(`trait.${traits.color}`), shape: t(`trait.${traits.shape}`), smell: t(`trait.${traits.smell}`),
-  });
+  // Where the language has grammatical gender, the color agrees with the
+  // shape's noun ('gota roja', 'cristal rojo').
+  const gender = DICT[lang][`gender.${traits.shape}`];
+  const color = (gender && DICT[lang][`trait.${traits.color}.${gender}`]) ?? t(`trait.${traits.color}`);
+  return t('species.label', { color, shape: t(`trait.${traits.shape}`), smell: t(`trait.${traits.smell}`) });
 }
 
 // Fills in the HTML's fixed texts (the ones with data-i18n) and does it

@@ -16,6 +16,7 @@ import { step } from './simulation.js';
 import { updateTrails } from './smell.js';
 import { render } from './render.js';
 import { createInput } from './input.js';
+import { createAskCard } from './ask.js';
 import { createCamera, centerOn, fit } from './camera.js';
 import { createUI } from './ui.js';
 import { versionLabel, versionTitle } from './version.js';
@@ -64,6 +65,9 @@ export function createGame({ onExit } = {}) {
   const camera = fit(createCamera(world), canvas, world);
 
   const input = createInput(canvas, world, camera);
+  const ask = createAskCard(document.getElementById('ask-card'));
+  // Ask about the Fagi on screen: the live one, or the one being replayed.
+  input.onAsk = (x, y) => (player ? ask.show(player.fagi, player.world, x, y) : ask.show(fagi, world, x, y));
   const ui = createUI(input, world, () => finishUp('user'));
   // Which version is running: to know what's in production.
   const tagLabel = document.getElementById('app-version');
@@ -233,6 +237,7 @@ export function createGame({ onExit } = {}) {
     console.update(fagi, lines);
     learnedPanel.update();
     brainMap.update(fagi, world);
+    ask.update(fagi);
   }
 
   function frameReplay(dt) {
@@ -256,6 +261,7 @@ export function createGame({ onExit } = {}) {
     console.update(player.fagi, player.log);
     learnedPanel.update(player.fagi);
     brainMap.update(player.fagi, player.world);
+    ask.update(player.fagi);
     onReplayFrame?.(player, replaying);
   }
 

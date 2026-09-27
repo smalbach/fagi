@@ -73,10 +73,13 @@ export function quarantine(rules, id) {
 // What she has tasted is judged by its own rules. Only a species she has never
 // tasted is judged by its traits: a rule about sour things is a guess, and her
 // own experience with a fruit always outweighs a guess.
-export function verdict(fagi, scope, key, { deliberate = false } = {}) {
+//
+// `traits` asks "what if it had these traits instead?" (explain.js, the
+// counterfactual); by default, the ones it has.
+export function verdict(fagi, scope, key, { deliberate = false, traits: asIf = null } = {}) {
   const rules = fagi.brain.rules;
   const tasted = (fagi.brain.facts[key]?.tries ?? 0) > 0;
-  const traits = CUES.enabled && !tasted ? cuesOf(key) : [];
+  const traits = CUES.enabled && !tasted ? asIf ?? cuesOf(key) : [];
   let result = null;
   for (const r of liveRules(rules)) {
     try {

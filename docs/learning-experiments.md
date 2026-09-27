@@ -120,6 +120,39 @@ node scripts/batch.js --map-seed 1 --runs 12 --duration 1800 --world-varies \
   --set MAPGEN.species=6 --set CUES.induce=1 --json out.json
 ```
 
+## Phase 3: explanations
+
+`src/learned/explain.js` answers "what do you think of this fruit, and why?"
+from the same sources the decision uses (`rules.verdict`, `cues.predict`),
+plus a log of her last 80 experiences with fruit (`brain.bites`, saved and
+exported with the rest). An explanation has:
+
+- her **stance**: avoid (a rule forbids it), wary, curious, tempted, and for
+  fruit she has tasted, likes or dislikes;
+- the **rule** behind it, with its evidence for and against and its exceptions;
+- the **trait** that weighs most, with what the kinds she tasted with it did;
+- the **bites** it rests on: the latest bite of each kind involved, the ones
+  that agree with her stance first;
+- a **counterfactual**, for cautious stances: the single trait that, taken
+  away, would change her mind (asked by re-running the same verdict and
+  prediction without it), or that no single trait would.
+
+The narrator writes one line each time her opinion of an untasted fruit she
+perceives changes, and the **Ask Fagi** tool (in the object palette; also
+works while replaying) opens a card for any fruit or tree clicked, which
+stays current while she learns.
+
+Measured on the same 48 chemistry runs (`opinions on untasted` in the report):
+402 opinion changes, 334 of them "curious" (nothing to go on yet). All 68 others
+(28 avoid, 7 wary, 33 tempted) trace back to bites she really took, and 33 of
+the 35 cautious ones hang on a single trait. Behavior is unchanged: explaining
+is read-only (33/48 alive, and the fingerprints match the previous commit).
+
+Explanations also make mistakes visible. In one run she avoids a red crystal
+because "crystal" things made her sick, while the real culprit was their
+musky smell. Her counterfactual says so: "Without its crystal shape, I'd give
+it a try." That is a superstition, and now it can be read.
+
 ## Cost
 
 A chemistry map costs about 190 µs per simulation step on one core (six trees,

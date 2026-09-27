@@ -10,6 +10,7 @@ import * as CONFIG from '../../src/config.js';
 import { rng, withRng } from './random.js';
 import { round, mean } from './stats.js';
 import { isHarmful, isHelpful, ruleTruth } from '../../src/chemistry.js';
+import { explain, stance } from '../../src/learned/explain.js';
 
 const { WORLD } = CONFIG;
 
@@ -94,7 +95,7 @@ function newFollow(opts, fagi) {
     picked: 0,
     rocks: 0,
     prev: { x: fagi.x, y: fagi.y },
-    learning: { bites: [], met: {}, eaten: 0 },
+    learning: { bites: [], met: {}, eaten: 0, stances: {}, opinions: [] },
   };
 }
 
@@ -103,6 +104,17 @@ function newFollow(opts, fagi) {
 // Fagi never sees it, the runner only uses it to score her.
 function noteLearning(l, fagi) {
   for (const { point } of fagi.perceived?.seen ?? []) l.met[point.type] ??= round(fagi.age);
+  // Each time her opinion of a fruit she sees but has never tasted changes (the
+  // same moments the narrator tells): what she now makes of it, and whether
+  // that can be traced to bites she really took (learned/explain.js).
+  for (const c of fagi.perceived?.ranked ?? []) {
+    if (c.kind !== 'food' || !CONFIG.POINT_TYPES[c.key]?.traits || fagi.brain.facts[c.key]?.tries > 0) continue;
+    const now = stance(fagi, c.key);
+    if (l.stances[c.key] === now) continue;
+    l.stances[c.key] = now;
+    const ex = explain(fagi, c.key);
+    l.opinions.push({ t: round(fagi.age), key: c.key, stance: now, traced: ex.bites.length > 0, rule: ex.rule?.id ?? null, without: ex.counterfactual?.without ?? null });
+  }
   if (fagi.eaten > l.eaten) {
     l.eaten = fagi.eaten;
     const m = fagi.lastMeal;
@@ -131,6 +143,7 @@ function learningSummary(l, fagi) {
     // First bites of harmful kinds: each is a lesson paid for with her body.
     harmfulFirstBites: l.bites.filter((b) => b.first && isHarmful(b.type)).length,
     traitRules,
+    opinions: l.opinions,
     biteLog: l.bites,
   };
 }
