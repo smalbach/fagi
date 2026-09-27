@@ -215,51 +215,59 @@ export function createGame({ onExit } = {}) {
   }
 
   // --- bucle ---
+  function frameSetup(dt) {
+    updateTrails(world, dt);
+    render(ctx, world, null, camera);
+  }
+
+  function framePlay(dt) {
+    step(world, fagi, dt);
+    const lineas = narrate(narrator, fagi);
+    if (session && !session.rec.ended) {
+      session.rec.observe(fagi, lineas);
+      if (!fagi.alive) cerrarGrabacion('death');
+    }
+    if (camera.seguir) centrarEn(camera, canvas, world, fagi);
+    render(ctx, world, fagi, camera);
+    ui.update(fagi, world);
+    consola.update(fagi, lineas);
+    learnedPanel.update();
+    brainMap.update(fagi, world);
+  }
+
+  function frameReplay(dt) {
+    if (reproduciendo.on) {
+      player.advance(dt * reproduciendo.speed);
+      if (player.time >= player.duration) reproduciendo.on = false;
+    }
+    if (player.configSeq !== reproduciendo.configSeq) {
+      applyConfig(player.config);
+      reproduciendo.configSeq = player.configSeq;
+    }
+    updateTrails(player.world, dt);
+    if (camera.seguir) centrarEn(camera, canvas, player.world, player.fagi);
+    render(ctx, player.world, player.fagi, camera);
+    ui.update(player.fagi, player.world);
+    // Volver atrás deja en la consola líneas del futuro: se repinta entera.
+    if (player.logEpoch !== reproduciendo.logEpoch) {
+      consola.reset();
+      reproduciendo.logEpoch = player.logEpoch;
+    }
+    consola.update(player.fagi, player.log);
+    learnedPanel.update(player.fagi);
+    brainMap.update(player.fagi, player.world);
+    onReplayFrame?.(player, reproduciendo);
+  }
+
   let last = performance.now();
   function loop(now) {
     const dt = Math.min((now - last) / 1000, MAX_DT);
     last = now;
     input.pan(dt);
 
-    if (mode === 'setup') {
-      updateTrails(world, dt);
-      render(ctx, world, null, camera);
-    } else if (mode === 'play') {
-      step(world, fagi, dt);
-      const lineas = narrate(narrator, fagi);
-      if (session && !session.rec.ended) {
-        session.rec.observe(fagi, lineas);
-        if (!fagi.alive) cerrarGrabacion('death');
-      }
-      if (camera.seguir) centrarEn(camera, canvas, world, fagi);
-      render(ctx, world, fagi, camera);
-      ui.update(fagi, world);
-      consola.update(fagi, lineas);
-      learnedPanel.update();
-      brainMap.update(fagi, world);
-    } else if (mode === 'replay' && player) {
-      if (reproduciendo.on) {
-        player.advance(dt * reproduciendo.speed);
-        if (player.time >= player.duration) reproduciendo.on = false;
-      }
-      if (player.configSeq !== reproduciendo.configSeq) {
-        applyConfig(player.config);
-        reproduciendo.configSeq = player.configSeq;
-      }
-      updateTrails(player.world, dt);
-      if (camera.seguir) centrarEn(camera, canvas, player.world, player.fagi);
-      render(ctx, player.world, player.fagi, camera);
-      ui.update(player.fagi, player.world);
-      // Volver atrás deja en la consola líneas del futuro: se repinta entera.
-      if (player.logEpoch !== reproduciendo.logEpoch) {
-        consola.reset();
-        reproduciendo.logEpoch = player.logEpoch;
-      }
-      consola.update(player.fagi, player.log);
-      learnedPanel.update(player.fagi);
-      brainMap.update(player.fagi, player.world);
-      onReplayFrame?.(player, reproduciendo);
-    }
+    if (mode === 'setup') frameSetup(dt);
+    else if (mode === 'play') framePlay(dt);
+    else if (mode === 'replay' && player) frameReplay(dt);
 
     requestAnimationFrame(loop);
   }
