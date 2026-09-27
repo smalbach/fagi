@@ -84,8 +84,10 @@ function placeFarFrom(world, type, count, origin, minDistance, maxDistance, pref
 
 // A map with its own chemistry: one tree per wild species, spread all around
 // the nest so that she meets them one by one, not all at once.
-function placeSpecies(world, nest) {
-  const chem = createChemistry();
+// `chemistry`: impose one instead of drawing it (generations in batch keep the
+// same chemistry across maps, until it changes on purpose).
+function placeSpecies(world, nest, chemistry = null) {
+  const chem = chemistry ?? createChemistry();
   const species = createSpecies(chem, MAPGEN.species);
   registerSpecies(species);
   world.chemistry = chem;
@@ -103,7 +105,7 @@ function placeSpecies(world, nest) {
   });
 }
 
-export function generateMap(world) {
+export function generateMap(world, { chemistry = null } = {}) {
   // The nest goes first and close to where Fagi spawns: it's her starting point.
   const cx = WORLD.width / 2;
   const cy = WORLD.height / 2;
@@ -112,7 +114,7 @@ export function generateMap(world) {
 
   placeNearSpawn(world, 'water', MAPGEN.pools, 175, 240);
   if (MAPGEN.species > 0) {
-    placeSpecies(world, nest);
+    placeSpecies(world, nest, chemistry);
   } else {
     registerSpecies([]);
     world.chemistry = null;

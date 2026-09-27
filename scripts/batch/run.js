@@ -115,7 +115,7 @@ const MYTH_EVERY = 10;   // seconds between looks at what everyone believes
 
 // Is a rule false on this map? A rule about a species, if the species does the
 // opposite; one about traits, if some fruit it covers does not do what it says.
-function isFalse(r) {
+export function isFalse(r) {
   if (r.when.key) {
     if (!CONFIG.POINT_TYPES[r.when.key]) return false;
     return r.verdict === 'avoid' ? !isHarmful(r.when.key) : isHarmful(r.when.key);
@@ -124,13 +124,13 @@ function isFalse(r) {
   return t.total > 0 && t.ok < t.total;
 }
 
-function createMythLog() {
+export function createMythLog() {
   return { rules: {}, toldTrue: 0, toldFalse: 0 };
 }
 
 // Every so often: who holds which false rule without having lived it. A myth
 // is born the first time someone holds it that way, and dies when nobody does.
-function noteMyths(log, colony, now) {
+export function noteMyths(log, colony, now) {
   const holders = {};
   for (const f of colony.ants) {
     if (!f.alive) continue;
@@ -148,7 +148,7 @@ function noteMyths(log, colony, now) {
   for (const [id, m] of Object.entries(log.rules)) if (!holders[id] && m.died == null) m.died = now;
 }
 
-function mythSummary(log, end) {
+export function mythSummary(log, end) {
   const all = Object.entries(log.rules);
   return {
     born: all.length,
@@ -196,7 +196,7 @@ function newFollow(opts, fagi) {
 // Learning: every bite (what, when, how it felt) and when she first saw each
 // kind of fruit. Whether a fruit is harmful is ground truth from chemistry.js:
 // Fagi never sees it, the runner only uses it to score her.
-function noteLearning(l, fagi) {
+export function noteLearning(l, fagi) {
   for (const { point } of fagi.perceived?.seen ?? []) l.met[point.type] ??= round(fagi.age);
   // Each time her opinion of a fruit she sees but has never tasted changes (the
   // same moments the narrator tells): what she now makes of it, and whether
@@ -207,7 +207,7 @@ function noteLearning(l, fagi) {
     if (l.stances[c.key] === now) continue;
     l.stances[c.key] = now;
     const ex = explain(fagi, c.key);
-    l.opinions.push({ t: round(fagi.age), key: c.key, stance: now, traced: ex.bites.length > 0 || Boolean(ex.rule?.source), told: ex.rule?.source?.kind ?? null, rule: ex.rule?.id ?? null, without: ex.counterfactual?.without ?? null });
+    l.opinions.push({ t: round(fagi.age), key: c.key, stance: now, traced: ex.bites.length > 0 || Boolean(ex.rule?.source) || ex.trait?.innate != null, told: ex.rule?.source?.kind ?? null, rule: ex.rule?.id ?? null, without: ex.counterfactual?.without ?? null });
   }
   if (fagi.eaten > l.eaten) {
     l.eaten = fagi.eaten;
@@ -217,7 +217,7 @@ function noteLearning(l, fagi) {
   }
 }
 
-function learningSummary(l, fagi) {
+export function learningSummary(l, fagi) {
   const kinds = Object.keys(l.met);
   const bitten = new Set(l.bites.map((b) => b.type));
   const harmfulMet = kinds.filter(isHarmful);

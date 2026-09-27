@@ -563,4 +563,8 @@ export default {
   'colony.size': 'Hermanas en la colonia',
   'log.sawBad': 'le sentó mal: aprende un poco, sin haberlo probado',
   'log.sawGood': 'le sentó bien: aprende un poco, sin haberlo probado',
+  // Generaciones (generations.js).
+  'why.born': 'Me lo enseñó Fagi {from} al nacer; me fío un {trust}%.',
+  'why.innateBad': 'Nací desconfiando de lo que tiene {trait}.',
+  'why.innateGood': 'Nací atraída por lo que tiene {trait}.',
 };

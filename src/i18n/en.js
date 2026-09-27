@@ -561,4 +561,8 @@ export default {
   'colony.size': 'Sisters in the colony',
   'log.sawBad': 'it made her sick: she learns a little, without having tasted it',
   'log.sawGood': 'it did her good: she learns a little, without having tasted it',
+  // Generations (generations.js).
+  'why.born': 'Fagi {from} taught it to me when I was born; I trust it {trust}%.',
+  'why.innateBad': 'I was born wary of anything with a {trait}.',
+  'why.innateGood': 'I was born drawn to anything with a {trait}.',
 };

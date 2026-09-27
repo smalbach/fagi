@@ -68,6 +68,18 @@ export function createChemistry(rnd = Math.random) {
   };
 }
 
+// The same chemistry turned upside down: the smell that poisoned now
+// nourishes and the other way round. Colors keep their buffs. It is the
+// hardest change for whoever learned the old one: what she avoided is now food.
+export function invertChemistry(chem) {
+  const smell = { ...chem.smell };
+  const poison = Object.keys(smell).find((s) => smell[s] === 'poison');
+  const food = Object.keys(smell).find((s) => smell[s] === 'nourishing');
+  smell[poison] = 'nourishing';
+  smell[food] = 'poison';
+  return { ...chem, smell };
+}
+
 export function effectOf(chem, traits) {
   const feed = chem.smell[traits.smell] ?? 'mild';
   const buff = chem.color[traits.color];

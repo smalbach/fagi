@@ -59,6 +59,7 @@ export function learnCues(cues, list, reward, now, rate = CUES.rate) {
   const before = predict(cues, list).value;
   const surprise = reward - before;
   for (const c of list) {
+    // An innate bias (generations.js) stays marked as such: learning moves it.
     const e = cues[c] ?? (cues[c] = { w: 0, n: 0, lastAt: now });
     e.w = clamp(e.w + rate * surprise);
     e.n += 1;

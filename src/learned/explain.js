@@ -174,7 +174,7 @@ export function explain(fagi, key) {
       id: rule.id, verdict: rule.verdict, pro: rule.pro ?? null, con: rule.con ?? null, except: rule.except ?? [],
       source: rule.source ?? null,
     } : null,
-    trait: cue ? traitRecord(brain, cue) : null,
+    trait: cue ? { ...traitRecord(brain, cue), innate: brain.cues[cue]?.innate ? brain.cues[cue].w : null } : null,
     bites: backingBites(fagi, key, tasted, rule, cue, stance),
     counterfactual: tasted ? null : counterfactual(fagi, key, traits, stance),
   };
@@ -205,6 +205,9 @@ export function lines(ex) {
     out.push({ key: bad ? 'why.traitBad' : 'why.traitGood', params: {
       trait: what(ex.trait.cue), n: bad ? ex.trait.bad : ex.trait.good, kinds: ex.trait.kinds, bites: ex.trait.bites,
     } });
+  } else if (ex.trait?.innate != null) {
+    // Nothing she tasted: the bias she was born with (generations.js).
+    out.push({ key: ex.trait.innate < 0 ? 'why.innateBad' : 'why.innateGood', params: { trait: what(ex.trait.cue) } });
   } else if (!ex.tasted && !ex.rule) {
     out.push({ key: 'why.nothingLikeIt' });
   }

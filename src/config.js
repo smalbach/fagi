@@ -284,6 +284,17 @@ export const SOCIAL = {
   seeRange: 1,        // fraction of her view range at which she notices a sister eat
 };
 
+// Generations (generations.js, batch --generations): what a newborn inherits.
+export const GEN = {
+  culture: 1,         // raised by a surviving elder: her rules and habits
+  cultureTrust: 0.6,  // a rule taught is trusted this fraction of the elder's trust
+  habits: 1,          // habits are taught too (with culture)
+  genes: 1,           // born with innate trait biases, inherited with mutation
+  mutation: 0.15,     // spread of each bias's random step from parent to child
+  innateN: 1,         // an innate bias is trusted as if she had met the trait this often
+  storedWorth: 5,     // seconds of life a stored ration is worth, when choosing parents
+};
+
 // Explanations (learned/explain.js): why she thinks what she thinks of a fruit.
 export const EXPLAIN = {
   log: 80,            // experiences with fruit she keeps to point at

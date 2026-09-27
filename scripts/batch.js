@@ -21,6 +21,7 @@
 import { args, applySets } from './batch/args.js';
 import { runOnce, runColony } from './batch/run.js';
 import { report } from './batch/report.js';
+import { runLineage, reportGenerations } from './batch/generations.js';
 import { round } from './batch/stats.js';
 import { writeFileSync, readFileSync } from 'node:fs';
 
@@ -28,6 +29,22 @@ import { writeFileSync, readFileSync } from 'node:fs';
 
 const opts = args(process.argv.slice(2));
 applySets(opts.sets);
+
+// Generations are a report of their own: one line per generation.
+if (opts.generations > 0) {
+  if (opts.colony < 2) opts.colony = 4;
+  const t0 = Date.now();
+  const lineages = [];
+  for (let i = 0; i < opts.runs; i++) {
+    lineages.push(runLineage(opts, opts.seed0 + i));
+    process.stderr.write(`\rlineage ${i + 1}/${opts.runs}`);
+  }
+  process.stderr.write(`\r${' '.repeat(30)}\r`);
+  console.log(reportGenerations(opts, lineages));
+  console.log(`\n(${round((Date.now() - t0) / 1000)}s real time)`);
+  if (opts.json) writeFileSync(opts.json, JSON.stringify({ opts, lineages }, null, 1));
+  process.exit(0);
+}
 const runs = [];
 const t0 = Date.now();
 let habits = opts.habitsIn ? JSON.parse(readFileSync(opts.habitsIn, 'utf8')) : null;

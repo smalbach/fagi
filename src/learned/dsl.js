@@ -114,10 +114,11 @@ export function rule(id, spec) {
 }
 
 // Where a rule came from, when she did not live it: a sister told her in the
-// nest, or she saw a sister eat it.
+// nest, she saw a sister eat it, or an elder taught it to her when she was
+// born (generations.js).
 function validateSource(source) {
   if (!source || typeof source !== 'object') fail('"source" must be an object');
-  if (source.kind !== 'told' && source.kind !== 'saw') fail('"source.kind" must be told|saw');
+  if (!['told', 'saw', 'born'].includes(source.kind)) fail('"source.kind" must be told|saw|born');
   if (!isCount(source.from)) fail('"source.from" must be a sister id');
   if (!isNumber(source.at)) fail('"source.at" must be numeric');
   if (!isNumber(source.trust) || source.trust < 0 || source.trust > 1) fail('"source.trust" must be within 0..1');
