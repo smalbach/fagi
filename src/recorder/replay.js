@@ -14,6 +14,7 @@ import { createFagi } from '../fagi.js';
 import { normalizeAngle } from '../vision.js';
 import { MARKER_TYPES } from './events.js';
 import { modernize } from '../legacy.js';
+import { addSpecies } from '../chemistry.js';
 
 // --- the state: a world with the same shape as the real one ---
 
@@ -46,6 +47,8 @@ export function applyEvent(state, ev) {
       state.config = { ...(ev.config ?? {}) };
       state.configSeq++;
       if (ev.world?.seed != null) w.seed = ev.world.seed;
+      // The map's wild species, so their fruit can be drawn.
+      if (ev.world?.species?.length) addSpecies(ev.world.species);
       break;
     case 'config':
       state.config[ev.id] = ev.to;
@@ -54,10 +57,16 @@ export function applyEvent(state, ev) {
     case 'obj_add': {
       const obj = { id: ev.id, x: ev.x, y: ev.y, type: ev.what, r: ev.r ?? OBJECT_TYPES[ev.what]?.radius, born: ev.t };
       if (ev.seed != null) obj.seed = ev.seed;
+      if (ev.fruit) obj.fruit = ev.fruit;
       const kind = OBJECT_TYPES[ev.what]?.kind;
       if (kind === 'nest') { obj.stock = {}; obj.ages = {}; }
       if (kind === 'spawner') obj.timer = TREE.interval;
       w.objects.push(obj);
+      break;
+    }
+    case 'obj_fruit': {
+      const o = w.objects.find((x) => x.id === ev.id);
+      if (o) o.fruit = ev.what;
       break;
     }
     case 'obj_remove': {

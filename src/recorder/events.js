@@ -16,6 +16,7 @@ export const EVENT_TYPES = {
   obj_remove: ['id'],
   obj_move: ['id', 'x', 'y'],
   obj_resize: ['id', 'r'],
+  obj_fruit: ['id', 'what'],   // a tree of a wild species (chemistry.js)
   point_add: ['id', 'what', 'x', 'y'],
   point_rot: ['id', 'what'],
   point_remove: ['id', 'reason'],

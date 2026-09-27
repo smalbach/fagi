@@ -472,4 +472,15 @@ export default {
   'err.generic': 'Algo salió mal.',
   'err.badFile': 'Ese archivo no es una sesión de Fagi.',
   'err.no_events': 'Ese archivo no tiene eventos.',
+
+  // Especies silvestres y sus rasgos (chemistry.js). Una especie se nombra por sus rasgos.
+  'brainmap.traits': 'rasgos: {list}',
+  'species.label': '{shape} {color}, olor {smell}',
+  'cue.color': 'color {v}',
+  'cue.shape': 'forma de {v}',
+  'cue.smell': 'olor {v}',
+  'trait.red': 'rojo', 'trait.orange': 'naranja', 'trait.yellow': 'amarillo',
+  'trait.green': 'verde', 'trait.blue': 'azul', 'trait.purple': 'morado',
+  'trait.round': 'baya', 'trait.drop': 'gota', 'trait.crystal': 'cristal', 'trait.orb': 'orbe',
+  'trait.sweet': 'dulce', 'trait.sour': 'agrio', 'trait.musky': 'almizclado', 'trait.sharp': 'penetrante', 'trait.rotten': 'podrido',
 };

@@ -248,6 +248,16 @@ export const LEARN = {
   maxRetired: 20,     // retired rules kept as history
 };
 
+// Learning by traits (learned/cues.js): what a smell, a color or a shape
+// tends to mean, so an untasted fruit already says something.
+export const CUES = {
+  enabled: 1,         // 0 = she only learns each species on its own
+  rate: 0.3,          // how far each present trait moves toward what she felt
+  evidence: 1,        // experiences with a trait until she half trusts it
+  wary: 0.35,         // predicted harm (x confidence) that kills her curiosity
+  ruleEvidence: 2,    // experiences with a trait before she writes a rule about it
+};
+
 // External decision: an API that receives what Fagi perceives and returns what
 // to do. Instinct stays in charge when the API is silent, slow or wrong.
 //
@@ -280,6 +290,8 @@ export const BRAIN = {
 //
 //   hunger  : how much it adds (+) to or subtracts (-) from hunger when eaten.
 //   effects : temporary buffs. stat = what it multiplies, mult = factor, sec = duration.
+//   traits  : what it looks and smells like (chemistry.js). Fagi can learn from
+//             them what an untasted fruit is likely to do (learned/cues.js).
 //
 // There's only PHYSICS here: what the bite does to the body. Whether it's good or bad
 // isn't written anywhere: Fagi feels it when she eats it (FEEL) and
@@ -293,6 +305,7 @@ export const POINT_TYPES = {
     life: 180,        // seconds until it rots and turns toxic (0 = never). ~1 day
     hunger: -35,
     effects: [],
+    traits: { color: 'green', shape: 'round', smell: 'sweet' },
   },
   spark: {
     color: '#4cc9f0',
@@ -301,6 +314,7 @@ export const POINT_TYPES = {
     life: 240,
     hunger: -5,
     effects: [{ stat: 'speed', mult: 1.8, sec: 8 }],
+    traits: { color: 'blue', shape: 'crystal', smell: 'sharp' },
   },
   eye: {
     color: '#b57bff',
@@ -312,6 +326,7 @@ export const POINT_TYPES = {
       { stat: 'viewRange', mult: 1.6, sec: 10 },
       { stat: 'fovDeg', mult: 1.4, sec: 10 },
     ],
+    traits: { color: 'purple', shape: 'orb', smell: 'musky' },
   },
   resin: {
     color: '#e8a33d',
@@ -320,6 +335,7 @@ export const POINT_TYPES = {
     life: 320,
     hunger: -10,
     effects: [{ stat: 'hungerRate', mult: 0.5, sec: 14 }],
+    traits: { color: 'orange', shape: 'drop', smell: 'musky' },
   },
   toxic: {
     color: '#d95b7e',
@@ -328,6 +344,7 @@ export const POINT_TYPES = {
     life: 180,        // rot doesn't rot further: when its time is up it disappears
     hunger: 25,
     effects: [{ stat: 'speed', mult: 0.6, sec: 5 }],
+    traits: { color: 'red', shape: 'round', smell: 'rotten' },
   },
 };
 
@@ -528,4 +545,8 @@ export const MAPGEN = {
   margin: 40,         // don't stick anything to the edge
   minGap: 34,         // minimum gap between objects (Fagi has to be able to get through)
   spawnClear: 130,    // clear radius around the point where Fagi spawns
+  species: 0,         // > 0: a map with its own hidden chemistry and this many
+                      // wild species, one tree each (chemistry.js). 0 = classic
+  speciesMinDistance: 200, // how far from the nest the species trees grow
+  speciesMaxDistance: 480,
 };

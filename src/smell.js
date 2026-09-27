@@ -79,7 +79,7 @@ export function scentSources(world) {
     if (isWater(o)) out.push({ src: o, key: o.type, extra: radiusOf(o) });
     // The tree announces the kind of fruit it produces; the exact direction is
     // followed by gradient, without magically revealing where it is.
-    else if (isTree(o)) out.push({ src: o, key: TREE.fruit, extra: radiusOf(o) });
+    else if (isTree(o)) out.push({ src: o, key: o.fruit ?? TREE.fruit, extra: radiusOf(o) });
   }
   return out.filter(({ key }) => (specOf(key)?.aroma ?? 0) > 0);
 }

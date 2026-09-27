@@ -11,6 +11,7 @@ export function report(opts, runs) {
   L.push('');
   L.push(...reportRuns(runs));
   L.push(...reportSpread(runs));
+  L.push(...reportLearning(runs));
   L.push(...reportActions(runs));
   L.push(...reportFirsts(runs));
   L.push(...reportPhases(opts, runs));
@@ -42,6 +43,27 @@ function reportSpread(runs) {
   const causes = {};
   for (const r of runs) causes[r.cause ?? 'alive'] = (causes[r.cause ?? 'alive'] ?? 0) + 1;
   L.push('  ' + pad('outcome', 14) + Object.entries(causes).map(([k, v]) => `${k} ${v}/${runs.length}`).join(' · '));
+  L.push('');
+  return L;
+}
+
+// What she learned about food, and what it cost her. "avoided" = kinds she met
+// and never bit; "tried" = helpful kinds she did bite. Over-avoidance shows up
+// as a low "tried".
+function reportLearning(runs) {
+  const L = [];
+  const sum = (k) => runs.reduce((a, r) => a + (r.learning?.[k] ?? 0), 0);
+  const pctOf = (a, b) => (b ? `${round((a / b) * 100, 0)}%` : '-');
+  const bites = sum('bites');
+  L.push('learning (all runs together)');
+  L.push(`  ${pad('bites', 22)} ${bites}   harmful ${sum('harmfulBites')} (${pctOf(sum('harmfulBites'), bites)})`);
+  L.push(`  ${pad('harmful kinds avoided', 22)} ${sum('harmfulAvoided')}/${sum('harmfulMet')} (${pctOf(sum('harmfulAvoided'), sum('harmfulMet'))}) never bitten after meeting them`);
+  L.push(`  ${pad('helpful kinds tried', 22)} ${sum('helpfulTried')}/${sum('helpfulMet')} (${pctOf(sum('helpfulTried'), sum('helpfulMet'))})`);
+  L.push(`  ${pad('first harmful bites', 22)} ${sum('harmfulFirstBites')}   (${round(sum('harmfulFirstBites') / runs.length)} per run)`);
+  const rules = {};
+  for (const r of runs) for (const id of r.learning?.cueRules ?? []) rules[id] = (rules[id] ?? 0) + 1;
+  const top = Object.entries(rules).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  if (top.length) L.push(`  ${pad('trait rules at the end', 22)} ${top.map(([k, v]) => `${k} ${v}/${runs.length}`).join(' · ')}`);
   L.push('');
   return L;
 }

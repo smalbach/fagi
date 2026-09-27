@@ -151,6 +151,7 @@ export function updateFagi(fagi, world, dt) {
   useNest(fagi, world);
 
   const ctx = perceive(fagi, world);
+  fagi.perceived = ctx;              // for whoever watches her (batch runner, tests)
   perceiveSynapses(fagi, ctx, dt);  // perceiving something strengthens sense→concept (Hebb)
   ctx.newOnes = notice(fagi, ctx);   // what has just come in: forces a rethink of the plan
   updateCortex(fagi.cortex, fagi, world, ctx, dt);   // asks the API if it's time; never waits

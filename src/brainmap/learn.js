@@ -5,6 +5,7 @@ import { specOf, LEARN } from '../config.js';
 import { labelOf, t } from '../i18n.js';
 import { GREEN, RED, PURPLE, TEXT, DIM } from './palette.js';
 import { weightOf, changeOf, sign } from './reading.js';
+import { cuesOf } from '../learned/cues.js';
 
 export function paintLearn(brushes, fagi, y) {
   const { s, text, chain, header } = brushes;
@@ -38,10 +39,17 @@ export function paintLearn(brushes, fagi, y) {
       });
     }
     if (ep.pending) items.push({ text: t('brainmap.watching'), color: DIM });
+    // What it taught about each of its traits (learned/cues.js).
+    const traits = cuesOf(ep.key).filter((c) => fagi.brain.cues?.[c]);
+    if (traits.length) {
+      const list = traits.map((c) => `${labelOf(c)} ${sign(fagi.brain.cues[c].w)}`).join(' · ');
+      items.push({ text: t('brainmap.traits', { list }), color: PURPLE });
+    }
   }
   // The rule that came out of it, or how far she is from writing it.
   const r = fagi.brain.facts[ep.key];
-  if (lastRule?.key === ep.key && lastRule.id) {
+  const aboutIt = lastRule && (lastRule.key === ep.key || cuesOf(ep.key).includes(lastRule.key));
+  if (aboutIt && lastRule.id) {
     items.push({ text: t('brainmap.ruleWritten', { id: lastRule.id, kind: t(`brainmap.rk.${lastRule.kind}`) }),
       color: lastRule.verdict === 'avoid' ? RED : GREEN, filled: lastRule.kind !== 'retired', bold: true });
   } else if (r) {

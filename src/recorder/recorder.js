@@ -70,10 +70,15 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
   function start({ config, learned = null } = {}) {
     // The seeds only decide the drawing (ground texture, shape of each
     // rock), but without them the replay wouldn't look like what was seen.
-    emit('session_start', { config, learned, world: { width: world.width, height: world.height, seed: world.seed ?? null } });
+    emit('session_start', {
+      config, learned,
+      world: { width: world.width, height: world.height, seed: world.seed ?? null, species: world.species ?? [] },
+    });
     emit('wind', { angle: world.wind.angle, target: world.wind.target });
     prev.windTarget = world.wind.target;
-    for (const o of world.objects) emit('obj_add', { id: o.id, what: o.type, x: o.x, y: o.y, r: o.r, source: 'setup', seed: o.seed ?? null });
+    for (const o of world.objects) {
+      emit('obj_add', { id: o.id, what: o.type, x: o.x, y: o.y, r: o.r, source: 'setup', seed: o.seed ?? null, ...(o.fruit ? { fruit: o.fruit } : {}) });
+    }
     for (const p of world.points) emit('point_add', { id: p.id, what: p.type, x: p.x, y: p.y, from: 'setup' });
   }
 

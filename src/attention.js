@@ -28,7 +28,7 @@ function perceived(ctx) {
     list.push(c);
   }
   // Seeing water or a tree is information even if she doesn't need it right now.
-  for (const [ref, key, kind] of [[ctx.visible, 'water', 'water'], [ctx.visibleSource, TREE.fruit, 'food']]) {
+  for (const [ref, key, kind] of [[ctx.visible, 'water', 'water'], [ctx.visibleSource, ctx.visibleSource?.fruit ?? TREE.fruit, 'food']]) {
     if (ref && !already.has(ref)) { already.add(ref); list.push({ ref, key, kind, via: 'sight', score: null, dist: null }); }
   }
   return list;

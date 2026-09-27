@@ -10,7 +10,7 @@ const SPROUTS = 4;              // spots in the crown where fruit can hang
 // waiting their turn. Which one ripens depends on how many it has dropped, so
 // after each fall it is another branch's turn.
 export function fruitsOf(ctx, o, r, v, dry) {
-  const spec = POINT_TYPES[TREE.fruit];
+  const spec = POINT_TYPES[o.fruit ?? TREE.fruit];
   if (!spec) return;
 
   const rnd = seededRng((seedFor(o) ^ 0x9e3779b9) >>> 0);

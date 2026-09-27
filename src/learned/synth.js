@@ -5,7 +5,7 @@
 // retired. The entry and exit thresholds differ (hysteresis) so that
 // a belief hovering at the limit doesn't switch the rule on and off every frame.
 
-import { LEARN, POINT_TYPES } from '../config.js';
+import { LEARN, POINT_TYPES, CUES, MEMORY } from '../config.js';
 import { weight } from '../memory.js';
 import { activeRule, retireRule, upsertRule } from './rules.js';
 
@@ -16,11 +16,16 @@ const scope = (key, verdict) => (POINT_TYPES[key] ? SCOPE[verdict] : ['pursue'])
 const PREFIX = { avoid: 'avoid', prefer: 'prefer' };
 const OPPOSITE = { avoid: 'prefer', prefer: 'avoid' };
 
-function newRule(now, key, verdict, w, because) {
+// A rule is about a species ({ key }) or about a trait ({ cue: 'smell:sour' }).
+// A trait says nothing about a species she has already tasted: that one has its
+// own belief (rules.js, verdict).
+const cueId = (cue) => cue.replace(':', '-');
+
+function newRule(now, key, verdict, w, because, cue = null) {
   return {
-    id: `${PREFIX[verdict]}-${key}`,
-    on: scope(key, verdict),
-    when: { key },
+    id: `${PREFIX[verdict]}-${cue ? cueId(cue) : key}`,
+    on: cue ? SCOPE.avoid : scope(key, verdict),
+    when: cue ? { cue } : { key },
     verdict,
     weight: Number(w.toFixed(3)),
     because,
@@ -50,6 +55,11 @@ function because0(sensations) {
 export function refreshRules(brain) {
   for (const r of brain.rules.list) {
     if (r.retired) continue;
+    if (r.when.cue) {
+      const e = brain.cues?.[r.when.cue];
+      if (e) r.weight = Number(cueWeight(e).toFixed(3));
+      continue;
+    }
     const fact = brain.facts[r.when.key];
     if (!fact) continue;
     r.weight = Number(weight(brain, r.when.key).toFixed(3));
@@ -62,10 +72,31 @@ export function refreshRules(brain) {
 // death): that way no learning path forgets to write
 // code. `change` is what reinforce() returned: {before, after, kind}.
 export function synthAfterLearn(brain, key, change, sensations, now) {
-  const rules = brain.rules;
-  const w = weight(brain, key);
-  const stage = change.after.stage;
   const tries = brain.facts[key]?.tries ?? change.after.tries ?? 1;
+  synth(brain, key, weight(brain, key), change.after.stage, tries, sensations, now);
+}
+
+// What a trait weighs toward a rule: its weight, trusted by how many times she
+// has met it. One bad fruit blames all its traits alike, so a single experience
+// is never enough to write a rule about a trait.
+function cueWeight(e) {
+  return e.n < CUES.ruleEvidence ? 0 : e.w;
+}
+
+const cueStage = (n) => (n >= MEMORY.toLong ? 'long' : n >= MEMORY.toMedium ? 'medium' : 'short');
+
+// After learnCues: the same hysteresis as for a species, trait by trait.
+export function synthCues(brain, cues, sensations, now) {
+  for (const cue of cues) {
+    const e = brain.cues[cue];
+    if (!e) continue;
+    synth(brain, cue, cueWeight(e), cueStage(e.n), e.n, sensations, now, cue);
+  }
+}
+
+function synth(brain, subject, w, stage, tries, sensations, now, cue = null) {
+  const rules = brain.rules;
+  const key = subject;
 
   for (const verdict of ['avoid', 'prefer']) {
     const enters = verdict === 'avoid' ? LEARN.avoidFrom : LEARN.preferFrom;
@@ -74,7 +105,7 @@ export function synthAfterLearn(brain, key, change, sensations, now) {
     const existing = activeRule(rules, key, verdict);
 
     if (sign * w >= enters) {
-      // Retire the opposite one if any: she can't avoid and prefer the same thing.
+      // Retire the opposite one if there is one: she can't avoid and prefer the same thing.
       const opposite = activeRule(rules, key, OPPOSITE[verdict]);
       if (opposite) {
         retireRule(rules, opposite, now);
@@ -82,7 +113,7 @@ export function synthAfterLearn(brain, key, change, sensations, now) {
       }
 
       if (!existing) {
-        const r = upsertRule(rules, newRule(now, key, verdict, w, sensations));
+        const r = upsertRule(rules, { ...newRule(now, key, verdict, w, sensations, cue), ...(cue ? { tries, stage } : {}) });
         markRule(brain, r.id, 'new', key, verdict, sensations);
       } else {
         const r = upsertRule(rules, {

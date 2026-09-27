@@ -1,16 +1,18 @@
 // Fagi's brain: she decides with what she remembers, and what she remembers lives in
 // memory.js. Here we only score: what she wants most out of everything she perceives.
 
-import { BRAIN } from './config.js';
+import { BRAIN, CUES } from './config.js';
 import { createMemory, recall, weight, curious, reinforce } from './memory.js';
 import { createRules } from './learned/rules.js';
-import { synthAfterLearn } from './learned/synth.js';
+import { synthAfterLearn, synthCues } from './learned/synth.js';
+import { createCues, cuesOf, learnCues, predict, wariness } from './learned/cues.js';
 import { createSynapses, wire } from './synapses.js';
 
 // The brain is memory (what she believes) plus rules (what she has written
 // from what she believes). Memory is the single source of truth for value;
 // rules are the symbolic layer: existence, scope and explanation.
 //   synapses : the trace of what was learned, as connections (synapses.js).
+//   cues     : what each trait tends to mean (learned/cues.js).
 //   lastRule : the last rule written, revised or retired. The narrator
 //              reads it; no need to store it anywhere else.
 //   version  : goes up every time what she learned changes (each experience, and
@@ -19,21 +21,32 @@ import { createSynapses, wire } from './synapses.js';
 //              rules, and beliefs that never become a rule (water,
 //              puddles) stayed frozen on screen.
 export function createBrain() {
-  return { ...createMemory(), rules: createRules(), lastRule: null, synapses: createSynapses(), version: 0 };
+  return {
+    ...createMemory(), rules: createRules(), lastRule: null, synapses: createSynapses(),
+    cues: createCues(), version: 0,
+  };
 }
 
-// Candidate: { key, kind, ref, dist, range, urgency }
+// Candidate: { key, kind, ref, dist, range, urgency, cues }
 //   urgency = the need THAT candidate would relieve (hunger or thirst).
+//   cues    = the traits she perceives of it (learned/cues.js).
 //
 // Returns the list sorted from best to worst with the breakdown of the sum,
 // which is exactly what the console shows.
 export function evaluate(brain, candidates) {
   return candidates.map((c) => {
     const r = recall(brain, c.key);
+    // What she has tasted she knows by itself. What she never tasted she can
+    // only guess from its traits: "it smells like the one that made me sick".
+    const tasted = r.tries > 0;
+    const guess = CUES.enabled && !tasted ? predict(brain.cues, c.cues ?? []) : null;
     // What she knows weighs as much as she trusts it: a memory without confidence
     // barely pulls, and then curiosity comes back and she tries it again.
-    const known = weight(brain, c.key);
-    const curiosity = curious(brain, c.key, BRAIN.curiosityTries) ? BRAIN.curiosityBonus : 0;
+    const known = guess ? guess.value * guess.confidence : weight(brain, c.key);
+    // Curiosity is how she learns anything, but a fruit that looks like poison
+    // does not make her curious.
+    const wary = guess ? wariness(guess) : 0;
+    const curiosity = curious(brain, c.key, BRAIN.curiosityTries) ? BRAIN.curiosityBonus * (1 - wary) : 0;
     // Appetite follows need: when sated, what she knows is good barely pulls her.
     const appetite = BRAIN.baseInterest + (1 - BRAIN.baseInterest) * c.urgency;
     const near = -BRAIN.distanceWeight * (c.dist / c.range);
@@ -44,6 +57,7 @@ export function evaluate(brain, candidates) {
       value: r.value,
       confidence: r.confidence,
       stage: r.stage,
+      guess,
       score: known * appetite + curiosity + c.urgency + near + penalty,
       parts: {
         belief: known * appetite, curiosity, need: c.urgency,
@@ -67,6 +81,12 @@ export function choose(brain, candidates) {
 export function learn(brain, key, reward, now, because = []) {
   const change = reinforce(brain, key, reward, now, BRAIN.learnRate);
   synthAfterLearn(brain, key, change, because, now);
+  // The same experience teaches about each trait of what she ate.
+  const traits = CUES.enabled ? cuesOf(key) : [];
+  if (traits.length) {
+    learnCues(brain.cues, traits, reward, now);
+    synthCues(brain, traits, because, now);
+  }
   brain.version = (brain.version ?? 0) + 1;
   // Learning also wires: the concept to what the body felt.
   if (brain.synapses) wire(brain.synapses, key, because, now);

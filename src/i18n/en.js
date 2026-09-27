@@ -473,4 +473,15 @@ export default {
   'err.generic': 'Something went wrong.',
   'err.badFile': 'That file is not a Fagi session.',
   'err.no_events': 'That file has no events.',
+
+  // Wild species and their traits (chemistry.js). A species is named by its traits.
+  'brainmap.traits': 'traits: {list}',
+  'species.label': '{color} {shape}, {smell}',
+  'cue.color': '{v}',
+  'cue.shape': '{v} shape',
+  'cue.smell': '{v} smell',
+  'trait.red': 'red', 'trait.orange': 'orange', 'trait.yellow': 'yellow',
+  'trait.green': 'green', 'trait.blue': 'blue', 'trait.purple': 'purple',
+  'trait.round': 'berry', 'trait.drop': 'drop', 'trait.crystal': 'crystal', 'trait.orb': 'orb',
+  'trait.sweet': 'sweet', 'trait.sour': 'sour', 'trait.musky': 'musky', 'trait.sharp': 'sharp', 'trait.rotten': 'rotten',
 };

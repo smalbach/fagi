@@ -33,6 +33,8 @@ const STEPS = 12;              // how many steps ripeness is rounded to
 const VARIANTS = 4;           // distinct pieces per type: no two alike side by side
 
 const PAINTERS = { nectar: berry, spark, eye, resin, toxic: rotten };
+// A wild species (chemistry.js) names its painter by its shape.
+const BY_SHAPE = { berry, spark, eye, resin };
 
 export function drawFruit(ctx, p) {
   const z = detail();
@@ -59,6 +61,6 @@ function paint(type, r, variant, ripenessOf) {
   const S = (r + pad) * 2;
   const c = canvasOf(S, S);
   const ctx = c.getContext('2d');
-  (PAINTERS[type] ?? berry)(ctx, S / 2, S / 2, r, base, rnd, past);
+  (PAINTERS[type] ?? BY_SHAPE[POINT_TYPES[type]?.painter] ?? berry)(ctx, S / 2, S / 2, r, base, rnd, past);
   return c;
 }

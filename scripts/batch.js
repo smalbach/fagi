@@ -38,7 +38,9 @@ for (let i = 0; i < opts.runs; i++) {
 process.stderr.write(`\r${' '.repeat(30)}\r`);
 
 console.log(report(opts, runs));
-console.log(`\n(${round((Date.now() - t0) / 1000)}s real time)`);
+const wall = Date.now() - t0;
+const steps = runs.reduce((a, r) => a + r.lived / opts.dt, 0);
+console.log(`\n(${round(wall / 1000)}s real time · ${round((wall / steps) * 1000, 1)} µs per simulation step)`);
 
 if (opts.check) {
   const another = runOnce(opts, opts.seed0);

@@ -7,8 +7,9 @@
 // quarantined and stops counting, so that one rule's failure never
 // brings down the frame.
 
-import { BRAIN, LEARN } from '../config.js';
+import { BRAIN, LEARN, CUES } from '../config.js';
 import { curious } from '../memory.js';
+import { cuesOf } from './cues.js';
 
 export function createRules() {
   return { list: [], seq: 0, quarantined: new Set() };
@@ -18,12 +19,16 @@ function liveRules(rules) {
   return rules.list.filter((r) => !r.retired && !rules.quarantined.has(r.id));
 }
 
-export function activeRule(rules, key, verdict) {
-  return liveRules(rules).find((r) => r.when.key === key && r.verdict === verdict) ?? null;
+// What a rule is about: a species key ('nectar') or a trait ('smell:sour').
+// The two never collide: only traits carry a colon.
+export const subjectOf = (r) => r.when.key ?? r.when.cue;
+
+export function activeRule(rules, subject, verdict) {
+  return liveRules(rules).find((r) => subjectOf(r) === subject && r.verdict === verdict) ?? null;
 }
 
-export function retiredRule(rules, key, verdict) {
-  return rules.list.find((r) => r.retired && r.when.key === key && r.verdict === verdict) ?? null;
+export function retiredRule(rules, subject, verdict) {
+  return rules.list.find((r) => r.retired && subjectOf(r) === subject && r.verdict === verdict) ?? null;
 }
 
 export function upsertRule(rules, r) {
@@ -57,12 +62,19 @@ export function quarantine(rules, id) {
 // 'prefer' or null if none has an opinion. Each rule is evaluated in
 // isolation: one that throws is quarantined and doesn't count again until
 // it's rewritten.
+//
+// What she has tasted is judged by its own rules. Only a species she has never
+// tasted is judged by its traits: a rule about sour things is a guess, and her
+// own experience with a fruit always outweighs a guess.
 export function verdict(fagi, scope, key, { deliberate = false } = {}) {
   const rules = fagi.brain.rules;
+  const tasted = (fagi.brain.facts[key]?.tries ?? 0) > 0;
+  const traits = CUES.enabled && !tasted ? cuesOf(key) : [];
   let result = null;
   for (const r of liveRules(rules)) {
     try {
-      if (r.on.includes(scope) && r.when.key === key) {
+      const about = r.when.cue ? traits.includes(r.when.cue) : r.when.key === key;
+      if (r.on.includes(scope) && about) {
         if (r.verdict === 'avoid') result = 'avoid';
         else if (r.verdict === 'prefer' && result === null) result = 'prefer';
       }

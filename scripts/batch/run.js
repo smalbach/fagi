@@ -9,6 +9,7 @@ import { stepWorld } from '../../src/simulation.js';
 import * as CONFIG from '../../src/config.js';
 import { rng, withRng } from './random.js';
 import { round, mean } from './stats.js';
+import { isHarmful, isHelpful } from '../../src/chemistry.js';
 
 const { WORLD } = CONFIG;
 
@@ -58,6 +59,7 @@ export function runOnce(opts, fagiSeed) {
     notePhase(s, fagi, world, acc, opts);
     noteMilestones(s.milestones, fagi);
     noteVisits(s.visitedList, fagi, world);
+    noteLearning(s.learning, fagi);
   }
 
   return runSummary(fagiSeed, fagi, world, s);
@@ -92,6 +94,43 @@ function newFollow(opts, fagi) {
     picked: 0,
     rocks: 0,
     prev: { x: fagi.x, y: fagi.y },
+    learning: { bites: [], met: {}, eaten: 0 },
+  };
+}
+
+// Learning: every bite (what, when, how it felt) and when she first saw each
+// kind of fruit. Whether a fruit is harmful is ground truth from chemistry.js:
+// Fagi never sees it, the runner only uses it to score her.
+function noteLearning(l, fagi) {
+  for (const { point } of fagi.perceived?.seen ?? []) l.met[point.type] ??= round(fagi.age);
+  if (fagi.eaten > l.eaten) {
+    l.eaten = fagi.eaten;
+    const m = fagi.lastMeal;
+    const before = l.bites.filter((b) => b.type === m.type).length;
+    l.bites.push({ t: round(fagi.age), type: m.type, reward: round(m.reward ?? 0, 3), first: before === 0 });
+  }
+}
+
+function learningSummary(l, fagi) {
+  const kinds = Object.keys(l.met);
+  const bitten = new Set(l.bites.map((b) => b.type));
+  const harmfulMet = kinds.filter(isHarmful);
+  const helpfulMet = kinds.filter(isHelpful);
+  const cueRules = fagi.brain.rules.list.filter((r) => !r.retired && r.when.cue).map((r) => r.id);
+  return {
+    bites: l.bites.length,
+    harmfulBites: l.bites.filter((b) => isHarmful(b.type)).length,
+    // Kinds she met and never bit: for harmful ones that is the goal, for
+    // helpful ones it is a missed meal. Both matter: avoiding everything is
+    // not learning.
+    harmfulMet: harmfulMet.length,
+    harmfulAvoided: harmfulMet.filter((k) => !bitten.has(k)).length,
+    helpfulMet: helpfulMet.length,
+    helpfulTried: helpfulMet.filter((k) => bitten.has(k)).length,
+    // First bites of harmful kinds: each is a lesson paid for with her body.
+    harmfulFirstBites: l.bites.filter((b) => b.first && isHarmful(b.type)).length,
+    cueRules,
+    biteLog: l.bites,
   };
 }
 
@@ -165,6 +204,7 @@ function runSummary(fagiSeed, fagi, world, s) {
     stored: fagi.stored ?? 0,
     exploreLegs: fagi.exploreLegs,
     rules: fagi.brain.rules?.list?.length ?? 0,
+    learning: learningSummary(s.learning, fagi),
     ...s.milestones,
     waterFirst: s.latencies[0] ?? null,
     waterLater: s.latencies.length > 1 ? round(mean(s.latencies.slice(1))) : null,

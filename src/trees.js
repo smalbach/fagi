@@ -14,7 +14,7 @@ function fruitNear(world, tree) {
   const scope = radiusOf(tree) * TREE.dropRadius + 20;
   let n = 0;
   for (const p of world.points) {
-    if (p.type !== TREE.fruit) continue;
+    if (p.type !== (tree.fruit ?? TREE.fruit)) continue;
     if (Math.hypot(p.x - tree.x, p.y - tree.y) <= scope) n++;
   }
   return n;
@@ -43,7 +43,7 @@ export function updateTrees(world, dt) {
     const y = Math.min(world.height - 10, Math.max(10, tree.y + Math.sin(ang) * dist));
     // Fruit that falls in the water is carried off by it: nobody can pick it up.
     if (waterZone(world, x, y)) continue;
-    addPoint(world, x, y, TREE.fruit, tree.id);
+    addPoint(world, x, y, tree.fruit ?? TREE.fruit, tree.id);
     tree.lastDrop = (tree.lastDrop ?? 0) + 1;
   }
 }

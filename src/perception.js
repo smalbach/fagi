@@ -9,6 +9,7 @@ import { smelledPoints, smellsObject, aromaOf, scentStrengthOfObject } from './s
 import { isWater, isTree, radiusOf, waterZone } from './obstacles.js';
 import { fearsDeep } from './swim.js';
 import { choose, learn } from './brain.js';
+import { perceivedCues } from './learned/cues.js';
 import { nestOf, stockCount } from './world.js';
 import { followPheromone } from './pheromone.js';
 import { nestUnder } from './nest.js';
@@ -106,6 +107,9 @@ function rememberFoodSource(fagi, world) {
 
 // What pushes a worker to go out for food: her hunger or what the pantry
 // is missing as she remembers it (fagi.pantry), whichever is greater.
+// What a tree drops: its own species on a map with chemistry, nectar otherwise.
+const fruitOf = (tree) => tree?.fruit ?? TREE.fruit;
+
 function forageNeed(fagi, hungerU) {
   const missing = 1 - Math.min(1, stockCount(fagi.pantry) / NEST.full);
   return Math.max(hungerU, NEST.forageDrive * missing);
@@ -128,7 +132,8 @@ function buildCandidates(fagi, world, {
 
   const seen = seenPoints(fagi, world.points, world);
   for (const { point, dist } of seen) {
-    add({ key: point.type, kind: 'food', ref: point, dist, range, urgency: hungerU, via: 'sight', penalty: 0 });
+    add({ key: point.type, kind: 'food', ref: point, dist, range, urgency: hungerU, via: 'sight', penalty: 0,
+          cues: perceivedCues(point.type, 'sight') });
   }
 
   const smelledOnes = smelledPoints(fagi, world);
@@ -136,13 +141,15 @@ function buildCandidates(fagi, world, {
     // By smell she doesn't know how far away it is: only whether it smells strong or faint.
     const aroma = aromaOf(fagi, point.type);
     add({ key: point.type, kind: 'food', ref: point, dist: (1 - force) * aroma, range: aroma,
-          urgency: hungerU, via: 'smell', penalty: BRAIN.smellPenalty, force });
+          urgency: hungerU, via: 'smell', penalty: BRAIN.smellPenalty, force,
+          cues: perceivedCues(point.type, 'smell') });
   }
 
   if (smelledSource && !visibleSource) {
-    const aroma = aromaOf(fagi, TREE.fruit);
+    const fruit = fruitOf(smelledSource);
+    const aroma = aromaOf(fagi, fruit);
     add({
-      key: TREE.fruit, kind: 'food', ref: smelledSource,
+      key: fruit, kind: 'food', ref: smelledSource, cues: perceivedCues(fruit, 'smell'),
       dist: (1 - sourceStrength) * aroma, range: aroma,
       urgency: hungerU, via: 'smell', penalty: BRAIN.smellPenalty,
       force: sourceStrength, source: true,
@@ -159,8 +166,9 @@ function buildCandidates(fagi, world, {
     if (dist > FAGI.eatRadius * 2) {
       const via = visibleSource ? 'sight' : 'memory';
       const doubt = via === 'memory' ? (source.error ?? 0) / MEMORY.placeErrorMax : 0;
+      const fruit = fruitOf(realOne);
       add({
-        key: TREE.fruit, kind: 'food', ref: source, dist,
+        key: fruit, kind: 'food', ref: source, dist, cues: perceivedCues(fruit, via),
         range: via === 'sight' ? range : MEMORY.travelRange,
         urgency: forage, via, source: true,
         penalty: via === 'sight' ? 0 : BRAIN.smellPenalty * (1 + doubt),

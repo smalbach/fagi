@@ -6,7 +6,7 @@
 
 import {
   FAGI, HUNGER, THIRST, ENERGY, BRAIN, CARRY, NEST, EXPLORE, WIND, PLUME, PHERO, TREE, FRUIT, MEMORY,
-  MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, BACKEND, RAIN, WATER, INSTINCT,
+  MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT,
 } from './config.js';
 import { startRain } from './rain.js';
 import { removeAllTrees } from './trees.js';
@@ -75,6 +75,10 @@ const GROUPS = [
     n(LEARN, 'avoidUntil', 'Weight below which "avoid X" is retired', 'Peso por debajo del cual retira "evitar X"', 0, 1, 0.02),
     n(LEARN, 'preferFrom', 'Belief weight that writes "prefer X"', 'Peso de creencia que escribe "preferir X"', 0.02, 1, 0.02),
     n(LEARN, 'preferUntil', 'Weight below which "prefer X" is retired', 'Peso por debajo del cual retira "preferir X"', 0, 1, 0.02),
+    n(CUES, 'enabled', 'Learn from traits (1 = yes)', 'Aprender de los rasgos (1 = sí)', 0, 1, 1),
+    n(CUES, 'rate', 'How fast a trait learns', 'Qué tan rápido aprende un rasgo', 0.02, 1, 0.02),
+    n(CUES, 'wary', 'Predicted harm that kills curiosity', 'Daño previsto que apaga la curiosidad', 0.05, 1, 0.05),
+    n(CUES, 'ruleEvidence', 'Experiences before a trait rule', 'Experiencias antes de una regla de rasgo', 1, 10, 1),
     n(LEARN, 'autosave', 'Keep a recoverable copy (1 = yes)', 'Guardar copia recuperable (1 = sí)', 0, 1, 1),
     n(LEARN, 'autosaveEvery', 'Seconds between copies', 'Segundos entre copias', 1, 120, 1),
   ]},
@@ -209,6 +213,7 @@ const GROUPS = [
     n(OBJECT_TYPES.tree, 'radius', 'Size of new tree', 'Tamaño del árbol nuevo', 10, 120, 2),
     n(OBJECT_TYPES.rock, 'radius', 'Size of new rock', 'Tamaño de la roca nueva', 8, 150, 2),
     n(MAPGEN, 'trees', 'Trees when generating a map', 'Árboles al generar mapa', 0, 20, 1),
+    n(MAPGEN, 'species', 'Wild species with hidden chemistry (0 = classic map)', 'Especies silvestres con química oculta (0 = mapa clásico)', 0, 12, 1),
     n(MAPGEN, 'treeMinNestDistance', 'Minimum tree distance from nest', 'Distancia mínima del árbol al nido', 100, 900, 10),
     n(MAPGEN, 'treeMaxNestDistance', 'Maximum tree distance from nest', 'Distancia máxima del árbol al nido', 100, 1000, 10),
     n(MAPGEN, 'rocks', 'Rocks when generating a map', 'Rocas al generar mapa', 0, 40, 1),

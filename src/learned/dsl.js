@@ -12,6 +12,7 @@ const SCOPES = ['eat', 'store', 'pursue'];
 const VERDICTS = ['avoid', 'prefer'];
 const STAGE_NAMES = ['short', 'medium', 'long'];
 const VALID_ID = /^[a-z0-9-]{1,64}$/;
+const CUE_FORM = /^[a-z]{1,20}:[a-z]{1,20}$/;
 
 function fail(msg) {
   throw new Error(`invalid rule: ${msg}`);
@@ -44,9 +45,10 @@ export function rule(id, spec) {
   if (!Array.isArray(on) || on.length === 0 || on.some((a) => !SCOPES.includes(a))) {
     fail(`"on" must be a non-empty list within ${SCOPES.join('|')}`);
   }
-  if (!when || typeof when.key !== 'string' || !when.key || when.key.length > 80) {
-    fail('"when.key" must be a non-empty string');
-  }
+  // About a species ({ key }) or about a trait ({ cue: 'smell:sour' }), never both.
+  const aboutKey = when && typeof when.key === 'string' && when.key && when.key.length <= 80;
+  const aboutCue = when && typeof when.cue === 'string' && CUE_FORM.test(when.cue);
+  if (!when || aboutKey === aboutCue) fail('"when" must have either a "key" or a "cue" (dimension:value)');
   if (!VERDICTS.includes(verdict)) fail(`"verdict" must be ${VERDICTS.join('|')}`);
   if (!isNumber(weight)) fail('"weight" must be numeric');
   validateBecause(because);
@@ -58,7 +60,7 @@ export function rule(id, spec) {
   if (retiredAt !== undefined && !isNumber(retiredAt)) fail('"retiredAt" must be numeric');
 
   return {
-    id, on: [...on], when: { key: when.key }, verdict, weight,
+    id, on: [...on], when: aboutKey ? { key: when.key } : { cue: when.cue }, verdict, weight,
     because: because.map((s) => ({ sense: s.sense, v: s.v })),
     learnedAt, ...(revisedAt !== undefined ? { revisedAt } : {}),
     tries, stage,
@@ -78,7 +80,7 @@ const RULE_LINE = /^(?:\/\/ (?:retired|retirada) [\d.]+s: )?rule\('([a-z0-9-]{1,
 const MEMORY_LINE = /^export const (?:memory|memoria) = (\{.*\});$/;
 
 // The complete module, exactly as it's exported and shown in the panel.
-export function renderModule(rules, facts, { age, puddleLife = null, synapses = null } = {}) {
+export function renderModule(rules, facts, { age, puddleLife = null, synapses = null, cues = null } = {}) {
   const activeOnes = rules.filter((r) => !r.retired);
   const retiredList = rules.filter((r) => r.retired);
   const header = `// Code learned by Fagi · age ${(age ?? 0).toFixed(1)}s · ` +
@@ -92,6 +94,9 @@ export function renderModule(rules, facts, { age, puddleLife = null, synapses = 
   const memoryOf = { facts };
   if (puddleLife != null) memoryOf.puddleLife = Math.round(puddleLife * 10) / 10;
   if (synapses && Object.keys(synapses).length) memoryOf.synapses = synapses;
+  if (cues && Object.keys(cues).length) {
+    memoryOf.cues = Object.fromEntries(Object.entries(cues).map(([c, e]) => [c, { w: Math.round(e.w * 1000) / 1000, n: e.n }]));
+  }
   const memoryLine = `export const memory = ${JSON.stringify(memoryOf)};`;
   return `${header}import { rule } from './dsl.js';\n\n${rulesLine}\n${memoryLine}\n`;
 }
@@ -108,6 +113,7 @@ export function parseModule(text) {
   let facts = {};
   let puddleLife = null;
   let synapses = {};
+  let cues = {};
   let seenMemory = false;
 
   for (const line of text.split('\n')) {
@@ -135,6 +141,7 @@ export function parseModule(text) {
           puddleLife = data.puddleLife;
         }
         synapses = validateSynapses(data.synapses);
+        cues = validateCues(data.cues);
         seenMemory = true;
       }
     }
@@ -142,7 +149,18 @@ export function parseModule(text) {
   }
 
   if (!seenMemory && rules.length === 0) throw new Error('no rule or memory recognized in the file');
-  return { rules, facts, puddleLife, synapses };
+  return { rules, facts, puddleLife, synapses, cues };
+}
+
+// Only well-formed traits get in: 'dimension:value' with a weight in [-1, 1].
+function validateCues(cues) {
+  const out = {};
+  if (!cues || typeof cues !== 'object') return out;
+  for (const [c, e] of Object.entries(cues).slice(0, 200)) {
+    if (!CUE_FORM.test(c) || !e || !isNumber(e.w) || e.w < -1 || e.w > 1) continue;
+    out[c] = { w: e.w, n: Number.isInteger(e.n) && e.n >= 0 ? e.n : 0, lastAt: 0 };
+  }
+  return out;
 }
 
 // Only well-formed concept→sensation connections get in; the rest is ignored.

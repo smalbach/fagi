@@ -4,6 +4,7 @@
 // when painting, so switching language also relabels what's already on
 // screen, including the console history.
 
+import { POINT_TYPES } from './config.js';
 import en from './i18n/en.js';
 import es from './i18n/es.js';
 
@@ -43,7 +44,8 @@ export function onLangChange(fn) {
 // t('reason.memory', { sec: { dur: 1.4, precise: true } })
 //   ->  'lost sight of it, insists 1.4s more'
 export function t(key, params) {
-  const txt = DICT[lang][key] ?? DICT.en[key] ?? key;
+  const txt = DICT[lang][key] ?? DICT.en[key]
+    ?? (key.startsWith('type.') ? traitLabel(key.slice(5)) : null) ?? key;
   if (!params) return txt;
   return txt.replace(/\{(\w+)\}/g, (_, k) => {
     const v = params[k];
@@ -111,8 +113,23 @@ export function tx(value) {
 }
 
 // Translated name of a food or of a map object.
+// A classic type has its own name; a wild species (chemistry.js) is named by
+// its traits, and a trait ('smell:sour') by its value. Anything that asks for
+// 'type.<key>' gets these too, so the console and the narrator name them.
 export function labelOf(key) {
   return t(`type.${key}`);
+}
+
+function traitLabel(key) {
+  if (key.includes(':')) {
+    const [dim, val] = key.split(':');
+    return t(`cue.${dim}`, { v: t(`trait.${val}`) });
+  }
+  const traits = POINT_TYPES[key]?.species ? POINT_TYPES[key].traits : null;
+  if (!traits) return null;
+  return t('species.label', {
+    color: t(`trait.${traits.color}`), shape: t(`trait.${traits.shape}`), smell: t(`trait.${traits.smell}`),
+  });
 }
 
 // Fills in the HTML's fixed texts (the ones with data-i18n) and does it
