@@ -40,7 +40,10 @@ la única directiva, sobrevivir:
    mapa es lo único que prepara las tres anteriores.
 
 Para añadir una conducta nueva basta con una entrada más en la lista `REGLAS` (escalón, nombre, función),
-en el escalón que le toque. Devuelve una intención o `null`.
+en el escalón que le toque. Devuelve una intención o `null`. `decision.js` solo
+guarda ese orden; las funciones viven en `decision/`, un archivo por escalón
+(`sobrevivir`, `aguantar`, `proveer`, `pistas`, `explorar`), más `directiva.js`
+(la API de decisión) y `comun.js` (`razon`, `apremia`, la despensa).
 
 Ya no hay ningún escalón que decida "esto es bueno" o "esto es malo": eso lo
 decide `learned/rules.js` (`verdict()`), consultado desde `feeding.js`,
@@ -100,6 +103,28 @@ copa), `fruit-sprite.js` (los frutos), `sprite-kit.js` (lienzos, ruido y caché
 que comparten), `colors.js` (mezclas),
 `ui.js` (HUD), `consola.js` + `narrator.js` (consola de decisiones),
 `settings.js` (panel de ajustes), `input.js` (ratón), `compass.js` (rumbos).
+
+Los dibujos grandes son carpetas: el archivo del mismo nombre es solo la
+entrada (exporta lo de siempre y guarda las cachés) y las piezas van dentro.
+
+| entrada | piezas |
+|---|---|
+| `fagi-sprite.js` | `fagi-sprite/`: paleta, luz, siluetas, patas, cuerpo, cabeza, hoja, antenas, carga y `trazo.js` (elipse, punto, línea, arco) |
+| `fruit-sprite.js` | `fruit-sprite/`: un pintor por fruto (`baya`, `chispa`, `ojo`, `resina`, `podrido`) y lo que comparten en `comunes.js` |
+| `tree-sprite.js` | `tree-sprite/`: `tronco`, `ramaje`, `pie`, `copa`, `copa-realista`, `viento`, `frutos`; tronco y ramas altas comparten `lienzoDeTronco` |
+| `rock-sprite.js` | `rock-sprite/`: `realista`, `materiales`, `forma`, `superficie`, `pintar` |
+| `terrain.js` | `terrain/`: suelo cocido (`suelo`, `relieve`), `detalles` sueltos, capas de `cerca` y `orilla` |
+| `water-sprite.js` | `water-sprite/`: `lago` (foto o dibujo), `realista`, lienzo quieto (`quieto` + `lecho`), lo vivo (`superficie`, `juncos`) y `forma` |
+| `rain-sprite.js` | `rain-sprite/`: `estado` (el nivel del cielo, único), `suelo`, `charcos`, `gotas`, `util` |
+| `brainmap.js` | `brainmap/`: una sección por archivo (`siente`, `percibe`, `instinto`, `decide`, `aprende`, `red`, `mapa-mental`) sobre los pinceles de `pinceles.js` |
+
+Al tocar un sprite, **el orden de las llamadas al azar con semilla no se
+cambia**: de él sale cada píxel.
+
+El CSS está en `styles/`, un archivo por zona; `index.html` solo carga
+`styles/index.css`, y el orden de sus `@import` es el de la cascada
+(`mobile.css`, la última). Los textos de cada idioma, en `i18n/<idioma>.js`;
+`i18n.js` tiene la API (`t`, `setLang`, `bindDom`…).
 
 Los sprites pintados comparten dos reglas: la luz cae siempre desde arriba a la
 izquierda, y cada dibujo se pinta una vez en su lienzo y luego solo se estampa.
