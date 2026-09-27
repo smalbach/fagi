@@ -1,6 +1,6 @@
-// HUD: botones de tipo, estado, rumbo, efectos activos y lo aprendido.
-// Los botones y las barras se generan desde config, así que añadir un tipo
-// nuevo no obliga a tocar nada aquí. Los textos salen de i18n.
+// HUD: type buttons, status, heading, active effects and what she's learned.
+// The buttons and bars are generated from config, so adding a new type
+// doesn't require touching anything here. The texts come from i18n.
 
 import { HUNGER, THIRST, ENERGY, POINT_TYPES, TYPE_KEYS, OBJECT_TYPES, OBJECT_KEYS, TREE, specOf } from './config.js';
 import { heading, verticalSense } from './compass.js';
@@ -11,7 +11,7 @@ import { setFruitInterval } from './trees.js';
 import { t, labelOf, onLangChange, formatDuration } from './i18n.js';
 import { recall } from './memory.js';
 
-// Resumen corto de lo que hace cada tipo, para el botón.
+// Short summary of what each type does, for the button.
 function hintOfFood(spec) {
   const parts = [];
   if (spec.hunger !== 0) parts.push(t('hint.hunger', { v: spec.hunger > 0 ? `+${spec.hunger}` : spec.hunger }));
@@ -50,9 +50,9 @@ function buildTypeButtons(foodBox, objectBox, input) {
   select(input.selectedType);
 }
 
-// Ya no hay una lista fija de "lo que se puede creer": la barra de un tipo
-// aparece la primera vez que Fagi se topa con él, ni una antes. `keys` es
-// Object.keys(fagi.brain.facts), tal cual va creciendo con la partida.
+// There's no longer a fixed list of "what can be believed": a type's bar
+// appears the first time Fagi runs into it, not a moment before. `keys` is
+// Object.keys(fagi.brain.facts), as it grows over the game.
 function buildBeliefBars(container, keys) {
   container.innerHTML = '';
   const bars = {};
@@ -97,19 +97,19 @@ export function createUI(input, world, onReset) {
   const beliefBox = document.getElementById('beliefs');
 
   buildTypeButtons(foodBox, objectBox, input);
-  // Estado de las barras de creencia: qué claves tiene pintadas ahora mismo y
-  // con qué elementos. Se reconstruye cuando aparece una clave nueva o al
-  // cambiar de idioma.
+  // State of the belief bars: which keys are painted right now and with
+  // which elements. It's rebuilt when a new key appears or on a language
+  // switch.
   const beliefs = { keys: [], bars: {} };
   document.getElementById('btn-reset').addEventListener('click', onReset);
 
-  // Al cambiar de idioma hay que rehacer lo que se construyó una sola vez.
+  // On a language switch, whatever was built only once has to be redone.
   onLangChange(() => {
     buildTypeButtons(foodBox, objectBox, input);
     beliefs.bars = buildBeliefBars(beliefBox, beliefs.keys);
   });
 
-  // Cada cuánto dan fruta los árboles. Vale para los que ya están puestos.
+  // How often the trees drop fruit. Applies to the ones already placed too.
   const slider = document.getElementById('tree-interval');
   const sliderVal = document.getElementById('tree-interval-val');
   const paint = () => { sliderVal.textContent = formatDuration(Number(slider.value)); };
@@ -120,16 +120,16 @@ export function createUI(input, world, onReset) {
     if (before !== v) record(world, 'config', { id: configIdOf(TREE, 'interval'), from: before, to: v, source: 'user' });
     paint();
   });
-  // El deslizador enseña lo que hay, no lo impone: los ajustes guardados o los
-  // de la sesión mandan.
+  // The slider shows what's there, it doesn't impose it: the saved settings or
+  // the session's ones rule.
   const sync = () => { slider.value = TREE.interval; paint(); };
   sync();
 
   return { update: (fagi, w) => update(el, beliefBox, beliefs, fagi, w), sync: sync };
 }
 
-// Una creencia va de -1 a +1 y la barra crece desde el centro. La opacidad de
-// la barra es la confianza: un recuerdo en el que ya no se fía se ve apagado.
+// A belief goes from -1 to +1 and the bar grows from the center. The bar's
+// opacity is the confidence: a memory she no longer trusts looks dim.
 function paintBelief(bar, r) {
   const pct = Math.abs(r.value) * 50;
   bar.fill.style.left = r.value >= 0 ? '50%' : `${50 - pct}%`;
@@ -140,7 +140,7 @@ function paintBelief(bar, r) {
     : `${r.value.toFixed(2)} · ${t(`stage.${r.stage}`)} ${Math.round(r.confidence * 100)}%`;
 }
 
-// Lo que hay guardado en el nido.
+// What's stored in the nest.
 function paintStock(container, world) {
   const nestObj = nestOf(world);
   if (!nestObj) { container.innerHTML = `<div class="none">${t('word.noNest')}</div>`; return; }
@@ -148,7 +148,7 @@ function paintStock(container, world) {
   const rows = Object.keys(nestObj.stock).filter((k) => nestObj.stock[k] > 0);
   if (rows.length === 0) { container.innerHTML = `<div class="none">${t('word.empty')}</div>`; return; }
 
-  // La fila se apaga a medida que lo guardado se acerca a echarse a perder.
+  // The row dims as the stored food gets close to spoiling.
   container.innerHTML = rows.map((k) => {
     const step = nestRipeness(nestObj, k);
     return `<div class="label" style="opacity:${(1 - step * 0.6).toFixed(2)}">` +
@@ -169,8 +169,8 @@ function paintEffects(container, fagi) {
   ).join('');
 }
 
-// El cuerpo (empapada, en el hondo, tanteando) y el cielo tal como lo nota:
-// si llueve y cuánto ha bajado la presión, y si sigue bajando.
+// The body (soaked, in deep water, probing) and the sky as she feels it:
+// whether it's raining and how far the pressure has dropped, and if it keeps dropping.
 function paintSky(el, fagi, world) {
   let body = t('body.dry');
   if (fagi.swimming) body = t('body.swimming');
@@ -199,7 +199,7 @@ function update(el, beliefBox, beliefs, fagi, world) {
   el.carryVal.textContent = fagi.carrying ? labelOf(fagi.carrying.type) : t('word.nothing');
   paintStock(el.stock, world);
 
-  // Rumbo: dónde está y hacia dónde avanza.
+  // Heading: where she is and which way she's going.
   el.posVal.textContent = `x ${Math.round(fagi.x)}, y ${Math.round(fagi.y)}`;
   const dir = heading(fagi.angle);
   const vert = verticalSense(fagi.angle);
@@ -210,8 +210,8 @@ function update(el, beliefBox, beliefs, fagi, world) {
   paintSky(el, fagi, world);
 
   paintEffects(el.effects, fagi);
-  // Nace sin creer nada de nada: la lista de claves crece sola según Fagi va
-  // conociendo el mundo, así que la barra que le toca se construye al vuelo.
+  // She's born believing nothing at all: the list of keys grows by itself as
+  // Fagi gets to know the world, so each bar is built on the fly.
   const keys = Object.keys(fagi.brain.facts);
   if (keys.length !== beliefs.keys.length) {
     beliefs.keys = keys;

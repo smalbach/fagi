@@ -1,4 +1,4 @@
-/* --- pantallas fuera del juego: login, espera, inicio, admin --- */
+/* --- screens outside the game: login, waiting, home, admin --- */
 #screen {
   position: fixed; inset: 0; z-index: 60; overflow-y: auto;
   background: radial-gradient(circle at 50% 30%, #20241d 0, #0d100e 75%);

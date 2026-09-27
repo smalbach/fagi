@@ -1,4 +1,4 @@
-/* --- consola de decisiones --- */
+/* --- decision console --- */
 #console {
   width: 330px;
   flex: none;
@@ -15,8 +15,8 @@
 }
 .console-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: none; }
 .console-header h2 { margin: 0; }
-/* Igual que #hud-body: todo el contenido de la consola (pestañas +
-   paneles) colapsa junto con un solo botón en la cabecera. */
+/* Same as #hud-body: all of the console's content (tabs + panes)
+   collapses together with a single button in the header. */
 #console-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
 #console-body.collapsed { display: none; }
 #c-now { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
@@ -38,9 +38,9 @@
   width: auto; padding: 2px 7px; font-size: 11px; line-height: 1.2;
   background: #2a2e3a; border: 1px solid var(--line); color: var(--text); border-radius: 5px;
 }
-/* Mapa del cerebro ampliado: el panel sale del reparto de Split.js
-   (de ahí los !important sobre su alto en línea) y ocupa casi toda la
-   pantalla. Esc o el mismo botón lo devuelven a su sitio. */
+/* Enlarged brain map: the pane leaves Split.js's layout (hence the
+   !important over its inline height) and takes up almost the whole
+   screen. Esc or the same button put it back in its place. */
 .pane.brainmap-big {
   position: fixed !important; inset: 3vh 3vw; height: auto !important; width: auto !important;
   z-index: 60; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
@@ -87,7 +87,7 @@
 
 input[type=range] { width: 100%; accent-color: #4fa05a; }
 
-/* --- pestañas y paneles redimensionables de la consola --- */
+/* --- console tabs and resizable panes --- */
 #console-tabs { display: flex; gap: 4px; flex: none; }
 #console-tabs .tab {
   flex: 1; width: auto; justify-content: center;
@@ -101,8 +101,8 @@ input[type=range] { width: 100%; accent-color: #4fa05a; }
   display: flex; flex-direction: column;
 }
 .tab-panel[hidden] { display: none; }
-/* El alto real de cada .pane lo pone Split.js (o el CSS de móvil, más
-   abajo): aquí solo el flujo de bloque normal en el que puede repartirlo. */
+/* The actual height of each .pane is set by Split.js (or the mobile CSS,
+   below): here just the normal block flow it can divide up. */
 .split-pane { flex: 1; min-height: 0; }
 .split-pane .pane { display: flex; flex-direction: column; overflow: hidden; }
 .pane-head {
@@ -116,7 +116,7 @@ input[type=range] { width: 100%; accent-color: #4fa05a; }
 .pane-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; flex: 1; }
 .pane-body { flex: 1; min-height: 0; overflow: auto; }
 .pane.collapsed .pane-body { display: none; }
-/* Tirador que inserta Split.js entre los dos .pane. */
+/* Gutter Split.js inserts between the two .pane. */
 .gutter { position: relative; touch-action: none; }
 .gutter-vertical { cursor: row-resize; }
 .gutter-vertical::before {

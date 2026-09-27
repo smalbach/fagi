@@ -1,21 +1,22 @@
-// Entrada del ratón y del teclado.
+// Mouse and keyboard input.
 //
-//   clic izquierdo   → coloca lo seleccionado. Con Agua elegida, MUEVE la fuente
-//                      que ya existe en vez de crear otra (el mapa tiene una sola).
-//   arrastrar        → mueve el objeto de mapa que haya debajo (nido, agua,
-//                      árbol, roca).
-//   clic derecho     → borra el objeto de mapa que haya debajo.
-//   rueda            → zoom, clavado en el punto de debajo del cursor.
-//   Mayús + rueda    → agranda o encoge el objeto bajo el cursor.
-//   botón central    → arrastra el mapa.
-//   flechas / WASD   → mueven la cámara.
-//   + · − · 0        → acercar, alejar, volver al mapa entero.
-//   F                → la cámara se pega a Fagi (o se suelta).
+//   left click       → places the selected item. With Water chosen, it MOVES the
+//                      existing source instead of creating another (the map has one).
+//   drag             → moves the map object underneath (nest, water,
+//                      tree, rock).
+//   right click      → deletes the map object underneath.
+//   wheel            → zoom, pinned to the point under the cursor.
+//   Shift + wheel    → grows or shrinks the object under the cursor.
+//   middle button    → drags the map.
+//   arrows / WASD    → move the camera.
+//   + · − · 0        → zoom in, zoom out, back to the whole map.
+//   F                → the camera sticks to Fagi (or lets go).
 //
-// El ratón trabaja en píxeles del lienzo y el mundo en sus propias coordenadas:
-// todo lo que viene del ratón pasa por la cámara antes de tocar el mundo.
+// The mouse works in canvas pixels and the world in its own coordinates:
+// everything that comes from the mouse goes through the camera before touching
+// the world.
 //
-// `editable = false` (reproduciendo una partida grabada) deja solo la cámara.
+// `editable = false` (replaying a recorded game) leaves only the camera.
 
 import { addPoint, addObject, removeObject, waterSource, nestOf, record } from './world.js';
 import { objectAt, radiusOf } from './obstacles.js';
@@ -24,25 +25,25 @@ import { ripe, approach, move, fit } from './camera.js';
 
 const SIZE_LIMITS = { min: 18, max: 200 };
 
-// Teclas que mueven la cámara, y hacia dónde.
+// Keys that move the camera, and in which direction.
 const PANEO = {
   ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1],
   a: [-1, 0], d: [1, 0], w: [0, -1], s: [0, 1],
 };
 
 export function createInput(canvas, world, camera) {
-  // selected = clave de POINT_TYPES o de OBJECT_TYPES.
+  // selected = a POINT_TYPES or OBJECT_TYPES key.
   const state = { selectedType: TYPE_KEYS[0], editable: true };
   const pressed = new Set();
 
-  // Del lienzo puede verse una versión escalada por CSS: este factor lo deshace.
+  // The canvas may be shown scaled by CSS: this factor undoes that.
   function scaleOf() {
     const rect = canvas.getBoundingClientRect();
     return { k: canvas.width / rect.width, rect };
   }
 
-  // Devuelve el punto del MUNDO bajo el cursor, y también el del lienzo, que es
-  // el que necesita el zoom para saber sobre qué pixel clavarse.
+  // Returns the WORLD point under the cursor, and also the canvas one, which is
+  // what the zoom needs to know which pixel to pin to.
   function worldPoint(e) {
     const { k, rect } = scaleOf();
     const sx = (e.clientX - rect.left) * k;
@@ -50,13 +51,13 @@ export function createInput(canvas, world, camera) {
     return { ...ripe(camera, canvas, sx, sy), sx, sy };
   }
 
-  function move(obj, x, y) {
+  function moveObject(obj, x, y) {
     obj.x = x; obj.y = y;
     record(world, 'obj_move', { id: obj.id, x, y });
   }
 
-  // Arrastrar con el izquierdo mueve el objeto de debajo. Hasta que el ratón
-  // no se aleja unos píxeles es un clic normal, que coloca.
+  // Dragging with the left button moves the object underneath. Until the mouse
+  // moves a few pixels away it's a normal click, which places.
   let grip = null;
   let justDragged = false;
   canvas.addEventListener('mousedown', (e) => {
@@ -71,14 +72,14 @@ export function createInput(canvas, world, camera) {
     grip.moving = true;
     canvas.style.cursor = 'grabbing';
     const p = worldPoint(e);
-    // Mientras se arrastra no se graba cada píxel: solo donde se suelta.
+    // While dragging, not every pixel is recorded: only where it's dropped.
     grip.obj.x = Math.max(0, Math.min(world.width, p.x + grip.dx));
     grip.obj.y = Math.max(0, Math.min(world.height, p.y + grip.dy));
   });
   window.addEventListener('mouseup', () => {
     if (!grip) return;
     if (grip.moving) {
-      move(grip.obj, grip.obj.x, grip.obj.y);
+      moveObject(grip.obj, grip.obj.x, grip.obj.y);
       justDragged = true;
       canvas.style.cursor = 'crosshair';
     }
@@ -90,11 +91,11 @@ export function createInput(canvas, world, camera) {
     if (!state.editable) return;
     const { x, y } = worldPoint(e);
 
-    // De agua y nido solo hay uno: el clic los MUEVE en vez de duplicarlos.
+    // There's only one water and one nest: the click MOVES them instead of duplicating them.
     const uniques = { water: waterSource, nest: nestOf };
     if (uniques[state.selectedType]) {
       const existing = uniques[state.selectedType](world);
-      if (existing) { move(existing, x, y); return; }
+      if (existing) { moveObject(existing, x, y); return; }
       addObject(world, x, y, state.selectedType, undefined, 'user');
       return;
     }
@@ -103,7 +104,7 @@ export function createInput(canvas, world, camera) {
     else addPoint(world, x, y, state.selectedType, 'user');
   });
 
-  // Clic derecho: quitar el objeto del mapa que haya debajo.
+  // Right click: remove the map object underneath.
   canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     if (!state.editable) return;
@@ -112,8 +113,8 @@ export function createInput(canvas, world, camera) {
     if (obj) removeObject(world, obj, 'user');
   });
 
-  // Rueda: zoom. Con Mayús, el tamaño del objeto de debajo, que es lo que hacía
-  // antes la rueda sola.
+  // Wheel: zoom. With Shift, the size of the object underneath, which is what
+  // the wheel alone used to do.
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     const p = worldPoint(e);
@@ -131,8 +132,8 @@ export function createInput(canvas, world, camera) {
     approach(camera, canvas, world, p.sx, p.sy, e.deltaY < 0 ? CAMERA.step : 1 / CAMERA.step);
   }, { passive: false });
 
-  // Arrastrar con el botón central: el izquierdo ya coloca cosas y el derecho las
-  // borra, así que el paneo se queda con el que no hace nada más.
+  // Drag with the middle button: the left one already places things and the right
+  // one deletes them, so panning gets the one that does nothing else.
   let drag = null;
   canvas.addEventListener('mousedown', (e) => {
     if (e.button !== 1) return;
@@ -155,7 +156,7 @@ export function createInput(canvas, world, camera) {
     canvas.style.cursor = 'crosshair';
   });
 
-  // Teclado. Escribiendo en un campo de los ajustes no se toca la cámara.
+  // Keyboard. While typing in a settings field the camera is left alone.
   const writing = (e) => ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target?.tagName);
 
   window.addEventListener('keydown', (e) => {
@@ -173,8 +174,8 @@ export function createInput(canvas, world, camera) {
   window.addEventListener('keyup', (e) => pressed.delete(e.key));
   window.addEventListener('blur', () => pressed.clear());
 
-  // Paneo con teclas: va por fotograma, no por pulsación, para que se mueva
-  // suave mientras la tecla siga abajo.
+  // Key panning: it goes per frame, not per keypress, so it moves smoothly
+  // while the key stays down.
   state.pan = (dt) => {
     let dx = 0;
     let dy = 0;

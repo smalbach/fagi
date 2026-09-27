@@ -1,22 +1,22 @@
-// La consola lateral tiene demasiado dentro para caber cómoda a la vez: esto
-// la organiza en pestañas (consola+mapa / código+histórico) y dentro de cada
-// una dos mitades que se pueden colapsar o redimensionar arrastrando el
-// tirador. Ese arrastre lo hace Split.js (github.com/nathancahill/split),
-// no código propio: en el escritorio hacía falta algo probado con el dedo y
-// con el ratón a la vez, y reinventarlo a mano se quedaba corto en móvil.
+// The side console has too much inside to fit comfortably at once: this
+// organizes it into tabs (console+map / code+history) and inside each one
+// two halves that can be collapsed or resized by dragging the gutter. That
+// dragging is done by Split.js (github.com/nathancahill/split), not our own
+// code: on desktop we needed something proven with finger and mouse at the
+// same time, and reinventing it by hand fell short on mobile.
 //
-// En pantallas angostas ni se monta Split.js ni se fuerza ningún alto: cada
-// mitad simplemente se apila en el flujo normal de la página (ver el media
-// query junto a #consola en index.html), así que solo hay un sitio con
-// scroll — la página entera — en vez de varias "ventanas" con su propio
-// scroll interno peleándose por el gesto del dedo.
+// On narrow screens Split.js isn't mounted and no height is forced: each
+// half simply stacks in the page's normal flow (see the media query in
+// src/styles/mobile.css), so there's only one place that scrolls — the whole
+// page — instead of several "windows" with their own inner scroll fighting
+// over the finger's gesture.
 
 import Split from 'split.js';
 import { t, onLangChange } from './i18n.js';
 
 const KEY = 'fagi.panel-layout';
 const DESKTOP_MEDIA = '(min-width: 861px)';
-const HEADER_HEIGHT = 32; // px de un .pane-head: mínimo al arrastrar y tamaño al colapsar
+const HEADER_HEIGHT = 32; // px of a .pane-head: minimum when dragging and size when collapsed
 
 function readState() {
   try {
@@ -26,7 +26,7 @@ function readState() {
 }
 
 function saveState(state) {
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* sin localStorage, no persiste */ }
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* no localStorage, it doesn't persist */ }
 }
 
 function initTabs(root, state) {
@@ -50,9 +50,9 @@ function initTabs(root, state) {
   activate(initial);
 }
 
-// Un controlador por `.split-pane`: sabe colapsar/expandir cada mitad (algo
-// que vale tanto en escritorio como en móvil) y, solo cuando hace falta,
-// montar o desmontar la instancia de Split.js que permite arrastrar.
+// One controller per `.split-pane`: it knows how to collapse/expand each half
+// (something that applies on both desktop and mobile) and, only when needed,
+// how to mount or unmount the Split.js instance that allows dragging.
 function createController(split, state) {
   const key = split.dataset.split;
   const [a, b] = split.querySelectorAll(':scope > .pane');
@@ -86,7 +86,7 @@ function createController(split, state) {
 
   function toggleSplit(pane, other, index) {
     const collapsedState = !pane.classList.contains('collapsed');
-    // Las dos mitades no pueden colapsarse a la vez: no quedaría nada que mostrar.
+    // Both halves can't be collapsed at once: there'd be nothing left to show.
     if (collapsedState && other.classList.contains('collapsed')) markCollapse(other, false);
     markCollapse(pane, collapsedState);
     updateGutter();
@@ -100,7 +100,7 @@ function createController(split, state) {
   b.querySelector('.pane-toggle').addEventListener('click', () => toggleSplit(b, a, 1));
 
   return {
-    // Solo se llama en escritorio: aquí sí hay un tirador que arrastrar.
+    // Only called on desktop: here there is a gutter to drag.
     mount() {
       if (instance) return;
       instance = Split([a, b], {
@@ -114,8 +114,8 @@ function createController(split, state) {
       if (a.classList.contains('collapsed')) instance.collapse(0);
       else if (b.classList.contains('collapsed')) instance.collapse(1);
     },
-    // Solo se llama en móvil: sin Split.js, cada mitad usa su alto natural
-    // (definido por el CSS de móvil), sin estilos inline que lo compliquen.
+    // Only called on mobile: without Split.js, each half uses its natural height
+    // (set by the mobile CSS), with no inline styles to complicate it.
     unmount() {
       if (!instance) return;
       instance.destroy(false, false);
@@ -124,8 +124,8 @@ function createController(split, state) {
   };
 }
 
-// `root` es la sección #consola: sin ella (una página que solo prueba otra
-// cosa) no hay nada que organizar.
+// `root` is the #console section: without it (a page that only tests
+// something else) there's nothing to organize.
 export function initPanelLayout(root) {
   if (!root) return;
   const state = readState();
@@ -141,9 +141,9 @@ export function initPanelLayout(root) {
   sync();
 }
 
-// Un botón para abrir o cerrar TODAS las secciones del HUD (Food, Map,
-// State...) de una vez: cerrarlas una por una en el móvil, cuando lo que se
-// quiere es despejar la pantalla para mirar el mapa, era demasiado lento.
+// One button to open or close ALL the HUD sections (Food, Map, State...) at
+// once: closing them one by one on mobile, when what you want is to clear the
+// screen to look at the map, was too slow.
 export function initHudGroups(hud, btn) {
   if (!hud || !btn) return;
   const groups = () => [...hud.querySelectorAll('.hud-group')];
@@ -158,16 +158,16 @@ export function initHudGroups(hud, btn) {
     for (const g of groups()) g.open = open;
     updateButton();
   });
-  // Cerrar o abrir una sección a mano también debe refrescar la etiqueta del
-  // botón: "toggle" en <details> no burbujea, así que se escucha en cada una.
+  // Closing or opening a section by hand must also refresh the button's
+  // label: "toggle" on <details> doesn't bubble, so we listen on each one.
   for (const g of groups()) g.addEventListener('toggle', updateButton);
   onLangChange(updateButton);
   updateButton();
 }
 
-// El botón ▾/▸ de una cabecera (#hud o #consola): oculta o muestra TODO el
-// contenido de ese panel de un tirón, dejando solo la barra de título — para
-// cuando lo que estorba no es una sección, sino el panel entero.
+// The ▾/▸ button in a header (#hud or #console): hides or shows ALL of that
+// panel's content in one go, leaving only the title bar — for when what's in
+// the way isn't a section, but the whole panel.
 export function initContainerToggle(btn, body, key) {
   if (!btn || !body) return;
 
@@ -179,13 +179,13 @@ export function initContainerToggle(btn, body, key) {
   }
 
   let collapsedState = false;
-  try { collapsedState = localStorage.getItem(key) === '1'; } catch { /* sin localStorage, empieza abierto */ }
+  try { collapsedState = localStorage.getItem(key) === '1'; } catch { /* no localStorage, starts open */ }
   markRule(collapsedState);
 
   btn.addEventListener('click', () => {
     collapsedState = !body.classList.contains('collapsed');
     markRule(collapsedState);
-    try { localStorage.setItem(key, collapsedState ? '1' : '0'); } catch { /* sin localStorage, no persiste */ }
+    try { localStorage.setItem(key, collapsedState ? '1' : '0'); } catch { /* no localStorage, it doesn't persist */ }
   });
   onLangChange(() => markRule(body.classList.contains('collapsed')));
 }

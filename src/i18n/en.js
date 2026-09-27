@@ -1,5 +1,5 @@
-// Textos en inglés, el idioma por defecto: si falta una clave en otro
-// idioma, t() cae aquí (ver src/i18n.js).
+// English texts, the default language: if a key is missing in another
+// language, t() falls back here (see src/i18n.js).
 
 export default {
   'app.title': 'FAGI',
@@ -139,7 +139,7 @@ export default {
   'pressure.falling': 'falling',
   'pressure.low': 'low',
 
-  // Unidades de tiempo (formatDuration / formatClock).
+  // Time units (formatDuration / formatClock).
   'unit.sec': 's',
   'unit.min': 'm',
   'unit.hour': 'h',
@@ -392,7 +392,7 @@ export default {
   'set.factory': 'Factory values',
   'set.close': 'Close',
 
-  // Cuentas, sesiones y reproductor.
+  // Accounts, sessions and player.
   'app.endSession': '■ End session',
   'auth.login': 'Sign in',
   'auth.loginBtn': 'Sign in',

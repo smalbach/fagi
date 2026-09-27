@@ -1,45 +1,46 @@
-// El grabador de una sesión. Apunta, en orden, todo lo que cambia: lo que se
-// crea en el mapa y dónde, lo que desaparece y por qué, cada ajuste tocado, el
-// viento, la feromona, lo que Fagi hace y por dónde anda. Con eso replay.js
-// reconstruye cualquier instante de la partida sin guardar ni una foto.
+// A session's recorder. It writes down, in order, everything that changes: what
+// gets created on the map and where, what disappears and why, every setting
+// touched, the wind, the pheromone, what Fagi does and where she goes. With that
+// replay.js rebuilds any moment of the game without saving a single snapshot.
 //
-// No sabe nada del DOM ni de la red: los lotes salen por `send(eventos)`, que
-// pone quien lo crea (sink.js en el navegador, un array en los tests).
+// It knows nothing about the DOM or the network: batches go out through
+// `send(events)`, supplied by whoever creates it (sink.js in the browser, an
+// array in the tests).
 //
-// Los sucesos del mundo llegan por world.rec.emit (world.js los manda). Los de
-// Fagi y el viento se sacan aquí, comparando cada frame con el anterior, como
-// hace narrator.js: así su lógica no se entera de que la graban.
+// World events arrive through world.rec.emit (world.js sends them). Fagi's and
+// the wind's are worked out here, comparing each frame with the previous one,
+// like narrator.js does: that way her logic never finds out she's being recorded.
 //
-// Lo que Fagi tiene en la cabeza (qué piensa, qué cree, qué reglas escribió,
-// qué efectos le duran) va en eventos `mind` que solo llevan las partes que
-// cambiaron, y cada línea de la consola en un evento `log`: con eso la
-// reproducción pinta los mismos cuadros que se vieron en directo.
+// What Fagi has in her head (what she thinks, what she believes, what rules she
+// wrote, what effects are still on her) goes in `mind` events that only carry
+// the parts that changed, and each console line in a `log` event: with that
+// the replay paints the same panels that were seen live.
 
 import { TRACK_FIELDS } from './events.js';
 import { normalizeAngle } from '../vision.js';
 
-// Columnas de la fila que, si cambian, piden punto nuevo: acción, objetivo,
-// carga, tipo de objetivo, si bebe, tramo de exploración.
+// Row columns that, if they change, call for a new point: action, target,
+// load, target kind, whether she's drinking, exploration leg.
 const DISCRETE = [4, 5, 6, 10, 11, 17];
 
-// El recorrido no se muestrea a ritmo fijo: Fagi gira hasta 6 rad/s y frena
-// al beber o comer, así que cada medio segundo la reproducción uniría con
-// rectas lo que fueron curvas y paradas. Se apunta un punto solo cuando la
-// recta desde el último apuntado dejaría de pasar a menos de `tolPx` de algún
-// frame intermedio (o el rumbo se desviaría más de `tolAngle`); entonces se
-// apunta el frame anterior, el último que aún cabía en la recta. También al
-// cambiar lo que hace, y como mucho cada `trackEvery` segundos.
+// The path isn't sampled at a fixed rate: Fagi turns up to 6 rad/s and slows
+// down to drink or eat, so every half second the replay would join with
+// straight lines what were curves and stops. A point is written down only when
+// the line from the last written one would no longer pass within `tolPx` of
+// some intermediate frame (or the heading would drift more than `tolAngle`);
+// then the previous frame is written, the last one that still fit on the line.
+// Also when what she's doing changes, and at most every `trackEvery` seconds.
 export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, tolPx = 0.5, tolAngle = 0.3, trackBlock = 120, mindEvery = 0.25, thoughtEvery = 1 } = {}) {
   let seq = 0;
   let buffer = [];
   let track = [];
-  let lastRow = null;     // último punto apuntado
-  let pending = [];       // frames desde entonces que la recta aún cubre
+  let lastRow = null;     // last point written
+  let pending = [];       // frames since then that the line still covers
   let nextFlush = flushEvery;
   let ended = false;
   let nextMind = 0;
   let lastLog = 0;
-  const mindPrev = {};    // parte -> JSON de lo último grabado
+  const mindPrev = {};    // part -> JSON of the last thing recorded
   let thoughtAt = -Infinity;
   let deathNoted = false;
   const prev = { meal: 0, picked: 0, stored: 0, pantry: 0, rule: 0, drinking: false, alive: true, windTarget: null };
@@ -64,11 +65,11 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     track = [];
   }
 
-  // La foto de partida no es una foto: es la lista de lo que ya había en el
-  // mapa al empezar, como si se acabara de poner.
+  // The starting snapshot isn't a snapshot: it's the list of what was already on
+  // the map at the start, as if it had just been placed.
   function start({ config, learned = null } = {}) {
-    // Las semillas solo deciden el dibujo (textura del suelo, forma de cada
-    // roca), pero sin ellas la reproducción no se parecería a lo que se vio.
+    // The seeds only decide the drawing (ground texture, shape of each
+    // rock), but without them the replay wouldn't look like what was seen.
     emit('session_start', { config, learned, world: { width: world.width, height: world.height, seed: world.seed ?? null } });
     emit('wind', { angle: world.wind.angle, target: world.wind.target });
     prev.windTarget = world.wind.target;
@@ -86,7 +87,7 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
       fagi.lastScent ? round(fagi.lastScent.x, 1) : null, fagi.lastScent ? round(fagi.lastScent.y, 1) : null,
       exploring ? round(fagi.exploreTarget.x, 1) : null, exploring ? round(fagi.exploreTarget.y, 1) : null,
       exploring ? fagi.exploreLegs ?? 0 : null,
-      // El cuerpo y el cielo que nota: empapada, en el hondo, tanteando, presión.
+      // The body and the sky she feels: soaked, in deep water, probing, pressure.
       Math.ceil(fagi.wet ?? 0), !!fagi.swimming, !!fagi.probing,
       round(fagi.pressure ?? 0, 1), !!fagi.pressureFalling,
     ];
@@ -100,7 +101,7 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     if (track.length >= trackBlock) closeTrack();
   }
 
-  // ¿La recta de lastRow a `row` pasa cerca de todos los frames intermedios?
+  // Does the line from lastRow to `row` pass close to all the intermediate frames?
   function fits(row) {
     const dt = row[0] - lastRow[0];
     for (const p of pending) {
@@ -121,13 +122,13 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     if (!lastRow) { aim(row); return; }
     const forced = changesNow(row) || row[0] - lastRow[0] >= trackEvery;
     if (!forced && fits(row)) { pending.push(row); return; }
-    // El frame anterior es el último que la recta cubría: ahí va el punto.
+    // The previous frame is the last one the line covered: the point goes there.
     if (pending.length) aim(pending[pending.length - 1]);
     pending = [];
     if (changesNow(row)) aim(row); else pending.push(row);
   }
 
-  // Lo que queda sin apuntar al final del recorrido.
+  // Whatever is left unwritten at the end of the path.
   function closePending() {
     if (pending.length) aim(pending[pending.length - 1]);
     pending = [];
@@ -165,7 +166,7 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     prev.alive = fagi.alive;
   }
 
-  // Solo las partes de la mente que cambiaron desde la última vez.
+  // Only the parts of the mind that changed since last time.
   const slowAt = {};
   function observeMind(fagi) {
     const changes = {};
@@ -173,13 +174,13 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     for (const [part, value] of Object.entries(mind(fagi, world.time))) {
       const json = JSON.stringify(value) ?? 'null';
       if (json === mindPrev[part]) continue;
-      // Lo que cambia poco a poco (la red, los sitios, el mapa de por dónde
-      // ha pasado) no hace falta a cada muestra: con una cada pocos segundos
-      // se ve igual, y la sesión pesa la mitad.
+      // What changes little by little (the network, the places, the map of
+      // where she's been) isn't needed on every sample: with one every few
+      // seconds it looks the same, and the session weighs half as much.
       if (SLOW[part] && fagi.alive && world.time - (slowAt[part] ?? -Infinity) < SLOW[part]) continue;
       if (SLOW[part]) slowAt[part] = world.time;
-      // El pensamiento trae distancias y puntuaciones que se mueven en cada
-      // muestra: si solo cambian esos números, basta con uno por segundo.
+      // The thought carries distances and scores that move on every
+      // sample: if only those numbers change, one per second is enough.
       if (part === 'thought') {
         const signature = thoughtSignature(value);
         if (signature === mindPrev.signature && world.time - thoughtAt < thoughtEvery) continue;
@@ -187,16 +188,16 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
         thoughtAt = world.time;
       }
       mindPrev[part] = json;
-      // Una copia, no la lista viva: Fagi la sigue cambiando y el evento
-      // espera en el búfer hasta el próximo envío.
+      // A copy, not the live list: Fagi keeps changing it and the event
+      // waits in the buffer until the next send.
       changes[part] = JSON.parse(json);
       has = true;
     }
     if (has) emit('mind', changes);
   }
 
-  // Las líneas nuevas de la consola (narrator.js), tal cual: claves y datos,
-  // no frases, para que se lean en el idioma de quien reproduce.
+  // The console's new lines (narrator.js), as they are: keys and data,
+  // not sentences, so they read in the language of whoever replays.
   function observeLog(lines) {
     for (const l of lines ?? []) {
       if (l.id <= lastLog) continue;
@@ -205,7 +206,7 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     }
   }
 
-  // Una vez por frame, después de step(). `lines`: lo que devuelve narrate().
+  // Once per frame, after step(). `lines`: what narrate() returns.
   function observe(fagi, lines) {
     if (ended) return;
     observeLog(lines);
@@ -220,7 +221,7 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     observeFagi(fagi);
     if (fagi.alive) sampleFagi(fagi);
     if (!fagi.alive && !deathNoted) {
-      // El frame en que muere también se movió: ese es el último sitio.
+      // She also moved on the frame she dies: that's the last spot.
       deathNoted = true;
       closePending();
       aim(rowEl(fagi));
@@ -251,10 +252,10 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
   };
 }
 
-// Lo que pintan los cuadros de la mente de Fagi (ui.js, consola.js,
-// brainmap.js, learned/panel.js), sin referencias al mundo y con los números
-// redondeados a lo que se ve: así no cambia cada frame por decimales.
-// Partes de la mente que se graban como mucho cada tantos segundos.
+// What the panels of Fagi's mind paint (ui.js, console.js, brainmap.js,
+// learned/panel.js), with no references to the world and with the numbers
+// rounded to what's visible: that way it doesn't change every frame over decimals.
+// Parts of the mind that are recorded at most every so many seconds.
 const SLOW = { synapses: 4, places: 4, explored: 5 };
 
 function mind(fagi, now) {
@@ -283,8 +284,8 @@ function mind(fagi, now) {
     rules: fagi.brain?.rules?.list ?? [],
     quarantined: [...(fagi.brain?.rules?.quarantined ?? [])],
     lastRule: lastRuleOf(fagi.brain?.lastRule),
-    // La red y lo que recuerda del sitio, con la resolución que se ve: así
-    // solo se graba cuando algo cambia de verdad.
+    // The network and what she remembers of each place, at the resolution
+    // that's visible: that way it's only recorded when something really changes.
     synapses: Object.values(fagi.brain?.synapses ?? {}).map((s) => [s.a, s.b, s.kind, round(s.w, 1), round(s.born, 0)]),
     places: Object.fromEntries(Object.entries(fagi.brain?.places ?? {}).map(([k, p]) => [k, {
       x: step(p.x, 5), y: step(p.y, 5), error: step(p.error, 10), confidence: round(p.confidence, 1), stage: p.stage,
@@ -292,8 +293,8 @@ function mind(fagi, now) {
     puddleLife: fagi.brain?.puddleLife != null ? Math.round(fagi.brain.puddleLife) : null,
     explored: fagi.explored ? Array.from(fagi.explored, (v) => Math.round(v)).join('') : null,
     episode: episode(fagi.lastEpisode),
-    // Los efectos se guardan por cuándo acaban, no por lo que les queda:
-    // si no, cambiarían en cada muestra.
+    // Effects are stored by when they end, not by how much is left:
+    // otherwise they'd change on every sample.
     effects: Object.values(fagi.effects ?? {}).map((e) => ({
       stat: e.stat, mult: e.mult, sec: e.sec, color: e.color, until: round(now + e.time, 2),
     })),
@@ -309,7 +310,7 @@ function lastRuleOf(r) {
   return r ? { n: r.n, id: r.id ?? null, kind: r.kind ?? null, key: r.key ?? null, verdict: r.verdict ?? null } : null;
 }
 
-// La última experiencia: qué probó, qué sintió y cómo le movió la creencia.
+// The latest experience: what she tried, what she felt and how it moved the belief.
 function episode(ep) {
   if (!ep) return null;
   const photo = (x) => (x ? { value: round(x.value, 3), confidence: round(x.confidence, 2), stage: x.stage } : null);
@@ -321,8 +322,9 @@ function episode(ep) {
   };
 }
 
-// Lo que, si cambia, se graba al momento: qué hace, por qué (la clave, no sus
-// números), qué lleva, qué sabe del agua y cuál es su primer candidato.
+// What, if it changes, is recorded right away: what she's doing, why (the key,
+// not its numbers), what she carries, what she knows about water and which is
+// her top candidate.
 function thoughtSignature(th) {
   if (!th) return 'null';
   return JSON.stringify([th.action, th.reason?.key ?? th.reason, th.carrying, th.seesWater, th.smellsWater,

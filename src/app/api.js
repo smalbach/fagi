@@ -1,6 +1,6 @@
-// Llamadas a la API del servidor. Todo va al mismo origen (/api), con la
-// cookie de login y la cabecera X-Fagi que el servidor exige en todo lo que
-// cambia algo.
+// Calls to the server API. Everything goes to the same origin (/api), with the
+// login cookie and the X-Fagi header the server requires on anything that
+// changes something.
 
 export class ApiError extends Error {
   constructor(status, code, data) {

@@ -1,11 +1,11 @@
-/* --- responsiva: en pantallas angostas los paneles se apilan ---
-   En vez de meter #hud y #console cada uno en su propia caja con
-   overflow-y:auto (dos "ventanas" con scroll propio, más el de la
-   página, atrapando el gesto de arrastre del dedo), en móvil se
-   desactiva ese scroll interno: todo pasa a fluir en una sola página
-   que se desplaza entera, como cualquier web. Split.js tampoco se monta
-   en este ancho (ver panel-layout.js), así que no hay tirador que
-   arrastrar por error mientras se hace scroll. */
+/* --- responsive: on narrow screens the panels stack ---
+   Instead of putting #hud and #console each in its own box with
+   overflow-y:auto (two "windows" with their own scroll, plus the
+   page's, trapping the finger's drag gesture), on mobile that inner
+   scroll is turned off: everything flows in a single page that
+   scrolls as a whole, like any website. Split.js isn't mounted at
+   this width either (see panel-layout.js), so there's no gutter to
+   drag by mistake while scrolling. */
 @media (max-width: 860px) {
   body { flex-direction: column; }
   #stage { flex-basis: auto; min-width: 0; padding: 10px; }
@@ -19,7 +19,7 @@
   .pane-body { flex: none; overflow: visible; }
   #learned-code, #c-log { height: auto; max-height: 260px; }
 
-  /* La barra de arriba va encima del mapa, no tapándolo, y en una fila. */
+  /* The top bar goes above the map, not covering it, and in one row. */
   #topbar, body.immersive #topbar {
     position: static; transform: none; opacity: 1;
     width: 100%; margin-bottom: 8px; flex-wrap: wrap; justify-content: center;
@@ -28,7 +28,7 @@
   #topbar button, #topbar select { padding: 6px 8px; white-space: nowrap; font-size: 12px; }
   body.immersive #stage { padding: 8px 0 0; justify-content: flex-start; min-height: 100vh; }
 
-  /* Ajustes en partida: pantalla completa, con Cerrar siempre a la vista. */
+  /* In-game settings: full screen, with Close always in view. */
   #settings-overlay { padding: 0; align-items: stretch; }
   #settings {
     width: 100%; max-height: none; height: 100vh; height: 100dvh;
@@ -38,16 +38,16 @@
   #settings header h2 { flex-basis: 100%; }
   #settings header button { flex: 1 1 auto; }
   #settings-body { columns: auto; overscroll-behavior: contain; padding: 10px 12px 24px; }
-  /* Preparando, los ajustes siguen a los demás paneles en la misma página:
-     sin caja con scroll propio que atrape el dedo. */
+  /* While setting up, the settings follow the other panels on the same page:
+     no box with its own scroll to trap the finger. */
   body.mode-setup #settings { height: auto; max-height: none; border-width: 1px 0 0; }
   body.mode-setup #settings-body { overflow: visible; }
-  /* 16px: con menos, iOS hace zoom al tocar el campo y no lo deshace. */
+  /* 16px: with less, iOS zooms in when the field is tapped and doesn't undo it. */
   #settings .field { font-size: 13px; padding: 5px 0; }
   #settings .field input { font-size: 16px; width: 96px; padding: 6px 8px; }
   #settings summary { font-size: 14px; padding: 8px 0; }
-  /* Las listas (sesiones, usuarios) pasan a tarjetas: sin scroll de lado
-     y con los botones a la vista. */
+  /* The lists (sessions, users) become cards: no sideways scroll
+     and with the buttons in view. */
   .screen-list table, .screen-list tbody, .screen-list tr, .screen-list td { display: block; width: 100%; }
   .screen-list thead { display: none; }
   .screen-list tr {

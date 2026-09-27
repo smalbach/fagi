@@ -1,6 +1,6 @@
-// Adónde van los lotes del grabador: al servidor, en orden. Si la red falla,
-// el lote se queda en cola (y en IndexedDB, por si se cierra la pestaña) y se
-// reintenta. Repetir un lote no duplica nada: el servidor lo ignora por seq.
+// Where the recorder's batches go: to the server, in order. If the network
+// fails, the batch stays queued (and in IndexedDB, in case the tab closes) and
+// is retried. Repeating a batch duplicates nothing: the server ignores it by seq.
 
 import { post, ApiError } from '../app/api.js';
 
@@ -12,7 +12,7 @@ export function createSink(sessionId) {
   const tail = [];
   let sending = false;
   let timer = 0;
-  let end = null;          // { reason, age, summary } cuando la sesión se cierra
+  let end = null;          // { reason, age, summary } when the session closes
   let notifyEnd;
   const endSent = new Promise((resolve) => { notifyEnd = resolve; });
 
@@ -25,9 +25,9 @@ export function createSink(sessionId) {
           await post(`/sessions/${sessionId}/events`, { events: tail[0] });
           tail.shift();
         } catch (err) {
-          // Un 4xx no se arregla reintentando: se descarta y se sigue.
+          // A 4xx isn't fixed by retrying: drop it and move on.
           if (err instanceof ApiError && err.status >= 400 && err.status < 500) {
-            console.warn('Lote rechazado por el servidor:', err.code);
+            console.warn('Batch rejected by the server:', err.code);
             tail.shift();
             continue;
           }
@@ -54,15 +54,15 @@ export function createSink(sessionId) {
 
   return {
     send(batch) { tail.push(batch); pump(); },
-    // Resuelve cuando el servidor ya tiene la sesión cerrada (o a los 3 s, si
-    // no hay red: entonces se queda pendiente y se reintenta).
+    // Resolves when the server has the session closed (or after 3 s, if
+    // there's no network: then it stays pending and is retried).
     end(data) {
       end = data;
       pump();
       return Promise.race([endSent, new Promise((r) => { setTimeout(() => r(false), 3000); })]);
     },
-    // Al cerrar la pestaña no hay tiempo de esperar respuestas: se manda lo
-    // que quede con keepalive y se deja copia por si no llega.
+    // When the tab closes there's no time to wait for replies: whatever is
+    // left is sent with keepalive and a copy is kept in case it doesn't arrive.
     unload() {
       savePending(sessionId, tail, end);
       for (const batch of tail) post(`/sessions/${sessionId}/events`, { events: batch }, { keepalive: true }).catch(() => {});
@@ -71,7 +71,7 @@ export function createSink(sessionId) {
   };
 }
 
-// Lo que quedó sin enviar de sesiones anteriores (pestaña cerrada, sin red).
+// Whatever was left unsent from previous sessions (tab closed, no network).
 export async function retryPending() {
   const pendingList = await readPending();
   for (const { sessionId, batches, end } of pendingList) {
@@ -81,11 +81,11 @@ export async function retryPending() {
   }
 }
 
-// --- IndexedDB, con todo envuelto: sin ella se sigue funcionando, sin copia ---
+// --- IndexedDB, all wrapped: without it things keep working, with no copy ---
 
 function open() {
   return new Promise((resolve, reject) => {
-    if (typeof indexedDB === 'undefined') { reject(new Error('sin IndexedDB')); return; }
+    if (typeof indexedDB === 'undefined') { reject(new Error('no IndexedDB')); return; }
     const req = indexedDB.open(DB, 1);
     req.onupgradeneeded = () => req.result.createObjectStore(STORE, { keyPath: 'sessionId' });
     req.onsuccess = () => resolve(req.result);

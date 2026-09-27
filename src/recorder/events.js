@@ -1,15 +1,14 @@
-// Catálogo de eventos de una sesión. Lo comparten el navegador (grabador y
-// reproductor) y el servidor (validación antes de guardar): sin DOM, sin
-// imports del juego.
+// Catalog of a session's events. Shared by the browser (recorder and player)
+// and the server (validation before saving): no DOM, no game imports.
 //
-// Todo evento es { seq, t, type, ...datos }. `seq` es su orden dentro de la
-// sesión (entero, desde 0) y `t` el reloj del mundo en segundos. `type` es el
-// tipo de evento; el tipo del objeto del mundo (agua, arbol, una fruta...) va
-// en `what` para no pisarlo.
+// Every event is { seq, t, type, ...data }. `seq` is its order within the
+// session (integer, from 0) and `t` the world clock in seconds. `type` is the
+// event type; the world object's type (water, tree, a fruit...) goes in
+// `what` so it doesn't clash.
 
 export const EVENT_VERSION = 1;
 
-// type -> campos obligatorios. Los opcionales no se listan.
+// type -> required fields. Optional ones are not listed.
 export const EVENT_TYPES = {
   session_start: ['config', 'world'],
   session_end: ['reason'],
@@ -40,15 +39,15 @@ export const EVENT_TYPES = {
   log: ['tag', 'text'],
 };
 
-// Columnas de cada punto de un bloque `track`, en este orden.
+// Columns of each point in a `track` block, in this order.
 export const TRACK_FIELDS = ['t', 'x', 'y', 'angle', 'action', 'targetId', 'carrying', 'hunger', 'thirst', 'energy',
   'targetKind', 'drinking', 'castSide', 'scentX', 'scentY', 'legX', 'legY', 'leg',
   'wet', 'swimming', 'probing', 'pressure', 'pressureFalling'];
 
-// Sucesos que merecen una marca en la barra de tiempo del reproductor.
+// Events that deserve a mark on the player's timeline.
 export const MARKER_TYPES = new Set(['fagi_eat', 'fagi_pick', 'fagi_deposit', 'fagi_pantry', 'fagi_rule', 'fagi_death', 'config']);
 
-// Devuelve null si el evento vale, o el motivo si no.
+// Returns null if the event is valid, or the reason if not.
 export function invalidEvent(ev) {
   if (!ev || typeof ev !== 'object' || Array.isArray(ev)) return 'not_object';
   if (!Number.isInteger(ev.seq) || ev.seq < 0) return 'seq';

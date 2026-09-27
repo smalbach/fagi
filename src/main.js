@@ -1,12 +1,12 @@
-// El juego: prepara la vista una sola vez y la usa en tres modos.
+// The game: sets up the view just once and uses it in three modes.
 //
-//   setup   → mapa nuevo sin Fagi; se puede regenerar, mover, poner y quitar
-//             cosas y tocar los ajustes antes de empezar.
-//   play    → la sesión en marcha, grabándose (recorder/).
-//   replay  → una sesión grabada, reconstruida a partir de sus eventos.
+//   setup   → new map without Fagi; you can regenerate, move, place and remove
+//             things and tweak the settings before starting.
+//   play    → the session running, being recorded (recorder/).
+//   replay  → a recorded session, rebuilt from its events.
 //
-// Qué pantalla se ve antes y después (login, inicio, admin) no es cosa de
-// aquí: lo decide app/boot.js, que es quien crea el juego.
+// Which screen shows before and after (login, home, admin) is not handled
+// here: app/boot.js decides that, since it's the one that creates the game.
 
 import { WORLD } from './config.js';
 import { createWorld, resetWorld, record } from './world.js';
@@ -34,11 +34,11 @@ import { createPlayer } from './recorder/replay.js';
 import { createSink } from './recorder/sink.js';
 import { post } from './app/api.js';
 
-const MAX_DT = 0.05;   // limita saltos grandes al volver de otra pestaña
+const MAX_DT = 0.05;   // caps big jumps when coming back from another tab
 
 export function createGame({ onExit } = {}) {
-  // Los ajustes guardados van antes que nada: hay números que solo se leen al
-  // crear el mundo y a Fagi, no en cada frame.
+  // Saved settings go before anything else: some numbers are only read when
+  // creating the world and Fagi, not on every frame.
   loadSettings();
 
   const canvas = document.getElementById('canvas');
@@ -49,8 +49,8 @@ export function createGame({ onExit } = {}) {
   const world = createWorld();
   const fagi = createFagi();
 
-  // Quién decide, si alguien además del instinto: se guarda en el navegador y
-  // se puede cambiar en caliente desde el panel de código aprendido.
+  // Who decides, if anyone besides instinct: it's saved in the browser and
+  // can be changed on the fly from the learned-code panel.
   function mountBackend(kind, url) {
     fagi.cortex = createCortex(createBackend(kind, { url }));
   }
@@ -60,12 +60,12 @@ export function createGame({ onExit } = {}) {
     mountBackend(savedKind, urlGuardada);
   }
 
-  // La cámara es de la vista, no del mundo: cambiar de sesión no la toca.
+  // The camera belongs to the view, not the world: switching sessions leaves it alone.
   const camera = fit(createCamera(world), canvas, world);
 
   const input = createInput(canvas, world, camera);
   const ui = createUI(input, world, () => finishUp('user'));
-  // Qué versión corre: para saber qué hay en producción.
+  // Which version is running: to know what's in production.
   const tagLabel = document.getElementById('app-version');
   if (tagLabel) { tagLabel.textContent = versionLabel(); tagLabel.title = versionTitle(); }
   const narrator = createNarrator();
@@ -79,8 +79,8 @@ export function createGame({ onExit } = {}) {
   initContainerToggle(document.getElementById('btn-toggle-hud'), document.getElementById('hud-body'), 'fagi.hud-collapsed');
   initContainerToggle(document.getElementById('btn-toggle-console'), document.getElementById('console-body'), 'fagi.console-collapsed');
 
-  // Presentación limpia por defecto; las ayudas de simulación siguen disponibles
-  // sin tocar la lógica del mundo.
+  // Clean presentation by default; the simulation aids are still available
+  // without touching the world logic.
   const visual = document.getElementById('btn-visual');
   function updateVisualButton() {
     visual.textContent = world.immersive ? t('app.immersive') : t('app.analysis');
@@ -95,7 +95,7 @@ export function createGame({ onExit } = {}) {
   onLangChange(updateVisualButton);
   updateVisualButton();
 
-  // --- estado de la sesión ---
+  // --- session state ---
   let mode = 'idle';
   let session = null;     // { id, rec, sink }
   let player = null;
@@ -109,8 +109,8 @@ export function createGame({ onExit } = {}) {
   }
 
   function newFagi() {
-    // createFagi() trae su propio cortex:null; el de verdad (con el backend que
-    // haya elegido la persona) se conserva y solo se le limpia lo pendiente.
+    // createFagi() comes with its own cortex:null; the real one (with the backend
+    // the person chose) is kept and only its pending work is cleared.
     const cortex = fagi.cortex;
     Object.assign(fagi, createFagi());
     fagi.cortex = cortex;
@@ -119,7 +119,7 @@ export function createGame({ onExit } = {}) {
     console.reset();
   }
 
-  // Cada ajuste tocado a mano durante la partida queda grabado.
+  // Every setting changed by hand during the game gets recorded.
   onConfigChange((id, from, to, source) => {
     if (mode === 'play') record(world, 'config', { id, from, to, source });
   });
@@ -149,8 +149,8 @@ export function createGame({ onExit } = {}) {
       const snap = load();
       if (snap) { restore(fagi, snap); learned = { facts: Object.keys(snap.facts ?? {}).length, rules: snap.rules?.length ?? 0 }; }
     }
-    // El reloj empieza con la sesión, no con el mapa: el tiempo que se pasó
-    // preparando no cuenta.
+    // The clock starts with the session, not with the map: the time spent
+    // setting up doesn't count.
     world.time = 0;
     const sink = createSink(s.id);
     const rec = createRecorder(world, { send: (batch) => sink.send(batch) });
@@ -160,7 +160,7 @@ export function createGame({ onExit } = {}) {
     setMode('play');
   }
 
-  // Cierra la grabación. La vista sigue como estaba hasta que se sale.
+  // Closes the recording. The view stays as it was until you leave.
   function closeRecording(reason) {
     if (!session) return null;
     if (!session.closing) {
@@ -176,14 +176,14 @@ export function createGame({ onExit } = {}) {
     const closing = closeRecording(reason);
     save(snapshot(fagi));
     setMode('idle');
-    // La lista de sesiones tiene que ver esta ya cerrada.
+    // The session list has to see this one already closed.
     await closing;
     session = null;
     onExit?.();
   }
 
-  // Cerrar la pestaña no debería costarle a Fagi lo último que aprendió, ni a
-  // la sesión sus últimos segundos.
+  // Closing the tab shouldn't cost Fagi the last thing she learned, nor the
+  // session its last seconds.
   window.addEventListener('pagehide', () => {
     save(snapshot(fagi));
     if (session) { closeRecording('unload'); session.sink.unload(); }
@@ -201,7 +201,7 @@ export function createGame({ onExit } = {}) {
 
   function exitReplay() {
     if (!player) return;
-    // Los ajustes de la sesión reproducida eran suyos: se vuelve a los propios.
+    // The replayed session's settings were its own: go back to ours.
     applyConfig(replaying.configBefore);
     ui.sync();
     player = null;
@@ -214,7 +214,7 @@ export function createGame({ onExit } = {}) {
     onExit?.();
   }
 
-  // --- bucle ---
+  // --- loop ---
   function frameSetup(dt) {
     updateTrails(world, dt);
     render(ctx, world, null, camera);
@@ -248,7 +248,7 @@ export function createGame({ onExit } = {}) {
     if (camera.follow) centerOn(camera, canvas, player.world, player.fagi);
     render(ctx, player.world, player.fagi, camera);
     ui.update(player.fagi, player.world);
-    // Volver atrás deja en la consola líneas del futuro: se repinta entera.
+    // Going back leaves lines from the future in the console: repaint it whole.
     if (player.logEpoch !== replaying.logEpoch) {
       console.reset();
       replaying.logEpoch = player.logEpoch;

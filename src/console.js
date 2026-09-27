@@ -1,5 +1,5 @@
-// Consola: arriba el razonamiento del momento, abajo el histórico de decisiones.
-// Todo se escribe traduciendo claves, así que cambiar de idioma lo reescribe.
+// Console: on top the reasoning of the moment, below the decision history.
+// Everything is written by translating keys, so switching language rewrites it.
 
 import { BRAIN, POINT_TYPES, OBJECT_TYPES } from './config.js';
 import { t, tx, labelOf, onLangChange, formatClock } from './i18n.js';
@@ -14,7 +14,7 @@ export function createConsole() {
   };
   let lines = [];
 
-  // Al cambiar de idioma se repinta el histórico entero desde sus claves.
+  // On a language switch the whole history is repainted from its keys.
   onLangChange(() => { el.log.innerHTML = ''; paintLog(el.log, lines, true); });
 
   return {
@@ -26,9 +26,9 @@ export function createConsole() {
     reset() {
       lines = [];
       el.log.innerHTML = '';
-      // Fagi nueva, ids desde 1 otra vez: la marca de "hasta dónde va pintado"
-      // también tiene que volver a cero, o el histórico se queda vacío hasta
-      // que los ids nuevos alcancen la marca vieja.
+      // New Fagi, ids from 1 again: the "painted up to here" mark also has
+      // to go back to zero, or the history stays empty until the new ids
+      // reach the old mark.
       delete el.log.dataset.last;
     },
   };
@@ -65,7 +65,7 @@ function paintThought(el, fagi) {
     news(th),
   ].join('');
 
-  // Cómo puntúa cada cosa que percibe. Esta es la cuenta real del cerebro.
+  // How she scores each thing she perceives. This is the brain's real math.
   if (th.ranked.length === 0) {
     el.scores.innerHTML = `<div class="dim">${t('word.nothingToChase')}</div>`;
     return;
@@ -85,7 +85,7 @@ function paintThought(el, fagi) {
   }).join('');
 }
 
-// Explorando va por tramos: hasta un punto que ve, y ahí decide el siguiente.
+// Exploring goes in legs: up to a point she sees, and there she picks the next one.
 function leg(fagi, th) {
   const w = fagi.exploreTarget;
   if (th.action !== 'explore' || !w) return '';
@@ -93,7 +93,7 @@ function leg(fagi, th) {
   return `<div>${t('word.leg')} ${fagi.exploreLegs ?? ''} · ${d}px</div>`;
 }
 
-// Lo último nuevo que percibió y qué hizo con ello.
+// The latest new thing she perceived and what she did about it.
 function news(th) {
   const r = th.rethink;
   if (!r) return '';
@@ -126,5 +126,5 @@ const PART_KEY = {
   need: 'need', distance: 'distance', smell: 'smell',
 };
 
-// Los colores sí viven en config: no dependen del idioma.
+// Colors do live in config: they don't depend on the language.
 const TYPE_COLOR = (key) => (POINT_TYPES[key] ?? OBJECT_TYPES[key])?.color ?? '#8a90a2';

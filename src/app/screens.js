@@ -1,9 +1,9 @@
-// Pantallas fuera del juego: entrar, registrarse, lista de espera, inicio
-// (sesiones) y panel de admin. Todas se pintan dentro de #screen, que tapa el
-// juego mientras está visible.
+// Screens outside the game: log in, sign up, waitlist, home (sessions) and
+// admin panel. All of them are drawn inside #screen, which covers the game
+// while it's visible.
 //
-// Todo lo que viene del servidor (emails, nombres) pasa por esc() antes de
-// entrar en el HTML.
+// Everything that comes from the server (emails, names) goes through esc()
+// before going into the HTML.
 
 import { get, post, del } from './api.js';
 import { t, formatDuration, getLang } from '../i18n.js';
@@ -35,8 +35,8 @@ function errorMessage(err) {
   return txt === key ? t('err.generic') : txt;
 }
 
-// Cada celda lleva el título de su columna: en el móvil la tabla se pinta como
-// tarjetas y la cabecera no se ve.
+// Each cell carries its column's title: on mobile the table is drawn as
+// cards and the header isn't visible.
 function labelIt(list) {
   const titles = [...list.querySelectorAll('thead th')].map((th) => th.textContent);
   for (const tr of list.querySelectorAll('tbody tr')) {
@@ -54,7 +54,7 @@ const header = (title, extra = '') => `
     <span class="app-version" title="${esc(versionTitle())}">${esc(versionLabel())}</span>
   </header>`;
 
-// --- entrar y registrarse ---
+// --- log in and sign up ---
 
 export function showLogin({ onDone }) {
   const el = paint(`
@@ -110,11 +110,11 @@ function submitForm(form, action) {
 }
 
 async function logout(onLogout) {
-  try { await post('/auth/logout'); } catch { /* la cookie se va igual */ }
+  try { await post('/auth/logout'); } catch { /* the cookie goes away anyway */ }
   onLogout();
 }
 
-// --- lista de espera ---
+// --- waitlist ---
 
 export function showWaitlist(user, { onRetry, onLogout }) {
   const key = user.status === 'pending' ? 'wait.pending' : `wait.${user.status}`;
@@ -132,7 +132,7 @@ export function showWaitlist(user, { onRetry, onLogout }) {
   el.querySelector('#w-logout').addEventListener('click', () => logout(onLogout));
 }
 
-// --- inicio: la lista de sesiones ---
+// --- home: the list of sessions ---
 
 export async function showHome(user, { onNew, onReplay, onAdmin, onLogout }) {
   const el = paint(`
@@ -218,7 +218,7 @@ export async function showHome(user, { onNew, onReplay, onAdmin, onLogout }) {
           onReplay(s, events);
         } else if (b.dataset.act === 'export') {
           const { events } = await get(`/sessions/${id}/events`);
-          download(`fagi-sesion-${s.startedAt.slice(0, 19).replace(/[:T]/g, '-')}.json`, { session: s, events });
+          download(`fagi-session-${s.startedAt.slice(0, 19).replace(/[:T]/g, '-')}.json`, { session: s, events });
         } else if (b.dataset.act === 'delete') {
           if (!confirm(t('home.confirmDelete'))) return;
           await del(`/sessions/${id}`);
@@ -250,7 +250,7 @@ function download(name, data) {
   URL.revokeObjectURL(url);
 }
 
-// --- admin: aprobar la lista de espera ---
+// --- admin: approve the waitlist ---
 
 const FILTERS = ['pending', 'approved', 'rejected', 'disabled', ''];
 

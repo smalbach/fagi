@@ -1,9 +1,9 @@
-// Arranque: quién eres decide qué ves.
+// Boot: who you are decides what you see.
 //
-//   sin sesión          → entrar / registrarse
-//   en lista de espera  → aviso, hasta que un admin apruebe la cuenta
-//   aprobado            → inicio: sesiones guardadas y "Nueva sesión"
-//   nueva sesión        → preparar el mapa y los ajustes, y "Comenzar sesión"
+//   not logged in       → log in / sign up
+//   on the waitlist     → notice, until an admin approves the account
+//   approved            → home: saved sessions and "New session"
+//   new session         → set up the map and the settings, and "Start session"
 
 import { get, ApiError } from './api.js';
 import { showLogin, showWaitlist, showHome, showAdmin, hide, esc } from './screens.js';
@@ -53,7 +53,7 @@ function noServer() {
   el.querySelector('#retry').addEventListener('click', start);
 }
 
-// --- preparar una sesión ---
+// --- set up a session ---
 
 function newSession() {
   hide();
@@ -78,7 +78,7 @@ document.getElementById('btn-start').addEventListener('click', async (e) => {
 });
 document.getElementById('btn-end').addEventListener('click', () => game.leave());
 
-// --- reproducir una sesión ---
+// --- replay a session ---
 
 const bar = {
   play: document.getElementById('rp-play'),
@@ -99,8 +99,8 @@ function replay(session, eventList) {
   paintPlay();
 }
 
-// Una marca por suceso importante; pasar el ratón dice qué fue, y un clic
-// salta a ese instante y lleva la cámara a donde ocurrió.
+// One mark per important event; hovering says what it was, and a click
+// jumps to that moment and takes the camera to where it happened.
 function paintMarks(player) {
   const d = player.duration || 1;
   bar.marks.innerHTML = player.markers.map((m, i) => `
@@ -139,7 +139,7 @@ game.onReplayFrame = (player, ctl) => {
   if (document.activeElement !== bar.slider) bar.slider.value = String(player.time);
   bar.time.textContent = `${game.formatTime(player.time)} / ${game.formatTime(player.duration)}`;
   if (!ctl.on && bar.play.textContent !== '▶') paintPlay();
-  // El último suceso importante hasta ahora, como subtítulo.
+  // The latest important event so far, as a subtitle.
   let i = -1;
   for (let k = 0; k < player.markers.length && player.markers[k].t <= player.time; k++) i = k;
   if (i !== lastEvent) {

@@ -1,4 +1,4 @@
-/* --- panel del estado (HUD) y controles comunes: botones, barras --- */
+/* --- status panel (HUD) and common controls: buttons, bars --- */
 #hud {
   width: 290px;
   flex: none;
@@ -15,15 +15,15 @@ h1 { font-size: 18px; margin: 0; letter-spacing: 2px; }
 .app-version { color: var(--muted); font-size: 10.5px; font-variant-numeric: tabular-nums; margin-right: auto; white-space: nowrap; }
 .hud-header-actions { display: flex; align-items: center; gap: 6px; flex: none; }
 #btn-toggle-groups { width: auto; padding: 4px 8px; font-size: 10.5px; flex: none; }
-/* El cuerpo entero del HUD (todo menos el título) se puede ocultar de
-   un tirón con el botón ▾/▸ de la cabecera: en vez de cerrar sección
-   por sección, deja el panel entero reducido a su barra de título. */
+/* The whole HUD body (everything but the title) can be hidden in one
+   go with the ▾/▸ button in the header: instead of closing section by
+   section, it leaves the whole panel reduced to its title bar. */
 #hud-body { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
 #hud-body.collapsed { display: none; }
 h2 { font-size: 11px; margin: 0 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-/* Cada bloque del HUD se puede ocultar: en el móvil, con las siete
-   secciones apiladas en una sola página larga, poder cerrar las que no
-   hacen falta ahora mismo es lo que evita el scroll interminable. */
+/* Each HUD block can be hidden: on mobile, with the seven sections
+   stacked in one long page, being able to close the ones not needed
+   right now is what avoids the endless scroll. */
 .hud-group summary {
   cursor: pointer; font-size: 11px; margin: 0 0 6px; color: var(--muted);
   text-transform: uppercase; letter-spacing: 1px; list-style: none;

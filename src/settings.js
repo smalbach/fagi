@@ -1,8 +1,8 @@
-// Cuadro de ajustes: edita en caliente los objetos de config.js.
+// Settings dialog: edits the config.js objects on the fly.
 //
-// Todo el juego lee sus números de esos objetos en cada frame, así que cambiar
-// aquí un valor se nota al instante, sin reiniciar. El esquema de abajo es la
-// única lista que hay que tocar para exponer un parámetro nuevo.
+// The whole game reads its numbers from those objects every frame, so changing
+// a value here shows up instantly, without restarting. The schema below is the
+// only list you need to touch to expose a new parameter.
 
 import {
   FAGI, HUNGER, THIRST, ENERGY, BRAIN, CARRY, NEST, EXPLORE, WIND, PLUME, PHERO, TREE, FRUIT, MEMORY,
@@ -15,12 +15,12 @@ import { t, labelOf, getLang, onLangChange } from './i18n.js';
 
 const SETTINGS_KEY = 'fagi.settings';
 
-// Cada campo lleva su texto en los dos idiomas: en, es.
+// Each field carries its text in both languages: en, es.
 const n = (obj, key, en, es, min, max, step) => ({ obj, key, label: { en, es }, min, max, step });
 
 function foodFields(key) {
   const spec = POINT_TYPES[key];
-  // Lo podrido no se pudre otra vez: su vida es la que tarda en desaparecer.
+  // What's rotten doesn't rot again: its life is how long it takes to vanish.
   const lifeAt = key === FRUIT.rot ? 'Life before vanishing (0 = never)' : 'Life before rotting (0 = never)';
   const lifeIs = key === FRUIT.rot ? 'Vida antes de desaparecer (0 = nunca)' : 'Vida antes de pudrirse (0 = nunca)';
   const fieldsOf = [
@@ -30,7 +30,7 @@ function foodFields(key) {
     n(spec, 'radius', 'Size of the dot', 'Tamaño del punto', 2, 20, 1),
   ];
   spec.effects.forEach((e, i) => {
-    // El id lleva el número del efecto: dos efectos del mismo alimento comparten clave.
+    // The id carries the effect's number: two effects of the same food share a key.
     fieldsOf.push({ ...n(e, 'mult', `Effect ${i + 1} · ${e.stat} ×`, `Efecto ${i + 1} · ${e.stat} ×`, 0.1, 4, 0.05), id: `effect${i}.mult` });
     fieldsOf.push({ ...n(e, 'sec', `Effect ${i + 1} · ${e.stat} lasts`, `Efecto ${i + 1} · ${e.stat} dura`, 0, 60, 1), id: `effect${i}.sec` });
   });
@@ -119,7 +119,7 @@ const GROUPS = [
     n(EXPLORE, 'homeBias', 'Preference for cells away from the nest', 'Preferencia por casillas lejos del nido', 0, 3, 0.05),
     n(EXPLORE, 'giveUp', 'Seconds insisting on one cell', 'Segundos insistiendo en una casilla', 1, 60, 1),
   ]},
-  { title: { en: 'Memory', es: 'Memory' }, fieldsOf: [
+  { title: { en: 'Memory', es: 'Memoria' }, fieldsOf: [
     n(MEMORY, 'spacing', 'Gap for a repeat to count (s)', 'Hueco para que una repetición cuente (s)', 0, 120, 1),
     n(MEMORY, 'gain', 'Confidence per spaced confirmation', 'Confianza por confirmación espaciada', 0.02, 1, 0.01),
     n(MEMORY, 'massedGain', 'Worth of a back-to-back repeat', 'Cuánto vale una repetición seguida', 0, 1, 0.05),
@@ -154,7 +154,7 @@ const GROUPS = [
     n(PHERO, 'every', 'Seconds between marks', 'Segundos entre marcas', 0.05, 3, 0.05),
     n(PHERO, 'sense', 'Distance at which it is detected', 'Distancia a la que la detecta', 5, 150, 1),
   ]},
-  { title: { en: 'Water', es: 'Water' }, fieldsOf: [
+  { title: { en: 'Water', es: 'Agua' }, fieldsOf: [
     n(WATER, 'vado', 'Shallow edge where it stands and drinks (px)', 'Vado donde hace pie y bebe (px)', 0, 40, 1),
     n(WATER, 'wadeSpeed', 'Speed in the shallows (×)', 'Velocidad en el vado (×)', 0.05, 1, 0.05),
     n(WATER, 'swimSpeed', 'Speed paddling in deep water (×)', 'Velocidad pataleando en el hondo (×)', 0.05, 1, 0.05),
@@ -167,7 +167,7 @@ const GROUPS = [
     n(WATER, 'probeReach', 'Antenna reach ahead (px)', 'Alcance de las antenas (px)', 0, 30, 1),
     n(WATER, 'probeSpeed', 'Speed while probing water (×)', 'Velocidad tanteando el agua (×)', 0.1, 1, 0.05),
   ]},
-  { title: { en: 'Rain', es: 'Rain' }, fieldsOf: [
+  { title: { en: 'Rain', es: 'Lluvia' }, fieldsOf: [
     n(RAIN, 'every.min', 'Min seconds between showers', 'Mín. segundos entre chaparrones', 10, 3600, 10),
     n(RAIN, 'every.max', 'Max seconds between showers', 'Máx. segundos entre chaparrones', 10, 3600, 10),
     n(RAIN, 'duration.min', 'Min shower length (s)', 'Duración mínima del chaparrón (s)', 1, 300, 1),
@@ -219,14 +219,14 @@ const GROUPS = [
   })),
 ];
 
-// Cada campo necesita un nombre estable con el que guardarse: el del grupo más
-// su clave. Los grupos de alimento usan el tipo, que no cambia con el idioma.
+// Each field needs a stable name to be saved under: the group's plus its
+// key. Food groups use the type, which doesn't change with the language.
 for (const group of GROUPS) {
   const base = group.title.type ?? group.title.en;
   for (const field of group.fieldsOf) field.id = `${base}.${field.id ?? field.key}`;
 }
 
-// Los valores de fábrica, para poder volver atrás.
+// The factory values, to be able to go back.
 const ORIGINAL = GROUPS.flatMap((g) => g.fieldsOf).map((c) => ({ c, value: read(c) }));
 const BY_ID = new Map(GROUPS.flatMap((g) => g.fieldsOf).map((c) => [c.id, c]));
 
@@ -243,18 +243,18 @@ function write({ obj, key }, value) {
 
 const bound = ({ min, max }, v) => Math.min(max, Math.max(min, v));
 
-// --- la configuración de una sesión ---
-// Una sesión graba con qué números empezó y cada cambio que se hizo después:
-// así al reproducirla el mundo se comporta (y se dibuja) con los de entonces.
+// --- a session's configuration ---
+// A session records which numbers it started with and every change made after:
+// that way, when replayed, the world behaves (and draws) with the ones from then.
 
-// Todos los ajustes, id -> valor.
+// All the settings, id -> value.
 export function configSnapshot() {
   const data = {};
   for (const [id, field] of BY_ID) data[id] = read(field);
   return data;
 }
 
-// Aplica un id -> valor (entero o parcial). Lo que no reconoce lo ignora.
+// Applies an id -> value map (full or partial). Whatever it doesn't recognize it ignores.
 export function applyConfig(data) {
   for (const [id, value] of Object.entries(data ?? {})) {
     const field = BY_ID.get(id);
@@ -263,22 +263,22 @@ export function applyConfig(data) {
   refresh?.();
 }
 
-// El id de ajuste de un número de config.js, o null si no se expone.
+// The setting id of a config.js number, or null if it isn't exposed.
 export function configIdOf(obj, key) {
   for (const [id, field] of BY_ID) if (field.obj === obj && field.key === key) return id;
   return null;
 }
 
-// Quien quiera enterarse de cada cambio hecho a mano (el grabador).
+// Whoever wants to hear about every change made by hand (the recorder).
 let onChange = null;
 export function onConfigChange(fn) { onChange = fn; }
 
-// Repinta las casillas con los valores actuales; lo pone createSettings.
+// Repaints the fields with the current values; set by createSettings.
 let refresh = null;
 
-// --- guardar los ajustes entre partidas ---
-// Solo se guarda lo que se tocó: así un valor de fábrica nuevo le llega a quien
-// nunca cambió ese campo, en vez de quedarse congelado el de la vez anterior.
+// --- saving the settings between games ---
+// Only what was touched is saved: that way a new factory value reaches whoever
+// never changed that field, instead of the previous one staying frozen.
 function saveSettings() {
   const data = {};
   for (const { c, value } of ORIGINAL) {
@@ -288,18 +288,18 @@ function saveSettings() {
   try {
     if (Object.keys(data).length) localStorage.setItem(SETTINGS_KEY, JSON.stringify(data));
     else localStorage.removeItem(SETTINGS_KEY);
-  } catch { /* sin localStorage no se guarda nada y ya está */ }
+  } catch { /* without localStorage nothing is saved and that's it */ }
 }
 
-// Teclear en una casilla dispara un guardado por cifra: mejor esperar a que pare.
+// Typing in a field triggers a save per digit: better to wait until it stops.
 let savedPending = 0;
 function saveSoon() {
   clearTimeout(savedPending);
   savedPending = setTimeout(saveSettings, 400);
 }
 
-// Va antes de crear el mundo y a Fagi: hay números (energía máxima, tamaño del
-// nido, rocas del mapa) que solo se leen al nacer, no en cada frame.
+// Runs before creating the world and Fagi: some numbers (max energy, nest
+// size, map rocks) are only read at birth, not every frame.
 export function loadSettings() {
   try {
     const rawValue = localStorage.getItem(SETTINGS_KEY);
@@ -308,10 +308,10 @@ export function loadSettings() {
       const field = BY_ID.get(id);
       if (field && Number.isFinite(value)) write(field, bound(field, value));
     }
-  } catch { /* guardado ilegible: se queda con los valores de fábrica */ }
+  } catch { /* unreadable save: keeps the factory values */ }
 }
 
-// El título de un grupo: los de alimento llevan el nombre traducido del tipo.
+// A group's title: food groups carry the type's translated name.
 function titleOf(group) {
   const base = group.title[getLang()] ?? group.title.en;
   return group.title.type ? base.replace(group.title.type, labelOf(group.title.type)) : base;
@@ -338,7 +338,7 @@ export function createSettings(world, getFagi) {
         input.value = read(field);
         input.inputMode = 'decimal';
         input.addEventListener('input', () => {
-          // Campo vacío (se está borrando para escribir otro número): no es 0.
+          // Empty field (being cleared to type another number): it's not 0.
           if (input.value.trim() === '') return;
           const v = bound(field, Number(input.value));
           if (!Number.isFinite(v)) return;
@@ -347,8 +347,8 @@ export function createSettings(world, getFagi) {
           if (before !== v) onChange?.(field.id, before, v, 'user');
           saveSoon();
         });
-        // Al salir del campo enseña lo que de verdad quedó (acotado, o el de
-        // antes si se dejó vacío).
+        // On leaving the field it shows what really stuck (clamped, or the
+        // previous one if left empty).
         input.addEventListener('change', () => { input.value = read(field); });
         row.append(input);
         det.append(row);
@@ -373,7 +373,7 @@ export function createSettings(world, getFagi) {
       if (before !== value) onChange?.(c.id, before, value, 'reset');
     }
     for (const { field, input } of inputs) input.value = read(field);
-    saveSettings();   // todo de fábrica: borra el guardado
+    saveSettings();   // all factory: deletes the save
   });
 
   document.getElementById('btn-clear-trees').addEventListener('click', () => removeAllTrees(world));

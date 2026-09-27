@@ -1,5 +1,5 @@
-/* La presentación natural usa toda la pantalla. Un clic en el botón de
-   modo devuelve los paneles sin perder el estado de la simulación. */
+/* The natural presentation uses the whole screen. A click on the mode
+   button brings the panels back without losing the simulation state. */
 body.immersive { background: #0d100e; }
 body.immersive #hud,
 body.immersive #console { display: none; }

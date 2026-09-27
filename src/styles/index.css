@@ -1,7 +1,7 @@
-/* Estilos de index.html, repartidos por zona. El orden de los @import es el
-   de la cascada: una regla posterior pisa a otra anterior de la misma
-   especificidad, así que no se reordenan sin mirar qué pisa a qué (mobile.css,
-   con los @media de pantalla angosta, va siempre al final). */
+/* Styles for index.html, split by area. The order of the @imports is the
+   cascade order: a later rule overrides an earlier one of the same
+   specificity, so don't reorder them without checking what overrides what
+   (mobile.css, with the narrow-screen @media, always goes last). */
 @import './base.css';
 @import './hud.css';
 @import './console.css';

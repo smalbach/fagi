@@ -1,4 +1,4 @@
-// Textos en español. Las mismas claves que en.js; la que falte cae al inglés.
+// Spanish texts. The same keys as en.js; any missing one falls back to English.
 
 export default {
   'app.title': 'FAGI',
@@ -138,7 +138,7 @@ export default {
   'pressure.falling': 'bajando',
   'pressure.low': 'baja',
 
-  // Unidades de tiempo (formatDuration / formatClock).
+  // Time units (formatDuration / formatClock).
   'unit.sec': 's',
   'unit.min': 'm',
   'unit.hour': 'h',
@@ -391,7 +391,7 @@ export default {
   'set.factory': 'Valores de fábrica',
   'set.close': 'Cerrar',
 
-  // Cuentas, sesiones y reproductor.
+  // Accounts, sessions and player.
   'app.endSession': '■ Terminar sesión',
   'auth.login': 'Entrar',
   'auth.loginBtn': 'Entrar',

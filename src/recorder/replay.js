@@ -1,12 +1,12 @@
-// Reproductor de sesiones grabadas. No vuelve a simular: aplica los eventos en
-// orden (applyEvent) y reconstruye el mundo tal como estaba en cualquier
-// instante. Lo que cambia solo con el tiempo —edad de la fruta, feromona que se
-// evapora, viento que gira, por dónde va Fagi entre dos muestras— se deriva del
-// reloj en view(), no se graba.
+// Player for recorded sessions. It doesn't simulate again: it applies the events
+// in order (applyEvent) and rebuilds the world as it was at any moment. What
+// changes only with time —fruit age, pheromone evaporating, wind turning,
+// where Fagi is between two samples— is derived from the clock in view(), not
+// recorded.
 //
-// Para ir hacia atrás sin reaplicar desde el principio, cada `checkpointEvery`
-// segundos se guarda en memoria una copia del estado ya reconstruido. Nunca va
-// a disco: la sesión guardada son solo sus eventos.
+// To go backwards without reapplying from the start, every `checkpointEvery`
+// seconds a copy of the already rebuilt state is kept in memory. It never goes
+// to disk: the saved session is just its events.
 
 import { OBJECT_TYPES, TREE, PHERO, WIND, RAIN } from '../config.js';
 import { createWorld } from '../world.js';
@@ -15,30 +15,30 @@ import { normalizeAngle } from '../vision.js';
 import { MARKER_TYPES } from './events.js';
 import { modernize } from '../legacy.js';
 
-// --- el estado: un mundo con la misma forma que el de verdad ---
+// --- the state: a world with the same shape as the real one ---
 
 export function createReplayState() {
   const world = createWorld();
   world.wind = { angle: 0, target: 0, timer: 0, t: 0 };
   return {
     world,
-    config: {},        // id -> valor, tal como estaba en este instante
-    configSeq: 0,      // sube con cada cambio de config: quien dibuja reaplica
-    windAt: 0,         // cuándo se fijó el último viento
-    rainSpans: [],     // [inicio, fin|null] de cada chaparrón: la lluvia lava la feromona
-    dead: null,        // { t, cause } si Fagi murió
+    config: {},        // id -> value, as it was at this moment
+    configSeq: 0,      // goes up with each config change: whoever draws reapplies
+    windAt: 0,         // when the last wind was set
+    rainSpans: [],     // [start, end|null] of each shower: rain washes away the pheromone
+    dead: null,        // { t, cause } if Fagi died
     ended: null,
-    mind: {},          // parte -> valor: lo último que se grabó de su cabeza
-    mindSeq: 0,        // sube con cada cambio de reglas: el panel de código repinta
-    log: [],           // las últimas líneas de la consola
+    mind: {},          // part -> value: the last thing recorded from her head
+    mindSeq: 0,        // goes up with each rule change: the code panel repaints
+    log: [],           // the console's latest lines
   };
 }
 
-const LOG_MAX = 80;   // las mismas que guarda narrator.js
+const LOG_MAX = 80;   // the same as narrator.js keeps
 
 const byId = (list, id) => list.findIndex((o) => o.id === id);
 
-// Aplica un evento al estado. Pura salvo por mutar `state`.
+// Applies an event to the state. Pure except for mutating `state`.
 export function applyEvent(state, ev) {
   const w = state.world;
   switch (ev.type) {
@@ -146,7 +146,7 @@ export function applyEvent(state, ev) {
       if (state.log.length > LOG_MAX) state.log.shift();
       break;
     default:
-      break;   // fagi_* y track no cambian el mundo: los lee view()
+      break;   // fagi_* and track don't change the world: view() reads them
   }
   return state;
 }
@@ -155,15 +155,15 @@ function nestObj(w) {
   return w.objects.find((o) => OBJECT_TYPES[o.type]?.kind === 'nest') ?? null;
 }
 
-// --- el reproductor ---
+// --- the player ---
 
 export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
   const events = eventList.map(modernize).sort((a, b) => a.seq - b.seq);
   const duration = events.reduce((m, e) => Math.max(m, e.t, e.t1 ?? 0), 0);
 
-  // El recorrido de Fagi, todo junto y ordenado, para buscar por tiempo.
+  // Fagi's path, all together and sorted, to search by time.
   const track = events.filter((e) => e.type === 'track').flatMap((e) => e.pts);
-  // Distancia recorrida hasta cada punto: mueve las patas al dibujar.
+  // Distance traveled up to each point: moves the legs when drawing.
   const route = [0];
   for (let i = 1; i < track.length; i++) {
     route.push(route[i - 1] + Math.hypot(track[i][1] - track[i - 1][1], track[i][2] - track[i - 1][2]));
@@ -171,16 +171,16 @@ export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
   const markers = events.filter((e) => MARKER_TYPES.has(e.type));
 
   let state = createReplayState();
-  let cursor = 0;          // siguiente evento por aplicar
+  let cursor = 0;          // next event to apply
   let time = 0;
-  let logEpoch = 0;        // sube al volver atrás: la consola se repinta entera
+  let logEpoch = 0;        // goes up when going back: the console repaints whole
   const checkpoints = [{ t: 0, cursor: 0, state: clone(state) }];
   const fagi = createFagi();
 
   function applyUntil(t) {
     while (cursor < events.length && events[cursor].t <= t) {
       const ev = events[cursor];
-      // El punto de control se toma ANTES del primer evento que lo pasa.
+      // The checkpoint is taken BEFORE the first event that goes past it.
       const lastItem = checkpoints[checkpoints.length - 1];
       if (ev.t - lastItem.t >= checkpointEvery && cursor > lastItem.cursor) {
         checkpoints.push({ t: events[cursor - 1].t, cursor, state: clone(state) });
@@ -193,7 +193,7 @@ export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
   function seek(t) {
     t = Math.max(0, Math.min(duration, t));
     if (t < time) {
-      // Hacia atrás: desde el último punto de control anterior.
+      // Backwards: from the latest earlier checkpoint.
       let cp = checkpoints[0];
       for (const c of checkpoints) if (c.t <= t) cp = c;
       state = clone(cp.state);
@@ -205,19 +205,19 @@ export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
     return view();
   }
 
-  // Lo que solo depende del reloj.
+  // What depends only on the clock.
   function view() {
     const w = state.world;
     w.time = time;
     for (const p of w.points) p.age = time - p.born;
     for (const o of w.objects) if (o.born !== undefined) o.age = time - o.born;
     w.pheromone = w.pheromone.filter((m) => {
-      // Bajo la lluvia se borra RAIN.washPhero veces más rápido, como en vivo.
+      // Under the rain it fades RAIN.washPhero times faster, as when live.
       const wetOne = rainBetween(state.rainSpans, m.born, time);
       m.life = PHERO.life - (time - m.born) - (RAIN.washPhero - 1) * wetOne;
       return m.life > 0;
     });
-    // El viento gira hacia su objetivo a velocidad fija.
+    // The wind turns toward its target at a fixed speed.
     const diff = normalizeAngle(w.wind.target - w.wind.angle);
     const giro = Math.min(Math.abs(diff), WIND.turnRate * Math.max(0, time - state.windAt));
     w.wind.angle = normalizeAngle(w.wind.angle + Math.sign(diff) * giro);
@@ -241,9 +241,9 @@ export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
   };
 }
 
-// Fagi en el instante t: entre dos muestras del recorrido se interpola la
-// posición y el giro; lo demás (acción, carga, necesidades) es el de la
-// muestra anterior.
+// Fagi at moment t: between two path samples the position and heading are
+// interpolated; the rest (action, load, needs) is taken from the previous
+// sample.
 function putFagi(fagi, track, route, t, dead, w) {
   if (!track.length) { fagi.alive = !dead; return; }
   let lo = 0;
@@ -264,7 +264,7 @@ function putFagi(fagi, track, route, t, dead, w) {
   fagi.angle = a[3] + normalizeAngle(b[3] - a[3]) * k;
   fagi.stride = route[lo] + (route[Math.min(lo + 1, track.length - 1)] - route[lo]) * k;
   fagi.thought = { action: a[4] ?? 'explore', reason: null };
-  // Sesiones grabadas antes de que la fila llevara estas columnas: sin ellas.
+  // Sessions recorded before the row carried these columns: without them.
   fagi.target = a[5] != null ? (w.points.find((p) => p.id === a[5]) ?? w.objects.find((o) => o.id === a[5]) ?? null) : null;
   fagi.targetKind = a[10] ?? null;
   fagi.drinking = !!a[11];
@@ -286,9 +286,9 @@ function putFagi(fagi, track, route, t, dead, w) {
   if (dead && !fagi.alive) fagi.cause = dead.cause;
 }
 
-// Su cabeza en el instante t, con la forma que leen los cuadros. Sesiones
-// grabadas antes de que existieran los eventos `mind`: la cabeza queda vacía
-// y el pensamiento sale del recorrido.
+// Her head at moment t, in the shape the panels read. Sessions recorded
+// before `mind` events existed: the head stays empty and the thought comes
+// from the path.
 function putMind(fagi, state, t) {
   const m = state.mind;
   if (m.thought) fagi.thought = { ...m.thought, ranked: m.thought.ranked ?? [] };
@@ -297,7 +297,7 @@ function putMind(fagi, state, t) {
   fagi.brain.rules.list = m.rules ?? [];
   fagi.brain.rules.quarantined = new Set(m.quarantined ?? []);
   fagi.brain.rules.seq = state.mindSeq;
-  // Sesiones viejas guardaban solo el contador.
+  // Old sessions only stored the counter.
   fagi.brain.lastRule = typeof m.lastRule === 'number' ? (m.lastRule ? { n: m.lastRule } : null) : (m.lastRule ?? null);
   fagi.lastEpisode = m.episode ?? null;
   fagi.brain.synapses = {};
@@ -323,7 +323,7 @@ function putMind(fagi, state, t) {
   fagi.trailKey = st.trailKey ?? null;
 }
 
-// Segundos de lluvia entre a y b.
+// Seconds of rain between a and b.
 function rainBetween(spans, a, b) {
   let total = 0;
   for (const [init, end] of spans) total += Math.max(0, Math.min(b, end ?? b) - Math.max(a, init));
@@ -331,7 +331,7 @@ function rainBetween(spans, a, b) {
 }
 
 function clone(state) {
-  // Las estelas de olor no se copian: se regeneran solas al dibujar.
+  // Scent plumes aren't copied: they regenerate on their own when drawing.
   const copy = structuredClone({
     ...state,
     world: {
