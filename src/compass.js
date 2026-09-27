@@ -1,9 +1,9 @@
-// Sentido de orientación de Fagi: sabe hacia dónde va.
-// Ojo: en canvas la Y crece hacia abajo, así que "arriba" es sin(angle) < 0.
+// Fagi's sense of direction: she knows which way she's heading.
+// Careful: on canvas Y grows downward, so "up" is sin(angle) < 0.
 
 import { normalizeAngle } from './vision.js';
 
-// Cada rumbo lleva su clave de idioma; el texto lo pone quien lo pinta.
+// Each heading carries its language key; whoever draws it supplies the text.
 const DIRECTIONS = [
   { key: 'dir.right',     arrow: '→' },
   { key: 'dir.downRight', arrow: '↘' },
@@ -15,14 +15,14 @@ const DIRECTIONS = [
   { key: 'dir.upRight',   arrow: '↗' },
 ];
 
-// Una de las 8 direcciones, según el ángulo actual.
+// One of the 8 directions, based on the current angle.
 export function heading(angle) {
   const a = normalizeAngle(angle) + Math.PI * 2;
   const i = Math.round(a / (Math.PI / 4)) % 8;
   return DIRECTIONS[i];
 }
 
-// Componente vertical pura: sube, baja o va plano.
+// Pure vertical component: rising, falling or level.
 export function verticalSense(angle) {
   const dy = Math.sin(angle);
   if (dy < -0.15) return { key: 'dir.rising', arrow: '↑', sign: -1 };

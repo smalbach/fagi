@@ -1,4 +1,4 @@
-// ── Utilidades ──────────────────────────────────────────────────────────────
+// ── Utilities ───────────────────────────────────────────────────────────────
 
 export function hash(a, b, s = 0) {
   const x = Math.sin(a * 127.1 + b * 311.7 + s * 74.7) * 43758.5453;
@@ -7,7 +7,7 @@ export function hash(a, b, s = 0) {
 
 export const smooth = (x) => x * x * (3 - 2 * x);
 
-// Ruido fractal que se repite sin costuras: sirve para nubes y para rachas.
+// Fractal noise that tiles seamlessly: used for clouds and for gusts.
 let noiseTexture = null;
 export function noise() {
   if (noiseTexture) return noiseTexture;
@@ -42,7 +42,7 @@ export function noise() {
   return c;
 }
 
-// Teselas del ruido, escaladas y desplazadas, cubriendo el rectángulo dado.
+// Noise tiles, scaled and offset, covering the given rectangle.
 export function tessellate(ctx, img, sideOf, ox, oy, x0, y0, x1, y1) {
   const sx = x0 - ((((x0 - ox) % sideOf) + sideOf) % sideOf);
   const sy = y0 - ((((y0 - oy) % sideOf) + sideOf) % sideOf);
@@ -51,14 +51,14 @@ export function tessellate(ctx, img, sideOf, ox, oy, x0, y0, x1, y1) {
   }
 }
 
-// Cuántos píxeles del lienzo caben en un píxel de la pantalla. El lienzo mide
-// lo que el mundo y el navegador lo encoge: sin esto una línea fina se pierde.
+// How many canvas pixels fit in one screen pixel. The canvas is as big as the
+// world and the browser shrinks it: without this a thin line gets lost.
 export function screen(canvas) {
   const w = canvas.clientWidth || canvas.width;
   return Math.max(1, canvas.width / w);
 }
 
-// Lo que la cámara deja ver, en coordenadas de mundo.
+// What the camera lets you see, in world coordinates.
 export function sight(ctx) {
   const m = ctx.getTransform();
   const z = m.a || 1;

@@ -1,20 +1,20 @@
-// El suelo cocido: un lienzo del tamaño del mundo que se pinta una vez por
-// mundo y luego solo se estampa. Aquí está el orden en que se pinta; cada capa
-// vive en relieve.js y cada detalle en detalles.js.
+// The baked ground: a world-sized canvas painted once per world and afterwards
+// only stamped. Here is the order it's painted in; each layer lives in
+// relief.js and each detail in details.js.
 
 import { WORLD, TERRAIN } from '../config.js';
 import { canvasOf, seededRng, seedFor } from '../sprite-kit.js';
 import { field, paintBase, paintGrain, paintClearings } from './relief.js';
 import { pebble, bush, litter, leaf, moss, root, crack } from './details.js';
 
-// Un solo suelo guardado: el del mundo que hay ahora. Cada lienzo es del tamaño
-// de la pantalla, y al reiniciar el anterior ya no vale para nada.
-let ground = null;             // { clave, img }
+// Only one ground is kept: the current world's. Each canvas is screen-sized,
+// and on restart the previous one is no use anymore.
+let ground = null;             // { key, img }
 
-// Microtextura fotográfica. El terreno sigue siendo procedural —la altura,
-// humedad, grava y la colocación de cada detalle cambian con la semilla—; esta
-// imagen solo aporta el nivel microscópico de materia que el ruido sintético no
-// consigue: terrones, fibras, piedrecitas y restos orgánicos reconocibles.
+// Photographic microtexture. The terrain is still procedural —height, moisture,
+// gravel and the placement of each detail change with the seed—; this image only
+// adds the microscopic level of material that synthetic noise can't achieve:
+// recognizable clods, fibers, tiny stones and organic debris.
 const forestTexture = new Image();
 let textureReady = false;
 forestTexture.onload = () => { textureReady = true; ground = null; };
@@ -54,9 +54,9 @@ function paintGround(seedOf, w, h) {
   return c;
 }
 
-// La foto se usa como la materia visible del suelo y deja transparentar el
-// color de los biomas que hay debajo. Se repite a escala pequeña: las hojas,
-// ramitas y piedras son microdetalle del mundo, no objetos del tamaño de Fagi.
+// The photo is used as the ground's visible material and lets the color of the
+// biomes underneath show through. It repeats at a small scale: the leaves,
+// twigs and stones are the world's microdetail, not Fagi-sized objects.
 function paintMicrotexture(ctx, w, h, seedOf) {
   if (!textureReady) return;
   const rnd = seededRng((seedOf ^ 0x6a09e667) >>> 0);
@@ -78,7 +78,7 @@ function paintMicrotexture(ctx, w, h, seedOf) {
   ctx.restore();
 }
 
-// Motas de tierra: lo más pequeño, debajo de todo lo demás.
+// Specks of dirt: the smallest thing, beneath everything else.
 function paintSpecks(ctx, w, h, rnd) {
   for (let i = 0; i < TERRAIN.specks; i++) {
     const x = rnd() * w;
@@ -90,9 +90,9 @@ function paintSpecks(ctx, w, h, rnd) {
   }
 }
 
-// Siembra: tira puntos al azar y deja que el terreno decida si ahí va algo.
-// `quiere` devuelve 0..1 y se compara con un dado, así que el detalle no aparece
-// de golpe en una frontera: se va aclarando.
+// Sowing: throws random points and lets the terrain decide whether something goes there.
+// `wants` returns 0..1 and is compared with a die roll, so the detail doesn't appear
+// abruptly at a border: it thins out gradually.
 function sow(w, h, n, rnd, wants, put) {
   for (let i = 0; i < n; i++) {
     const x = rnd() * w;
@@ -102,8 +102,8 @@ function sow(w, h, n, rnd, wants, put) {
 }
 
 function seedDetails(ctx, w, h, rnd, { tall, moisture, stone }) {
-  // Los guijarros salen donde asoma la piedra; las grietas, donde está seco y
-  // sin verde; las matas, donde hay humedad. Cada cosa en su sitio.
+  // Pebbles show up where stone peeks through; cracks, where it's dry and
+  // without green; tufts, where it's moist. Everything in its place.
   sow(w, h, TERRAIN.pebbles, rnd,
     (x, y) => Math.max(0, stone(x, y) - 0.35) * 1.6,
     (x, y) => pebble(ctx, x, y, 1.2 + rnd() * 3.2, rnd));
@@ -120,9 +120,9 @@ function seedDetails(ctx, w, h, rnd, { tall, moisture, stone }) {
     (x, y) => 0.35 + moisture(x, y) * 0.5,
     (x, y) => litter(ctx, x, y, 3 + rnd() * 7, rnd));
 
-  // El musgo va en lo hondo y húmedo; las raíces asoman donde hay verde, que es
-  // donde hay algo que las eche; y la hoja caída cae por todas partes, pero se
-  // amontona donde no la barre el sol.
+  // Moss goes in low, damp spots; roots poke out where there's green, which is
+  // where there's something to put them out; and fallen leaves land everywhere,
+  // but pile up where the sun doesn't sweep them away.
   sow(w, h, TERRAIN.moss, rnd,
     (x, y) => Math.max(0, moisture(x, y) - 0.58) * Math.max(0, 0.6 - tall(x, y)) * 6,
     (x, y) => moss(ctx, x, y, 3 + rnd() * 7, rnd));
@@ -136,7 +136,7 @@ function seedDetails(ctx, w, h, rnd, { tall, moisture, stone }) {
     (x, y) => leaf(ctx, x, y, 3.5 + rnd() * 5, rnd));
 }
 
-// Los bordes del mundo se apagan: el mapa termina, no se corta.
+// The world's edges fade out: the map ends, it isn't cut off.
 function paintVignette(ctx, w, h) {
   const vignette = ctx.createRadialGradient(
     w / 2, h / 2, Math.min(w, h) * 0.32,
@@ -148,8 +148,8 @@ function paintVignette(ctx, w, h) {
   ctx.fillRect(0, 0, w, h);
 }
 
-// Velo del color de fondo: unifica todo y baja el contraste del suelo, que
-// debe quedar POR DEBAJO del de Fagi y los puntos.
+// Veil in the background color: it unifies everything and lowers the ground's
+// contrast, which must stay BELOW that of Fagi and the points.
 function paintVeil(ctx, w, h) {
   ctx.globalAlpha = TERRAIN.veil;
   ctx.fillStyle = WORLD.bgColor;

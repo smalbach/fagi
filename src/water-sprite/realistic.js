@@ -1,6 +1,6 @@
-// Estanque fotográfico. El motor procedural sigue disponible como respaldo;
-// cuando la imagen termina de cargar se usa esta base y se añaden encima unas
-// ondas vivas muy sutiles para que no parezca una fotografía inmóvil.
+// Photographic pond. The procedural engine is still available as a fallback;
+// once the image finishes loading this base is used, with some very subtle live
+// ripples added on top so it doesn't look like a frozen photograph.
 
 import { seedFor } from '../sprite-kit.js';
 import { LX, LY } from './shape.js';
@@ -28,14 +28,14 @@ function stampPhoto(ctx, o, r, seedOf) {
   ctx.shadowColor = 'rgba(9,13,10,0.58)';
   ctx.shadowBlur = r * 0.15;
   ctx.filter = 'saturate(1.12) brightness(0.93) contrast(1.14)';
-  // Se estampa cuadrado a propósito: el original ancho se vuelve una charca
-  // compacta e irregular y encaja mejor con el radio real donde Fagi bebe.
+  // Stamped square on purpose: the wide original becomes a compact, irregular
+  // pond and fits better with the real radius where Fagi drinks.
   ctx.drawImage(realisticLake, -sideOf / 2, -sideOf / 2, sideOf, sideOf);
   ctx.restore();
 }
 
-// Reflejos móviles contenidos en la zona central del agua. No repintan la
-// costa ni producen el viejo disco azul: solo alteran la superficie.
+// Moving reflections confined to the central area of the water. They don't
+// repaint the shore or produce the old blue disc: they only alter the surface.
 function reflections(ctx, o, r, seedOf, wind, now) {
   const t = now / 1000;
   const windState = wind?.angle ?? 0;

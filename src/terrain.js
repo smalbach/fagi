@@ -1,25 +1,25 @@
-// El suelo. Se pinta UNA vez en un lienzo del tamaño del mundo y luego solo se
-// estampa: así puede llevar relieve, manchas de tierra y musgo, grano, guijarros
-// y matas sin costar nada por fotograma.
+// The ground. It's painted ONCE onto a world-sized canvas and afterwards only
+// stamped: that way it can carry relief, patches of earth and moss, grain,
+// pebbles and tufts without costing anything per frame.
 //
-// No hay "una textura de suelo": hay un terreno. Dos campos de ruido —altura y
-// humedad— deciden a la vez el color y la luz de cada trozo, y los detalles se
-// siembran donde les toca: las matas donde hay humedad, los guijarros y las
-// grietas donde la tierra está seca.
+// There's no "ground texture": there's terrain. Two noise fields —height and
+// moisture— decide both the color and the light of each patch, and the details
+// are sown where they belong: tufts where it's moist, pebbles and cracks where
+// the earth is dry.
 //
-// La luz es la misma que la de la roca y el nido: arriba a la izquierda. Es lo
-// que hace que las tres cosas parezcan del mismo sitio.
+// The light is the same as the rock's and the nest's: top left. That's what
+// makes the three things look like they're from the same place.
 //
-// Al final todo se vela hacia el color de fondo: el suelo es escenario, no
-// protagonista, y Fagi y los puntos tienen que seguir leyéndose encima.
+// At the end everything is veiled toward the background color: the ground is
+// the stage, not the star, and Fagi and the points must still read on top of it.
 //
-// Las piezas viven en terrain/:
-//   · suelo.js     el lienzo cocido del mundo y el orden en que se pinta
-//   · relieve.js   campos de ruido, color y luz del terreno, grano y claros
-//   · detalles.js  guijarros, matas, hojas, musgo, raíces y grietas
-//   · cerca.js     lo que se añade al acercarse: grano de zoom y detalle de cerca
-//   · orilla.js    la mancha de humedad alrededor de cada charco
-//   · paleta.js    la luz y los colores que comparten todas
+// The pieces live in terrain/:
+//   · ground.js    the world's baked canvas and the order it's painted in
+//   · relief.js    noise fields, terrain color and light, grain and clearings
+//   · details.js   pebbles, tufts, leaves, moss, roots and cracks
+//   · near.js      what gets added when zooming in: zoom grain and close-up detail
+//   · shore.js     the damp patch around each puddle
+//   · palette.js   the light and colors they all share
 
 export { drawTerrain } from './terrain/ground.js';
 export { drawZoomGrain, drawNearDetail } from './terrain/near.js';

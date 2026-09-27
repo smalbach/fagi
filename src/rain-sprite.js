@@ -1,29 +1,30 @@
-// La lluvia y los charcos que deja.
+// The rain and the puddles it leaves.
 //
-// Lo que hace que la lluvia vista desde arriba parezca lluvia no son los
-// trazos, es todo lo que la acompaña:
+// What makes rain seen from above look like rain isn't the streaks, it's
+// everything that comes with it:
 //
-//   · El cielo se cierra poco a poco y se abre igual. Lo que se ve no salta de
-//     seco a diluvio: `nivel` sube en unos segundos al empezar y baja al escampar.
-//   · Las nubes pasan. Manchas de sombra lentas que arrastra el viento.
-//   · El suelo se moja y tarda en secarse: se oscurece y se enfría de color.
-//   · Las gotas caen HACIA la cámara. Hay tres capas: las lejanas, cortas y
-//     finas; las cercanas, largas, gruesas y borrosas. Todas se abren un poco
-//     desde el centro de la vista (perspectiva) y se inclinan con el viento.
-//   · Cada gota que llega al suelo salpica: un punto, un anillo que se abre y
-//     unas gotitas que saltan. En el agua deja ondas.
-//   · El chaparrón va a rachas: cortinas más densas que cruzan la pantalla.
-//   · De vez en cuando, un relámpago.
+//   · The sky closes in little by little and opens up the same way. What you see
+//     doesn't jump from dry to downpour: `level` rises over a few seconds when it
+//     starts and falls when it clears up.
+//   · Clouds drift by. Slow patches of shadow carried by the wind.
+//   · The ground gets wet and takes a while to dry: it darkens and cools in color.
+//   · The drops fall TOWARD the camera. There are three layers: the far ones,
+//     short and thin; the near ones, long, thick and blurry. They all spread a
+//     little from the center of the view (perspective) and lean with the wind.
+//   · Every drop that reaches the ground splashes: a dot, a ring that opens and
+//     a few droplets that bounce. On water it leaves ripples.
+//   · The downpour comes in gusts: denser curtains that sweep across the screen.
+//   · Every now and then, a flash of lightning.
 //
-// Nada guarda partículas: cada gota, salpicadura y onda sale de un hash de su
-// índice y de su ciclo, así que no hay memoria que crezca ni azar que gastar.
+// Nothing stores particles: every drop, splash and ripple comes from a hash of
+// its index and its cycle, so there's no memory that grows and no randomness to use up.
 //
-// Las piezas viven en rain-sprite/:
-//   · estado.js    lo que se ve (cielo, lo que cae, suelo mojado), subiendo y bajando suave
-//   · suelo.js     el suelo mojado, la luz nublada y las salpicaduras (mundo)
-//   · charcos.js   los charcos y las ondas de las gotas en el agua (mundo)
-//   · gotas.js     rachas, gotas y relámpago, delante de la cámara (pantalla)
-//   · util.js      hash, ruido de nubes, teselas, vista y viento
+// The pieces live in rain-sprite/:
+//   · state.js     what is seen (sky, what falls, wet ground), rising and falling smoothly
+//   · ground.js    the wet ground, the overcast light and the splashes (world)
+//   · puddles.js   the puddles and the drop ripples on water (world)
+//   · drops.js     gusts, drops and lightning, in front of the camera (screen)
+//   · util.js      hash, cloud noise, tiles, view and wind
 
 export { rainLook, rainLevel, rainFalling } from './rain-sprite/state.js';
 export { drawWetGround, drawOvercast, drawSplashes } from './rain-sprite/ground.js';

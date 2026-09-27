@@ -2,8 +2,8 @@ import { LAKE } from '../config.js';
 import { seededRng } from '../sprite-kit.js';
 import { REED, shoreProfile } from './shape.js';
 
-// Juncos de la orilla. Se doblan a favor del viento —el mismo que lleva los
-// olores— y cabecean despacio, cada mata con su fase.
+// Reeds on the shore. They bend with the wind —the same one that carries the
+// smells— and nod slowly, each clump with its own phase.
 export function reeds(ctx, o, r, seedOf, wind, now) {
   const t = now / 1000;
   const rnd = seededRng((seedOf ^ 0x9e3779b1) >>> 0);
@@ -14,7 +14,7 @@ export function reeds(ctx, o, r, seedOf, wind, now) {
   ctx.lineCap = 'round';
   for (let i = 0; i < LAKE.reeds; i++) {
     const a = rnd() * Math.PI * 2;
-    if (rnd() < 0.35) continue;               // no rodean el lago entero
+    if (rnd() < 0.35) continue;               // they don't ring the whole lake
     const d = r * shore(a) * (0.97 + rnd() * 0.12);
     const x = o.x + Math.cos(a) * d;
     const y = o.y + Math.sin(a) * d;

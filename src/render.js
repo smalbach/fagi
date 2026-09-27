@@ -1,11 +1,11 @@
-// Dibujo: terreno, cono de visión, puntos y Fagi.
+// Drawing: terrain, vision cone, points and Fagi.
 //
-// Todo el dibujo del mundo pasa por la transformación de la cámara, así que
-// ningún módulo de sprite sabe que existe el zoom: siguen pintando en
-// coordenadas de mundo. Lo único que sí se enteran es de la escala de DETALLE,
-// que les dice con cuántos píxeles pintar su lienzo para que acercarse no estire
-// una imagen vieja. El HUD (las coordenadas, el aumento) se dibuja ya sin cámara
-// o con la letra dividida por el zoom, para que no crezca con él.
+// All of the world's drawing goes through the camera transform, so no sprite
+// module knows zoom exists: they keep painting in world coordinates. The only
+// thing they do find out about is the DETAIL scale, which tells them how many
+// pixels to paint their canvas with so that zooming in doesn't stretch an old
+// image. The HUD (the coordinates, the magnification) is drawn without the
+// camera or with the font divided by the zoom, so it doesn't grow with it.
 
 import { FAGI, POINT_TYPES, OBJECT_TYPES } from './config.js';
 import { heading } from './compass.js';
@@ -26,14 +26,14 @@ import { setDetail } from './sprite-kit.js';
 import { applySets, noCamera, detailOf } from './camera.js';
 import { nestUnder } from './nest.js';
 
-// La luz del mundo, la misma que la del suelo, la roca y el árbol. Aquí la
-// necesitan las pocas cosas que no pinta un módulo de sprite.
+// The world's light, the same as the ground's, the rock's and the tree's. Here
+// it's needed by the few things that no sprite module paints.
 const LIGHT = -Math.PI * 0.72;
 const LX = Math.cos(LIGHT);
 const LY = Math.sin(LIGHT);
 
-// Descansando dentro del nido no se la ve: está bajo tierra. Ni ella, ni su
-// cono de visión, ni las etiquetas que la siguen.
+// Resting inside the nest she can't be seen: she's underground. Neither she,
+// nor her vision cone, nor the labels that follow her.
 function hidden(fagi, world) {
   return fagi.alive && fagi.thought?.action === 'rest' && !!nestUnder(fagi, world);
 }
@@ -44,42 +44,42 @@ export function render(ctx, world, fagi, camera) {
   const rain = rainLook(world, performance.now());
   scene(ctx, world, fagi, camera, rain);
   noCamera(ctx);
-  // Las gotas caen entre la cámara y el suelo: no crecen con el zoom.
+  // The drops fall between the camera and the ground: they don't grow with the zoom.
   if (rain > 0) drawRainDrops(ctx, world, performance.now());
   drawZoom(ctx, camera);
 }
 
 function scene(ctx, world, fagi, camera, rain) {
   drawTerrain(ctx, world);
-  // Lo que el suelo pierde al estirarse con el zoom: el grano, en píxeles de
-  // pantalla, y las cosas pequeñas —chinas, briznas, hoja— en píxeles de mundo.
+  // What the ground loses when stretched by the zoom: the grain, in screen
+  // pixels, and the small things —pebbles, blades of grass, leaves— in world pixels.
   drawZoomGrain(ctx, camera.zoom);
   drawNearDetail(ctx, world, camera, ctx.canvas);
-  // La tierra mojada va antes que las estelas y que todo lo demás: es suelo.
+  // The wet earth goes before the scent trails and everything else: it's ground.
   for (const o of world.objects) if (isWater(o)) drawShore(ctx, o, radiusOf(o));
-  // El suelo mojado tarda en secarse, así que va aunque ya no llueva.
+  // Wet ground takes a while to dry, so it's drawn even when it's no longer raining.
   drawWetGround(ctx, world);
 
-  // Una sombra común ata todos los objetos al mismo suelo y a la misma luz.
-  // Los sprites conservan sus sombras finas de contacto; esta es la sombra
-  // ambiental, ancha y blanda, que hace legible la altura desde lejos.
+  // A shared shadow ties every object to the same ground and the same light.
+  // The sprites keep their fine contact shadows; this is the ambient shadow,
+  // wide and soft, that makes height readable from afar.
   drawGroundShadows(ctx, world);
 
   for (const { src, key } of scentSources(world)) {
-    // La estela va del color de la fuente, y una fruta que se pasa arrastra su
-    // olor hacia el del tóxico antes incluso de pudrirse del todo.
-    // El árbol es un caso aparte: anuncia el fruto que da, pero él no se pudre,
-    // así que va del color liso del fruto y no se le pregunta por su madurez.
+    // The trail takes the source's color, and an overripe fruit drags its
+    // smell toward the toxic one's even before it has fully rotted.
+    // The tree is a special case: it advertises the fruit it bears, but it doesn't
+    // rot, so it takes the fruit's plain color and isn't asked about ripeness.
     const color = POINT_TYPES[src.type] ? colorOf(src)
       : POINT_TYPES[key] ? POINT_TYPES[key].color
       : OBJECT_TYPES[key].color;
     drawTrail(ctx, src, color);
   }
 
-  // Sin Fagi (preparando una sesión) solo se dibuja el mapa.
+  // Without Fagi (while setting up a session) only the map is drawn.
   const inside = fagi ? hidden(fagi, world) : false;
   foreground(ctx, world, fagi, camera, inside);
-  // La luz del día nublado y sus nubes caen sobre todo, Fagi incluida.
+  // The overcast daylight and its clouds fall on everything, Fagi included.
   if (rain > 0) {
     drawOvercast(ctx, world, performance.now());
     drawSplashes(ctx, world, performance.now());
@@ -93,7 +93,7 @@ function foreground(ctx, world, fagi, camera, inside) {
   for (const p of world.points) drawFruit(ctx, p);
   if (!fagi) return;
 
-  // El cono es percepción, no depuración: debe verse también en el modo limpio.
+  // The cone is perception, not debugging: it must show in clean mode too.
   if (!inside) drawVisionCone(ctx, fagi);
 
   if (inside) {
@@ -101,8 +101,8 @@ function foreground(ctx, world, fagi, camera, inside) {
     return;
   }
 
-  // Solo se dibuja la línea al objetivo cuando SABE dónde está (lo ve).
-  // Rastreando un olor no lo sabe: se marca el último sitio donde olía.
+  // The line to the target is only drawn when she KNOWS where it is (she sees it).
+  // Tracking a smell she doesn't know: the last spot where she smelled it is marked.
   if (!world.immersive && fagi.targetKind === 'scent') drawScentMark(ctx, fagi);
   else if (!world.immersive && fagi.target) drawTargetLine(ctx, fagi);
   else if (!world.immersive && fagi.thought?.action === 'explore' && fagi.exploreTarget) drawLeg(ctx, fagi);
@@ -138,7 +138,7 @@ function drawGroundShadows(ctx, world) {
   }
 }
 
-// Lo único que delata que está dentro: tres zetas subiendo de la boca.
+// The only giveaway that she's inside: three z's rising from the mouth.
 function drawSleepMark(ctx, nestObj) {
   const t = performance.now() / 1000;
   ctx.font = '600 11px system-ui, sans-serif';
@@ -155,8 +155,8 @@ function drawSleepMark(ctx, nestObj) {
   ctx.textAlign = 'left';
 }
 
-// El aumento, abajo a la izquierda, y si la cámara va pegada a Fagi. Con el mapa
-// entero a la vista no hace falta decir nada.
+// The magnification, bottom left, and whether the camera is locked onto Fagi. With
+// the whole map in view there's no need to say anything.
 function drawZoom(ctx, camera) {
   if (camera.zoom <= 1.001 && !camera.follow) return;
   ctx.font = '600 11px system-ui, sans-serif';
@@ -168,12 +168,12 @@ function drawZoom(ctx, camera) {
   );
 }
 
-// Coordenadas y rumbo pegados a Fagi, para seguir por dónde avanza. La letra se
-// divide por el zoom: sigue midiendo lo mismo en pantalla estando cerca o lejos.
+// Coordinates and heading attached to Fagi, to follow where she's going. The font
+// is divided by the zoom: it stays the same size on screen, near or far.
 function drawCoords(ctx, fagi, zoom = 1) {
   const dir = heading(fagi.angle);
   const text = `${Math.round(fagi.x)}, ${Math.round(fagi.y)} ${dir.arrow}`
-    + (fagi.drinking ? ' bebiendo' : '');
+    + (fagi.drinking ? ' drinking' : '');
   ctx.font = `${(11 / zoom).toFixed(2)}px system-ui, sans-serif`;
   ctx.fillStyle = 'rgba(240,242,248,0.65)';
   ctx.textAlign = 'center';
@@ -200,17 +200,17 @@ function drawVisionCone(ctx, fagi) {
   ctx.stroke();
 }
 
-// Las marcas de feromona que ha dejado la propia Fagi. Se apagan al evaporarse.
+// The pheromone marks Fagi herself has left. They fade as they evaporate.
 //
-// No es un punto pintado: es una gota. Moja la tierra a su alrededor, tiene
-// cuerpo y le brilla el lomo por donde entra la luz —la misma luz del suelo y
-// de la roca—. Al evaporarse pierde antes el brillo que la mancha, que es el
-// orden en que se seca una gota de verdad.
+// It isn't a painted dot: it's a droplet. It wets the earth around it, has
+// body and its back shines where the light hits —the same light as the ground
+// and the rock—. As it evaporates it loses its shine before its stain, which is
+// the order in which a real droplet dries.
 function drawPheromone(ctx, world) {
   for (const m of world.pheromone) {
     const a = Math.max(0, Math.min(1, m.life / 45));
 
-    // La tierra mojada alrededor: más ancha que la gota y más tenue.
+    // The wet earth around it: wider than the droplet and fainter.
     const wetness = ctx.createRadialGradient(m.x, m.y, 0.8, m.x, m.y, 7.2);
     wetness.addColorStop(0, `rgba(46,33,10,${a * 0.48})`);
     wetness.addColorStop(1, 'rgba(46,33,10,0)');
@@ -219,7 +219,7 @@ function drawPheromone(ctx, world) {
     ctx.arc(m.x, m.y, 7.2, 0, Math.PI * 2);
     ctx.fill();
 
-    // El cuerpo de la gota.
+    // The droplet's body.
     const gota = ctx.createRadialGradient(
       m.x + LX * 1.2, m.y + LY * 1.2, 0.25, m.x, m.y, 4.1
     );
@@ -231,8 +231,8 @@ function drawPheromone(ctx, world) {
     ctx.ellipse(m.x, m.y, 3.9, 3.2, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // El punto de cielo en el lomo: se va antes que la mancha, igual que al
-    // secarse una gota lo primero que se pierde es el brillo.
+    // The speck of sky on its back: it goes before the stain, just as when a
+    // droplet dries the first thing lost is the shine.
     ctx.fillStyle = `rgba(255,246,214,${a * a * 0.45})`;
     ctx.beginPath();
     ctx.ellipse(m.x + LX * 1.25, m.y + LY * 1.1, 1.2, 0.82, 0, 0, Math.PI * 2);
@@ -240,8 +240,8 @@ function drawPheromone(ctx, world) {
   }
 }
 
-// Cada cosa del mapa la pinta su módulo: el lago, la roca, el nido y el árbol.
-// `ocupado` es Fagi durmiendo dentro del nido.
+// Each thing on the map is painted by its own module: the lake, the rock, the nest and the tree.
+// `busy` is Fagi sleeping inside the nest.
 function drawObject(ctx, o, busy, wind, raining) {
   const spec = OBJECT_TYPES[o.type];
   const r = radiusOf(o);
@@ -260,8 +260,8 @@ function drawObject(ctx, o, busy, wind, raining) {
   }
 }
 
-// El hilo de olor: una sola línea que sale de la fuente y va creciendo por el
-// mapa. Se dibuja por tramos para que se apague según se aleja de la fuente.
+// The scent thread: a single line that leaves the source and grows across the
+// map. It's drawn in segments so it fades as it moves away from the source.
 function drawTrail(ctx, src, color) {
   const nodes = src.trail?.nodes;
   if (!nodes || nodes.length < 2) return;
@@ -296,8 +296,8 @@ function drawTargetLine(ctx, fagi) {
   ctx.setLineDash([]);
 }
 
-// Explorando: el punto de su campo de visión al que va este tramo. Al llegar
-// elige el siguiente con lo que vea entonces.
+// Exploring: the point in her field of view this leg heads for. On arriving
+// she picks the next one based on what she sees then.
 function drawLeg(ctx, fagi) {
   const w = fagi.exploreTarget;
   ctx.strokeStyle = 'rgba(240,199,94,0.35)';
@@ -312,7 +312,7 @@ function drawLeg(ctx, fagi) {
   ctx.stroke();
 }
 
-// Cruz en el último punto donde le llegó el olor: es a donde vuelve si lo pierde.
+// Cross at the last point where the smell reached her: it's where she returns if she loses it.
 function drawScentMark(ctx, fagi) {
   const p = fagi.lastScent;
   if (!p) return;
@@ -323,12 +323,12 @@ function drawScentMark(ctx, fagi) {
   ctx.stroke();
 }
 
-// Un anillo por buff activo, del color del alimento que lo dio.
+// One ring per active buff, in the color of the food that gave it.
 function drawBuffRings(ctx, fagi) {
   const list = activeEffects(fagi);
   ctx.lineWidth = 2;
   list.forEach((fx, i) => {
-    ctx.globalAlpha = Math.min(1, fx.time / 1.5); // parpadea al expirar
+    ctx.globalAlpha = Math.min(1, fx.time / 1.5); // flickers as it expires
     ctx.strokeStyle = fx.color;
     ctx.beginPath();
     ctx.arc(fagi.x, fagi.y, FAGI.radius + 4 + i * 4, 0, Math.PI * 2);

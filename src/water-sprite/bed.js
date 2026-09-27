@@ -1,11 +1,11 @@
-// El lecho del lago: lo que se ve del fondo a través del agua. Todo se pinta ya
-// recortado al agua y en el lienzo quieto, en el orden que manda quieto.js.
+// The lake bed: what shows of the bottom through the water. Everything is painted
+// already clipped to the water and on the still canvas, in the order still.js sets.
 
 import { LAKE } from '../config.js';
 import { mix } from '../sprite-kit.js';
 import { LIGHT, SAND, outline } from './shape.js';
 
-// Arena del vado: una franja pegada a la orilla, rota a manchas.
+// Sand in the shallows: a band hugging the shore, broken into patches.
 export function sand(ctx, cx, cy, R, rnd) {
   for (let i = 0; i < 26; i++) {
     const a = rnd() * Math.PI * 2;
@@ -20,8 +20,8 @@ export function sand(ctx, cx, cy, R, rnd) {
   ctx.globalAlpha = 1;
 }
 
-// Piedras del fondo: se ven a través del agua, así que van apagadas y con el
-// brillo por donde entra la luz. Solo junto a la orilla: en el hondo no se ven.
+// Stones on the bottom: seen through the water, so they're dulled and have their
+// highlight where the light comes in. Only near the shore: in the deep water they can't be seen.
 export function stones(ctx, cx, cy, R, rnd) {
   for (let i = 0; i < LAKE.stones; i++) {
     const a = rnd() * Math.PI * 2;
@@ -29,7 +29,7 @@ export function stones(ctx, cx, cy, R, rnd) {
     const x = cx + Math.cos(a) * d;
     const y = cy + Math.sin(a) * d;
     const rad = R * (0.025 + rnd() * 0.045);
-    const sunken = 0.5 + (d / R) * 0.5;      // más cerca de la orilla, más nítida
+    const sunken = 0.5 + (d / R) * 0.5;      // closer to the shore, sharper
     ctx.globalAlpha = 0.2 + sunken * 0.35;
     ctx.fillStyle = mix('#6b6a5e', '#3b4a4a', rnd() * 0.7);
     ctx.beginPath();
@@ -45,8 +45,8 @@ export function stones(ctx, cx, cy, R, rnd) {
   ctx.lineWidth = 1;
 }
 
-// Algas: manchas oscuras pegadas a la orilla, que es donde hay poco fondo y
-// luz suficiente. Son lo que quita al agua la cara de disco pintado.
+// Algae: dark patches hugging the shore, which is where it's shallow and there's
+// enough light. They're what takes away the water's painted-disc look.
 export function algae(ctx, cx, cy, R, rnd) {
   for (let i = 0; i < 14; i++) {
     const a = rnd() * Math.PI * 2;
@@ -71,7 +71,7 @@ export function algae(ctx, cx, cy, R, rnd) {
   ctx.globalAlpha = 1;
 }
 
-// El escalón del hondo: donde el fondo cae de golpe se ve un borde oscuro.
+// The deep-water drop-off: where the bottom falls away sharply a dark edge shows.
 export function deepTier(ctx, ox, oy, R, deep) {
   ctx.globalAlpha = 0.28;
   outline(ctx, ox, oy, R * LAKE.deepFrom, deep, 48);
@@ -83,9 +83,9 @@ export function deepTier(ctx, ox, oy, R, deep) {
   ctx.globalAlpha = 1;
 }
 
-// Cáusticas del vado: la red de luz que el sol dibuja en el fondo de poca
-// agua. Solo donde se ve el fondo —en el hondo no llega—, y es lo que hace
-// que la orilla se lea como agua POCO PROFUNDA y no como pintura clara.
+// Caustics in the shallows: the web of light the sun draws on the bottom of
+// shallow water. Only where the bottom shows —it doesn't reach the deep water—,
+// and it's what makes the shore read as SHALLOW water and not as light paint.
 export function caustics(ctx, cx, cy, R, rnd) {
   for (let i = 0; i < LAKE.caustics; i++) {
     const a = rnd() * Math.PI * 2;
@@ -107,9 +107,9 @@ export function caustics(ctx, cx, cy, R, rnd) {
   ctx.lineWidth = 1;
 }
 
-// Manchas de fondo: el fondo de una charca no está a la misma hondura por
-// todas partes. Unas manchas anchas y muy tenues bastan para que el azul deje
-// de leerse como una capa de pintura.
+// Bottom patches: a pond's bottom isn't at the same depth everywhere. A few
+// wide, very faint patches are enough for the blue to stop reading as a coat
+// of paint.
 export function bgPatches(ctx, cx, cy, R, rnd) {
   for (let i = 0; i < 20; i++) {
     const a = rnd() * Math.PI * 2;

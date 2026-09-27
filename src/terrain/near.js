@@ -1,15 +1,15 @@
-// Lo que el suelo gana al acercarse. El suelo se cuece UNA vez al tamaño del
-// mundo, así que de cerca se estira; estas dos capas le devuelven lo que el
-// estirado se come.
+// What the ground gains when zooming in. The ground is baked ONCE at world size,
+// so up close it gets stretched; these two layers give back what the
+// stretching eats up.
 
 import { seededRng, seedFor, noise } from '../sprite-kit.js';
 import { pebble, bush, leaf, litter } from './details.js';
 
-// Grano de zoom. El suelo se cuece UNA vez al tamaño del mundo, así que al
-// acercarse se estira y pierde el tacto: repintarlo por cada escalón de zoom
-// costaría un lienzo de varios millones de píxeles. Esta capa va en píxeles de
-// PANTALLA, se repite como un azulejo y devuelve el grano que el estirado se
-// come, sin repintar nada. Cuanto más cerca, más se nota.
+// Zoom grain. The ground is baked ONCE at world size, so when zooming in it
+// stretches and loses its texture: repainting it for every zoom step would
+// cost a canvas of several million pixels. This layer is in SCREEN pixels,
+// repeats like a tile and gives back the grain the stretching eats up,
+// without repainting anything. The closer you get, the more it shows.
 let tile = null;
 let pattern = null;
 
@@ -28,16 +28,16 @@ export function drawZoomGrain(ctx, zoom) {
   ctx.restore();
 }
 
-// Detalle de cerca. El suelo se cuece UNA vez al tamaño del mundo, así que al
-// acercarse se estira: el grano de pantalla devuelve el tacto, pero no devuelve
-// COSAS. De cerca, un suelo sin una china, una brizna o un trozo de hoja a
-// tamaño de Fagi se lee como una foto borrosa.
+// Close-up detail. The ground is baked ONCE at world size, so when zooming in it
+// stretches: the screen grain gives back the texture, but it doesn't give back
+// THINGS. Up close, ground without a pebble, a blade of grass or a scrap of leaf
+// at Fagi's scale reads as a blurry photo.
 //
-// Esta capa siembra esas cosas en coordenadas de MUNDO, por celdas y con semilla
-// propia de cada celda: la misma china sale siempre en el mismo sitio, así que
-// al mover la cámara el suelo no hierve. Solo se siembra lo que se ve, y la
-// cantidad sube con el aumento: de lejos no hay nada que pagar.
-const CELL = 96;              // lado de celda, en píxeles de mundo
+// This layer sows those things in WORLD coordinates, by cell and with each
+// cell's own seed: the same pebble always shows up in the same spot, so the
+// ground doesn't boil when the camera moves. Only what's visible is sown, and
+// the amount rises with the magnification: from afar there's nothing to pay.
+const CELL = 96;              // cell side, in world pixels
 
 export function drawNearDetail(ctx, world, cam, canvas) {
   const force = Math.min(1, (cam.zoom - 1.25) / 1.4);
@@ -63,10 +63,10 @@ export function drawNearDetail(ctx, world, cam, canvas) {
   ctx.globalAlpha = 1;
 }
 
-// Lo que hay en un palmo de tierra: arenilla, alguna china, una brizna y un
-// trozo de hoja. En este orden, que es el que tienen en el suelo.
+// What's in a hand's width of earth: grit, a pebble or two, a blade of grass and
+// a scrap of leaf. In this order, which is the order they have on the ground.
 function cellOf(ctx, ox, oy, rnd, force) {
-  // `cuantos` a plena fuerza, cada uno en un punto al azar de la celda.
+  // `howMany` at full strength, each at a random point in the cell.
   const scatter = (howMany, put) => {
     for (let k = 0, n = Math.round(howMany * force); k < n; k++) {
       put(ox + rnd() * CELL, oy + rnd() * CELL);

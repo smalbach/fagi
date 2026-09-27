@@ -1,14 +1,14 @@
-// La cámara: qué trozo del mundo se ve y con cuánto aumento.
+// The camera: which piece of the world is visible and at what magnification.
 //
-// El mundo no cambia de tamaño al hacer zoom: lo que cambia es la ventana por la
-// que se mira. Todo el dibujo del juego pasa por una sola transformación
-// (aplicar), así que nada más en el código tiene que saber que existe el zoom;
-// lo único que sí tiene que enterarse es el ratón, que trabaja en píxeles de
-// pantalla y necesita traducirlos a coordenadas de mundo (aPunto).
+// The world doesn't change size when zooming: what changes is the window you
+// look through. All of the game's drawing goes through a single transform
+// (applySets), so nothing else in the code needs to know zoom exists; the only
+// thing that does have to know is the mouse, which works in screen pixels
+// and needs to translate them into world coordinates (ripe).
 //
-// El encuadre nunca se sale del mapa: acercada, la cámara se mueve dentro de sus
-// bordes; alejada del todo, se queda centrada. Así no aparece nunca un vacío
-// alrededor del terreno.
+// The framing never leaves the map: zoomed in, the camera moves within its
+// edges; fully zoomed out, it stays centered. That way there's never an empty
+// gap around the terrain.
 
 import { CAMERA } from './config.js';
 
@@ -17,7 +17,7 @@ export function createCamera(world) {
     x: world.width / 2,
     y: world.height / 2,
     zoom: 1,
-    follow: false,   // encuadre pegado a Fagi
+    follow: false,   // framing locked onto Fagi
   };
 }
 
@@ -25,7 +25,7 @@ function limit(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
-// Deja el centro donde la vista siga cayendo entera dentro del mundo.
+// Keeps the center where the view still falls entirely inside the world.
 export function fit(cam, canvas, world) {
   cam.zoom = limit(cam.zoom, CAMERA.min, CAMERA.max);
   const vw = canvas.width / cam.zoom;
@@ -43,12 +43,12 @@ export function applySets(ctx, cam, canvas) {
   );
 }
 
-// Vuelve a píxeles de pantalla: para el HUD, que no debe crecer con el zoom.
+// Back to screen pixels: for the HUD, which must not grow with the zoom.
 export function noCamera(ctx) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
-// Píxel del lienzo → punto del mundo.
+// Canvas pixel → world point.
 export function ripe(cam, canvas, sx, sy) {
   return {
     x: (sx - canvas.width / 2) / cam.zoom + cam.x,
@@ -56,8 +56,8 @@ export function ripe(cam, canvas, sx, sy) {
   };
 }
 
-// Zoom con el punto de debajo del cursor clavado: la rueda acerca hacia donde se
-// está mirando, no hacia el centro de la pantalla.
+// Zoom with the point under the cursor pinned: the wheel zooms toward where
+// you're looking, not toward the center of the screen.
 export function approach(cam, canvas, world, sx, sy, factor) {
   const before = ripe(cam, canvas, sx, sy);
   cam.zoom = limit(cam.zoom * factor, CAMERA.min, CAMERA.max);
@@ -66,11 +66,11 @@ export function approach(cam, canvas, world, sx, sy, factor) {
   fit(cam, canvas, world);
 }
 
-// Arrastrar el mapa: el desplazamiento viene en píxeles de pantalla.
+// Dragging the map: the offset comes in screen pixels.
 export function move(cam, canvas, world, dx, dy) {
   cam.x -= dx / cam.zoom;
   cam.y -= dy / cam.zoom;
-  cam.follow = false;   // tomar el mando suelta a Fagi
+  cam.follow = false;   // taking control lets go of Fagi
   fit(cam, canvas, world);
 }
 
@@ -80,9 +80,9 @@ export function centerOn(cam, canvas, world, p) {
   fit(cam, canvas, world);
 }
 
-// Cuántos píxeles de sprite hay que pintar por píxel de mundo. Se redondea a
-// entero porque cada escalón obliga a repintar los sprites: con medio escalón
-// por frame el zoom suave los repintaría sin parar.
+// How many sprite pixels to paint per world pixel. Rounded to an integer
+// because every step forces the sprites to be repainted: with half a step
+// per frame, smooth zoom would repaint them nonstop.
 export function detailOf(cam) {
   return Math.min(CAMERA.maxDetail, Math.max(1, Math.ceil(cam.zoom - 0.02)));
 }

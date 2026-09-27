@@ -1,5 +1,5 @@
-// Lo quieto del lago: el lienzo que se pinta una vez por lago y tamaño. El
-// orden de las capas es el de aquí; lo que se ve del fondo vive en lecho.js.
+// The still part of the lake: the canvas painted once per lake and size. The
+// layer order is the one here; what shows of the bottom lives in bed.js.
 
 import { LAKE } from '../config.js';
 import { canvasOf, mix, seededRng, noise } from '../sprite-kit.js';
@@ -12,7 +12,7 @@ export function paintLake(seedOf, R, color, z) {
   const S = H * 2 * z;
   const c = canvasOf(S, S);
   const ctx = c.getContext('2d');
-  ctx.scale(z, z);            // a partir de aquí se piensa en píxeles de mundo
+  ctx.scale(z, z);            // from here on we think in world pixels
   const cx = H;
   const cy = H;
 
@@ -21,13 +21,13 @@ export function paintLake(seedOf, R, color, z) {
 
   mud(ctx, cx, cy, R, shore, rnd);
 
-  // De aquí en adelante, todo dentro del agua.
+  // From here on, everything is inside the water.
   ctx.save();
   outline(ctx, cx, cy, R, shore);
   ctx.clip();
 
-  // El hondo no cae en el centro geométrico: un lago tiene la parte honda donde
-  // le toca, y un degradado centrado se lee como una diana.
+  // The deep water doesn't fall at the geometric center: a lake has its deep part
+  // wherever it happens to be, and a centered gradient reads as a bullseye.
   const deviation = rnd() * Math.PI * 2;
   const ox = cx + Math.cos(deviation) * R * 0.16;
   const oy = cy + Math.sin(deviation) * R * 0.13;
@@ -49,7 +49,7 @@ export function paintLake(seedOf, R, color, z) {
   return c;
 }
 
-// El fondo: claro y verdoso en el vado, azul oscuro al ganar hondo.
+// The bottom: light and greenish in the shallows, dark blue as it gets deep.
 function water(ctx, cx, cy, R, ox, oy, S) {
   const g = ctx.createRadialGradient(ox, oy, R * 0.12, cx, cy, R);
   g.addColorStop(0, DEEP_KEY);
@@ -61,10 +61,10 @@ function water(ctx, cx, cy, R, ox, oy, S) {
   ctx.fillRect(0, 0, S, S);
 }
 
-// Olas. Trazos largos y tumbados, tenues y torcidos, repartidos por toda la
-// superficie: es la textura que dice "esto es agua" antes que el color. Van
-// cocidas en el lienzo porque son muchas; lo que se mueve luego encima son
-// solo los reflejos.
+// Waves. Long, lying strokes, faint and crooked, spread across the whole
+// surface: it's the texture that says "this is water" before the color does.
+// They're baked into the canvas because there are many; what moves on top
+// afterwards is only the reflections.
 function waves(ctx, cx, cy, R, rnd) {
   ctx.lineCap = 'round';
   for (let i = 0; i < 60; i++) {
@@ -74,7 +74,7 @@ function waves(ctx, cx, cy, R, rnd) {
     const clear = rnd() < 0.55;
     ctx.save();
     ctx.translate(x, y);
-    ctx.rotate((rnd() - 0.5) * 0.5);     // ninguna acaba paralela a la de al lado
+    ctx.rotate((rnd() - 0.5) * 0.5);     // none ends up parallel to its neighbor
     ctx.strokeStyle = clear
       ? `rgba(206,232,238,${0.03 + rnd() * 0.05})`
       : `rgba(10,30,40,${0.03 + rnd() * 0.06})`;
@@ -92,9 +92,9 @@ function waves(ctx, cx, cy, R, rnd) {
   ctx.lineWidth = 1;
 }
 
-// Grano del agua: rompe el degradado, que si no se ve como plástico. Celda
-// grande y flojo: apretado se le ve la rejilla del ruido y parece plástico de
-// burbujas, que es peor que el degradado liso.
+// Water grain: breaks up the gradient, which otherwise looks like plastic. Large
+// cell and weak: tight, the noise grid shows and it looks like bubble wrap,
+// which is worse than the smooth gradient.
 function waterGrain(ctx, S, z, rnd) {
   ctx.globalAlpha = 0.07;
   ctx.globalCompositeOperation = 'overlay';
@@ -103,8 +103,8 @@ function waterGrain(ctx, S, z, rnd) {
   ctx.globalAlpha = 1;
 }
 
-// Sombra de la orilla sobre el agua: el agua pegada a la tierra está en
-// penumbra por el lado que da la luz.
+// The shore's shadow on the water: the water next to the land is in half-shadow
+// on the side the light comes from.
 function penumbra(ctx, cx, cy, R, S) {
   const g = ctx.createRadialGradient(
     cx + LX * R * 0.25, cy + LY * R * 0.25, R * 0.55,
@@ -116,9 +116,9 @@ function penumbra(ctx, cx, cy, R, S) {
   ctx.fillRect(0, 0, S, S);
 }
 
-// El canto del agua. Una línea entera y clara alrededor se lee como el borde
-// de una pompa, así que va por tramos: espuma donde rompe y nada donde no.
-// Debajo, apagadísimo, el color con el que el agua figura en el panel.
+// The water's rim. A whole, bright line all around reads as the edge of a
+// bubble, so it goes in segments: foam where it breaks and nothing where it doesn't.
+// Underneath, very muted, the color the water has in the panel.
 function edge(ctx, cx, cy, R, shore, color, rnd) {
   outline(ctx, cx, cy, R, shore);
   ctx.strokeStyle = mix(color, '#0d2530', 0.5);
@@ -130,7 +130,7 @@ function edge(ctx, cx, cy, R, shore, color, rnd) {
   ctx.lineCap = 'round';
   for (let i = 0; i < 9; i++) {
     const a0 = rnd() * Math.PI * 2;
-    const length = 0.2 + rnd() * 0.5;          // en radianes
+    const length = 0.2 + rnd() * 0.5;          // in radians
     ctx.beginPath();
     for (let j = 0; j <= 10; j++) {
       const a = a0 + (j / 10) * length;
@@ -147,15 +147,15 @@ function edge(ctx, cx, cy, R, shore, color, rnd) {
   ctx.lineWidth = 1;
 }
 
-// La tierra mojada de alrededor, con guijarros. Va por fuera del agua: es lo que
-// separa el lago del suelo seco sin que parezca pegado con tijera.
+// The wet earth around it, with pebbles. It goes outside the water: it's what
+// separates the lake from the dry ground without it looking cut out with scissors.
 function mud(ctx, cx, cy, R, shore, rnd) {
   const outside = profile(rnd() * 1e9 | 0, 0x1b873593, LAKE.waveEdge * 1.4);
   const width = 1 + LAKE.shoreWidth;
 
   ctx.save();
   outline(ctx, cx, cy, R * width, outside);
-  outline(ctx, cx, cy, R, shore);          // el agua queda fuera del relleno
+  outline(ctx, cx, cy, R, shore);          // the water is left out of the fill
   ctx.clip('evenodd');
   const ring = ctx.createRadialGradient(cx, cy, R * 0.9, cx, cy, R * width);
   ring.addColorStop(0, 'rgba(38,32,23,0.85)');
@@ -164,7 +164,7 @@ function mud(ctx, cx, cy, R, shore, rnd) {
   ctx.fillStyle = ring;
   ctx.fillRect(0, 0, R * 4, R * 4);
 
-  // Guijarros de la orilla, medio enterrados en el barro.
+  // Shore pebbles, half buried in the mud.
   for (let i = 0; i < 24; i++) {
     const a = rnd() * Math.PI * 2;
     const d = R * (1.0 + rnd() * LAKE.shoreWidth);

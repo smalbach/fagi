@@ -1,28 +1,28 @@
-// El lago. Antes el agua era un círculo translúcido con su borde azul; ahora es
-// una charca de verdad, y lo que la hace lago son cuatro cosas, no el color:
+// The lake. The water used to be a translucent circle with a blue rim; now it's
+// a real pond, and what makes it a lake is four things, not the color:
 //
-//   · La orilla no es una circunferencia: serpentea. Un borde perfecto se lee
-//     como interfaz, no como agua.
-//   · Tiene fondo. Hay un hondo oscuro en el medio y un vado claro pegado a la
-//     orilla, con arena y piedras que se ven por debajo del agua.
-//   · Tiene barro alrededor: la tierra que el agua ha mojado y remueve Fagi al
-//     entrar, con guijarros sueltos.
-//   · Y se mueve. El brillo del cielo tirita, salen ondas del centro y los
-//     juncos de la orilla se doblan con el MISMO viento que arrastra los olores,
-//     igual que la copa del árbol.
+//   · The shoreline isn't a circle: it winds. A perfect edge reads as
+//     interface, not as water.
+//   · It has a bottom. There's dark deep water in the middle and bright shallows
+//     hugging the shore, with sand and stones visible beneath the water.
+//   · It has mud around it: the earth the water has soaked and Fagi churns up
+//     when she wades in, with loose pebbles.
+//   · And it moves. The sky's glint shimmers, ripples spread from the center and
+//     the reeds on the shore bend with the SAME wind that carries the smells,
+//     just like the tree's crown.
 //
-// Lo quieto se pinta una vez en un lienzo (fondo, arena, piedras, barro) y lo
-// vivo se dibuja cada fotograma encima, que es poca cosa: unos reflejos, tres
-// ondas y los juncos. El círculo que decide dónde se bebe sigue siendo el radio
-// del objeto: la orilla dibujada se le ciñe, no manda.
+// The still parts are painted once onto a canvas (bottom, sand, stones, mud) and
+// the live parts are drawn on top every frame, which is little: a few
+// reflections, three ripples and the reeds. The circle that decides where she
+// drinks is still the object's radius: the drawn shore hugs it, it doesn't rule.
 //
-// Las piezas viven en water-sprite/:
-//   · lago.js        drawLake: elige foto o dibujo y guarda los lienzos
-//   · realista.js    el estanque fotográfico con sus reflejos
-//   · quieto.js      el lienzo quieto: agua, olas cocidas, canto y barro
-//   · lecho.js       lo que se ve del fondo: arena, piedras, algas, cáusticas
-//   · superficie.js  lo vivo del agua: luz, rizos, destellos, ondas, motas
-//   · juncos.js      los juncos de la orilla, doblados por el viento
-//   · forma.js       la luz, los colores y el perfil de la orilla
+// The pieces live in water-sprite/:
+//   · lake.js        drawLake: picks photo or drawing and caches the canvases
+//   · realistic.js   the photographic pond with its reflections
+//   · still.js       the still canvas: water, baked waves, rim and mud
+//   · bed.js         what shows of the bottom: sand, stones, algae, caustics
+//   · surface.js     the water's live parts: light, ripples, glints, rings, specks
+//   · reeds.js       the reeds on the shore, bent by the wind
+//   · shape.js       the light, the colors and the shoreline profile
 
 export { drawLake } from './water-sprite/lake.js';

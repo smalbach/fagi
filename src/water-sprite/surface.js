@@ -1,10 +1,10 @@
-// Lo vivo del agua: se dibuja cada fotograma encima del lienzo quieto.
+// The water's live parts: drawn every frame on top of the still canvas.
 
 import { LAKE } from '../config.js';
 import { seededRng } from '../sprite-kit.js';
 import { LX, LY, profile, shoreProfile, outline } from './shape.js';
 
-// Reflejos y ondas. Todo recortado al agua, para que nada se salga a la tierra.
+// Reflections and ripples. All clipped to the water, so nothing spills onto the land.
 export function surface(ctx, o, r, seedOf, wind, now) {
   const t = now / 1000;
   const shore = shoreProfile(seedOf);
@@ -18,7 +18,7 @@ export function surface(ctx, o, r, seedOf, wind, now) {
   skyBands(ctx, o, r, t);
   ripplets(ctx, o, r, seedOf, va, t);
 
-  // Destellos, ondas y motas tiran del mismo azar, uno detrás de otro.
+  // Glints, rings and specks draw from the same randomness, one after another.
   const rnd = seededRng((seedOf ^ 0x7c3af219) >>> 0);
   sparkles(ctx, o, r, rnd, t);
   ripples(ctx, o, r, seedOf, rnd, t);
@@ -28,7 +28,7 @@ export function surface(ctx, o, r, seedOf, wind, now) {
   ctx.restore();
 }
 
-// La sábana de luz del cielo: entra por donde entra la luz y respira.
+// The sheet of skylight: it comes in where the light comes in, and breathes.
 function skyLight(ctx, o, r, t) {
   const breathes = 0.8 + Math.sin(t * 0.35) * 0.2;
   const light = ctx.createRadialGradient(
@@ -42,8 +42,8 @@ function skyLight(ctx, o, r, t) {
   ctx.fillRect(o.x - r * 1.2, o.y - r * 1.2, r * 2.4, r * 2.4);
 }
 
-// Bandas de cielo: franjas anchas y tenues que cruzan el agua y se arrastran
-// despacio. Es el reflejo, y es lo que separa una superficie de un disco.
+// Sky bands: wide, faint stripes that cross the water and drift slowly.
+// They're the reflection, and they're what separates a surface from a disc.
 function skyBands(ctx, o, r, t) {
   for (let i = 0; i < 2; i++) {
     const phase = i * 2.1;
@@ -57,12 +57,12 @@ function skyBands(ctx, o, r, t) {
   }
 }
 
-// Rizo del viento: la superficie de una charca no tiembla al azar, se riza en
-// crestas cortas perpendiculares al viento que corren en su dirección. Es lo
-// que ata el agua al MISMO viento que dobla los juncos y arrastra los olores.
+// Wind ripples: a pond's surface doesn't tremble at random, it ripples into
+// short crests perpendicular to the wind that run in its direction. That's what
+// ties the water to the SAME wind that bends the reeds and carries the smells.
 //
-// Las crestas van repartidas al azar, no en rejilla: alineadas se leen como
-// rayones, y una charca rayada no parece agua.
+// The crests are scattered at random, not on a grid: lined up they read as
+// scratches, and a scratched pond doesn't look like water.
 function ripplets(ctx, o, r, seedOf, va, t) {
   const ripple = seededRng((seedOf ^ 0x1f83d9ab) >>> 0);
   ctx.save();
@@ -71,7 +71,7 @@ function ripplets(ctx, o, r, seedOf, va, t) {
   ctx.lineCap = 'round';
   for (let i = 0; i < LAKE.ripplets; i++) {
     const y = (ripple() - 0.5) * r * 1.9;
-    // Cada cresta corre a lo suyo y vuelve a entrar por el otro lado.
+    // Each crest runs at its own pace and wraps back in from the other side.
     const x = ((ripple() + t * (0.02 + ripple() * 0.03)) % 1 - 0.5) * r * 2;
     if (Math.hypot(x, y) > r * 0.95) continue;
     const length = r * (0.05 + ripple() * 0.08);
@@ -82,7 +82,7 @@ function ripplets(ctx, o, r, seedOf, va, t) {
     ctx.moveTo(x, y - length / 2);
     ctx.quadraticCurveTo(x + r * 0.022, y, x, y + length / 2);
     ctx.stroke();
-    // Y su sombra justo detrás: una cresta sin valle no levanta.
+    // And its shadow right behind: a crest without a trough doesn't stand up.
     ctx.strokeStyle = `rgba(8,26,34,${alpha * 0.7})`;
     ctx.beginPath();
     ctx.moveTo(x - r * 0.012, y - length / 2);
@@ -92,8 +92,8 @@ function ripplets(ctx, o, r, seedOf, va, t) {
   ctx.restore();
 }
 
-// Destellos: rayitas tumbadas que se encienden y se apagan cada una a su aire.
-// Es lo que hace que el agua parezca moverse aunque no se mueva nada.
+// Glints: little lying streaks that light up and fade out, each on its own.
+// It's what makes the water seem to move even when nothing is moving.
 function sparkles(ctx, o, r, rnd, t) {
   ctx.lineCap = 'round';
   for (let i = 0; i < LAKE.sparkles; i++) {
@@ -114,9 +114,9 @@ function sparkles(ctx, o, r, rnd, t) {
   }
 }
 
-// Ondas: círculos que nacen en un punto y se abren hasta apagarse. Van
-// serpenteados con el mismo truco que la orilla y muy tenues: una
-// circunferencia limpia sobre el agua se lee como un dibujo, no como una onda.
+// Rings: circles born at a point that spread until they fade. They're made
+// wavy with the same trick as the shoreline and very faint: a clean
+// circle on the water reads as a drawing, not as a ripple.
 function ripples(ctx, o, r, seedOf, rnd, t) {
   for (let i = 0; i < LAKE.ripples; i++) {
     const cxo = o.x + (rnd() - 0.5) * r * 0.9;
@@ -125,13 +125,13 @@ function ripples(ctx, o, r, seedOf, rnd, t) {
     const period = 3.4 + rnd() * 2.6;
     const step = ((t + i * 1.7) % period) / period;
     const rad = r * (0.08 + step * 0.5);
-    // Se apaga al nacer y al morir: una onda que aparece de golpe se ve dibujada.
+    // Faded at birth and at death: a ripple that pops in abruptly looks drawn.
     const life = Math.sin(step * Math.PI) * (1 - step);
     ctx.strokeStyle = `rgba(216,238,242,${life * 0.1})`;
     ctx.lineWidth = Math.max(0.5, r * 0.009 * (1 - step * 0.5));
     outline(ctx, cxo, cyo, rad, shape, 44);
     ctx.stroke();
-    // Y el valle que la sigue por dentro.
+    // And the trough that follows it on the inside.
     ctx.strokeStyle = `rgba(8,26,34,${life * 0.07})`;
     ctx.lineWidth = Math.max(0.5, r * 0.008);
     outline(ctx, cxo, cyo, rad * 0.93, shape, 44);
@@ -139,9 +139,9 @@ function ripples(ctx, o, r, seedOf, rnd, t) {
   }
 }
 
-// Lo que flota: motas de polen y trocitos de hoja que el viento arrastra por
-// la superficie y se amontonan en la orilla de sotavento. Son diminutas y son
-// lo que separa un agua viva de un cristal azul.
+// What floats: specks of pollen and bits of leaf that the wind drags across
+// the surface and that pile up on the leeward shore. They're tiny and they're
+// what separates living water from blue glass.
 function specks(ctx, o, r, rnd, va, t) {
   for (let i = 0; i < LAKE.specks; i++) {
     const a = rnd() * Math.PI * 2;

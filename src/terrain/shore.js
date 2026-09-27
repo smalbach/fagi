@@ -1,8 +1,8 @@
 import { TERRAIN } from '../config.js';
 
-// Orilla: lo único del suelo que NO se cuece en el lienzo. El jugador pone y
-// quita charcos, y una mancha de humedad sin agua debajo sería mentira, así que
-// se pinta cada fotograma pegada a su charco.
+// Shore: the only part of the ground that is NOT baked into the canvas. The player
+// adds and removes puddles, and a damp patch with no water underneath would be a
+// lie, so it's painted every frame, stuck to its puddle.
 export function drawShore(ctx, o, r) {
   const g = ctx.createRadialGradient(o.x, o.y, r * 0.9, o.x, o.y, r * TERRAIN.shore);
   g.addColorStop(0, 'rgba(24,30,28,0.55)');

@@ -1,16 +1,16 @@
-// ── Lo que cae entre la cámara y el suelo (en píxeles de pantalla) ──────────
+// ── What falls between the camera and the ground (in screen pixels) ─────────
 
 import { sky } from './state.js';
 import { hash, noise, tessellate, screen, windOf } from './util.js';
 
-// Tres capas de profundidad. `n` por cada 1280×860 px de pantalla.
+// Three depth layers. `n` per 1280×860 px of screen.
 const LAYERS = [
   { n: 560, length: 11, width: 0.9, alpha: 0.34, life: [0.18, 0.3], opens: 0.05 },
   { n: 280, length: 24, width: 1.3, alpha: 0.42, life: [0.14, 0.22], opens: 0.09 },
   { n: 60, length: 52, width: 2.6, alpha: 0.24, life: [0.1, 0.16], opens: 0.16 },
 ];
 
-// Va con la cámara quitada: las gotas están delante de ella, no en el suelo.
+// Runs with the camera removed: the drops are in front of it, not on the ground.
 export function drawRainDrops(ctx, world, now) {
   const n = sky.drops;
   if (n <= 0.01) return;
@@ -32,7 +32,7 @@ export function drawRainDrops(ctx, world, now) {
   ctx.restore();
 }
 
-// Rachas: cortinas de lluvia más densa que cruzan la vista con el viento.
+// Gusts: curtains of denser rain that sweep across the view with the wind.
 function gusts(ctx, n, v, t, W, H) {
   ctx.globalCompositeOperation = 'screen';
   ctx.globalAlpha = n * 0.1;
@@ -41,10 +41,10 @@ function gusts(ctx, n, v, t, W, H) {
   ctx.globalAlpha = 1;
 }
 
-// Una capa de profundidad: `cuantas` gotas, cada una en su punto de su ciclo.
+// One depth layer: `howMany` drops, each at its own point in its cycle.
 function dropLayer(ctx, layer, c, howMany, { n, v, t, W, H, k }) {
   const cx = W / 2;
-  // Tres tandas de brillo por capa: una gota se enciende y se apaga.
+  // Three brightness batches per layer: a drop fades in and fades out.
   const rounds = [new Path2D(), new Path2D(), new Path2D()];
   for (let i = 0; i < howMany; i++) {
     const life = layer.life[0] + hash(i, c, 1) * (layer.life[1] - layer.life[0]);
@@ -53,9 +53,9 @@ function dropLayer(ctx, layer, c, howMany, { n, v, t, W, H, k }) {
     const p = u - cycle;
     const x = hash(i, cycle + c * 7919, 3) * (W + 80) - 40;
     const y = hash(i, cycle + c * 7919, 4) * (H + 80) - 40;
-    // Dirección: siempre hacia abajo; el viento solo la inclina (de lado
-    // bastante, en vertical poco, para que nunca parezca que sube) y la
-    // perspectiva la abre un poco hacia los lados.
+    // Direction: always downward; the wind only tilts it (quite a bit sideways,
+    // little vertically, so it never looks like it's going up) and the
+    // perspective spreads it a little toward the sides.
     const dx = v.x * 0.55 + (x - cx) / W * layer.opens * 4;
     const dy = 1 + v.y * 0.2;
     const m = Math.hypot(dx, dy) || 1;
@@ -73,7 +73,7 @@ function dropLayer(ctx, layer, c, howMany, { n, v, t, W, H, k }) {
   });
 }
 
-// Relámpago: en ventanas de 25 s, a veces uno, con su parpadeo doble.
+// Lightning: in 25 s windows, sometimes one, with its double flicker.
 function lightning(ctx, n, t, W, H) {
   if (n <= 0.6) return;
   const windowOf = Math.floor(t / 25);

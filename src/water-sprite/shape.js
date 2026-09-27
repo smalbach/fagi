@@ -1,23 +1,23 @@
-// La luz, los colores y la forma del lago: lo que comparten el lienzo quieto y
-// lo que se dibuja vivo encima.
+// The lake's light, colors and shape: what the still canvas shares with the
+// live parts drawn on top.
 
 import { LAKE } from '../config.js';
 import { seededRng } from '../sprite-kit.js';
 
-export const LIGHT = -Math.PI * 0.72;   // la misma luz que el suelo, la roca y el árbol
+export const LIGHT = -Math.PI * 0.72;   // the same light as the ground, the rock and the tree
 export const LX = Math.cos(LIGHT);
 export const LY = Math.sin(LIGHT);
 
-export const DEEP_KEY = '#16384a';       // el centro, donde no se ve el fondo
-export const MIDDLE = '#1f5f79';       // agua con fondo lejano
-export const SHALLOWS = '#5c8f86';        // el poco fondo de la orilla, verdoso
+export const DEEP_KEY = '#16384a';       // the center, where the bottom can't be seen
+export const MIDDLE = '#1f5f79';       // water with a distant bottom
+export const SHALLOWS = '#5c8f86';        // the shallows by the shore, greenish
 export const SAND = '#7d7154';
 export const MUD = '#2e281e';
 export const REED = ['#5a6e3f', '#6b7d47', '#475a37'];
 
-// La orilla de un lago: un círculo al que se le suman tres ondas lentas. Las
-// mismas para el lienzo quieto y para lo que se dibuja vivo encima, así que el
-// perfil se saca de la semilla y no del azar de cada pasada.
+// A lake's shoreline: a circle with three slow waves added to it. The same ones
+// for the still canvas and for the live parts drawn on top, so the profile
+// comes from the seed and not from each pass's randomness.
 export function profile(seedOf, blend, amplitude) {
   const rnd = seededRng((seedOf ^ blend) >>> 0);
   const ripples = [];
@@ -35,12 +35,12 @@ export function profile(seedOf, blend, amplitude) {
   };
 }
 
-// El perfil de la orilla del agua. El lienzo, los reflejos y los juncos tienen
-// que ceñirse al MISMO borde, así que se saca siempre de aquí.
+// The water's shoreline profile. The canvas, the reflections and the reeds have
+// to hug the SAME edge, so it always comes from here.
 export const shoreProfile = (seedOf) => profile(seedOf, 0x51ed270b, LAKE.waveEdge);
 
-// Traza el contorno en el contexto que se le dé. 72 tramos: a este tamaño ya no
-// se distinguen de una curva.
+// Traces the outline on whatever context it's given. 72 segments: at this size
+// they can't be told apart from a curve.
 export function outline(ctx, cx, cy, r, shape, steps = 72) {
   ctx.beginPath();
   for (let i = 0; i <= steps; i++) {

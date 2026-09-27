@@ -1,13 +1,13 @@
-// El terreno antes de los detalles: los campos de ruido que lo deciden todo, el
-// color y la luz que salen de ellos, el grano y los claros de sol.
+// The terrain before the details: the noise fields that decide everything, the
+// color and light that come out of them, the grain and the sunny clearings.
 
 import { TERRAIN } from '../config.js';
 import { canvasOf, noise } from '../sprite-kit.js';
 import { LIGHT, LX, LY, SOIL, DRY_TONE, MOSS, GRAVEL } from './palette.js';
 
-// Ruido de valor con varias octavas, muestreable en cualquier punto del mundo.
-// El de sprite-kit devuelve un lienzo; aquí hace falta el número, porque el
-// mismo campo decide el color de un píxel y dónde nace una mata.
+// Multi-octave value noise, sampleable at any point in the world.
+// The sprite-kit one returns a canvas; here the number is needed, because the
+// same field decides a pixel's color and where a tuft sprouts.
 export function field(w, h, rnd, cellOf, octaves) {
   const layers = [];
   for (let o = 0; o < octaves; o++) {
@@ -49,18 +49,18 @@ function lerp(a, b, t) {
   ];
 }
 
-// Color de un trozo de suelo: tierra de base, más seca cuanto más alto, más
-// verde cuanto más húmedo, y pedregal donde asoma la piedra.
+// Color of a patch of ground: base earth, drier the higher it is, greener the
+// damper it is, and gravel where stone peeks through.
 function tone(tall, moisture, stone) {
   let c = lerp(SOIL, DRY_TONE, Math.max(0, (tall - 0.45) / 0.55));
   c = lerp(c, MOSS, Math.max(0, (moisture - TERRAIN.mossFrom) / (1 - TERRAIN.mossFrom)));
   return lerp(c, GRAVEL, Math.max(0, (stone - TERRAIN.gravelFrom) / (1 - TERRAIN.gravelFrom)));
 }
 
-// Base: color y luz de golpe, en una rejilla basta que luego se estira. El
-// relieve no se dibuja, se ilumina: la pendiente del campo de altura decide si
-// una ladera mira a la luz o se queda a la sombra. Es lo que convierte una
-// mancha de ruido en lomas.
+// Base: color and light in one go, on a coarse grid that is then stretched. The
+// relief isn't drawn, it's lit: the slope of the height field decides whether
+// a hillside faces the light or stays in shadow. That's what turns a blotch
+// of noise into hills.
 export function paintBase(ctx, w, h, tall, moisture, stone) {
   const step = TERRAIN.lightCell;
   const gw = Math.ceil(w / step);
@@ -76,11 +76,11 @@ export function paintBase(ctx, w, h, tall, moisture, stone) {
       const a = tall(x, y);
       const col = tone(a, moisture(x, y), stone(x, y));
 
-      // Pendiente por diferencias: hacia dónde cae el terreno aquí.
+      // Slope by finite differences: which way the terrain falls here.
       const dx = (tall(x + step, y) - tall(x - step, y)) * TERRAIN.relief;
       const dy = (tall(x, y + step) - tall(x, y - step)) * TERRAIN.relief;
       const light = -(dx * LX + dy * LY);
-      // Lo hondo recibe menos cielo: se apaga un poco aunque esté llano.
+      // Low ground gets less sky: it dims a little even when flat.
       const factor = 1 + light + (a - 0.5) * TERRAIN.deep;
 
       const k = (j * gw + i) * 4;
@@ -97,12 +97,12 @@ export function paintBase(ctx, w, h, tall, moisture, stone) {
   ctx.drawImage(c, 0, 0, w, h);
 }
 
-// Grano: dos capas de ruido estiradas. La fina es el terrón; la basta, las
-// manchas grandes de tierra de distinto color. Se generan a menor tamaño y se
-// estiran, que es más barato y encima no deja costuras.
+// Grain: two stretched noise layers. The fine one is the clods; the coarse one,
+// the big patches of differently colored earth. They're generated smaller and
+// stretched, which is cheaper and leaves no seams on top of that.
 export function paintGrain(ctx, w, h, rnd) {
-  // El terrón va a tamaño real: estirado se emborrona y el suelo pierde el
-  // tacto. Es lo más caro de todo el suelo y solo se paga una vez.
+  // The clods go at real size: stretched they blur and the ground loses its
+  // texture. It's the most expensive part of the whole ground and is paid only once.
   const thin = noise(w, h, rnd, 3, 3);
   const coarse = noise((w / 5) | 0, (h / 5) | 0, rnd, 7, 2);
 
@@ -116,8 +116,8 @@ export function paintGrain(ctx, w, h, rnd) {
   ctx.globalAlpha = 1;
 }
 
-// Luz moteada muy abierta. Las manchas tienen bordes blandos y direccionalidad
-// común; así parecen venir de huecos en un dosel lejano y no círculos pintados.
+// Very open dappled light. The patches have soft edges and a shared direction;
+// that way they seem to come from gaps in a distant canopy, not painted circles.
 export function paintClearings(ctx, w, h, rnd, moisture) {
   ctx.save();
   ctx.globalCompositeOperation = 'soft-light';

@@ -1,10 +1,10 @@
-// ── Ondas en el agua (mundo) ────────────────────────────────────────────────
+// ── Ripples on the water (world) ────────────────────────────────────────────
 
 import { hash, screen } from './util.js';
 
-const LIGHT = -Math.PI * 0.72;   // la misma luz que el resto del mundo
+const LIGHT = -Math.PI * 0.72;   // the same light as the rest of the world
 
-// Ondas de gotas en una superficie de agua de radio r. Densidad según el área.
+// Drop ripples on a water surface of radius r. Density based on the area.
 export function drawRipples(ctx, o, r, intensity, now) {
   if (!(intensity > 0.02)) return;
   const howMany = Math.min(40, Math.max(3, Math.round((r * r) / 60 * intensity)));
@@ -23,21 +23,21 @@ export function drawRipples(ctx, o, r, intensity, now) {
     const x = o.x + Math.cos(a) * d;
     const y = o.y + Math.sin(a) * d;
     const rr = 0.8 + p * (2.5 + hash(i, cycle, 5) * 3.5);
-    // Que la onda no se salga del agua.
+    // Keep the ripple from spilling out of the water.
     if (d + rr > r * 0.92) continue;
     const alpha = (1 - p) * (1 - p) * 0.75 * intensity;
     ctx.strokeStyle = `rgba(215,232,244,${alpha.toFixed(3)})`;
     ctx.beginPath();
     ctx.ellipse(x, y, rr, rr * 0.85, 0, 0, Math.PI * 2);
     ctx.stroke();
-    // Una segunda onda más pequeña detrás de la primera.
+    // A second, smaller ripple behind the first.
     if (p > 0.25) {
       ctx.strokeStyle = `rgba(215,232,244,${(alpha * 0.6).toFixed(3)})`;
       ctx.beginPath();
       ctx.ellipse(x, y, rr * 0.55, rr * 0.47, 0, 0, Math.PI * 2);
       ctx.stroke();
     }
-    // El golpe de la gota, al principio.
+    // The drop's impact, at the start.
     if (p < 0.08) {
       ctx.fillStyle = `rgba(240,248,255,${(0.6 * intensity).toFixed(3)})`;
       ctx.beginPath();
@@ -48,8 +48,8 @@ export function drawRipples(ctx, o, r, intensity, now) {
   ctx.restore();
 }
 
-// Un charco: agua turbia, más clara hacia el borde, con el reflejo del cielo
-// del lado de la luz. Si está lloviendo, las gotas le hacen ondas.
+// A puddle: murky water, lighter toward the edge, with the sky's reflection
+// on the side of the light. If it's raining, the drops make ripples on it.
 export function drawPuddle(ctx, o, r, intensity, now) {
   ctx.save();
   const g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, r);
@@ -61,7 +61,7 @@ export function drawPuddle(ctx, o, r, intensity, now) {
   ctx.ellipse(o.x, o.y, r, r * 0.86, (o.id % 7) * 0.45, 0, Math.PI * 2);
   ctx.fill();
 
-  // Reflejo del cielo: más apagado cuando está nublado.
+  // Sky reflection: dimmer when it's overcast.
   ctx.fillStyle = `rgba(200,220,235,${(0.16 * (1 - (intensity || 0) * 0.5)).toFixed(3)})`;
   ctx.beginPath();
   ctx.ellipse(o.x + Math.cos(LIGHT) * r * 0.35, o.y + Math.sin(LIGHT) * r * 0.35, r * 0.45, r * 0.18, LIGHT + Math.PI / 2, 0, Math.PI * 2);

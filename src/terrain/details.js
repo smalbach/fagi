@@ -1,14 +1,15 @@
-// Los detalles del suelo, uno a uno. Los usa el suelo cocido, que los siembra
-// donde les toca el terreno, y el detalle de cerca, que los repone al acercarse.
-// Todos se apoyan en la misma luz: filo claro de un lado, sombra del otro.
+// The ground's details, one by one. They're used by the baked ground, which sows
+// them where the terrain calls for them, and by the close-up detail, which puts
+// them back when zooming in. They all rely on the same light: a bright edge on
+// one side, shadow on the other.
 
 import { LIGHT, LX, LY, LEAF, BRANCH, DRY, MOSS_T } from './palette.js';
 
-// Un guijarro: no es un punto, es una piedra pequeña. Lo que la delata es que
-// tiene filo claro por donde entra la luz y sombra pegada por el otro lado.
+// A pebble: it isn't a dot, it's a small stone. What gives it away is a bright
+// edge where the light hits and a shadow hugging the other side.
 export function pebble(ctx, x, y, r, rnd) {
-  // Medio enterrada: apenas más clara que la tierra. Si destaca, deja de ser
-  // una piedra en el suelo y parece algo tirado encima.
+  // Half buried: barely lighter than the earth. If it stands out, it stops being
+  // a stone in the ground and looks like something dropped on top.
   const gray = 52 + ((rnd() * 34) | 0);
   const giro = rnd() * Math.PI;
   const flat = 0.5 + rnd() * 0.45;
@@ -30,8 +31,8 @@ export function pebble(ctx, x, y, r, rnd) {
   ctx.stroke();
 }
 
-// Una mata: tres o cuatro briznas que salen del mismo sitio, curvadas y de
-// alturas distintas. Todas se apoyan en una sombrita, si no flotan.
+// A tuft: three or four blades sprouting from the same spot, curved and of
+// different heights. They all rest on a small shadow, otherwise they float.
 export function bush(ctx, x, y, tall, rnd) {
   ctx.fillStyle = 'rgba(12,16,12,0.3)';
   ctx.beginPath();
@@ -57,8 +58,8 @@ export function bush(ctx, x, y, tall, rnd) {
   ctx.globalAlpha = 1;
 }
 
-// Hojarasca: ramitas y hojas secas tiradas por el suelo. Rompen la sensación de
-// alfombra uniforme más que cualquier textura.
+// Litter: twigs and dry leaves scattered on the ground. They break the feeling
+// of a uniform carpet more than any texture.
 export function litter(ctx, x, y, length, rnd) {
   const a = rnd() * Math.PI * 2;
   ctx.strokeStyle = BRANCH[(rnd() * BRANCH.length) | 0];
@@ -67,7 +68,7 @@ export function litter(ctx, x, y, length, rnd) {
   ctx.lineCap = 'round';
   ctx.beginPath();
   ctx.moveTo(x, y);
-  // Una ramita no es recta: se quiebra una vez.
+  // A twig isn't straight: it bends once.
   const mx = x + Math.cos(a) * length * 0.6;
   const my = y + Math.sin(a) * length * 0.6;
   ctx.lineTo(mx, my);
@@ -77,9 +78,9 @@ export function litter(ctx, x, y, length, rnd) {
   ctx.globalAlpha = 1;
 }
 
-// Una hoja caída. La hojarasca de ramitas sola no basta: lo que de verdad cubre
-// el suelo de un bosque son hojas, y cada una se lee por su forma —punta, nervio
-// y su sombra debajo— aunque mida cuatro píxeles.
+// A fallen leaf. Twig litter alone isn't enough: what really covers a forest
+// floor is leaves, and each one reads by its shape —tip, vein and its shadow
+// underneath— even if it's four pixels long.
 export function leaf(ctx, x, y, length, rnd) {
   const width = length * (0.3 + rnd() * 0.2);
   const giro = rnd() * Math.PI;
@@ -97,7 +98,7 @@ export function leaf(ctx, x, y, length, rnd) {
     ctx.closePath();
   };
 
-  // Su sombra: la hoja está caída ENCIMA de la tierra, no impresa en ella.
+  // Its shadow: the leaf lies ON TOP of the earth, not printed into it.
   ctx.fillStyle = 'rgba(10,12,15,0.3)';
   shape(-LX * length * 0.1, -LY * length * 0.1 + length * 0.06);
   ctx.fill();
@@ -107,7 +108,7 @@ export function leaf(ctx, x, y, length, rnd) {
   shape(0, 0);
   ctx.fill();
 
-  // El nervio, y el canto claro por donde la hoja se curva hacia la luz.
+  // The vein, and the bright edge where the leaf curls toward the light.
   ctx.strokeStyle = 'rgba(28,20,10,0.4)';
   ctx.lineWidth = 0.5;
   ctx.beginPath();
@@ -123,8 +124,8 @@ export function leaf(ctx, x, y, length, rnd) {
   ctx.restore();
 }
 
-// Musgo: una alfombra baja de grumos, no briznas. Sale en lo hondo y húmedo,
-// que es donde no llega el sol y no se seca.
+// Moss: a low carpet of clumps, not blades. It grows in low, damp spots,
+// which is where the sun doesn't reach and it doesn't dry out.
 export function moss(ctx, x, y, r, rnd) {
   const tone = MOSS_T[(rnd() * MOSS_T.length) | 0];
   const clumps = 8 + ((rnd() * 10) | 0);
@@ -134,7 +135,7 @@ export function moss(ctx, x, y, r, rnd) {
     const gx = x + Math.cos(a) * d;
     const gy = y + Math.sin(a) * d * 0.7;
     const rad = r * (0.16 + rnd() * 0.26);
-    // Cada grumo con su lado a la luz: una mancha lisa se leería como pintura.
+    // Each clump with its lit side: a flat patch would read as paint.
     ctx.fillStyle = tone;
     ctx.globalAlpha = 0.16 + rnd() * 0.2;
     ctx.beginPath();
@@ -148,9 +149,9 @@ export function moss(ctx, x, y, r, rnd) {
   ctx.globalAlpha = 1;
 }
 
-// Un camino quebrado de `largo` que arranca en (x, y): entre `pasos` y
-// `pasos + variacion - 1` tramos, cada uno torcido hasta `quiebro` radianes
-// respecto al anterior. Lo comparten la raíz y la grieta.
+// A broken path of `length` starting at (x, y): between `steps` and
+// `steps + variation - 1` segments, each bent up to `kink` radians
+// from the previous one. Shared by the root and the crack.
 function brokenPath(x, y, length, steps, variation, kink, rnd) {
   let a = rnd() * Math.PI * 2;
   const path = [{ x, y }];
@@ -164,8 +165,8 @@ function brokenPath(x, y, length, steps, variation, kink, rnd) {
   return path;
 }
 
-// Repasa el camino desplazado (dx, dy). Sin `cap` deja el remate de línea que
-// ya hubiera en el contexto.
+// Strokes the path offset by (dx, dy). Without `cap` it keeps whatever line cap
+// the context already had.
 function trace(ctx, path, dx, dy, col, w, cap) {
   ctx.strokeStyle = col;
   ctx.lineWidth = w;
@@ -177,8 +178,8 @@ function trace(ctx, path, dx, dy, col, w, cap) {
   ctx.stroke();
 }
 
-// Una raíz asomada: el lomo de una raíz que cruza el suelo y se vuelve a
-// enterrar. Va más clara por arriba y con su sombra pegada debajo.
+// An exposed root: the back of a root that crosses the ground and dives back
+// under. Lighter on top, with its shadow hugging underneath.
 export function root(ctx, x, y, length, rnd) {
   const path = brokenPath(x, y, length, 3, 3, 0.9, rnd);
   const thickness = 1.4 + rnd() * 2.2;
@@ -187,8 +188,8 @@ export function root(ctx, x, y, length, rnd) {
   trace(ctx, path, LX * thickness * 0.3, LY * thickness * 0.3, 'rgba(142,116,76,0.28)', thickness * 0.4, 'round');
 }
 
-// Grieta de tierra seca: una línea quebrada oscura con su reflejo claro al lado.
-// Igual que en la roca, el reflejo es lo que la hace hendidura y no raya.
+// Dry-earth crack: a dark broken line with its bright highlight beside it.
+// Just like on the rock, the highlight is what makes it a fissure and not a scratch.
 export function crack(ctx, x, y, length, rnd) {
   const path = brokenPath(x, y, length, 4, 5, 1.3, rnd);
   trace(ctx, path, LX, LY, 'rgba(180,170,148,0.1)', 1);

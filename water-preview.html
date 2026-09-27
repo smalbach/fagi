@@ -1,4 +1,4 @@
-<!doctype html><meta charset="utf-8"><title>lago preview</title>
+<!doctype html><meta charset="utf-8"><title>lake preview</title>
 <body style="margin:0;background:#222630">
 <canvas id="c" width="1180" height="620"></canvas>
 <script type="module">
@@ -17,16 +17,16 @@ function lake(o, r, t) {
 }
 
 function frame(t) {
-  ctx.fillStyle = '#3a342a'; ctx.fillRect(0, 0, 1180, 620);   // tierra de fondo
+  ctx.fillStyle = '#3a342a'; ctx.fillRect(0, 0, 1180, 620);   // background earth
 
   setDetail(1);
-  lake({ x: 250, y: 250, type: 'water', seed: 7 }, 210, t);    // uno grande, para el detalle
+  lake({ x: 250, y: 250, type: 'water', seed: 7 }, 210, t);    // a big one, for the detail
   let i = 0;
   for (const seed of [1, 2, 3, 4]) {
     lake({ x: 600 + (i % 2) * 220, y: 140 + ((i / 2) | 0) * 220, type: 'water', seed }, 80, t);
     i++;
   }
-  // y a tamaño real, que es como se ve en el mapa
+  // and at real size, which is how it looks on the map
   lake({ x: 250, y: 545, type: 'water', seed: 9 }, 44, t);
   lake({ x: 380, y: 545, type: 'water', seed: 10 }, 44, t);
   requestAnimationFrame(frame);

@@ -1,5 +1,5 @@
-// El lago entero: la foto si ya ha cargado y, si no, el lienzo quieto con lo
-// vivo encima.
+// The whole lake: the photo if it has loaded and, if not, the still canvas with
+// the live parts on top.
 
 import { seedFor, cacheSprite, detail, stamp } from '../sprite-kit.js';
 import { realisticLakeReady, drawRealisticLake } from './realistic.js';
@@ -7,7 +7,7 @@ import { paintLake } from './still.js';
 import { surface } from './surface.js';
 import { reeds } from './reeds.js';
 
-const lakes = new Map();       // clave: semilla|radio|detalle
+const lakes = new Map();       // key: seed|radius|detail
 
 export function drawLake(ctx, o, spec, r, wind, now) {
   if (realisticLakeReady()) {
