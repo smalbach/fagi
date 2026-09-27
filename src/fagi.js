@@ -18,7 +18,7 @@ import { decaySynapses, perceiveSynapses } from './synapses.js';
 import { createEffects, updateEffects } from './effects.js';
 import { resolveEpisodes, resolveTrail } from './episodes.js';
 import { autoSave as saveLearning, save, snapshot } from './learned/store.js';
-import { nestOf } from './world.js';
+import { nestOf, stockCount } from './world.js';
 import { dropPheromone } from './pheromone.js';
 import { increaseNeeds, resolveVitalFailure, drink, spendEnergy } from './needs.js';
 import { perceive } from './perception.js';
@@ -32,6 +32,8 @@ import { useNest } from './nest.js';
 import { swim } from './swim.js';
 import { senseWeather } from './weather.js';
 import { refreshRules } from './learned/synth.js';
+import { edibleCount } from './learned/rules.js';
+import { observeHabits, deathLesson } from './habits.js';
 
 export function createFagi() {
   return {
@@ -167,10 +169,17 @@ export function updateFagi(fagi, world, dt) {
   tryPickOrEat(fagi, world);
   resolveTrail(fagi);            // did the trail she was following lead her to food?
   increaseNeeds(fagi, world, dt);
+  // What happened to her body tunes her habits: a scare makes her more careful.
+  const pantry = { stored: stockCount(fagi.pantry), edible: edibleCount(fagi, fagi.pantry) };
+  observeHabits(fagi, pantry);
 
   // Dying saves right away, without waiting for the next autosave turn: the
   // last thing she learned (including the lesson of this very death) isn't lost.
   // And whatever the API had in flight stops counting: there's no one left to direct.
-  if (resolveVitalFailure(fagi)) { save(snapshot(fagi)); resetCortex(fagi.cortex); }
+  if (resolveVitalFailure(fagi)) {
+    deathLesson(fagi, fagi.cause, pantry);
+    save(snapshot(fagi));
+    resetCortex(fagi.cortex);
+  }
   else saveLearning(fagi, dt);
 }

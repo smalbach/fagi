@@ -99,3 +99,13 @@ export function verdict(fagi, scope, key, { deliberate = false, traits: asIf = n
   }
   return result;
 }
+
+// How much of a stock she would actually eat: what she has learned to avoid is
+// there, but it feeds nobody. A pantry full of poison is not a full pantry.
+export function edibleCount(fagi, stock) {
+  let n = 0;
+  for (const [type, amount] of Object.entries(stock ?? {})) {
+    if (amount > 0 && verdict(fagi, 'eat', type) !== 'avoid') n += amount;
+  }
+  return n;
+}

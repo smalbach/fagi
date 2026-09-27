@@ -153,6 +153,86 @@ because "crystal" things made her sick, while the real culprit was their
 musky smell. Her counterfactual says so: "Without its crystal shape, I'd give
 it a try." That is a superstition, and now it can be read.
 
+## Phase 4: habits
+
+`src/habits.js` turns five thresholds of the decision hierarchy into habits she
+tunes from what happens to her. The hierarchy stays as it was; only the
+numbers it hangs on move:
+
+| habit | what it is | factory | ladder | cautious |
+|---|---|---|---|---|
+| `tasteAt` | hunger from which she eats an untasted fruit instead of carrying it | 45 | 0 · 15 · 30 · 45 | lower |
+| `hungerAt` | hunger from which going for food is urgent | 55% | 35 · 45 · 55 · 65% | lower |
+| `thirstAt` | thirst from which going for water is urgent | 55% | 35 · 45 · 55 · 65% | lower |
+| `restAt` | energy from which she rests | 22 | 10 · 22 · 35 · 50 | higher |
+| `reserve` | rations she counts as enough | 12 | 6 · 12 · 18 · 24 | higher |
+
+Each habit moves one rung at a time, like a psychophysics staircase:
+
+- **scares** move it toward caution: hunger or thirst at 85%, running out of
+  energy, a scare with an empty pantry, a first bite from the pantry of
+  something she had stored untasted that turns out to harm her, and dying;
+- **waste and calm** move it back: rations spoiling in the pantry, or 10
+  minutes without a scare.
+
+Every move is narrated with its reason ("Learns to taste new fruit before
+storing it · she had stored red drop, musky without tasting it, and it harms
+her"). The brain map shows the habits under the hierarchy, and they are saved,
+exported and recovered with the rest of what she learned.
+
+A habit that has never moved reads the factory value. With `HABITS.enabled=0`
+and `CUES.enabled=0`, the fingerprints match the original baseline.
+
+### A bug found on the way
+
+On chemistry maps most deaths were from hunger with a **full pantry**. She
+stored 12 fruit she had never tasted, the pantry counted as full, so she
+stopped foraging. When she finally ate from it, it was poison. Now only food
+she would eat counts toward the pantry (`edibleCount`). This fix alone saves 1
+more run (33 → 34/48): the real problem was storing untasted fruit, and that
+is the habit she learns.
+
+### Experiment
+
+Protocol: train on **other maps** (seeds 3, 5 and 11, 8 chained lives each with
+`--chain`, 24 lives in total), then test the learned habits, frozen
+(`HABITS.learn=0`), on the usual maps. Every variant runs on the same 4 maps
+× 12 runs × 1800 s with `--world-varies`.
+
+| variant | chemistry: alive | deaths | classic: alive |
+|---|---|---|---|
+| A · factory (`HABITS.enabled=0`) | 34/48 | 11 hunger, 3 thirst | 48/48 · 93/96 more seeds |
+| B · learning within one life only | 34/48 | 11 hunger, 3 thirst | 48/48 |
+| **C · habits learned on other maps** | **46/48** | 2 thirst | 47/48 · **96/96** more seeds |
+| D · learned, and still learning | 46/48 | 2 thirst | – |
+
+- Learned habits: `tasteAt` 0 (always taste new fruit before storing it),
+  `hungerAt` 35%, `restAt` 35, `reserve` 6, and `thirstAt` unchanged.
+- **Hunger deaths disappear** on maps she never trained on.
+- Learning within a single life (B) changes nothing measurable. The lessons
+  come too late: the scare that teaches "taste first" is the one that kills
+  her. Habits pay off from one life to the next, which in the game is
+  "Recover what it learned".
+- The remaining thirst deaths are all the same: she never finds water in the
+  first 3 minutes. That happens with factory habits too, and no habit
+  addresses it.
+- Costs: she stores less (reserve 6: rations were spoiling), and on classic
+  maps a few more of her bites are harmful (17% vs 15%), because she tastes
+  rotten fruit instead of carrying it home.
+- A first version counted a pantry full of poison as "empty", so it learned
+  `reserve` 24. It spent the first minutes gathering instead of finding water,
+  and thirst deaths went from 3 to 7. Only a really empty pantry teaches a
+  bigger reserve now.
+
+```bash
+C="--runs 8 --duration 1800 --world-varies --set MAPGEN.species=6 --chain"
+node scripts/batch.js --map-seed 3 $C --habits-out h1.json
+node scripts/batch.js --map-seed 5 $C --habits-in h1.json --habits-out h2.json
+node scripts/batch.js --map-seed 11 $C --habits-in h2.json --habits-out H.json
+node scripts/batch.js --map-seed 1 --runs 12 --duration 1800 --world-varies \
+  --set MAPGEN.species=6 --habits-in H.json --set HABITS.learn=0
+```
+
 ## Cost
 
 A chemistry map costs about 190 µs per simulation step on one core (six trees,

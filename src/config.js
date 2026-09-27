@@ -261,6 +261,17 @@ export const CUES = {
   induceMin: 2,       // species that must agree before she generalizes from them
 };
 
+// Habits (habits.js): the thresholds of her behavior she tunes from what
+// happens to her. With enabled = 0 she keeps the factory values below.
+export const HABITS = {
+  enabled: 1,         // 0 = factory values, always
+  learn: 1,           // 0 = use what was learned, but learn nothing new (for tests)
+  scare: 0.85,        // hunger or thirst (fraction) that counts as a scare
+  relax: 1,           // 1 = a long calm makes her a bit bolder again
+  calm: 600,          // seconds without a scare before she relaxes a habit one rung
+  history: 8,         // moves kept per habit, to explain it
+};
+
 // Explanations (learned/explain.js): why she thinks what she thinks of a fruit.
 export const EXPLAIN = {
   log: 80,            // experiences with fruit she keeps to point at

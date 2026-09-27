@@ -48,7 +48,7 @@ export function createNarrator() {
     lines: [],
     prev: { action: null, drinking: false, swimming: false, dunk: 0, probed: false, raining: false, pressureFalling: false, rainLesson: 0, pressureLesson: 0, puddleGone: 0, meal: 0, drink: 0, water: 0,
             picked: 0, stored: 0, pantry: 0, alive: true,
-            stages: {}, trusted: {}, why: {}, rule: 0, peril: 0, rethink: 0, leg: 0 },
+            stages: {}, trusted: {}, why: {}, habit: 0, rule: 0, peril: 0, rethink: 0, leg: 0 },
     seq: 0,
   };
 }
@@ -145,6 +145,15 @@ export function narrate(narr, fagi) {
       { key: logKey, params: { rule: r.id, what: { key: `type.${r.key}` } } },
       { key: 'log.ruleSub', params: { because: why(r.because) } });
     p.rule = r.n;
+  }
+
+  // A habit moved: she does something sooner or later than before, and why.
+  const h = fagi.brain.lastHabit;
+  if (h && h.n !== p.habit) {
+    push(narr, fagi, 'learn',
+      { key: `log.habit.${h.id}.${h.dir}`, params: { from: habitValue(h.id, h.from), to: habitValue(h.id, h.to) } },
+      h.why);
+    p.habit = h.n;
   }
 
   // A bite that seemed bearable ended up worse than it felt when she tried
@@ -281,6 +290,11 @@ export function narrate(narr, fagi) {
   }
 
   return narr.lines;
+}
+
+// Fractions read as percentages; hunger, energy and rations as they are.
+function habitValue(id, v) {
+  return id === 'hungerAt' || id === 'thirstAt' ? `${Math.round(v * 100)}%` : String(v);
 }
 
 // The explanation in a console line: the stance, the reason that weighs most,

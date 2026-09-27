@@ -10,7 +10,9 @@ import { isWater, isTree, radiusOf, waterZone } from './obstacles.js';
 import { fearsDeep } from './swim.js';
 import { choose, learn } from './brain.js';
 import { perceivedCues } from './learned/cues.js';
-import { nestOf, stockCount } from './world.js';
+import { nestOf } from './world.js';
+import { edibleCount } from './learned/rules.js';
+import { habit } from './habits.js';
 import { followPheromone } from './pheromone.js';
 import { nestUnder } from './nest.js';
 import { rememberPlace, recallPlace, forgetPlace, waterPlaceKind, peekWeight } from './memory.js';
@@ -111,7 +113,7 @@ function rememberFoodSource(fagi, world) {
 const fruitOf = (tree) => tree?.fruit ?? TREE.fruit;
 
 function forageNeed(fagi, hungerU) {
-  const missing = 1 - Math.min(1, stockCount(fagi.pantry) / NEST.full);
+  const missing = 1 - Math.min(1, edibleCount(fagi, fagi.pantry) / habit(fagi, 'reserve'));
   return Math.max(hungerU, NEST.forageDrive * missing);
 }
 

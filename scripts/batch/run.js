@@ -11,6 +11,7 @@ import { rng, withRng } from './random.js';
 import { round, mean } from './stats.js';
 import { isHarmful, isHelpful, ruleTruth } from '../../src/chemistry.js';
 import { explain, stance } from '../../src/learned/explain.js';
+import { habit, HABIT_IDS, habitsSnapshot, restoreHabits } from '../../src/habits.js';
 
 const { WORLD } = CONFIG;
 
@@ -38,13 +39,14 @@ function block(world, r) {
 
 // --- a single run -----------------------------------------------------------
 
-export function runOnce(opts, fagiSeed) {
+export function runOnce(opts, fagiSeed, startHabits = null) {
   const mapRng = rng(opts.mapSeed);
   const worldRng = rng(opts.worldVaries ? fagiSeed * 7919 : opts.mapSeed + 1);
   const fagiRng = rng(fagiSeed);
 
   const world = withRng(mapRng, () => { const w = createWorld(); generateMap(w); return w; });
   const fagi = withRng(fagiRng, () => createFagi());
+  if (startHabits) fagi.brain.habits = restoreHabits(startHabits);
   const s = newFollow(opts, fagi);
 
   const steps = Math.ceil(opts.duration / opts.dt);
@@ -218,6 +220,9 @@ function runSummary(fagiSeed, fagi, world, s) {
     stored: fagi.stored ?? 0,
     exploreLegs: fagi.exploreLegs,
     rules: fagi.brain.rules?.list?.length ?? 0,
+    // The habits she ended with, and every move they made in this life (habits.js).
+    habits: habitsSnapshot(fagi.brain.habits),
+    habitValues: Object.fromEntries(HABIT_IDS.map((id) => [id, habit(fagi, id)])),
     learning: learningSummary(s.learning, fagi),
     ...s.milestones,
     waterFirst: s.latencies[0] ?? null,

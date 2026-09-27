@@ -4,13 +4,14 @@
 import { FAGI, ENERGY, NEEDS, THIRST } from '../config.js';
 import { rainAversion, pressureAversion } from '../weather.js';
 import { pct, reasonOf, pressing } from './common.js';
+import { habit } from '../habits.js';
 
 // Without strength no work is worth anything: time to rest, preferably in the nest.
 export function rest(fagi, world, ctx) {
   // Hunger and thirst kill; running out of energy doesn't. Even if she's dragging herself
   // (ENERGY.weakSpeed), tending to what's urgent comes before lying down.
   if (pressing(ctx)) return null;
-  if (fagi.energy <= ENERGY.tired) fagi.resting = true;
+  if (fagi.energy <= habit(fagi, 'restAt')) fagi.resting = true;
   if (fagi.resting && fagi.energy >= ENERGY.rested) fagi.resting = false;
   if (!fagi.resting) return null;
 

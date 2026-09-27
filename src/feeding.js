@@ -1,11 +1,12 @@
 // Eating and carrying. The rule is simple: when hungry you eat, when not hungry you work.
 
 import { HUNGER, CARRY, POINT_TYPES } from './config.js';
-import { pointTouching, removePoint, stockFull } from './world.js';
+import { habit } from './habits.js';
+import { pointTouching, removePoint } from './world.js';
 import { applyEffects } from './effects.js';
 import { snapshotBody } from './interoception.js';
 import { openEpisode } from './episodes.js';
-import { verdict } from './learned/rules.js';
+import { verdict, edibleCount } from './learned/rules.js';
 
 // When hungry she eats it on the spot. When not hungry she picks it up and takes it to the nest:
 // that's the difference between eating and working. And with the pantry stocked she doesn't even
@@ -22,7 +23,10 @@ export function tryPickOrEat(fagi, world) {
   // She only tries it again when it was her deliberate target (curiosity).
   if (verdict(fagi, 'eat', p.type, { deliberate: fagi.target === p }) === 'avoid') { release(); return; }
 
-  if (fagi.hunger >= CARRY.eatBelow) {
+  // A fruit she has never tasted may be eaten sooner than carried: that is a
+  // habit (habits.js), learned from storing what turned out to harm her.
+  const tasted = (fagi.brain.facts[p.type]?.tries ?? 0) > 0;
+  if (fagi.hunger >= (tasted ? CARRY.eatBelow : habit(fagi, 'tasteAt'))) {
     eat(fagi, p.type);
     removePoint(world, p, 'eaten');
   } else if (verdict(fagi, 'store', p.type) === 'avoid') {
@@ -30,7 +34,7 @@ export function tryPickOrEat(fagi, world) {
     // is bad is another. She leaves it where it is and stops treating it as a target.
     release();
     return;
-  } else if (!fagi.carrying && !stockFull(fagi.pantry)) {
+  } else if (!fagi.carrying && edibleCount(fagi, fagi.pantry) < habit(fagi, 'reserve')) {
     // The fruit keeps the age it already had: storing it preserves it, it doesn't
     // make it younger.
     fagi.carrying = { type: p.type, age: p.age ?? 0 };

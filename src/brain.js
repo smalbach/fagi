@@ -8,6 +8,7 @@ import { synthAfterLearn, synthCues, synthInduced } from './learned/synth.js';
 import { createCues, cuesOf, learnCues, predict, wariness } from './learned/cues.js';
 import { createSynapses, wire } from './synapses.js';
 import { logBite } from './learned/explain.js';
+import { createHabits } from './habits.js';
 
 // The brain is memory (what she believes) plus rules (what she has written
 // from what she believes). Memory is the single source of truth for value;
@@ -15,6 +16,7 @@ import { logBite } from './learned/explain.js';
 //   synapses : the trace of what was learned, as connections (synapses.js).
 //   cues     : what each trait tends to mean (learned/cues.js).
 //   bites    : the last experiences with fruit, to explain herself (learned/explain.js).
+//   habits   : the thresholds of her behavior she tunes from experience (habits.js).
 //   lastRule : the last rule written, revised or retired. The narrator
 //              reads it; no need to store it anywhere else.
 //   version  : goes up every time what she learned changes (each experience, and
@@ -25,7 +27,7 @@ import { logBite } from './learned/explain.js';
 export function createBrain() {
   return {
     ...createMemory(), rules: createRules(), lastRule: null, synapses: createSynapses(),
-    cues: createCues(), bites: [], version: 0,
+    cues: createCues(), bites: [], habits: createHabits(), lastHabit: null, version: 0,
   };
 }
 

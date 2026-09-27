@@ -22,7 +22,7 @@ import { args, applySets } from './batch/args.js';
 import { runOnce } from './batch/run.js';
 import { report } from './batch/report.js';
 import { round } from './batch/stats.js';
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readFileSync } from 'node:fs';
 
 // --- main -------------------------------------------------------------------
 
@@ -30,9 +30,12 @@ const opts = args(process.argv.slice(2));
 applySets(opts.sets);
 const runs = [];
 const t0 = Date.now();
+let habits = opts.habitsIn ? JSON.parse(readFileSync(opts.habitsIn, 'utf8')) : null;
 for (let i = 0; i < opts.runs; i++) {
-  const r = runOnce(opts, opts.seed0 + i);
+  const r = runOnce(opts, opts.seed0 + i, habits);
   runs.push(r);
+  // Chained lives: the next one starts with the habits this one ended with.
+  if (opts.chain) habits = r.habits;
   process.stderr.write(`\rrun ${i + 1}/${opts.runs}`);
 }
 process.stderr.write(`\r${' '.repeat(30)}\r`);
@@ -49,6 +52,11 @@ if (opts.check) {
     ? `check: repeating seed ${opts.seed0} gives the same session ✓`
     : `check: repeating seed ${opts.seed0} gives a DIFFERENT session ✗ — there is randomness outside the seeds`);
   if (!ok) process.exitCode = 1;
+}
+
+if (opts.habitsOut) {
+  writeFileSync(opts.habitsOut, JSON.stringify(runs.at(-1)?.habits ?? {}, null, 1));
+  console.log(`habits in ${opts.habitsOut}`);
 }
 
 if (opts.json) {

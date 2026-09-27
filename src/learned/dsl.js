@@ -127,7 +127,7 @@ const RULE_LINE = /^(?:\/\/ (?:retired|retirada) [\d.]+s: )?rule\('([a-z0-9-]{1,
 const MEMORY_LINE = /^export const (?:memory|memoria) = (\{.*\});$/;
 
 // The complete module, exactly as it's exported and shown in the panel.
-export function renderModule(rules, facts, { age, puddleLife = null, synapses = null, cues = null, bites = null } = {}) {
+export function renderModule(rules, facts, { age, puddleLife = null, synapses = null, cues = null, bites = null, habits = null } = {}) {
   const activeOnes = rules.filter((r) => !r.retired);
   const retiredList = rules.filter((r) => r.retired);
   const header = `// Code learned by Fagi · age ${(age ?? 0).toFixed(1)}s · ` +
@@ -145,6 +145,7 @@ export function renderModule(rules, facts, { age, puddleLife = null, synapses = 
     memoryOf.cues = Object.fromEntries(Object.entries(cues).map(([c, e]) => [c, { w: Math.round(e.w * 1000) / 1000, n: e.n }]));
   }
   if (bites?.length) memoryOf.bites = bites;
+  if (habits && Object.keys(habits).length) memoryOf.habits = habits;
   const memoryLine = `export const memory = ${JSON.stringify(memoryOf)};`;
   return `${header}import { rule } from './dsl.js';\n\n${rulesLine}\n${memoryLine}\n`;
 }
@@ -163,6 +164,7 @@ export function parseModule(text) {
   let synapses = {};
   let cues = {};
   let bites = [];
+  let habits = {};
   let seenMemory = false;
 
   for (const line of text.split('\n')) {
@@ -192,6 +194,8 @@ export function parseModule(text) {
         synapses = validateSynapses(data.synapses);
         cues = validateCues(data.cues);
         bites = validateBites(data.bites);
+        // habits.js restoreHabits checks each one against its ladder.
+        habits = data.habits && typeof data.habits === 'object' ? data.habits : {};
         seenMemory = true;
       }
     }
@@ -199,7 +203,7 @@ export function parseModule(text) {
   }
 
   if (!seenMemory && rules.length === 0) throw new Error('no rule or memory recognized in the file');
-  return { rules, facts, puddleLife, synapses, cues, bites };
+  return { rules, facts, puddleLife, synapses, cues, bites, habits };
 }
 
 // Only well-formed experiences get in: a fruit, when, and how it felt.

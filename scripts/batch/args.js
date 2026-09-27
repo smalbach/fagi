@@ -4,7 +4,7 @@ import * as CONFIG from '../../src/config.js';
 import { readFileSync } from 'node:fs';
 
 export function args(argv) {
-  const o = { mapSeed: 1, runs: 10, duration: 600, dt: 0.05, seed0: 1000, worldVaries: false, check: false, json: null, cell: 80, sets: [], block: null, rock: 30 };
+  const o = { mapSeed: 1, runs: 10, duration: 600, dt: 0.05, seed0: 1000, worldVaries: false, check: false, json: null, cell: 80, sets: [], block: null, rock: 30, chain: false, habitsIn: null, habitsOut: null };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     const next = () => argv[++i];
@@ -19,6 +19,9 @@ export function args(argv) {
     else if (a === '--cell') o.cell = Number(next());
     else if (a === '--block') o.block = Number(next());
     else if (a === '--rock') o.rock = Number(next());
+    else if (a === '--chain') o.chain = true;
+    else if (a === '--habits-in') o.habitsIn = next();
+    else if (a === '--habits-out') o.habitsOut = next();
     else if (a === '--profile') o.sets.push(...profile(next()));
     else if (a === '--set') o.sets.push(assignment(next()));
     else if (a === '-h' || a === '--help') { console.log(help()); process.exit(0); }
@@ -42,6 +45,10 @@ function help() {
   --block S        after S seconds puts a wall of rocks on the nest-tree line
                    and on the nest-water line, and compares before and after
   --rock PX        radius of each rock in the wall                  [30]
+  --chain          each Fagi starts with the habits the previous one ended with
+                   (lives one after another, as with "Recover what it learned")
+  --habits-in FILE the habits the first Fagi starts with (JSON from --habits-out)
+  --habits-out FILE saves the habits the last Fagi ended with
   --json FILE      saves all the data to a file`;
 }
 

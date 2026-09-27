@@ -5,6 +5,7 @@ import { statMult } from '../effects.js';
 import { waterZone, shorePoint, radiusOf } from '../obstacles.js';
 import { pct, reasonOf, pantryIntent } from './common.js';
 import { pursue } from './provide.js';
+import { habit } from '../habits.js';
 
 // Trapped in deep water: the first thing is to get out, by the nearest shore. It's
 // instinct, not learned; what's learned is not to go in again (swim.js).
@@ -29,11 +30,11 @@ export function drink(fagi, world, ctx) {
 
 function needAtRisk(fagi, ctx) {
   const risks = [];
-  if (ctx.hungerU >= NEEDS.critical) {
+  if (ctx.hungerU >= habit(fagi, 'hungerAt')) {
     const rate = HUNGER.rate * statMult(fagi, 'hungerRate');
     risks.push({ kind: 'food', seconds: rate > 0 ? (HUNGER.max - fagi.hunger) / rate : Infinity });
   }
-  if (ctx.thirstU >= NEEDS.critical) {
+  if (ctx.thirstU >= habit(fagi, 'thirstAt')) {
     risks.push({ kind: 'water', seconds: THIRST.rate > 0 ? (THIRST.max - fagi.thirst) / THIRST.rate : Infinity });
   }
   return risks.sort((a, b) => a.seconds - b.seconds)[0] ?? null;

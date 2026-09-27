@@ -12,6 +12,7 @@ export function report(opts, runs) {
   L.push(...reportRuns(runs));
   L.push(...reportSpread(runs));
   L.push(...reportLearning(runs));
+  L.push(...reportHabits(runs));
   L.push(...reportActions(runs));
   L.push(...reportFirsts(runs));
   L.push(...reportPhases(opts, runs));
@@ -50,6 +51,21 @@ function reportSpread(runs) {
 // What she learned about food, and what it cost her. "avoided" = kinds she met
 // and never bit; "tried" = helpful kinds she did bite. Over-avoidance shows up
 // as a low "tried".
+// Habits (habits.js): where each one ended, and how many times they moved.
+function reportHabits(runs) {
+  const ids = Object.keys(runs[0]?.habitValues ?? {});
+  if (!ids.length) return [];
+  const L = ['habits at the end (value: runs)'];
+  for (const id of ids) {
+    const counts = {};
+    for (const r of runs) counts[r.habitValues[id]] = (counts[r.habitValues[id]] ?? 0) + 1;
+    const moves = runs.reduce((a, r) => a + (r.habits?.[id]?.moves?.length ?? 0), 0);
+    L.push(`  ${pad(id, 22)} ${Object.entries(counts).map(([v, n]) => `${v}: ${n}`).join(' · ')}   (${moves} moves kept)`);
+  }
+  L.push('');
+  return L;
+}
+
 function reportLearning(runs) {
   const L = [];
   const sum = (k) => runs.reduce((a, r) => a + (r.learning?.[k] ?? 0), 0);

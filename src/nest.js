@@ -6,6 +6,7 @@ import { radiusOf } from './obstacles.js';
 import { eat } from './feeding.js';
 import { weight } from './memory.js';
 import { verdict } from './learned/rules.js';
+import { storedHarm, spoiledRations } from './habits.js';
 
 export function nestUnder(fagi, world) {
   const nestObj = nestOf(world);
@@ -39,10 +40,18 @@ export function useNest(fagi, world) {
         (weight(fagi.brain, b) > weight(fagi.brain, a) ? b : a));
       takeFromNest(nestObj, best);
       record(world, 'nest_take', { what: best });
+      const firstBite = !(fagi.brain.facts[best]?.tries > 0);
       eat(fagi, best);
+      // She had stored it without ever tasting it, and it harms her.
+      storedHarm(fagi, best, firstBite, fagi.lastMeal?.reward ?? 0);
       fagi.lastPantry = { n: (fagi.lastPantry?.n ?? 0) + 1, type: best };
     }
   }
+
+  // Rations that spoiled since her last visit: she sees the gap.
+  const spoiled = nestObj.spoiled ?? 0;
+  if (fagi.spoiledSeen != null) spoiledRations(fagi, spoiled - fagi.spoiledSeen);
+  fagi.spoiledSeen = spoiled;
 
   // She's inside: she sees the pantry with her own eyes. This is the only place
   // where fagi.pantry is written, and that's why finding out costs a visit.

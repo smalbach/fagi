@@ -14,6 +14,7 @@
 import { modernize } from '../legacy.js';
 import { LEARN } from '../config.js';
 import { renderModule, parseModule, modernWhen } from './dsl.js';
+import { createHabits, habitsSnapshot, restoreHabits } from '../habits.js';
 
 const KEY = 'fagi.learning';
 
@@ -45,6 +46,8 @@ export function snapshot(fagi) {
     cues: fagi.brain.cues ?? {},
     // The experiences she points at when she explains herself (learned/explain.js).
     bites: fagi.brain.bites ?? [],
+    // The habits she tuned, with why (habits.js).
+    habits: habitsSnapshot(fagi.brain.habits),
   };
 }
 
@@ -87,6 +90,7 @@ export function restore(fagi, saved) {
   fagi.brain.cues = {};
   for (const [c, e] of Object.entries(snap.cues ?? {})) fagi.brain.cues[c] = { ...e, lastAt: 0 };
   fagi.brain.bites = (snap.bites ?? []).map((b) => ({ ...b }));
+  fagi.brain.habits = restoreHabits(snap.habits);
   fagi.brain.version = (fagi.brain.version ?? 0) + 1;
 }
 
@@ -94,14 +98,15 @@ export function exportText(fagi) {
   return renderModule(fagi.brain.rules.list, fagi.brain.facts, {
     age: fagi.age, puddleLife: fagi.brain.puddleLife, synapses: learnedSynapses(fagi), cues: fagi.brain.cues,
     bites: fagi.brain.bites,
+    habits: habitsSnapshot(fagi.brain.habits),
   });
 }
 
 // Reads an imported file and, if valid, replaces what was learned. Throws with
 // a readable reason if it isn't; in that case it doesn't touch Fagi's memory.
 export function importText(fagi, text) {
-  const { rules, facts, puddleLife, synapses, cues, bites } = parseModule(text);
-  restore(fagi, { facts, rules, puddleLife, synapses, cues, bites });
+  const { rules, facts, puddleLife, synapses, cues, bites, habits } = parseModule(text);
+  restore(fagi, { facts, rules, puddleLife, synapses, cues, bites, habits });
 }
 
 export function wipe(fagi, storage = safeStorage()) {
@@ -109,6 +114,8 @@ export function wipe(fagi, storage = safeStorage()) {
   fagi.brain.synapses = {};
   fagi.brain.cues = {};
   fagi.brain.bites = [];
+  fagi.brain.habits = createHabits();
+  fagi.brain.lastHabit = null;
   fagi.brain.puddleLife = null;
   fagi.brain.version = (fagi.brain.version ?? 0) + 1;
   fagi.brain.rules.list = [];
