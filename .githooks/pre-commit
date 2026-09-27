@@ -1,9 +1,9 @@
 #!/bin/sh
-# Cada commit sube la versión (patch) en package.json y package-lock.json, así
-# cada build que llega a producción lleva un número distinto y se sabe cuál es.
-# Saltarlo: FAGI_NO_BUMP=1 git commit ...  (por ejemplo al rehacer un commit).
+# Every commit bumps the version (patch) in package.json and package-lock.json, so
+# every build that reaches production carries a distinct number and you know which it is.
+# To skip it: FAGI_NO_BUMP=1 git commit ...  (for example when redoing a commit).
 [ -n "$FAGI_NO_BUMP" ] && exit 0
-# En un merge o un rebase no se toca: la versión ya viene en los commits.
+# Leave it alone during a merge or a rebase: the version already comes in the commits.
 GIT_DIR=$(git rev-parse --git-dir)
 [ -f "$GIT_DIR/MERGE_HEAD" ] && exit 0
 [ -d "$GIT_DIR/rebase-merge" ] || [ -d "$GIT_DIR/rebase-apply" ] && exit 0

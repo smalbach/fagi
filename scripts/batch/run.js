@@ -1,4 +1,4 @@
-// Una corrida: una Fagi en el mapa de la semilla, y todo lo que se anota de ella.
+// A single run: one Fagi on the seed's map, and everything recorded about her.
 
 import { createWorld, addObject, nestOf, stockCount } from '../../src/world.js';
 import { isTree, isWater } from '../../src/obstacles.js';
@@ -12,10 +12,10 @@ import { round, mean } from './stats.js';
 
 const { WORLD } = CONFIG;
 
-// --- el muro ---------------------------------------------------------------
+// --- the wall --------------------------------------------------------------
 
-// Tres rocas atravesadas a mitad de la recta que une el nido con cada recurso:
-// el camino que ya aprendió deja de valer y tiene que rodear.
+// Three rocks laid across the middle of the line from the nest to each resource:
+// the path she already learned stops working and she has to go around.
 function block(world, r) {
   const nestObj = nestOf(world);
   const placedOnes = [];
@@ -34,7 +34,7 @@ function block(world, r) {
   return placedOnes.length;
 }
 
-// --- una corrida ------------------------------------------------------------
+// --- a single run -----------------------------------------------------------
 
 export function runOnce(opts, fagiSeed) {
   const mapRng = rng(opts.mapSeed);
@@ -63,30 +63,30 @@ export function runOnce(opts, fagiSeed) {
   return runSummary(fagiSeed, fagi, world, s);
 }
 
-// Todo lo que se va anotando paso a paso.
+// Everything recorded step by step.
 function newFollow(opts, fagi) {
   const cols = Math.ceil(WORLD.width / opts.cell);
   const rows = Math.ceil(WORLD.height / opts.cell);
   return {
     cols, rows,
     warmth: new Float64Array(cols * rows),
-    actions: {},          // acción -> segundos
-    secuencia: [],         // [t, acción] cada vez que cambia
-    path: [],            // posición cada segundo, para comparar trayectorias
+    actions: {},          // action -> seconds
+    secuencia: [],         // [t, action] each time it changes
+    path: [],            // position every second, to compare trajectories
     milestones: { firstDrink: null, firstMeal: null, firstPick: null, firstStore: null },
-    visitedList: [],         // ids de objetos del mapa en el orden en que los pisa
+    visitedList: [],         // ids of map objects in the order she steps on them
     nextPath: 0,
-    // Aprendizaje: cuánto tarda en llegar al agua desde que la sed se vuelve
-    // urgente (NEEDS.critical), que es cuando se pone a buscarla de verdad.
-    // Si aprende dónde está, la primera vez debería costar más que las demás.
+    // Learning: how long she takes to reach water once thirst becomes
+    // urgent (NEEDS.critical), which is when she really starts looking for it.
+    // If she learns where it is, the first time should take longer than the rest.
     latencies: [],
     thirstFrom: null,
     wasDrinking: false,
 
-    // Viajes a por más comida: desde que sale sin carga y con la despensa sin
-    // llenar (según la recuerda) hasta que recoge algo. Con la despensa llena no
-    // va a por comida, explora: eso no cuenta como ida. Se parten en
-    // antes/después del muro (--block).
+    // Trips out for more food: from when she leaves unloaded with the pantry
+    // not full (as she remembers it) until she picks something up. With a full
+    // pantry she does not go for food, she explores: that does not count as a
+    // trip. They are split into before/after the wall (--block).
     phaseList: { before: newPhase(), after: newPhase() },
     journeyFrom: null,
     picked: 0,
@@ -190,18 +190,18 @@ function phaseSummary(f) {
     seconds: round(f.t),
     foodTrips: f.journeys.length,
     foodTrip: f.journeys.length ? round(mean(f.journeys)) : null,
-    onTrail: pct(f.tripWithTrail),         // % de la ida con feromona bajo las patas
-    followsTrail: pct(f.tripPheromone),     // % de la ida en acción 'pheromone'
-    ignoresTrail: pct(f.trailIgnored),  // % de la ida con rastro pero haciendo otra cosa
-    byMemory: pct(f.tripTreeMemory),     // % de la ida yendo al árbol que recuerda
+    onTrail: pct(f.tripWithTrail),         // % of the trip with pheromone underfoot
+    followsTrail: pct(f.tripPheromone),     // % of the trip in the 'pheromone' action
+    ignoresTrail: pct(f.trailIgnored),  // % of the trip on a trail but doing something else
+    byMemory: pct(f.tripTreeMemory),     // % of the trip heading to the tree she remembers
     stuck: round(f.stuckTime),
     waterTrip: f.water.length ? round(mean(f.water)) : null,
     tripActions: Object.fromEntries(Object.entries(f.tripActionTimes).map(([k, v]) => [k, pct(v)])),
   };
 }
 
-// Resumen del estado final: si dos corridas con la misma semilla dan distinta
-// huella, hay azar que se escapa de las semillas (Date.now, estado global...).
+// Digest of the final state: if two runs with the same seed give a different
+// fingerprint, some randomness escapes the seeds (Date.now, global state...).
 function fingerprintOf(fagi, world) {
   const s = JSON.stringify([fagi.x, fagi.y, fagi.age, fagi.hunger, fagi.thirst, fagi.energy, world.points.length, world.objects.length, world.nextId]);
   let h = 2166136261;

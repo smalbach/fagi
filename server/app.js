@@ -1,5 +1,5 @@
-// La aplicación Fastify, sin escuchar en ningún puerto: index.js la arranca y
-// los tests la usan con app.inject(), contra una base de datos de pruebas.
+// The Fastify application, not listening on any port: index.js starts it and
+// the tests use it through app.inject(), against a test database.
 
 import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
@@ -19,9 +19,9 @@ export async function buildApp({ pool, adminEmail = process.env.ADMIN_EMAIL, sec
   await app.register(cookie);
   await app.register(rateLimit, { global: false });
 
-  // Anti-CSRF: toda petición que cambia algo tiene que llevar una cabecera
-  // propia. Un formulario o un <img> de otra web no puede ponerla, y un fetch
-  // de otro origen con ella necesita un preflight CORS que aquí nadie aprueba.
+  // Anti-CSRF: every request that changes something must carry a custom
+  // header. A form or an <img> on another site cannot set it, and a cross-origin
+  // fetch with it needs a CORS preflight that nobody approves here.
   app.addHook('onRequest', async (req, reply) => {
     if (!req.url.startsWith('/api/')) return;
     if (req.method !== 'GET' && req.method !== 'HEAD' && req.headers['x-fagi'] !== '1') {
@@ -29,7 +29,7 @@ export async function buildApp({ pool, adminEmail = process.env.ADMIN_EMAIL, sec
     }
   });
 
-  // Quién es: se resuelve una vez por petición a partir de la cookie.
+  // Who the user is: resolved once per request from the cookie.
   app.decorateRequest('user', null);
   app.addHook('preHandler', async (req) => {
     const token = req.cookies?.[COOKIE];
@@ -42,7 +42,7 @@ export async function buildApp({ pool, adminEmail = process.env.ADMIN_EMAIL, sec
     req.user = rows[0] ?? null;
   });
 
-  // Qué versión corre el servidor, para comprobar qué hay en producción.
+  // Which version the server runs, to check what is in production.
   const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
   const commit = process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) ?? null;
   const startedAt = new Date().toISOString();
@@ -54,7 +54,7 @@ export async function buildApp({ pool, adminEmail = process.env.ADMIN_EMAIL, sec
 
   app.setNotFoundHandler((req, reply) => {
     if (req.url.startsWith('/api/') || !staticDir) return reply.code(404).send({ error: 'not_found' });
-    // Todo lo que no es API ni archivo es la app: la pantalla la decide el front.
+    // Anything that is neither API nor a file is the app: the front end picks the screen.
     return reply.sendFile('index.html');
   });
 

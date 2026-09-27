@@ -16,7 +16,7 @@ import { addObject, addPoint, createWorld } from '../src/world.js';
 function worldWithFood() {
   const world = createWorld();
   const fagi = createFagi();
-  fagi.angle = 0;   // mirando a la comida: createFagi() la hace nacer con ángulo al azar
+  fagi.angle = 0;   // facing the food: createFagi() gives her a random angle at birth
   addPoint(world, fagi.x + 40, fagi.y, 'nectar');
   addObject(world, fagi.x + 200, fagi.y, 'water');
   fagi.hunger = 40;
@@ -34,7 +34,7 @@ test('observe() only ever sends JSON — no live references leak through', () =>
 test('the local emulator answers a valid intention using only the JSON it was given', async () => {
   const { world, fagi, ctx } = worldWithFood();
   const { observation } = observe(fagi, world, ctx);
-  const roundTripped = JSON.parse(JSON.stringify(observation));   // exactamente lo que cruzaría la red
+  const roundTripped = JSON.parse(JSON.stringify(observation));   // exactly what would cross the network
 
   const backend = createLocalBackend();
   const intent = await backend.decide(roundTripped);
@@ -54,7 +54,7 @@ test('validateIntention rejects an action outside the enum or a target that was 
   const realOne = observation.candidates[0];
   const ok = validateIntention({ action: 'seekFood', targetId: realOne.id, ttl: 999 }, observation);
   assert.ok(ok);
-  assert.equal(ok.ttl, BACKEND.maxTtl);   // el ttl se recorta, nunca se acepta tal cual
+  assert.equal(ok.ttl, BACKEND.maxTtl);   // the ttl is clamped, never accepted as is
 });
 
 test('the http backend posts the observation and returns a validated-later intention', async () => {
@@ -71,10 +71,10 @@ test('the http backend posts the observation and returns a validated-later inten
 });
 
 test('the http backend gives up on a slow server and returns null instead of hanging', async () => {
-  // Un fetch de verdad rechaza cuando se aborta la señal; el falso tiene que
-  // hacer lo mismo o la prueba se queda colgada para siempre, igual que un
-  // backend real haría si el cliente no respetara el AbortSignal. El timeout
-  // se acorta para que la prueba no tarde los 2s de fábrica.
+  // A real fetch rejects when the signal is aborted; the fake one has to
+  // do the same or the test hangs forever, just as a real backend would
+  // if the client did not honor the AbortSignal. The timeout is shortened
+  // so the test does not take the default 2s.
   const before = BACKEND.timeout;
   BACKEND.timeout = 0.02;
   try {
@@ -108,7 +108,7 @@ test('the cortex asks fire-and-forget, applies a valid answer as a TTL-bound dir
 
     updateCortex(cortex, fagi, world, ctx, 0.05);
     assert.equal(cortex.calls, 1);
-    await null; await null;   // deja correr los microtasks de la promesa
+    await null; await null;   // lets the promise's microtasks run
 
     assert.ok(fagi.directive);
     assert.equal(fagi.directive.action, 'explore');
@@ -127,13 +127,13 @@ test('a stale answer that arrives after Fagi died or reset is discarded', async 
   BACKEND.enabled = 1;
   try {
     let resolveFn;
-    const backend = { name: 'lenta', decide: () => new Promise((res) => { resolveFn = res; }) };
+    const backend = { name: 'slow', decide: () => new Promise((res) => { resolveFn = res; }) };
     const cortex = createCortex(backend);
     fagi.cortex = cortex;
 
     updateCortex(cortex, fagi, world, ctx, 0.05);
     assert.equal(cortex.calls, 1);
-    fagi.alive = false;              // muere mientras la respuesta está en vuelo
+    fagi.alive = false;              // dies while the answer is in flight
     resolveFn({ action: 'explore' });
     await null; await null;
 
@@ -147,11 +147,11 @@ test('minInterval throttles how often the cortex is allowed to ask', () => {
   const { world, fagi, ctx } = worldWithFood();
   BACKEND.enabled = 1;
   try {
-    const backend = { name: 'contador', decide: async () => null };
+    const backend = { name: 'counter', decide: async () => null };
     const cortex = createCortex(backend);
     updateCortex(cortex, fagi, world, ctx, 0.05);
     const callsAfterFirst = cortex.calls;
-    updateCortex(cortex, fagi, world, ctx, 0.05);   // mismo instante, casi: no ha pasado minInterval
+    updateCortex(cortex, fagi, world, ctx, 0.05);   // almost the same instant: minInterval has not elapsed
     assert.equal(cortex.calls, callsAfterFirst);
   } finally {
     BACKEND.enabled = 0;

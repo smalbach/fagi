@@ -12,7 +12,7 @@ import { addObject, addPoint, createWorld } from '../src/world.js';
 import { waypointInView } from '../src/explore.js';
 import { EXPLORE, WORLD } from '../src/config.js';
 
-// Un mundo vacío con Fagi en medio, mirando a la derecha, sin necesidades.
+// An empty world with Fagi in the middle, facing right, with no needs.
 function tranquila() {
   const world = createWorld();
   const fagi = createFagi();
@@ -24,7 +24,7 @@ function runOnce(world, fagi, seconds, dt = 0.05) {
   for (let t = 0; t < seconds; t += dt) step(world, fagi, dt);
 }
 
-// Pone algo a un lado de su rumbo, dentro del cono de visión.
+// Places something to one side of her heading, inside the field of view.
 function alongside(fagi, degrees, dist) {
   const a = fagi.angle + (degrees * Math.PI) / 180;
   return { x: fagi.x + Math.cos(a) * dist, y: fagi.y + Math.sin(a) * dist };
@@ -41,7 +41,7 @@ test('exploring goes leg by leg to a point it can see', () => {
   const rel = Math.abs(normalizeAngle(Math.atan2(w.y - fagi.y, w.x - fagi.x) - fagi.angle));
   assert.ok(rel <= fovOf(fagi) / 2 + 0.2, 'the leg lies inside its field of view');
 
-  // Al llegar al final del tramo, traza otro con lo que ve entonces.
+  // On reaching the end of the leg, she plots another from what she sees then.
   const firstOne = fagi.exploreLegs;
   runOnce(world, fagi, 8);
   assert.ok(fagi.exploreLegs > firstOne + 1, 'keeps deciding new legs as it walks');
@@ -49,7 +49,7 @@ test('exploring goes leg by leg to a point it can see', () => {
 
 test('something new at its side mid-leg makes it reconsider and go for it', () => {
   const { world, fagi } = tranquila();
-  fagi.hunger = 40;                  // con ganas, sin llegar a apurarse
+  fagi.hunger = 40;                  // peckish, without getting pressed
   runOnce(world, fagi, 0.5);
   assert.equal(fagi.thought.action, 'explore');
 
@@ -70,7 +70,7 @@ test('something new at its side mid-leg makes it reconsider and go for it', () =
 test('something new that is no use now is weighed and the leg goes on', () => {
   const { world, fagi } = tranquila();
   addObject(world, fagi.x - 300, fagi.y, 'nest');
-  fagi.pantry = { nectar: NEST.full };   // cree tener la despensa llena
+  fagi.pantry = { nectar: NEST.full };   // believes the pantry is full
   runOnce(world, fagi, 0.5);
   assert.equal(fagi.thought.action, 'explore');
 
@@ -84,7 +84,7 @@ test('something new that is no use now is weighed and the leg goes on', () => {
   assert.equal(fagi.rethink.changed, false);
   assert.equal(fagi.rethink.why, 'notUseful');
 
-  // Visto ya, no vuelve a contar como nuevo en el frame siguiente.
+  // Once seen, it does not count as new again on the next frame.
   const n = fagi.rethink.n;
   step(world, fagi, 0.05);
   assert.equal(fagi.rethink.n, n);
@@ -98,8 +98,8 @@ test('carrying home, water in sight with some thirst is worth a detour', () => {
   step(world, fagi, 0.05);
   assert.equal(fagi.thought.action, 'carry');
 
-  addObject(world, fagi.x + 30, fagi.y + 140, 'water');   // al costado
-  fagi.angle = Math.PI / 2;                              // gira y lo ve
+  addObject(world, fagi.x + 30, fagi.y + 140, 'water');   // off to the side
+  fagi.angle = Math.PI / 2;                              // turns and sees it
   step(world, fagi, 0.05);
   assert.equal(fagi.thought.action, 'seekWater');
   assert.equal(fagi.thought.reason.key, 'reason.detourWater');
@@ -124,7 +124,7 @@ test('with a directive in force, something new makes it ask the API again', () =
 
     const p = alongside(fagi, 20, 100);
     addPoint(world, p.x, p.y, 'nectar');
-    cortex.seenKeys.add('nectar');     // no es un tipo nuevo: es una fruta nueva
+    cortex.seenKeys.add('nectar');     // not a new type: a new fruit
     fagi.age = 13;
     const ctx2 = perceive(fagi, world);
     ctx2.newOnes = notice(fagi, ctx2);
@@ -136,7 +136,7 @@ test('with a directive in force, something new makes it ask the API again', () =
   }
 });
 
-// Marca todo el mapa mental como conocido salvo alrededor de (x, y).
+// Marks the whole mental map as known except around (x, y).
 function onlyUnknown(fagi, x, y) {
   fagi.explored.fill(EXPLORE.visitMax);
   const cols = Math.ceil(WORLD.width / EXPLORE.cell);
@@ -146,16 +146,16 @@ function onlyUnknown(fagi, x, y) {
 test('back to exploring, the unfinished leg competes with new ones on the same terms', () => {
   const { world, fagi } = tranquila();
 
-  // El tramo viejo acaba fuera de su vista, en lo único que no conoce: lo
-  // retoma aunque tenga que girar, porque lo que ve ya lo conoce.
+  // The old leg ends out of her sight, in the only place she does not know: she
+  // resumes it even if she has to turn, because what she sees she already knows.
   const old = alongside(fagi, 90, 200);
   onlyUnknown(fagi, old.x, old.y);
   const a = waypointInView(fagi, fagi.explored, null, world, { ...old, inView: true });
   assert.equal(a.resumed, true);
   assert.ok(a.score > a.rival);
 
-  // El tramo viejo queda a la espalda, en terreno ya conocido, y lo que tiene
-  // delante no lo conoce: traza uno nuevo.
+  // The old leg is behind her, on ground she already knows, and what lies
+  // ahead she does not know: she plots a new one.
   const behind = alongside(fagi, 180, 150);
   fagi.explored.fill(EXPLORE.visitMax);
   const cols = Math.ceil(WORLD.width / EXPLORE.cell);
@@ -176,7 +176,7 @@ test('after a detour it decides whether to resume the leg, and says so', () => {
   const p = alongside(fagi, -30, 60);
   addPoint(world, p.x, p.y, 'nectar');
   let steps = 0;
-  while (world.points.length && steps++ < 200) step(world, fagi, 0.05);   // va, y se la come o la carga
+  while (world.points.length && steps++ < 200) step(world, fagi, 0.05);   // goes, and eats it or carries it
   fagi.carrying = null;
   fagi.hunger = 0;
   runOnce(world, fagi, 0.2);

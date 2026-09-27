@@ -5,8 +5,8 @@ import { createFagi } from '../src/fagi.js';
 import { eat } from '../src/feeding.js';
 import * as store from '../src/learned/store.js';
 
-// Un localStorage de mentira, en memoria: no depende de que el entorno
-// tenga uno de verdad, y cada prueba parte de uno vacío.
+// A fake in-memory localStorage: it does not depend on the environment
+// having a real one, and each test starts from an empty one.
 function fakeStorage() {
   const m = new Map();
   return {
@@ -28,7 +28,7 @@ test('save/load/restore round-trips facts and rules through a storage of choice'
   assert.equal(store.hasSnapshot(storage), true);
 
   const other = createFagi();
-  assert.deepEqual(Object.keys(other.brain.facts), []);   // nace sin saber nada
+  assert.deepEqual(Object.keys(other.brain.facts), []);   // born knowing nothing
   store.restore(other, store.load(storage));
   assert.deepEqual(Object.keys(other.brain.facts).sort(), Object.keys(fagi.brain.facts).sort());
   assert.equal(other.brain.rules.list.length, fagi.brain.rules.list.length);
@@ -55,7 +55,7 @@ test('importing an invalid file throws and never touches the current memory', ()
   eat(fagi, 'nectar');
   const before = JSON.stringify(fagi.brain.facts);
 
-  assert.throws(() => store.importText(fagi, 'esto no es un módulo de fagi'));
+  assert.throws(() => store.importText(fagi, 'this is not a fagi module'));
   assert.equal(JSON.stringify(fagi.brain.facts), before);
 });
 
@@ -71,7 +71,7 @@ test('wipe clears memory, rules and the recoverable copy, but nothing else', () 
   assert.deepEqual(fagi.brain.facts, {});
   assert.deepEqual(fagi.brain.rules.list, []);
   assert.equal(store.hasSnapshot(storage), false);
-  assert.equal(fagi.x, x);   // no toca nada que no sea lo aprendido
+  assert.equal(fagi.x, x);   // touches nothing but what was learned
 });
 
 test('autoSave only writes every LEARN.autosaveEvery simulated seconds', () => {
@@ -87,7 +87,7 @@ test('the exported file carries what the body felt (feel synapses), and importin
   const fagi = createFagi();
   eat(fagi, 'toxic');
   const syn = Object.values(fagi.brain.synapses).filter((s) => s.kind === 'feel');
-  assert.ok(syn.length > 0, 'comer algo malo conecta concepto→sensación');
+  assert.ok(syn.length > 0, 'eating something bad connects concept→sensation');
 
   const text = store.exportText(fagi);
   const another = createFagi();
@@ -99,15 +99,15 @@ test('the exported file carries what the body felt (feel synapses), and importin
     assert.ok(x, `${s.a}>${s.b}`);
     assert.ok(Math.abs(x.w - s.w) < 1e-3);
   }
-  // Y el autoguardado lleva exactamente lo mismo que el archivo.
+  // And the autosave carries exactly the same as the file.
   assert.deepEqual(Object.keys(store.snapshot(fagi).synapses).sort(), syn.map((s) => `${s.a}>${s.b}`).sort());
 });
 
 test('a malformed synapse in an imported file is dropped, not trusted', () => {
   const fagi = createFagi();
   const text = store.exportText(fagi).replace(
-    /export const memoria = \{/,
-    'export const memoria = {"synapses":{"x":{"a":"sense:vista","b":"feel:hunger","w":9}},',
+    /export const memory = \{/,
+    'export const memory = {"synapses":{"x":{"a":"sense:sight","b":"feel:hunger","w":9}},',
   );
   const another = createFagi();
   store.importText(another, text);

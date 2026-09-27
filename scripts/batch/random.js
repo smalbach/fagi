@@ -1,7 +1,7 @@
-// Azar con semilla: cada corriente (mapa, mundo, Fagi) tiene la suya.
+// Seeded randomness: each stream (map, world, Fagi) has its own.
 
 export function rng(seed) {
-  // mulberry32: rápido y de sobra para esto
+  // mulberry32: fast and more than enough for this
   let s = seed >>> 0;
   return () => {
     s = (s + 0x6D2B79F5) >>> 0;
@@ -12,7 +12,7 @@ export function rng(seed) {
   };
 }
 
-// La simulación usa Math.random: mientras corre `fn`, sale de `random`.
+// The simulation uses Math.random: while `fn` runs, it comes from `random`.
 const original = Math.random;
 export function con(random, fn) {
   Math.random = random;

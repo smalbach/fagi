@@ -1,4 +1,4 @@
-// Panel de admin: ver la lista de espera y aprobar, rechazar o desactivar.
+// Admin panel: view the waitlist and approve, reject or disable.
 
 import { requireAdmin } from '../guards.js';
 import { publicUser } from '../auth.js';
@@ -33,7 +33,7 @@ export default async function adminRoutes(app) {
       [req.params.id, fresh, req.user.id],
     ).catch(() => ({ rows: [] }));
     if (!rows[0]) return reply.code(404).send({ error: 'not_found' });
-    // Quien deja de estar aprobado pierde las sesiones abiertas.
+    // Whoever stops being approved loses their open sessions.
     if (fresh !== 'approved') await app.db.query('DELETE FROM auth_sessions WHERE user_id = $1', [rows[0].id]);
     return { user: publicUser(rows[0]) };
   });

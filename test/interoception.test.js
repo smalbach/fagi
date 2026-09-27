@@ -6,7 +6,7 @@ import { createFagi } from '../src/fagi.js';
 import { eat } from '../src/feeding.js';
 import { snapshotBody, feel } from '../src/interoception.js';
 
-// Nada en la ficha del alimento dice si es bueno o malo: solo física.
+// Nothing on the food's sheet says whether it is good or bad: physics only.
 test('the food sheet carries physics only, no verdict', () => {
   for (const spec of Object.values(POINT_TYPES)) {
     assert.equal('reward' in spec, false);

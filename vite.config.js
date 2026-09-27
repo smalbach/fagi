@@ -2,9 +2,9 @@ import { defineConfig } from 'vite'
 import { readFileSync } from 'node:fs'
 import { execSync } from 'node:child_process'
 
-// La versión del build: la de package.json (el hook de .githooks la sube en
-// cada commit) y el commit del que sale. En Railway no hay .git, pero él mismo
-// da el commit en RAILWAY_GIT_COMMIT_SHA.
+// The build's version: the one in package.json (the .githooks hook bumps it on
+// every commit) and the commit it comes from. On Railway there is no .git, but
+// Railway itself gives the commit in RAILWAY_GIT_COMMIT_SHA.
 const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
 function commit() {
   const railway = process.env.RAILWAY_GIT_COMMIT_SHA
@@ -22,15 +22,15 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     strictPort: true,
-    // En desarrollo la API la sirve `npm run start:dev`; Vite le pasa /api para
-    // que todo salga del mismo origen, como en producción, y la cookie valga.
+    // In development the API is served by `npm run start:dev`; Vite forwards /api to it
+    // so everything comes from the same origin, as in production, and the cookie works.
     proxy: { '/api': 'http://localhost:8787' },
   },
   preview: {
     host: '0.0.0.0',
     port: Number(process.env.PORT) || 4173,
-    // Railway pone el juego detrás de un dominio *.up.railway.app (o uno propio):
-    // sin esto Vite rechaza el Host header por no ser localhost.
+    // Railway puts the game behind a *.up.railway.app domain (or a custom one):
+    // without this Vite rejects the Host header for not being localhost.
     allowedHosts: true,
   },
 })

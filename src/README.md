@@ -1,179 +1,178 @@
-# Cómo está organizado
+# How it is organized
 
-Un archivo por responsabilidad. Nadie sabe más de lo que necesita: `movement.js`
-mueve pero no decide, `decision.js` decide pero no dibuja, `render.js` dibuja
-pero no toca el estado.
+One file per responsibility. Nobody knows more than they need: `movement.js`
+moves but does not decide, `decision.js` decides but does not draw, `render.js`
+draws but does not touch the state.
 
-## El bucle
+## The loop
 
-`main.js` solo tiene el bucle: `step()` → `render()` → HUD → consola.
-`simulation.js` es el turno del mundo, en orden: viento → árboles → fruta →
-estelas → feromona → Fagi.
+`main.js` only holds the loop: `step()` → `render()` → HUD → console.
+`simulation.js` is the world's turn, in order: wind → trees → fruit →
+scent plumes → pheromone → Fagi.
 
 ## Fagi
 
-| archivo | de qué se ocupa |
+| file | what it handles |
 |---|---|
-| `fagi.js` | la define y ordena su turno. Nada más |
-| `needs.js` | hambre, sed, energía: subir, bajar, morir |
-| `perception.js` | qué ve y qué huele, todo junto en una lista puntuada |
-| `attention.js` | qué acaba de entrar en lo que percibe; anota si eso le hizo seguir o cambiar de plan |
-| `decision.js` | reglas en orden de prioridad; la primera que contesta manda |
-| `movement.js` | girar, avanzar, esquivar, explorar, rastrear un olor |
-| `explore.js` | el mapa basto de por dónde ha pasado; explorar va por tramos hasta un punto que ve |
-| `feeding.js` | comer o cargar |
-| `nest.js` | depositar, tirar de despensa, descansar |
-| `synapses.js` | la huella del aprendizaje como red: sentido→concepto (Hebb, se poda sin uso) y concepto→sensación (por consecuencias). No decide nada |
-| `brain.js` | puntuación de lo que percibe, y la puerta única de todo aprendizaje |
-| `interoception.js` | el cuerpo se siente: comparar cómo estaba antes con cómo está después |
-| `episodes.js` | una experiencia desde que empieza hasta que se sabe cómo acabó |
-| `learned/` | el código que Fagi escribe sola a partir de lo que aprende (ver abajo) |
-| `observation.js` + `backend/` + `cortex.js` | la API de decisión externa (ver abajo) |
+| `fagi.js` | defines her and orders her turn. Nothing else |
+| `needs.js` | hunger, thirst, energy: going up, going down, dying |
+| `perception.js` | what she sees and smells, all together in one scored list |
+| `attention.js` | what has just entered what she perceives; notes whether it made her keep or change her plan |
+| `decision.js` | rules in priority order; the first one that answers wins |
+| `movement.js` | turning, moving forward, avoiding, exploring, tracking a smell |
+| `explore.js` | the coarse map of where she has been; exploring goes in legs towards a point she can see |
+| `feeding.js` | eating or carrying |
+| `nest.js` | storing, drawing on the pantry, resting |
+| `synapses.js` | the trace of learning as a network: sense→concept (Hebb, pruned when unused) and concept→sensation (from consequences). It decides nothing |
+| `brain.js` | scoring what she perceives, and the single gate for all learning |
+| `interoception.js` | the body feels itself: comparing how it was before with how it is after |
+| `episodes.js` | an experience from when it starts until it is known how it ended |
+| `learned/` | the code Fagi writes on her own from what she learns (see below) |
+| `observation.js` + `backend/` + `cortex.js` | the external decision API (see below) |
 
-Las reglas de `decision.js` son una jerarquía escrita en orden, y sale toda de
-la única directiva, sobrevivir:
+The rules in `decision.js` are a hierarchy written in order, and all of it
+comes from the one directive, survive:
 
-1. **sobrevivir ahora** — beber, calmar hambre o sed, tirar de despensa;
-2. **aguantar** — descansar, porque sin fuerzas no se sobrevive luego;
-3. **proveer** — llevar al nido lo que ahora no necesita, y perseguir lo que ve;
-4. **explorar** — sin necesidad, sin pistas y con la despensa hecha, conocer el
-   mapa es lo único que prepara las tres anteriores.
+1. **survive now** — drink, ease hunger or thirst, draw on the pantry;
+2. **endure** — rest, because without strength there is no surviving later;
+3. **provide** — take to the nest what she does not need now, and chase what she sees;
+4. **explore** — with no need, no clues and the pantry stocked, getting to know
+   the map is the only thing that prepares for the three above.
 
-Para añadir una conducta nueva basta con una entrada más en la lista `REGLAS` (escalón, nombre, función),
-en el escalón que le toque. Devuelve una intención o `null`. `decision.js` solo
-guarda ese orden; las funciones viven en `decision/`, un archivo por escalón
-(`sobrevivir`, `aguantar`, `proveer`, `pistas`, `explorar`), más `directiva.js`
-(la API de decisión) y `comun.js` (`razon`, `apremia`, la despensa).
+Adding a new behaviour only takes one more entry in the `RULES` list (tier, name, function),
+in the tier where it belongs. It returns an intention or `null`. `decision.js` only
+keeps that order; the functions live in `decision/`, one file per tier
+(`survive`, `endure`, `provide`, `clues`, `explore`), plus `directive.js`
+(the decision API) and `common.js` (`reasonOf`, `pressing`, the pantry).
 
-Ya no hay ningún escalón que decida "esto es bueno" o "esto es malo": eso lo
-decide `learned/rules.js` (`verdict()`), consultado desde `feeding.js`,
-`nest.js` y aquí mismo. **Añadir un peligro o una ayuda nueva es solo física**:
-un `POINT_TYPES` con su `hunger` y sus `effects`, nada más. Fagi no sabe si es
-buena o mala hasta que la prueba; lo aprende y lo escribe sola.
+There is no longer any tier that decides "this is good" or "this is bad": that is
+decided by `learned/rules.js` (`verdict()`), consulted from `feeding.js`,
+`nest.js` and right here. **Adding a new hazard or a new help is physics only**:
+a `POINT_TYPES` entry with its `hunger` and its `effects`, nothing more. Fagi does
+not know whether it is good or bad until she tries it; she learns it and writes it down on her own.
 
-### Cómo aprende (lo que antes era "brain.js es lo único que aprende")
+### How she learns (what used to be "brain.js is the only thing that learns")
 
-1. **Comer o beber abre un episodio** (`episodes.js`) con una foto de cómo
-   estaba el cuerpo antes.
-2. **El cuerpo se siente** (`interoception.js`): comparar esa foto con la de
-   después da una recompensa de -1 a +1, de deltas reales — hambre, sed,
-   multiplicadores de stats — nunca de un número escrito a mano en la config.
-   Si el bocado sale mal más tarde (la necesidad que venía a calmar acaba
-   crítica) o Fagi muere con él encima, el episodio se corrige aparte, en
-   diferido.
-3. **`memory.js` aprende** con esa recompensa: valor + confianza, igual que
-   siempre.
-4. **`learned/synth.js` sintetiza**: si el peso de la creencia cruza un
-   umbral, escribe (o revisa, o retira) una regla en `learned/rules.js`, con
-   histéresis para no parpadear. La memoria sigue siendo la única fuente de
-   verdad del valor; la regla es la capa simbólica — existencia, alcance,
-   explicación.
-5. **`learned/dsl.js`** es la gramática de esa regla: un objeto de datos que
-   se imprime como una línea de JavaScript real (`rule('evitar-toxico',
-   {...})`) y se vuelve a leer con una expresión regular + `JSON.parse`, sin
-   `eval` en ningún sitio.
-6. **`learned/store.js`** guarda una copia recuperable en el navegador y deja
-   exportar/importar el módulo como archivo. Fagi **nace sin saber nada**
-   (`memory.js` no pre-siembra ni carga sola al crearse): recuperar lo
-   aprendido de otra sesión es un gesto explícito, nunca automático.
+1. **Eating or drinking opens an episode** (`episodes.js`) with a snapshot of how
+   the body was before.
+2. **The body feels itself** (`interoception.js`): comparing that snapshot with the
+   one after gives a reward from -1 to +1, from real deltas — hunger, thirst,
+   stat multipliers — never from a number hand-written in the config.
+   If the bite turns out badly later (the need it came to ease ends up
+   critical) or Fagi dies with it on board, the episode is corrected separately,
+   after the fact.
+3. **`memory.js` learns** from that reward: value + confidence, same as
+   always.
+4. **`learned/synth.js` synthesizes**: if the belief's weight crosses a
+   threshold, it writes (or revises, or retires) a rule in `learned/rules.js`, with
+   hysteresis so it does not flicker. Memory is still the only source of
+   truth for the value; the rule is the symbolic layer — existence, scope,
+   explanation.
+5. **`learned/dsl.js`** is the grammar of that rule: a data object that
+   prints as a line of real JavaScript (`rule('avoid-toxic',
+   {...})`) and is read back with a regular expression + `JSON.parse`, with no
+   `eval` anywhere.
+6. **`learned/store.js`** keeps a recoverable copy in the browser and lets you
+   export/import the module as a file. Fagi **is born knowing nothing**
+   (`memory.js` does not pre-seed or load anything on its own when created): recovering
+   what was learned in another session is an explicit gesture, never automatic.
 
-### La API de decisión
+### The decision API
 
-`observation.js` construye el JSON que ve una API externa (candidatos,
-creencias, reglas ya escritas, lo último que sintió). `backend/` define el
-contrato (`local.js` un emulador sin red, `http.js` uno de verdad con
-timeout). `cortex.js` pregunta sin bloquear el bucle — nunca se espera una
-respuesta dentro de un fotograma — y aplica lo que llegue como una directiva
-con caducidad, que `decision.js` consulta como una regla más. La API
-**solo decide**; nunca escribe reglas. Contrato completo en
+`observation.js` builds the JSON an external API sees (candidates,
+beliefs, rules already written, the last thing she felt). `backend/` defines the
+contract (`local.js` an emulator with no network, `http.js` a real one with a
+timeout). `cortex.js` asks without blocking the loop — an answer is never
+awaited inside a frame — and applies whatever arrives as a directive
+with an expiry, which `decision.js` consults as one more rule. The API
+**only decides**; it never writes rules. Full contract in
 `docs/decision-api.md`.
 
-## El mundo
+## The world
 
-`world.js` (estado), `mapgen.js` (mapa aleatorio autosuficiente), `obstacles.js` (geometría de
-agua, rocas y nido), `trees.js` (fruta), `food.js` (la fruta se pudre),
-`wind.js` + `smell.js` (viento y estelas de olor), `pheromone.js` (el rastro que
-deja Fagi), `vision.js` (cono de visión), `effects.js` (buffs temporales).
+`world.js` (state), `mapgen.js` (self-sufficient random map), `obstacles.js` (geometry of
+water, rocks and nest), `trees.js` (fruit), `food.js` (fruit rots),
+`wind.js` + `smell.js` (wind and scent plumes), `pheromone.js` (the trail
+Fagi leaves), `vision.js` (field of view), `effects.js` (temporary buffs).
 
-## Pantalla
+## Screen
 
-`render.js` (escena), `terrain.js` (el suelo), `fagi-sprite.js` (la hormiga),
-`rock-sprite.js` (rocas), `nest-sprite.js` (el nido), `tree-sprite.js` (tronco y
-copa), `fruit-sprite.js` (los frutos), `sprite-kit.js` (lienzos, ruido y caché
-que comparten), `colors.js` (mezclas),
-`ui.js` (HUD), `consola.js` + `narrator.js` (consola de decisiones),
-`settings.js` (panel de ajustes), `input.js` (ratón), `compass.js` (rumbos).
+`render.js` (scene), `terrain.js` (the ground), `fagi-sprite.js` (the ant),
+`rock-sprite.js` (rocks), `nest-sprite.js` (the nest), `tree-sprite.js` (trunk and
+crown), `fruit-sprite.js` (the fruit), `sprite-kit.js` (canvases, noise and cache
+they share), `colors.js` (blends),
+`ui.js` (HUD), `console.js` + `narrator.js` (decision console),
+`settings.js` (settings panel), `input.js` (mouse), `compass.js` (headings).
 
-Los dibujos grandes son carpetas: el archivo del mismo nombre es solo la
-entrada (exporta lo de siempre y guarda las cachés) y las piezas van dentro.
+The big drawings are folders: the file with the same name is only the
+entry point (it exports the usual things and keeps the caches) and the pieces go inside.
 
-| entrada | piezas |
+| entry point | pieces |
 |---|---|
-| `fagi-sprite.js` | `fagi-sprite/`: paleta, luz, siluetas, patas, cuerpo, cabeza, hoja, antenas, carga y `trazo.js` (elipse, punto, línea, arco) |
-| `fruit-sprite.js` | `fruit-sprite/`: un pintor por fruto (`baya`, `chispa`, `ojo`, `resina`, `podrido`) y lo que comparten en `comunes.js` |
-| `tree-sprite.js` | `tree-sprite/`: `tronco`, `ramaje`, `pie`, `copa`, `copa-realista`, `viento`, `frutos`; tronco y ramas altas comparten `lienzoDeTronco` |
-| `rock-sprite.js` | `rock-sprite/`: `realista`, `materiales`, `forma`, `superficie`, `pintar` |
-| `terrain.js` | `terrain/`: suelo cocido (`suelo`, `relieve`), `detalles` sueltos, capas de `cerca` y `orilla` |
-| `water-sprite.js` | `water-sprite/`: `lago` (foto o dibujo), `realista`, lienzo quieto (`quieto` + `lecho`), lo vivo (`superficie`, `juncos`) y `forma` |
-| `rain-sprite.js` | `rain-sprite/`: `estado` (el nivel del cielo, único), `suelo`, `charcos`, `gotas`, `util` |
-| `brainmap.js` | `brainmap/`: una sección por archivo (`siente`, `percibe`, `instinto`, `decide`, `aprende`, `red`, `mapa-mental`) sobre los pinceles de `pinceles.js` |
+| `fagi-sprite.js` | `fagi-sprite/`: palette, light, silhouettes, legs, body, head, leaf, antennae, cargo and `stroke.js` (ellipse, dot, line, arc) |
+| `fruit-sprite.js` | `fruit-sprite/`: one painter per fruit (`berry`, `spark`, `eye`, `resin`, `rotten`) and what they share in `common.js` |
+| `tree-sprite.js` | `tree-sprite/`: `trunk`, `branches`, `base`, `crown`, `realistic-crown`, `wind`, `fruits`; trunk and high branches share `trunkCanvas` (in `common.js`) |
+| `rock-sprite.js` | `rock-sprite/`: `realistic`, `materials`, `shape`, `surface`, `paint` |
+| `terrain.js` | `terrain/`: baked ground (`ground`, `relief`), loose `details`, `near` and `shore` layers |
+| `water-sprite.js` | `water-sprite/`: `lake` (photo or drawing), `realistic`, still canvas (`still` + `bed`), the living part (`surface`, `reeds`) and `shape` |
+| `rain-sprite.js` | `rain-sprite/`: `state` (the sky's level, one and only), `ground`, `puddles`, `drops`, `util` |
+| `brainmap.js` | `brainmap/`: one section per file (`feel`, `perceive`, `instinct`, `decide`, `learn`, `network`, `mental-map`) on top of the brushes in `brushes.js` |
 
-Al tocar un sprite, **el orden de las llamadas al azar con semilla no se
-cambia**: de él sale cada píxel.
+When touching a sprite, **the order of the seeded random calls does not
+change**: every pixel comes from it.
 
-El CSS está en `styles/`, un archivo por zona; `index.html` solo carga
-`styles/index.css`, y el orden de sus `@import` es el de la cascada
-(`mobile.css`, la última). Los textos de cada idioma, en `i18n/<idioma>.js`;
-`i18n.js` tiene la API (`t`, `setLang`, `bindDom`…).
+The CSS is in `styles/`, one file per area; `index.html` only loads
+`styles/index.css`, and the order of its `@import`s is the cascade order
+(`mobile.css` last). Each language's texts are in `i18n/<language>.js`;
+`i18n.js` holds the API (`t`, `setLang`, `bindDom`…).
 
-Los sprites pintados comparten dos reglas: la luz cae siempre desde arriba a la
-izquierda, y cada dibujo se pinta una vez en su lienzo y luego solo se estampa.
-Fagi es la excepción a la segunda: gira y anda, así que va a trazo. Como el
-cuerpo gira y la luz no, dentro de su dibujo la luz se gira al revés (`luzLocal`)
-para que el lomo siga brillando por el mismo lado del mapa.
+The painted sprites share two rules: light always falls from the top
+left, and each drawing is painted once on its canvas and then only stamped.
+Fagi is the exception to the second: she turns and walks, so she is drawn stroke by stroke. Since the
+body turns and the light does not, inside her drawing the light is turned the opposite way (`localLight`)
+so her back keeps shining on the same side of the map.
 
-Y las tres cosas que hacen que algo se apoye en el suelo en vez de estar pegado
-encima, todas repetidas en cada elemento: la sombra larga que tira la luz, la
-oclusión de contacto —corta y oscura, justo debajo— y el rebote del suelo, que
-es la luz parda que la tierra devuelve al lado en sombra.
+And the three things that make something rest on the ground instead of being stuck
+on top of it, all repeated on every element: the long shadow the light casts, the
+contact occlusion —short and dark, right underneath— and the ground bounce, which
+is the brownish light the earth throws back onto the shaded side.
 
-El suelo se cuece una vez al tamaño del mundo, así que al acercarse se estira y
-pierde el tacto. `drawDetalleCerca` lo devuelve: siembra chinas, briznas y hoja
-en coordenadas de MUNDO por celdas con semilla propia, solo en lo que se ve y
-solo a partir de cierto aumento. Como la semilla es de la celda y no de la
-pasada, al mover la cámara el suelo no hierve.
+The ground is baked once at the size of the world, so when zooming in it stretches and
+loses its texture. `drawNearDetail` brings it back: it scatters pebbles, blades and leaves
+in WORLD coordinates by cells with their own seed, only in what is visible and
+only past a certain zoom. Since the seed belongs to the cell and not to the
+pass, the ground does not boil when the camera moves.
 
-Y lo que se ve cuenta lo que la cosa hace. Cada fruto tiene la forma de su
-efecto —la chispa es cristal, el ojo mira, la resina gotea— y va enseñando lo
-pasado que está antes de pudrirse. El árbol enseña su fruto madurando en la copa
-en vez de llevar un contador encima, y se inclina a favor del viento, que es lo
-que arrastra los olores. `fagi-preview.html`, `flora-preview.html` y
-`water-preview.html` sirven para mirar esos dibujos en grande sin jugar una
-partida.
+And what you see tells what the thing does. Each fruit has the shape of its
+effect —the spark is glass, the eye looks, the resin drips— and shows how
+overripe it is before it rots. The tree shows its fruit ripening in the crown
+instead of carrying a counter above it, and it leans with the wind, which is what
+carries the smells. `fagi-preview.html`, `flora-preview.html` and
+`water-preview.html` are for looking at those drawings up close without playing a
+game.
 
-## Números
+## Numbers
 
-Todos en `config.js`. El panel de ajustes los edita en caliente porque el juego
-los lee en cada frame: no hay copias.
+All in `config.js`. The settings panel edits them live because the game
+reads them every frame: there are no copies.
 
-## Sesiones: grabar y reproducir
+## Sessions: recording and replaying
 
-`app/boot.js` es la entrada: pregunta quién eres y decide la pantalla
-(`app/screens.js`: entrar, lista de espera, inicio, admin). `main.js` ya no
-arranca solo: `createGame()` monta la vista una vez y la usa en tres modos,
-preparar (mapa sin Fagi, editable), jugar (grabando) y reproducir.
+`app/boot.js` is the entry point: it asks who you are and picks the screen
+(`app/screens.js`: sign in, waitlist, home, admin). `main.js` no longer
+starts on its own: `createGame()` mounts the view once and uses it in three modes,
+prepare (map without Fagi, editable), play (recording) and replay.
 
-| archivo | de qué se ocupa |
+| file | what it handles |
 |---|---|
-| `recorder/events.js` | el catálogo de eventos y su validación; lo usa también el servidor |
-| `recorder/recorder.js` | apunta los eventos en orden y los manda por lotes |
-| `recorder/sink.js` | los lleva al servidor; sin red, los guarda en IndexedDB y reintenta |
-| `recorder/replay.js` | reconstruye el mundo en cualquier instante aplicando eventos |
+| `recorder/events.js` | the event catalogue and its validation; the server uses it too |
+| `recorder/recorder.js` | writes down the events in order and sends them in batches |
+| `recorder/sink.js` | takes them to the server; with no network, it keeps them in IndexedDB and retries |
+| `recorder/replay.js` | rebuilds the world at any instant by applying events |
 
-Todo lo que cambia el mapa pasa por `world.js` (`addPoint`, `removePoint`,
-`addObject`, `removeObject`) o llama a `record(world, tipo, datos)`: **un
-cambio nuevo en el mundo que no pase por ahí no se verá al reproducir**. Lo de
-Fagi (comer, recoger, beber, reglas, morir) y el viento no se enganchan en su
-lógica: el grabador los saca comparando cada frame con el anterior, como el
-narrador. El tipo del objeto va en `what`, porque `type` es el del evento.
-
+Everything that changes the map goes through `world.js` (`addPoint`, `removePoint`,
+`addObject`, `removeObject`) or calls `record(world, type, data)`: **a
+new change in the world that does not go through there will not show up on replay**. Fagi's
+things (eating, picking up, drinking, rules, dying) and the wind are not hooked into their
+logic: the recorder extracts them by comparing each frame with the previous one, like the
+narrator. The object's type goes in `what`, because `type` is the event's.

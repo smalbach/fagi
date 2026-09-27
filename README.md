@@ -1,38 +1,38 @@
 # fagi
 
-Un solo servidor Node (`server/`) sirve el juego ya construido (`dist/`) y la
-API bajo `/api`: cuentas, lista de espera y sesiones grabadas en Postgres.
+A single Node server (`server/`) serves the already built game (`dist/`) and the
+API under `/api`: accounts, waitlist and recorded sessions in Postgres.
 
-## En local
+## Locally
 
 ```bash
-cp .env.example .env   # y pon tu DATABASE_URL y tu ADMIN_EMAIL
+cp .env.example .env   # and set your DATABASE_URL and your ADMIN_EMAIL
 npm install
-npm run start:dev      # API en :8787 (aplica las migraciones sola)
-npm run dev            # juego en :5173; Vite le pasa /api a la API
+npm run start:dev      # API on :8787 (applies the migrations on its own)
+npm run dev            # game on :5173; Vite forwards /api to the API
 ```
 
-La cuenta que se registre con `ADMIN_EMAIL` nace aprobada y como admin. Las
-demás quedan en lista de espera hasta que el admin las aprueba desde el botón
-**Admin** de la pantalla de sesiones. Para hacer admin a otra cuenta ya
-registrada: `npm run make-admin -- correo@ejemplo.com`.
+The account that signs up with `ADMIN_EMAIL` starts out approved and as admin. The
+rest stay on the waitlist until the admin approves them from the
+**Admin** button on the sessions screen. To make another already registered
+account an admin: `npm run make-admin -- email@example.com`.
 
-`npm test` corre todo. Los tests del servidor necesitan `DATABASE_URL_TEST`
-(una base aparte: se **borra entera** en cada test); sin ella se saltan.
+`npm test` runs everything. The server tests need `DATABASE_URL_TEST`
+(a separate database: it is **wiped entirely** on every test); without it they are skipped.
 
-## En Railway
+## On Railway
 
-1. Añade un servicio Postgres al proyecto y, en el servicio del juego, la
+1. Add a Postgres service to the project and, in the game's service, the
    variable `DATABASE_URL=${{Postgres.DATABASE_URL}}`.
-2. En el servicio del juego: `ADMIN_EMAIL` y `NODE_ENV=production` (cookies
-   solo por HTTPS).
-3. `railway.json` construye con `npm run build` y arranca con `npm start`.
+2. In the game's service: `ADMIN_EMAIL` and `NODE_ENV=production` (cookies
+   over HTTPS only).
+3. `railway.json` builds with `npm run build` and starts with `npm start`.
 
-## Sesiones
+## Sessions
 
-Cada partida se graba como una lista de eventos (`src/recorder/`), no como
-fotos del estado: qué se creó, dónde y cuándo (nido, agua, árboles, rocas,
-cada fruta y de qué árbol cayó), qué desapareció y por qué, cada ajuste
-tocado, el viento, la feromona y el recorrido de Fagi cada medio segundo.
-Reproducir es volver a aplicar esos eventos en orden. El catálogo está en
-`src/recorder/events.js`; las tablas en `server/migrations/`.
+Each game is recorded as a list of events (`src/recorder/`), not as
+snapshots of the state: what was created, where and when (nest, water, trees, rocks,
+each fruit and which tree it fell from), what disappeared and why, every setting
+touched, the wind, the pheromone and Fagi's path every half second.
+Replaying means re-applying those events in order. The catalogue is in
+`src/recorder/events.js`; the tables in `server/migrations/`.

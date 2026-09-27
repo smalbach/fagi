@@ -1,4 +1,4 @@
-// Guardas para las rutas. Devuelven la respuesta de error o nada si pasa.
+// Route guards. They return the error response, or nothing if the request passes.
 export async function requireUser(req, reply) {
   if (!req.user) return reply.code(401).send({ error: 'unauthenticated' });
 }

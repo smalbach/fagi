@@ -1,12 +1,12 @@
-// Monta el servidor contra una base de datos de pruebas limpia. Sin
-// DATABASE_URL_TEST los tests de servidor se saltan: no hay Postgres que
-// levantar a mano en cada máquina.
+// Mounts the server against a clean test database. Without
+// DATABASE_URL_TEST the server tests are skipped: there is no Postgres to
+// bring up by hand on every machine.
 
 import { createPool, migrate } from '../../server/db.js';
 import { buildApp } from '../../server/app.js';
 
 export const DB_URL = process.env.DATABASE_URL_TEST;
-export const SKIP = DB_URL ? false : 'sin DATABASE_URL_TEST';
+export const SKIP = DB_URL ? false : 'no DATABASE_URL_TEST';
 
 export async function mount() {
   const pool = createPool(DB_URL);
@@ -16,7 +16,7 @@ export async function mount() {
   return { app, pool, async close() { await app.close(); await pool.end(); } };
 }
 
-// Un cliente con su propia cookie, como un navegador.
+// A client with its own cookie, like a browser.
 export function client(app) {
   let cookie = '';
   async function request(method, url, body) {

@@ -114,24 +114,24 @@ test('does not get stuck retargeting food it already learned to avoid, with noth
   fagi.angle = 0;
   fagi.thirst = 0;
 
-  // Ya lo aprendió en una vida anterior (o hace un minuto): tiene la regla,
-  // y dos bocados agotan la curiosidad (BRAIN.curiosityTries=2), así que un
-  // tercer encuentro ya no es "probar otra vez", es un rechazo de verdad.
-  // Empieza sin hambre para que los dos bocados de +25 no la maten (0→50).
+  // She already learned it in a previous life (or a minute ago): she has the rule,
+  // and two bites use up curiosity (BRAIN.curiosityTries=2), so a
+  // third encounter is no longer "trying again", it is a real refusal.
+  // She starts without hunger so the two +25 bites do not kill her (0→50).
   fagi.hunger = 0;
   eat(fagi, 'toxic');
   eat(fagi, 'toxic');
-  assert.equal(fagi.hunger, 50);   // urgente pero por debajo de NEEDS.critical: tier "proveer", no "urgencia"
+  assert.equal(fagi.hunger, 50);   // urgent but below NEEDS.critical: tier "provide", not "urgency"
   assert.ok(fagi.brain.rules.list.some((r) => r.id === 'avoid-toxic' && !r.retired));
 
-  // Lo único que hay para comer es otro tóxico, justo delante.
+  // The only thing to eat is another toxic one, right ahead.
   addPoint(world, fagi.x + 30, fagi.y, 'toxic');
 
-  // Primero se acerca (eso es normal); lo que no puede pasar es que se quede
-  // clavada ahí para siempre, re-eligiéndolo y rechazándolo cada frame. Se
-  // compara la segunda mitad del tramo con la primera: si de verdad sigue su
-  // vida, la segunda mitad también se mueve. Si se congeló junto al fruto,
-  // la segunda mitad no avanza nada.
+  // First she approaches (that is normal); what must not happen is that she stays
+  // stuck there forever, re-choosing it and rejecting it every frame. The
+  // second half of the stretch is compared with the first: if she really goes on
+  // with her life, the second half moves too. If she froze next to the fruit,
+  // the second half does not advance at all.
   for (let t = 0; t < 1 && fagi.alive; t += 0.05) step(world, fagi, 0.05);
   const xMid = fagi.x, yMid = fagi.y;
   for (let t = 0; t < 1 && fagi.alive; t += 0.05) step(world, fagi, 0.05);
@@ -162,15 +162,15 @@ test('stored food lasts NEST.keepFactor times longer, then spoils away', () => {
   const life = POINT_TYPES.nectar.life;
   storeInNest(nestObj, 'nectar');
 
-  // A la vida que tendría en el suelo todavía sigue guardado.
+  // At the lifetime it would have on the ground it is still stored.
   updateNest(world, life);
   assert.equal(nestObj.stock.nectar, 1);
 
-  // Justo antes de cumplir su vida larga (vida × keepFactor) aguanta...
+  // Just before reaching its long life (life × keepFactor) it holds...
   updateNest(world, life * NEST.keepFactor - life - 1);
   assert.equal(nestObj.stock.nectar, 1);
 
-  // ...y al cumplirla se echa a perder y desaparece de las reservas.
+  // ...and on reaching it, it spoils and disappears from the stores.
   updateNest(world, 1);
   assert.equal(nestObj.stock.nectar, 0);
   assert.equal(nestStock(nestObj), 0);
@@ -181,8 +181,8 @@ test('the pantry serves the oldest ration first', () => {
   const world = createWorld();
   const fagi = createFagi();
   const nestObj = addObject(world, fagi.x, fagi.y, 'nest');
-  storeInNest(nestObj, 'nectar', POINT_TYPES.nectar.life - 1); // a punto de pasarse
-  storeInNest(nestObj, 'nectar', 0);                           // recién cogida
+  storeInNest(nestObj, 'nectar', POINT_TYPES.nectar.life - 1); // about to go off
+  storeInNest(nestObj, 'nectar', 0);                           // freshly picked
   fagi.hunger = 90;
 
   useNest(fagi, world);

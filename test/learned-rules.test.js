@@ -20,12 +20,12 @@ test('rule() rejects malformed specs', () => {
     because: [{ sense: 'hunger', v: 25 }], learnedAt: 1, tries: 1, stage: 'short',
   };
   assert.ok(rule('avoid-toxic', base));
-  assert.throws(() => rule('Avoid-Toxic', base));                       // id fuera de forma
-  assert.throws(() => rule('avoid-toxic', { ...base, verdict: 'meh' })); // veredicto inválido
-  assert.throws(() => rule('avoid-toxic', { ...base, on: [] }));        // alcance vacío
-  assert.throws(() => rule('avoid-toxic', { ...base, on: ['volar'] })); // alcance desconocido
-  assert.throws(() => rule('avoid-toxic', { ...base, weight: 'mucho' }));
-  assert.throws(() => rule('avoid-toxic', { ...base, extra: 1 }));      // campo desconocido
+  assert.throws(() => rule('Avoid-Toxic', base));                       // malformed id
+  assert.throws(() => rule('avoid-toxic', { ...base, verdict: 'meh' })); // invalid verdict
+  assert.throws(() => rule('avoid-toxic', { ...base, on: [] }));        // empty scope
+  assert.throws(() => rule('avoid-toxic', { ...base, on: ['fly'] }));   // unknown scope
+  assert.throws(() => rule('avoid-toxic', { ...base, weight: 'lots' }));
+  assert.throws(() => rule('avoid-toxic', { ...base, extra: 1 }));      // unknown field
 });
 
 test('a module round-trips through render and parse: active, retired and memory', () => {
@@ -60,7 +60,7 @@ test('a module round-trips through render and parse: active, retired and memory'
 
 test('parseModule refuses to execute anything: garbage in, clear error, nothing applied', () => {
   assert.throws(() => parseModule('not a module at all'));
-  assert.throws(() => parseModule("rule('bad', {\"verdict\":\"avoid\"})")); // JSON incompleto de campos
+  assert.throws(() => parseModule("rule('bad', {\"verdict\":\"avoid\"})")); // JSON missing fields
   assert.throws(() => parseModule('rule(\'bad\', not json)'));
 });
 
@@ -73,8 +73,8 @@ test('verdict: an accidental encounter is vetoed, a deliberate one stays open to
   }));
 
   assert.equal(verdict(fagi, 'eat', 'toxic', { deliberate: false }), 'avoid');
-  assert.equal(verdict(fagi, 'store', 'toxic'), 'avoid');   // guardar no admite curiosidad
-  // Deliberado Y con curiosidad restante (tries=0 en memoria, no probado de verdad):
+  assert.equal(verdict(fagi, 'store', 'toxic'), 'avoid');   // storing leaves no room for curiosity
+  // Deliberate AND with curiosity left (tries=0 in memory, never really tried):
   assert.equal(verdict(fagi, 'eat', 'toxic', { deliberate: true }), null);
 });
 
@@ -82,20 +82,20 @@ test('a rule that throws is quarantined and stops counting, without touching dec
   const fagi = createFagi();
   const { list } = fagi.brain.rules;
   list.push({
-    id: 'rota', on: ['eat'], get when() { throw new Error('boom'); },
+    id: 'broken', on: ['eat'], get when() { throw new Error('boom'); },
     verdict: 'avoid', weight: -1, because: [], learnedAt: 0, tries: 1, stage: 'short',
   });
   assert.doesNotThrow(() => verdict(fagi, 'eat', 'toxic'));
-  assert.equal(fagi.brain.rules.quarantined.has('rota'), true);
+  assert.equal(fagi.brain.rules.quarantined.has('broken'), true);
 });
 
-test('one toxic bite is enough to write "evitar-toxico"', () => {
+test('one toxic bite is enough to write "avoid-toxic"', () => {
   const fagi = createFagi();
   fagi.hunger = 50;
   eat(fagi, 'toxic');
 
   const r = activeRule(fagi.brain.rules, 'toxic', 'avoid');
-  assert.ok(r, 'no active avoid rule for toxico');
+  assert.ok(r, 'no active avoid rule for toxic');
   assert.deepEqual(r.on, ['eat', 'store', 'pursue']);
   assert.ok(r.because.length > 0);
   assert.equal(fagi.brain.lastRule.kind, 'new');
@@ -104,19 +104,19 @@ test('one toxic bite is enough to write "evitar-toxico"', () => {
 
 test('a belief that climbs back above the exit threshold retires its rule', () => {
   const fagi = createFagi();
-  learn(fagi.brain, 'spark', -1, 0);   // mal bocado: nace la regla
+  learn(fagi.brain, 'spark', -1, 0);   // bad bite: the rule is born
   const before = activeRule(fagi.brain.rules, 'spark', 'avoid');
   assert.ok(before);
 
-  // Una confirmación espaciada y buena basta para devolverla por encima del
-  // umbral de salida: se retira y no vuelve a "evitar-chispa" mientras siga así.
+  // One spaced-out, good confirmation is enough to bring it back above the
+  // exit threshold: it is retired and does not return to "avoid-spark" while it stays that way.
   const change = learn(fagi.brain, 'spark', 1, 20);
   assert.equal(activeRule(fagi.brain.rules, 'spark', 'avoid'), null);
   const retiredOne = fagi.brain.rules.list.find((r) => r.id === 'avoid-spark');
   assert.equal(retiredOne.retired, true);
 
-  // Y si la evidencia sigue siendo buena, con el tiempo también aprende a
-  // preferirlo: no se queda solo sin la regla mala, escribe la buena.
+  // And if the evidence stays good, over time she also learns to
+  // prefer it: she does not just drop the bad rule, she writes the good one.
   let now = 40;
   for (let i = 0; i < 6; i++) { learn(fagi.brain, 'spark', 1, now); now += 20; }
   assert.ok(activeRule(fagi.brain.rules, 'spark', 'prefer'));
@@ -129,19 +129,19 @@ test('the learned code keeps up with learning and forgetting, not only with rule
   const fagi = createFagi();
   const world = createWorld();
 
-  // Aprender algo que no llega a regla también cambia lo aprendido.
+  // Learning something that does not reach a rule also changes what was learned.
   const v0 = fagi.brain.version;
   const seq0 = fagi.brain.rules.seq;
   learn(fagi.brain, 'water', 0.2, 0);
-  assert.equal(fagi.brain.rules.seq, seq0, 'no hay regla que tocar');
-  assert.ok(fagi.brain.version > v0, 'pero el panel tiene que enterarse');
+  assert.equal(fagi.brain.rules.seq, seq0, 'there is no rule to touch');
+  assert.ok(fagi.brain.version > v0, 'but the panel has to find out');
 
-  // Con el olvido, el peso escrito en la regla sigue al de la creencia.
+  // With forgetting, the weight written in the rule follows the belief's.
   for (let i = 0; i < 3; i++) learn(fagi.brain, 'toxic', -0.8, i * 20);
   const ruleOf = () => fagi.brain.rules.list.find((r) => r.id === 'avoid-toxic');
   const written = ruleOf().weight;
   for (let i = 0; i < 60 * 20; i++) step(world, fagi, 0.05);
-  assert.ok(Math.abs(ruleOf().weight) < Math.abs(written), 'el peso de la regla baja con el olvido');
-  assert.ok(Math.abs(ruleOf().weight - weight(fagi.brain, 'toxic')) < 0.01, 'y coincide con el de la creencia');
-  assert.equal(ruleOf().retired, undefined, 'olvidar no la retira');
+  assert.ok(Math.abs(ruleOf().weight) < Math.abs(written), 'the rule weight drops with forgetting');
+  assert.ok(Math.abs(ruleOf().weight - weight(fagi.brain, 'toxic')) < 0.01, 'and matches the belief weight');
+  assert.equal(ruleOf().retired, undefined, 'forgetting does not retire it');
 });

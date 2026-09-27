@@ -1,6 +1,6 @@
-// Contraseñas y sesiones de login. Contraseñas con scrypt (nativo de Node,
-// sal aleatoria por usuario); sesiones con un token aleatorio que viaja en una
-// cookie httpOnly y del que la base de datos solo guarda el SHA-256.
+// Passwords and login sessions. Passwords with scrypt (native to Node,
+// random salt per user); sessions with a random token that travels in an
+// httpOnly cookie and of which the database only stores the SHA-256.
 
 import { randomBytes, scrypt, timingSafeEqual, createHash } from 'node:crypto';
 import { promisify } from 'node:util';
@@ -11,7 +11,7 @@ export const COOKIE = 'fagi_sid';
 export const SESSION_DAYS = 30;
 export const MIN_PASSWORD = 8;
 
-// N=2^15 pide ~32 MB; maxmem por encima para que Node no lo rechace.
+// N=2^15 needs ~32 MB; maxmem above that so Node does not reject it.
 const PARAMS = { N: 2 ** 15, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
 const KEYLEN = 64;
 
@@ -31,11 +31,11 @@ export async function verifyPassword(password, stored) {
   return key.length === expected.length && timingSafeEqual(key, expected);
 }
 
-// Para que un email que no existe tarde lo mismo que una contraseña mala: sin
-// esto, el tiempo de respuesta diría qué emails están registrados.
+// So an email that does not exist takes as long as a wrong password: without
+// this, the response time would reveal which emails are registered.
 let hashFalso = null;
 export async function dummyVerify(password) {
-  hashFalso ??= await hashPassword('contraseña-que-no-es-de-nadie');
+  hashFalso ??= await hashPassword('password-that-belongs-to-nobody');
   await verifyPassword(password, hashFalso);
   return false;
 }

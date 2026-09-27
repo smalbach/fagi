@@ -1,5 +1,5 @@
--- Partidas grabadas como eventos: qué se creó, dónde y cuándo. Reproducir es
--- volver a aplicar los eventos en orden, nunca cargar una foto del estado.
+-- Games recorded as events: what was created, where and when. Replaying means
+-- re-applying the events in order, never loading a snapshot of the state.
 CREATE TABLE sessions (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id     uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,

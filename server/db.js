@@ -1,6 +1,6 @@
-// Postgres: un pool y las migraciones. Las migraciones son los .sql de
-// migrations/ en orden alfabético; cada una se aplica una sola vez y queda
-// apuntada en schema_migrations.
+// Postgres: a pool and the migrations. The migrations are the .sql files in
+// migrations/ in alphabetical order; each one is applied only once and gets
+// recorded in schema_migrations.
 //
 //   node server/db.js migrate
 
@@ -12,8 +12,8 @@ import path from 'node:path';
 const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'migrations');
 
 export function createPool(url = process.env.DATABASE_URL) {
-  if (!url) throw new Error('Falta DATABASE_URL');
-  // Railway (y casi cualquier Postgres gestionado) pide SSL fuera de su red.
+  if (!url) throw new Error('DATABASE_URL is missing');
+  // Railway (and almost any managed Postgres) requires SSL outside its network.
   const ssl = /sslmode=require/.test(url) ? { rejectUnauthorized: false } : undefined;
   return new pg.Pool({ connectionString: url, ssl, max: 10 });
 }
@@ -36,7 +36,7 @@ export async function migrate(pool) {
       applied.push(file);
     } catch (err) {
       await client.query('ROLLBACK');
-      throw new Error(`Migración ${file} falló: ${err.message}`);
+      throw new Error(`Migration ${file} failed: ${err.message}`);
     } finally {
       client.release();
     }
@@ -47,7 +47,7 @@ export async function migrate(pool) {
 if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv[2] === 'migrate') {
   const pool = createPool();
   migrate(pool)
-    .then((applied) => console.log(applied.length ? `Aplicadas: ${applied.join(', ')}` : 'Nada que migrar'))
+    .then((applied) => console.log(applied.length ? `Applied: ${applied.join(', ')}` : 'Nothing to migrate'))
     .catch((err) => { console.error(err.message); process.exitCode = 1; })
     .finally(() => pool.end());
 }

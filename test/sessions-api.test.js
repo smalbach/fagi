@@ -4,10 +4,10 @@ import { SKIP, mount, client } from './helpers/server.js';
 
 async function users(app) {
   const admin = client(app);
-  await admin.post('/api/auth/register', { email: 'admin@fagi.test', password: 'clave-de-admin-123' });
+  await admin.post('/api/auth/register', { email: 'admin@fagi.test', password: 'admin-password-123' });
   const approveUser = async (email) => {
     const c = client(app);
-    const r = await c.post('/api/auth/register', { email, password: 'una-clave-long' });
+    const r = await c.post('/api/auth/register', { email, password: 'a-long-password' });
     await admin.post(`/api/admin/users/${r.body.user.id}/approve`);
     return c;
   };
@@ -26,14 +26,14 @@ test('events are stored once per seq and read back in order', { skip: SKIP }, as
     { seq: 1, t: 0, type: 'obj_add', id: 1, what: 'nest', x: 10, y: 20, r: 30 },
     { seq: 2, t: 4.5, type: 'point_add', id: 7, x: 1, y: 2 },
   ];
-  // Un evento sin sus campos obligatorios tumba el lote entero.
+  // An event missing its required fields knocks out the whole batch.
   const r = await ana.post(`/api/sessions/${id}/events`, { events: batch });
   assert.equal(r.status, 400);
   assert.match(r.body.error, /point_add\.what/);
 
-  batch[2] = { seq: 2, t: 4.5, type: 'point_add', id: 7, what: 'baya', x: 1, y: 2, from: 3 };
+  batch[2] = { seq: 2, t: 4.5, type: 'point_add', id: 7, what: 'nectar', x: 1, y: 2, from: 3 };
   assert.equal((await ana.post(`/api/sessions/${id}/events`, { events: batch })).body.inserted, 3);
-  // Reintento del mismo lote: no duplica.
+  // Retrying the same batch: no duplicates.
   assert.equal((await ana.post(`/api/sessions/${id}/events`, { events: batch })).body.inserted, 0);
 
   const readList = (await ana.get(`/api/sessions/${id}/events`)).body.events;
@@ -63,7 +63,7 @@ test('sessions are private to their owner, visible to admin', { skip: SKIP }, as
 
   assert.equal((await admin.get(`/api/sessions/${id}`)).status, 200);
   assert.equal((await admin.get('/api/sessions?all=1')).body.sessions.length, 1);
-  // El admin puede mirar, pero no escribir en la sesión de otro.
+  // The admin can look, but not write to someone else's session.
   assert.equal((await admin.post(`/api/sessions/${id}/events`, { events: [] })).status, 403);
 
   assert.equal((await ana.del(`/api/sessions/${id}`)).status, 200);

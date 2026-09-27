@@ -49,16 +49,16 @@ test('opening a new episode closes the previous one without blaming it', () => {
 test('dying with a recent bite in the body blames that bite', () => {
   const world = createWorld();
   const fagi = createFagi();
-  // Al borde: con el hambre realista (lenta) tiene que morir dentro de
-  // FEEL.window para que el bocado cargue con la culpa.
+  // On the edge: with realistic (slow) hunger she has to die within
+  // FEEL.window for the bite to take the blame.
   fagi.hunger = 74.5;
   eat(fagi, 'toxic');              // 99.5
   const before = fagi.brain.facts.toxic.value;
   for (let t = 0; t < 8 && fagi.alive; t += 0.05) step(world, fagi, 0.05);
   assert.equal(fagi.alive, false);
   assert.equal(fagi.episode, null);
-  // Segundo castigo sobre la misma creencia: más negativa que con un solo
-  // bocado, aunque la regla delta no llegue de un salto al extremo.
+  // Second punishment on the same belief: more negative than with a single
+  // bite, even if the delta rule does not reach the extreme in one jump.
   assert.ok(fagi.brain.facts.toxic.value < before, `${fagi.brain.facts.toxic.value} vs ${before}`);
   assert.ok(fagi.brain.facts.toxic.value <= -0.6, `value ${fagi.brain.facts.toxic.value}`);
 });
@@ -66,7 +66,7 @@ test('dying with a recent bite in the body blames that bite', () => {
 test('water teaches by the thirst it actually removes while drinking', () => {
   const world = createWorld();
   const fagi = createFagi();
-  // En el vado, donde hace pie: en el hondo no bebe, patalea.
+  // In the shallows, where she can stand: in deep water she does not drink, she flails.
   addObject(world, fagi.x + OBJECT_TYPES.water.radius - WATER.shallows / 2, fagi.y, 'water');
   fagi.thirst = 80;
   step(world, fagi, 0.05);
@@ -86,9 +86,9 @@ test('drinking without thirst teaches nothing because nothing is felt', () => {
   const shore = OBJECT_TYPES.water.radius - WATER.shallows / 2;
   const pool = addObject(world, fagi.x + shore, fagi.y, 'water');
   fagi.thirst = 0.5;
-  // Sin sed no tiene motivo para quedarse: se pone a explorar y se saldría del
-  // charco por su cuenta. Se la mantiene dentro a la fuerza para que la prueba
-  // no dependa de hacia dónde tira el paseo aleatorio.
+  // Without thirst she has no reason to stay: she starts exploring and would leave
+  // the pool on her own. She is held inside by force so the test does not
+  // depend on where the random walk takes her.
   for (let t = 0; t < FEEL.drinkSample + 0.2; t += 0.05) {
     fagi.x = pool.x - shore; fagi.y = pool.y;
     step(world, fagi, 0.05);
@@ -101,15 +101,15 @@ test('walking through the shallows without stopping is not drinking and teaches 
   const world = createWorld();
   const fagi = createFagi();
   const pool = addObject(world, fagi.x + OBJECT_TYPES.water.radius - WATER.shallows / 2, fagi.y, 'water');
-  // Apenas tiene sed: el vado se la quita al pisarlo y ni se para a beber.
-  // Rodeando el lago esto pasa a menudo; si contara, el agua "no quitaría sed".
+  // She is barely thirsty: the shallows quench it as she steps in and she does not even stop to drink.
+  // Walking around the lake this happens often; if it counted, water "would not quench thirst".
   fagi.thirst = 0.1;
   step(world, fagi, 0.05);
   assert.equal(fagi.episode?.action, 'drink');
   assert.notEqual(fagi.thought.action, 'drink');
   fagi.x = pool.x - 200;
-  step(world, fagi, 0.05);   // sale del agua
-  step(world, fagi, 0.05);   // y el episodio se cierra sin juzgar
-  assert.equal(fagi.brain.facts.water?.tries ?? 0, 0, 'un sorbo de paso no se juzga');
+  step(world, fagi, 0.05);   // leaves the water
+  step(world, fagi, 0.05);   // and the episode closes without judging
+  assert.equal(fagi.brain.facts.water?.tries ?? 0, 0, 'a sip in passing is not judged');
   assert.equal(fagi.episode, null);
 });

@@ -1,51 +1,51 @@
-# La API de decisión
+# The decision API
 
-Fagi tiene instinto (`src/decision.js`) y aprende por experiencia (`src/episodes.js`,
-`src/learned/`). Ese instinto sigue decidiendo siempre — es la red de seguridad.
-Pero además, si se activa, una **API externa** puede decidir qué hacer en los
-momentos que importan: ve algo nuevo, le acaba de sentar algo bien o mal, la
-necesidad se vuelve urgente, o lleva un rato explorando sin más.
+Fagi has instinct (`src/decision.js`) and learns from experience (`src/episodes.js`,
+`src/learned/`). That instinct always keeps deciding — it is the safety net.
+But on top of that, if enabled, an **external API** can decide what to do at the
+moments that matter: she sees something new, something just did her good or harm,
+a need turns urgent, or she has spent a while just exploring.
 
-La API **solo decide**. No enseña nada, no escribe reglas: eso lo hace el
-aprendiz local (`src/learned/synth.js`) a partir de lo que Fagi siente, tenga
-o no una API conectada. Enchufar una API no cambia qué aprende Fagi, solo
-quién decide qué hacer con lo que ya sabe.
+The API **only decides**. It teaches nothing and writes no rules: that is done by
+the local learner (`src/learned/synth.js`) from what Fagi feels, whether or
+not an API is connected. Plugging in an API does not change what Fagi learns, only
+who decides what to do with what she already knows.
 
-## Cómo se activa
+## How to enable it
 
-Desde el panel **Código aprendido**, campo "Quién decide":
+From the **Learned code** panel, "Who decides" field:
 
-- **Solo instinto** (de fábrica): nunca se pregunta a nadie.
-- **Emulador local**: una decisión razonable calculada en el propio navegador,
-  sin red. Sirve para probar el camino entero y es la referencia de lo que
-  cualquier API tiene que poder hacer con el mismo JSON.
-- **API HTTP**: se le pide la URL base de un servidor que cumpla el contrato
-  de abajo. Ver `server/decision-api.example.js` para uno mínimo de prueba.
+- **Instinct only** (default): nobody is ever asked.
+- **Local emulator**: a reasonable decision computed in the browser itself,
+  with no network. It is for testing the whole path and it is the reference for what
+  any API must be able to do with the same JSON.
+- **HTTP API**: asks for the base URL of a server that fulfils the contract
+  below. See `server/decision-api.example.js` for a minimal test one.
 
-También hay ajustes numéricos en el panel de Ajustes → "Decisión externa":
-cada cuánto se le puede preguntar como mucho (`minInterval`), cuánto se le
-espera antes de rendirse (`timeout`), cuánto dura una directiva si la
-respuesta no dice otra cosa (`ttl`), y la autoridad (ver más abajo).
+There are also numeric settings in the Settings panel → "External decision API":
+how often it may be asked at most (`minInterval`), how long to wait for it
+before giving up (`timeout`), how long a directive lasts if the
+answer does not say otherwise (`ttl`), and the authority (see below).
 
-## El contrato
+## The contract
 
-Un backend es cualquier cosa con esta forma:
+A backend is anything with this shape:
 
 ```js
 {
-  name: 'mi-backend',
+  name: 'my-backend',
   async decide(observation, { signal }) {
-    // devuelve una Intención, o null si prefiere que decida el instinto
+    // returns an Intention, or null if it would rather let instinct decide
   },
 }
 ```
 
-Con **API HTTP**, Fagi hace `POST {url}/decide` con la Observación como cuerpo
-JSON, espera como mucho `BACKEND.timeout` segundos, y trata cualquier fallo
-(red caída, tarda de más, respuesta que no es JSON válido) exactamente igual
-que un `null`: decide el instinto, sin excepciones ni caídas del juego.
+With **HTTP API**, Fagi does `POST {url}/decide` with the Observation as the JSON
+body, waits at most `BACKEND.timeout` seconds, and treats any failure
+(network down, too slow, an answer that is not valid JSON) exactly like
+a `null`: instinct decides, with no exceptions and no game crashes.
 
-### Observación (lo que recibe la API)
+### Observation (what the API receives)
 
 ```json
 {
@@ -61,89 +61,93 @@ que un `null`: decide el instinto, sin excepciones ni caídas del juego.
   "candidates": [
     {
       "id": 57,
-      "key": "toxico",
+      "key": "toxic",
       "kind": "food",
-      "via": "vista",
+      "via": "sight",
       "dist": 88,
       "score": 0.41,
-      "belief": { "value": -0.63, "confidence": 0.7, "stage": "corta" },
-      "verdict": "avoid"
+      "belief": { "value": -0.63, "confidence": 0.7, "stage": "short" },
+      "verdict": "avoid",
+      "new": false
     }
   ],
   "beliefs": {
-    "toxico": { "value": -0.63, "confidence": 0.7, "stage": "corta", "tries": 2 },
-    "nectar": { "value": 0.97, "confidence": 0.88, "stage": "media", "tries": 9 }
+    "toxic": { "value": -0.63, "confidence": 0.7, "stage": "short", "tries": 2 },
+    "nectar": { "value": 0.97, "confidence": 0.88, "stage": "medium", "tries": 9 }
   },
   "rules": [
-    "rule('evitar-toxico', {\"on\":[\"eat\",\"store\",\"pursue\"],\"when\":{\"key\":\"toxico\"},\"verdict\":\"avoid\",\"weight\":-0.63,\"because\":[{\"sense\":\"hunger\",\"v\":25}],\"learnedAt\":70.2,\"tries\":2,\"stage\":\"corta\"})"
+    "rule('avoid-toxic', {\"on\":[\"eat\",\"store\",\"pursue\"],\"when\":{\"key\":\"toxic\"},\"verdict\":\"avoid\",\"weight\":-0.63,\"because\":[{\"sense\":\"hunger\",\"v\":25}],\"learnedAt\":70.2,\"tries\":2,\"stage\":\"short\"})"
   ],
   "lastEpisode": { "key": "nectar", "action": "eat", "reward": 0.97 },
   "instinct": { "action": "seekFood", "reason": { "key": "reason.seekFood", "params": { "n": 2, "score": "1.10" } } }
 }
 ```
 
-Campos:
+Fields:
 
-| campo | qué es |
+| field | what it is |
 |---|---|
-| `needs` | fracción 0–1 de hambre, sed y energía |
-| `effects` | buffs/debuffs activos ahora mismo (el efecto de lo último que comió) |
-| `candidates` | hasta 8 cosas perseguibles, de mejor a peor puntuadas por el instinto — **la API solo puede nombrar algo que esté aquí** |
-| `candidates[].verdict` | `"avoid"`, `"prefer"` o `null`: lo que las reglas escritas opinan de perseguirlo |
-| `beliefs` | el mapa entero de creencias (valor + confianza) que Fagi tiene ahora mismo |
-| `rules` | las reglas activas, literalmente como las escribiría el módulo exportado — la API puede leer el código que Fagi ya tiene |
-| `lastEpisode` | la última experiencia (comer o beber) y lo que sintió |
-| `instinct` | qué haría el instinto AHORA MISMO si nadie más decidiera — un ancla útil para no proponer algo disparatado |
+| `needs` | 0–1 fraction of hunger, thirst and energy |
+| `effects` | buffs/debuffs active right now (the effect of the last thing she ate) |
+| `water` | what she knows about water: `"sees"`, `"smells"`, `"remembers"` or `"unknown"` |
+| `candidates` | up to 8 things worth chasing, from best to worst as scored by instinct — **the API can only name something that is here** |
+| `candidates[].via` | how she knows about it: `"sight"`, `"smell"` or `"memory"` |
+| `candidates[].verdict` | `"avoid"`, `"prefer"` or `null`: what the written rules think of chasing it |
+| `candidates[].new` | it has just entered what she perceives: the previous directive did not account for it |
+| `beliefs` | the whole map of beliefs (value + confidence) Fagi holds right now |
+| `rules` | the active rules, literally as the exported module would write them — the API can read the code Fagi already has |
+| `lastEpisode` | the last experience (eating or drinking) and what she felt |
+| `instinct` | what instinct would do RIGHT NOW if nobody else decided — a useful anchor to avoid proposing something absurd |
 
-### Intención (lo que devuelve la API)
+### Intention (what the API returns)
 
 ```json
-{ "action": "seekFood", "targetId": 57, "ttl": 8, "reason": "está cerca y no la evita" }
+{ "action": "seekFood", "targetId": 57, "ttl": 8, "reason": "it is close and she does not avoid it" }
 ```
 
-| campo | obligatorio | qué es |
+| field | required | what it is |
 |---|---|---|
-| `action` | sí | una de: `seekFood`, `seekWater`, `track`, `explore`, `toNest`, `pantry`, `rest`, `carry` |
-| `targetId` | según la acción | el `id` de un candidato de la observación. No hace falta para `explore`, `rest`, `toNest`, `pantry` |
-| `ttl` | no | segundos que la directiva sigue valiendo si no llega otra antes. Se recorta a `[1, BACKEND.maxTtl]`; si falta, se usa `BACKEND.ttl` |
-| `reason` | no | texto corto, o `{key, params}` si se quiere que la consola lo traduzca como el resto de razones del juego |
+| `action` | yes | one of: `seekFood`, `seekWater`, `track`, `explore`, `toNest`, `pantry`, `rest`, `carry` |
+| `targetId` | depends on the action | the `id` of a candidate from the observation. Not needed for `explore`, `rest`, `toNest`, `pantry` |
+| `ttl` | no | seconds the directive stays valid if no other one arrives first. Clamped to `[1, BACKEND.maxTtl]`; if missing, `BACKEND.ttl` is used |
+| `reason` | no | short text, or `{key, params}` if you want the console to translate it like the rest of the game's reasons |
 
-Cualquier respuesta que no encaje (acción fuera de la lista, `targetId` que no
-estaba en `candidates`, o directamente un fallo) se descarta entera: decide el
-instinto, sin excepción ni frame en blanco.
+Any answer that does not fit (an action outside the list, a `targetId` that was not
+in `candidates`, or an outright failure) is discarded whole: instinct
+decides, with no exception and no blank frame.
 
-## Autoridad: quién manda cuando hay prisa
+## Authority: who is in charge when things are pressing
 
-- **Segura** (`BACKEND.authority = 0`, de fábrica): el instinto atiende
-  primero lo que puede matar — beber, comer, la urgencia, tirar de despensa —
-  y la directiva externa solo entra después, donde antes decidían descansar,
-  acarrear o perseguir. Una API lenta o rara nunca puede dejarla morir.
-- **Plena** (`BACKEND.authority = 1`): la directiva va la primera de todas,
-  salvo que la vida dependa de algo que ella no atiende (hambre o sed crítica
-  y su `targetKind` no es `food` ni `water`) — ahí se aparta y manda el
-  instinto igualmente.
+- **Safe** (`BACKEND.authority = 0`, default): instinct first takes care of
+  whatever can kill her — drinking, eating, urgency, drawing on the pantry —
+  and the external directive only comes in afterwards, where resting,
+  carrying or chasing used to decide. A slow or odd API can never let her die.
+- **Full** (`BACKEND.authority = 1`): the directive goes first of all,
+  unless her life depends on something it does not address (critical hunger or thirst
+  and its `targetKind` is neither `food` nor `water`) — then it steps aside and
+  instinct is in charge anyway.
 
-## Latencia y directivas caducadas
+## Latency and expired directives
 
-El bucle nunca espera a la API: la pregunta se lanza y la respuesta, si
-llega, se aplica cuando llega — nunca dentro del mismo fotograma. Mientras
-tanto sigue decidiendo el instinto (o la directiva anterior, si seguía
-vigente). Una directiva vencida (`fagi.age >= until`) se olvida sola; una
-respuesta que llega tarde, después de que Fagi muriera o la partida se
-reiniciara, se descarta sin aplicarse.
+The loop never waits for the API: the question is sent and the answer, if
+it arrives, is applied when it arrives — never inside the same frame. Meanwhile
+instinct keeps deciding (or the previous directive, if it was still
+valid). An expired directive (`fagi.age >= until`) is forgotten on its own; an
+answer that arrives late, after Fagi died or the game was
+restarted, is discarded without being applied.
 
-## Cómo enchufar un LLM de verdad
+## How to plug in a real LLM
 
-1. Levantar un servidor que sirva `POST /decide` con el contrato de arriba.
-   `server/decision-api.example.js` es un punto de partida sin dependencias.
-2. Dentro, pasarle la Observación a un modelo con un prompt del tipo: *"Eres
-   el instinto de una hormiga. Aquí tienes lo que ve, cree y ha aprendido.
-   Devuelve SOLO un JSON con `action` y, si aplica, `targetId` de la lista de
-   candidatos."* — conviene pedir salida estructurada (JSON mode / tool use)
-   para no depender de parsear texto libre.
-3. Poner esa URL en el panel. El resto (validar, aplicar, expirar, ignorar lo
-   que no cuadre) ya lo hace Fagi.
+1. Stand up a server that serves `POST /decide` with the contract above.
+   `server/decision-api.example.js` is a starting point with no dependencies.
+2. Inside, pass the Observation to a model with a prompt along the lines of: *"You are
+   the instinct of an ant. Here is what she sees, believes and has learned.
+   Return ONLY a JSON with `action` and, if applicable, a `targetId` from the
+   candidate list."* — it is worth asking for structured output (JSON mode / tool use)
+   so you do not depend on parsing free text.
+3. Put that URL in the panel. The rest (validating, applying, expiring, ignoring whatever
+   does not fit) Fagi already does.
 
-Nota de secretos: esto es una app de navegador sin backend propio. Si el LLM
-necesita una clave de API, esa clave vive en EL SERVIDOR que responde a
-`/decide`, nunca en el navegador ni en el código de Fagi.
+A note on secrets: this is a browser app with no backend of its own. If the LLM
+needs an API key, that key lives on THE SERVER that answers
+`/decide`, never in the browser or in Fagi's code.

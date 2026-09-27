@@ -1,5 +1,5 @@
-// Sesiones grabadas: crear, añadir lotes de eventos, cerrar, listar, leer,
-// importar y borrar. Cada usuario ve solo las suyas; un admin, todas.
+// Recorded sessions: create, append event batches, close, list, read,
+// import and delete. Each user sees only their own; an admin sees all.
 
 import { requireApproved } from '../guards.js';
 import { invalidEvent, EVENT_VERSION } from '../../src/recorder/events.js';
@@ -15,8 +15,8 @@ function row(s) {
   };
 }
 
-// Inserta un lote en una sola consulta. Repetir un lote (reintento tras un
-// fallo de red) no duplica nada: la clave es (session_id, seq).
+// Inserts a batch in a single query. Repeating a batch (a retry after a
+// network failure) duplicates nothing: the key is (session_id, seq).
 async function insertEvents(db, sessionId, eventList) {
   if (!eventList.length) return 0;
   const seq = [], t = [], type = [], objId = [], x = [], y = [], data = [];
@@ -54,7 +54,7 @@ function validateBatch(eventList) {
 export default async function sessionRoutes(app) {
   app.addHook('preHandler', requireApproved);
 
-  // La sesión, si existe y quien pregunta puede verla.
+  // The session, if it exists and the requester may see it.
   async function own(req, reply) {
     if (!UUID.test(req.params.id)) { reply.code(404).send({ error: 'not_found' }); return null; }
     const { rows } = await app.db.query('SELECT * FROM sessions WHERE id = $1', [req.params.id]);
@@ -131,7 +131,7 @@ export default async function sessionRoutes(app) {
     return { events: rows.map((r) => ({ ...r.data, seq: r.seq, t: r.t, type: r.type })) };
   });
 
-  // Una sesión exportada (.json) entra como sesión nueva del que la importa.
+  // An exported session (.json) comes in as a new session owned by the importer.
   app.post('/import', { bodyLimit: 30 * 1024 * 1024 }, async (req, reply) => {
     const eventList = req.body?.events;
     if (!Array.isArray(eventList) || !eventList.length) return reply.code(400).send({ error: 'no_events' });

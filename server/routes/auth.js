@@ -1,5 +1,5 @@
-// Registro, login, logout y "quién soy". Registrarse deja la cuenta en lista
-// de espera; solo el email de ADMIN_EMAIL nace aprobado y como admin.
+// Sign-up, login, logout and "who am I". Signing up puts the account on the
+// waitlist; only the ADMIN_EMAIL address starts out approved and as admin.
 
 import {
   COOKIE, SESSION_DAYS, MIN_PASSWORD,
@@ -51,7 +51,7 @@ export default async function authRoutes(app) {
     const { rows } = await app.db.query('SELECT * FROM users WHERE email = $1', [emailAddr]);
     const user = rows[0];
     const ok = user ? await verifyPassword(pass, user.password_hash) : await dummyVerify(pass);
-    // Mismo mensaje para email desconocido y contraseña mala.
+    // Same message for an unknown email and a wrong password.
     if (!ok) return reply.code(401).send({ error: 'bad_credentials' });
     if (user.status === 'disabled') return reply.code(403).send({ error: 'disabled' });
     await openSession(req, reply, user);

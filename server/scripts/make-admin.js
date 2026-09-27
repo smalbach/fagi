@@ -1,13 +1,13 @@
-// Convierte una cuenta ya registrada en admin aprobado. Para el primer admin
-// si no se usó ADMIN_EMAIL, o para añadir otro.
+// Turns an already registered account into an approved admin. For the first admin
+// if ADMIN_EMAIL was not used, or to add another one.
 //
-//   DATABASE_URL=postgres://... npm run make-admin -- correo@ejemplo.com
+//   DATABASE_URL=postgres://... npm run make-admin -- email@example.com
 
 import { createPool } from '../db.js';
 
 const email = process.argv[2];
 if (!email) {
-  console.error('Uso: npm run make-admin -- correo@ejemplo.com');
+  console.error('Usage: npm run make-admin -- email@example.com');
   process.exit(1);
 }
 
@@ -18,7 +18,7 @@ try {
       WHERE email = $1 RETURNING email`,
     [email.trim().toLowerCase()],
   );
-  console.log(rows[0] ? `${rows[0].email} ahora es admin` : `No existe ninguna cuenta con ${email}`);
+  console.log(rows[0] ? `${rows[0].email} is now admin` : `No account exists with ${email}`);
   if (!rows[0]) process.exitCode = 1;
 } finally {
   await pool.end();

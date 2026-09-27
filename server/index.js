@@ -1,8 +1,8 @@
-// Arranque del servidor: aplica migraciones pendientes, sirve dist/ (el juego
-// ya construido) y la API bajo /api. Mismo origen para las dos cosas, así la
-// cookie de login funciona sin CORS.
+// Server startup: applies pending migrations, serves dist/ (the already built
+// game) and the API under /api. Same origin for both, so the login cookie
+// works without CORS.
 //
-//   DATABASE_URL=postgres://... ADMIN_EMAIL=tu@correo npm start
+//   DATABASE_URL=postgres://... ADMIN_EMAIL=you@example.com npm start
 
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -14,7 +14,7 @@ const port = Number(process.env.PORT ?? 8787);
 
 const pool = createPool();
 const applied = await migrate(pool);
-if (applied.length) console.log(`Migraciones aplicadas: ${applied.join(', ')}`);
+if (applied.length) console.log(`Migrations applied: ${applied.join(', ')}`);
 
 const app = await buildApp({ pool, staticDir: path.join(root, 'dist'), logger: true });
 await app.listen({ host: '0.0.0.0', port });

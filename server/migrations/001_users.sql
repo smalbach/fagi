@@ -1,4 +1,4 @@
--- Cuentas y lista de espera: nadie entra hasta que un admin lo aprueba.
+-- Accounts and waitlist: nobody gets in until an admin approves them.
 CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE TABLE users (
@@ -16,8 +16,8 @@ CREATE TABLE users (
 
 CREATE INDEX users_status_idx ON users (status, created_at);
 
--- Solo se guarda el SHA-256 del token: quien lea la tabla no puede hacerse
--- pasar por nadie.
+-- Only the token's SHA-256 is stored: whoever reads the table cannot
+-- impersonate anyone.
 CREATE TABLE auth_sessions (
   token_hash  text PRIMARY KEY,
   user_id     uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,

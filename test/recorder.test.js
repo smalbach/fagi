@@ -25,7 +25,7 @@ function withSeed(seed, fn) {
   try { return fn(); } finally { Math.random = original; }
 }
 
-// Lo que se ve del mundo en un instante, en una forma fácil de comparar.
+// What can be seen of the world at an instant, in a form easy to compare.
 function photo(world) {
   const nestObj = nestOf(world);
   return {
@@ -36,7 +36,7 @@ function photo(world) {
   };
 }
 
-// Una partida entera, grabada, con fotos del mundo real en varios instantes.
+// A whole game, recorded, with snapshots of the real world at several instants.
 function game({ seed = 3, seconds = 400, dt = 0.05, instants = [30, 90, 180, 300, 400] } = {}) {
   return withSeed(seed, () => {
     const world = createWorld();
@@ -53,7 +53,7 @@ function game({ seed = 3, seconds = 400, dt = 0.05, instants = [30, 90, 180, 300
     while (world.time < seconds) {
       step(world, fagi, dt);
       rec.observe(fagi);
-      // A mitad de partida alguien quita un árbol y pone una baya a mano.
+      // Midway through the game someone removes a tree and places a berry by hand.
       if (!touched && world.time >= 60) {
         touched = true;
         removeObject(world, world.objects.find(isTree), 'user');
@@ -79,14 +79,14 @@ test('every recorded event is valid and seq is gapless', () => {
   });
   assert.equal(eventList[0].type, 'session_start');
   assert.equal(eventList.at(-1).type, 'session_end');
-  // El mapa de partida sale entero, con su nido y sus coordenadas.
+  // The starting map comes out whole, with its nest and its coordinates.
   const initials = eventList.filter((e) => e.type === 'obj_add' && e.source === 'setup');
   assert.ok(initials.some((e) => e.what === 'nest'));
-  // Cada fruta que cae dice de qué árbol vino.
+  // Each fruit that falls says which tree it came from.
   const fruits = eventList.filter((e) => e.type === 'point_add' && e.from !== 'user');
   assert.ok(fruits.length > 0);
   assert.ok(fruits.every((e) => Number.isInteger(e.from)));
-  // Lo que se hizo a mano queda marcado como del usuario.
+  // What was done by hand is marked as the user's.
   assert.ok(eventList.some((e) => e.type === 'obj_remove' && e.source === 'user'));
   assert.ok(eventList.some((e) => e.type === 'point_add' && e.from === 'user'));
 });
@@ -94,16 +94,16 @@ test('every recorded event is valid and seq is gapless', () => {
 test('replay rebuilds the world exactly at any recorded instant', () => {
   const { eventList, photos } = game();
   assert.equal(photos.length, 5);
-  assert.ok(photos.some(({ photo: f }) => f.pheromone > 0 && Object.keys(f.stock).length), 'hay feromona y despensa que comparar');
+  assert.ok(photos.some(({ photo: f }) => f.pheromone > 0 && Object.keys(f.stock).length), 'there is pheromone and pantry to compare');
   const player = createPlayer(eventList, { checkpointEvery: 30 });
   for (const { t, photo: realOne } of photos) {
     player.seek(t);
     assert.deepEqual(photo(player.world), realOne, `t=${t.toFixed(2)}`);
   }
-  // Hacia atrás (desde un punto de control) da lo mismo que hacia delante.
+  // Backwards (from a checkpoint) gives the same as forwards.
   for (const { t, photo: realOne } of [...photos].reverse()) {
     player.seek(t);
-    assert.deepEqual(photo(player.world), realOne, `atrás t=${t.toFixed(2)}`);
+    assert.deepEqual(photo(player.world), realOne, `backwards t=${t.toFixed(2)}`);
   }
 });
 
@@ -111,7 +111,7 @@ test('replay follows Fagi along the recorded track', () => {
   const { eventList, fagi } = game({ seconds: 90, instants: [] });
   const player = createPlayer(eventList);
   player.seek(player.duration);
-  assert.ok(Math.hypot(player.fagi.x - fagi.x, player.fagi.y - fagi.y) < 1, 'termina donde terminó');
+  assert.ok(Math.hypot(player.fagi.x - fagi.x, player.fagi.y - fagi.y) < 1, 'it ends where it ended');
   assert.equal(player.fagi.alive, fagi.alive);
   player.seek(0);
   const start = eventList.find((e) => e.type === 'track').pts[0];
@@ -140,9 +140,9 @@ test('replay traces the same curves Fagi walked live', () => {
       player.seek(t);
       worst = Math.max(worst, Math.hypot(player.fagi.x - x, player.fagi.y - y));
     }
-    assert.ok(worst < 1, `se aparta ${worst.toFixed(2)} px`);
+    assert.ok(worst < 1, `drifts ${worst.toFixed(2)} px`);
     const points = player.track.length / world.time;
-    assert.ok(points < 10, `${points.toFixed(1)} puntos por segundo`);
+    assert.ok(points < 10, `${points.toFixed(1)} points per second`);
   });
 });
 
@@ -182,17 +182,17 @@ test('replay shows what Fagi thought, believed and logged', () => {
     for (const f of [...photos, ...[...photos].reverse()]) {
       player.seek(f.t);
       const pf = player.fagi;
-      assert.deepEqual(Object.keys(pf.brain.facts).sort(), f.beliefs, `creencias t=${f.t.toFixed(1)}`);
-      assert.deepEqual(pf.brain.rules.list.map((r) => r.id), f.rules, `reglas t=${f.t.toFixed(1)}`);
-      assert.equal(pf.eaten, f.foods, `comidas t=${f.t.toFixed(1)}`);
-      assert.ok(pf.thought?.action, 'piensa algo');
+      assert.deepEqual(Object.keys(pf.brain.facts).sort(), f.beliefs, `beliefs t=${f.t.toFixed(1)}`);
+      assert.deepEqual(pf.brain.rules.list.map((r) => r.id), f.rules, `rules t=${f.t.toFixed(1)}`);
+      assert.equal(pf.eaten, f.foods, `meals t=${f.t.toFixed(1)}`);
+      assert.ok(pf.thought?.action, 'thinks something');
       assert.ok(Array.isArray(pf.thought.ranked));
       assert.deepEqual(player.log.slice(-5).map((l) => JSON.stringify([l.tag, l.text, l.detail])), f.log, `console t=${f.t.toFixed(1)}`);
     }
     const perSecond = JSON.stringify(eventList.filter((e) => e.type === 'mind')).length / world.time;
-    // Con la red neuronal y el mapa mental dentro: sigue siendo poco. Varía
-    // con la partida (1900-2800 según la semilla), así que el tope deja margen.
-    assert.ok(perSecond < 3200, `mente: ${Math.round(perSecond)} bytes/s`);
+    // With the neural network and the mental map inside: it is still little. It varies
+    // with the game (1900-2800 depending on the seed), so the cap leaves room.
+    assert.ok(perSecond < 3200, `mind: ${Math.round(perSecond)} bytes/s`);
   });
 });
 
