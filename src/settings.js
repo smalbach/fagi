@@ -330,7 +330,7 @@ export function createSettings(world, getFagi) {
       det.innerHTML = `<summary>${titleOf(group)}</summary>`;
       for (const field of group.fieldsOf) {
         const row = document.createElement('label');
-        row.className = 'campo';
+        row.className = 'field';
         row.innerHTML = `<span>${field.label[getLang()] ?? field.label.en}</span>`;
         const input = document.createElement('input');
         input.type = 'number';

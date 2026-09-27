@@ -49,7 +49,7 @@ button {
 button.active { border-color: currentColor; }
 .dot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: none; }
 .hint { font-size: 11px; color: var(--muted); margin-left: auto; }
-.ayuda { font-size: 11px; color: var(--muted); margin-top: 9px; line-height: 1.35; }
+.help { font-size: 11px; color: var(--muted); margin-top: 9px; line-height: 1.35; }
 #type-buttons, #object-buttons { display: flex; flex-direction: column; gap: 6px; }
 .bar { height: 10px; background: #2a2e3a; border-radius: 5px; overflow: hidden; }
 .bar > i { display: block; height: 100%; width: 0; }

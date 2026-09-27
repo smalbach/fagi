@@ -74,13 +74,13 @@ function paintThought(el, fagi) {
     const parts = Object.entries(r.parts)
       .map(([k, v]) => `${t(`score.${PART_KEY[k] ?? k}`)} ${v >= 0 ? '+' : ''}${v.toFixed(2)}`)
       .join('  ');
-    const win = i === 0 && r.score > BRAIN.minScore ? ' elegido' : '';
+    const win = i === 0 && r.score > BRAIN.minScore ? ' chosen' : '';
     return `<div class="score${win}">` +
       `<div class="head"><span style="color:${TYPE_COLOR(r.key)}">${labelOf(r.key)}` +
       `<em> ${t(`word.${SENSE[r.via]}`)}</em></span>` +
       `<span>${r.score.toFixed(2)} · ${Math.round(r.dist)}px</span></div>` +
-      `<div class="partes">${parts}</div>` +
-      `<div class="partes">${t('word.confidence')} ${Math.round((r.confidence ?? 0) * 100)}%` +
+      `<div class="parts">${parts}</div>` +
+      `<div class="parts">${t('word.confidence')} ${Math.round((r.confidence ?? 0) * 100)}%` +
       ` · ${t(`stage.${r.stage ?? 'short'}`)}</div></div>`;
   }).join('');
 }

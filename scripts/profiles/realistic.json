@@ -1,49 +1,49 @@
 {
-  "_escala": "1 px = 0.5 mm (Fagi mide ~9 mm, como una obrera de Formica). El mapa es 64 x 43 cm.",
-  "_reloj": "Movimiento, vista, olfato y feromona van a tiempo real. Solo la fisiología se comprime: 1 s de juego = 8 min de hormiga, con las proporciones reales entre sed y hambre.",
+  "_scale": "1 px = 0.5 mm (Fagi is ~9 mm long, like a Formica worker). The map is 64 x 43 cm.",
+  "_clock": "Movement, sight, smell and pheromone run in real time. Only physiology is compressed: 1 s of game = 8 min of ant, keeping the real ratio between thirst and hunger.",
   "THIRST": {
-    "_nota": "Sin agua una obrera se deseca en ~1 día (humedad media) -> 180 s. Beber hasta llenar el buche lleva ~20 s.",
+    "_note": "Without water a worker dries out in ~1 day (average humidity) -> 180 s. Drinking until the crop is full takes ~20 s.",
     "rate": 0.55,
     "drinkRate": 5
   },
   "HUNGER": {
-    "_nota": "Con agua aguanta ~1 semana sin comer: 5-7 veces más que sin agua -> ~1250 s.",
+    "_note": "With water she lasts ~1 week without food: 5-7 times longer than without water -> ~1250 s.",
     "rate": 0.08
   },
   "POINT_TYPES": {
-    "_nota": "Una gota de néctar o fruta caída dura ~1 día antes de fermentar -> 180 s. Lo demás en proporción.",
+    "_note": "A drop of nectar or fallen fruit lasts ~1 day before fermenting -> 180 s. The rest in proportion.",
     "nectar": {
       "life": 180
     },
-    "toxico": {
+    "toxic": {
       "life": 180
     },
-    "chispa": {
+    "spark": {
       "life": 240
     },
-    "ojo": {
+    "eye": {
       "life": 240
     },
-    "resina": {
+    "resin": {
       "life": 320
     }
   },
   "FAGI": {
-    "_nota": "Los ojos compuestos de una hormiga cubren casi todo alrededor (~280 grados), pero con poca resolución: una gota de 3 mm deja de verse a ~6 cm (120 px). Velocidad 70 px/s = 3.5 cm/s, ya realista.",
+    "_note": "An ant's compound eyes cover almost all around (~280 degrees), but at low resolution: a 3 mm drop stops being visible at ~6 cm (120 px). Speed 70 px/s = 3.5 cm/s, already realistic.",
     "fovDeg": 280,
     "viewRange": 120
   },
   "PHERO": {
-    "_nota": "La pista de Lasius niger tiene una vida media de ~47 min. 600 s ya es el orden de magnitud (antes 45 s).",
+    "_note": "A Lasius niger trail has a half-life of ~47 min. 600 s is already the right order of magnitude (it was 45 s).",
     "life": 600
   },
   "EXPLORE": {
-    "_nota": "Las obreras nuevas hacen paseos de aprendizaje cerca del nido y amplían el radio con la experiencia; no tienen un impulso innato a alejarse. El terreno conocido se olvida en días, no en horas.",
+    "_note": "New workers take learning walks near the nest and widen the radius with experience; they have no innate urge to wander off. Known ground is forgotten in days, not hours.",
     "homeBias": 0,
     "fade": 0.001
   },
   "MEMORY": {
-    "_nota": "El olvido es biología: va al reloj fisiológico (1 s = 8 min). Una hormiga recuerda un comedero visitado una vez ~1 día, unos pocos días si lo repite y semanas si lo consolida. Su integración de caminos falla por distancia recorrida, no por tiempo quieto: el sitio apenas deriva.",
+    "_note": "Forgetting is biology: it runs on the physiological clock (1 s = 8 min). An ant remembers a feeder visited once for ~1 day, a few days if repeated, and weeks if consolidated. Her path integration fails with distance travelled, not with time standing still: the remembered place barely drifts.",
     "decayShort": 0.003,
     "decayMedium": 0.0008,
     "decayLong": 0.0003,

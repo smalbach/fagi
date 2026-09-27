@@ -43,8 +43,8 @@
   body.mode-setup #settings { height: auto; max-height: none; border-width: 1px 0 0; }
   body.mode-setup #settings-body { overflow: visible; }
   /* 16px: con menos, iOS hace zoom al tocar el campo y no lo deshace. */
-  #settings .campo { font-size: 13px; padding: 5px 0; }
-  #settings .campo input { font-size: 16px; width: 96px; padding: 6px 8px; }
+  #settings .field { font-size: 13px; padding: 5px 0; }
+  #settings .field input { font-size: 16px; width: 96px; padding: 6px 8px; }
   #settings summary { font-size: 14px; padding: 8px 0; }
   /* Las listas (sesiones, usuarios) pasan a tarjetas: sin scroll de lado
      y con los botones a la vista. */
