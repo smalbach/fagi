@@ -291,6 +291,70 @@ node scripts/batch.js --map-seed 1 --runs 6 --duration 1800 --world-varies \
   --set MAPGEN.species=6 --colony 4 [--set SOCIAL.share=0] [--set SOCIAL.observe=0]
 ```
 
+## Phase 6: generations, culture against genes
+
+`src/generations.js` gives a newborn two separate inheritances:
+
+- **culture** (`GEN.culture`): she is raised by an elder who survived the
+  previous generation (chosen by fitness). She is taught the elder's rules,
+  marked `source: { kind: 'born' }` and trusted `GEN.cultureTrust` (0.6) of
+  what the elder trusted them, and her habits. A tradition nobody lives again
+  fades: taught on twice more, it falls below `SOCIAL.minTrust`;
+- **genes** (`GEN.genes`): a genome of innate biases, one number per trait. It
+  comes from a parent chosen by fitness (life + 5 s per stored ration),
+  mutated by a gaussian step (σ 0.15). She is born with those biases as trait
+  weights (`learned/cues.js`), as if she had met each trait once. Nothing she
+  learns goes back into it: only who survives decides.
+
+Her explanations say which: "Fagi 3 taught it to me when I was born" or "I was
+born wary of anything with a sour smell".
+
+### Experiment
+
+`batch --generations 12 --switch-at 6`: lineages of 12 generations of colonies
+of 5 (1800 s each, a new map every generation). The chemistry is the same
+until generation 6; from generation 6 on it is **inverted**: the smell that
+poisoned now nourishes and the other way round. There are 4 lineages per
+variant.
+
+| | gen 0 | gens 1–5 (chemistry A) | **gen 6 (inverted)** | gen 7 | gens 8–11 |
+|---|---|---|---|---|---|
+| **none**: alive / first harmful bites per ant | 95% / 1.15 | 78% / 1.17 | 80% / 1.40 | 70% / 1.25 | 85% / 1.00 |
+| **culture** | 95% / 1.15 | **96% / 0.44** | 80% / 1.25 | **95% / 0.50** | **96% / 0.47** |
+| **genes** | 95% / 1.15 | 78% / 0.96 | 80% / 0.90 | 70% / 1.00 | 88% / 0.89 |
+| **both** | 95% / 1.15 | 78% / 0.39 | **20% / 1.05** | 80% / 0.50 | 69% / 0.55 |
+
+- **Culture wins, by far, and adapts in one generation.** With chemistry A it
+  cuts first harmful bites per ant by 60% and keeps 96% alive. At the
+  inversion, 30% of newborns are taught to avoid what is now their food, and
+  bites of the new poison come back (1.25). One generation later it has
+  already recovered (0.50): the elders who survived the change teach the new
+  chemistry.
+- **Genes barely help and adapt slowly.** Innate aversion to the poison smell
+  evolves (0 → −0.24 by generation 5), but so does an aversion to the food
+  smell (−0.21): with 5 ants per generation, selection is weak and the
+  genome drifts. After the inversion, the old aversion takes 3–4 generations
+  to fade.
+- **Both together is the worst at the change.** At the inversion only 20%
+  survive: they are born averse to the new food and taught to avoid it too,
+  and they starve. Innate biases also feed superstitions. Every experience
+  about a trait adds to a weight that already exists, so rules about traits
+  are written sooner. By the end, lineages with genes hold 4–7 false rules
+  they lived themselves, against 0–1 with culture alone.
+- **Myths across generations:** with culture alone, a false rule outlives its
+  generation for 1.3 generations on average (at most 3). With both, 17 false
+  rules lasted 3 generations or more (at most 6): traditions of mistakes.
+- Caveats: 4 lineages of 5 ants is a small population, and genes in
+  particular would need more ants and more generations to show what they can
+  do. What is solid is the size of the culture effect and the shock of the
+  inversion.
+
+```bash
+node scripts/batch.js --map-seed 1 --runs 4 --generations 12 --switch-at 6 \
+  --duration 1800 --colony 5 --set MAPGEN.species=6 \
+  [--set GEN.culture=0] [--set GEN.genes=0] --json out.json
+```
+
 ## Cost
 
 A chemistry map costs about 190 µs per simulation step on one core (six trees,
