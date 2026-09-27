@@ -111,7 +111,9 @@ export function synthInduced(brain, key, sensations, now) {
   const rules = brain.rules;
   const found = induce(brain).map((d) => ({ ...d, id: `${PREFIX[d.verdict]}-${traitsId(d.all)}` }));
   const foundIds = new Set(found.map((d) => d.id));
-  const current = rules.list.filter((r) => !r.retired && r.when.all && !rules.quarantined.has(r.id));
+  // Only its own rules (they carry `cases`): one-trait rules from synthCues
+  // may live next to them.
+  const current = rules.list.filter((r) => !r.retired && r.cases && !rules.quarantined.has(r.id));
   const because = because0(sensations);
 
   for (const d of found) {
@@ -158,6 +160,9 @@ function synth(brain, subject, w, stage, tries, sensations, now, cue = null) {
     const exits = verdict === 'avoid' ? LEARN.avoidUntil : LEARN.preferUntil;
     const sign = verdict === 'avoid' ? -1 : 1;
     const existing = activeRule(rules, key, verdict);
+    // An induced rule about the same trait is backed by whole species: it
+    // owns that subject, and the trait's own weight does not touch it.
+    if (cue && existing?.cases) continue;
 
     if (sign * w >= enters) {
       // Retire the opposite one if there is one: she can't avoid and prefer the same thing.

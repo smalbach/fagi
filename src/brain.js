@@ -87,8 +87,8 @@ export function learn(brain, key, reward, now, because = []) {
     learnCues(brain.cues, traits, reward, now);
     // Rules about traits: induced from whole species (learned/induce.js), or
     // one trait at a time from its weight.
-    if (CUES.induce) synthInduced(brain, key, because, now);
-    else synthCues(brain, traits, because, now);
+    if (CUES.induce !== 1) synthCues(brain, traits, because, now);
+    if (CUES.induce >= 1) synthInduced(brain, key, because, now);
   }
   brain.version = (brain.version ?? 0) + 1;
   // Learning also wires: the concept to what the body felt.

@@ -90,6 +90,8 @@ async function taste(fagi, key) {
 }
 
 const traitRules = (fagi) => fagi.brain.rules.list.filter((r) => !r.retired && r.when.all);
+// Only the induced ones: one-trait rules from a trait's weight live next to them.
+const inducedRules = (fagi) => traitRules(fagi).filter((r) => r.cases);
 
 test('one species is never generalized; two that agree give a rule with only what they share', async () => {
   const { createFagi } = await import('../src/fagi.js');
@@ -98,17 +100,29 @@ test('one species is never generalized; two that agree give a rule with only wha
   const fagi = createFagi();
 
   await taste(fagi, 'red-drop-sour');
-  assert.deepEqual(traitRules(fagi), [], 'one bad species says nothing about its traits yet');
+  assert.deepEqual(inducedRules(fagi), [], 'one bad species says nothing about its traits yet');
 
   await taste(fagi, 'blue-drop-sour');
-  const [rule] = traitRules(fagi);
+  const [rule] = inducedRules(fagi);
   assert.equal(rule.id, 'avoid-shape-drop-smell-sour', 'color differs, so it is dropped');
   assert.deepEqual(rule.cases, ['blue-drop-sour', 'red-drop-sour']);
   assert.equal(rule.pro, 2);
   assert.equal(rule.con, 0);
   assert.equal(verdict(fagi, 'eat', 'green-drop-sour'), 'avoid', 'an untasted sour drop is avoided');
-  assert.equal(verdict(fagi, 'eat', 'yellow-crystal-sour'), null, 'a sour crystal is not a drop');
   assert.equal(verdict(fagi, 'eat', 'green-drop-sour', { deliberate: true }), null, 'unless she goes for it on purpose: curiosity');
+  // With induced rules alone (no one-trait rule about sour), a sour crystal is not a drop.
+  const { CUES } = await import('../src/config.js');
+  const was = CUES.induce;
+  CUES.induce = 1;
+  try {
+    const other = createFagi();
+    await taste(other, 'red-drop-sour');
+    await taste(other, 'blue-drop-sour');
+    assert.equal(verdict(other, 'eat', 'green-drop-sour'), 'avoid');
+    assert.equal(verdict(other, 'eat', 'yellow-crystal-sour'), null, 'a sour crystal is not a drop');
+  } finally {
+    CUES.induce = was;
+  }
   registerSpecies([]);
 });
 
@@ -120,7 +134,7 @@ test('a third case generalizes the rule, and the new rule says where it came fro
   await taste(fagi, 'blue-drop-sour');
   await taste(fagi, 'yellow-crystal-sour');
 
-  const [rule] = traitRules(fagi);
+  const [rule] = inducedRules(fagi);
   assert.equal(rule.id, 'avoid-smell-sour');
   assert.equal(rule.from, 'avoid-shape-drop-smell-sour');
   assert.equal(rule.pro, 3);
@@ -141,7 +155,7 @@ test('a counterexample becomes an exception, not the end of the rule', async () 
   for (const k of ['red-drop-sour', 'blue-round-sour', 'yellow-crystal-sour']) await taste(fagi, k);
   await taste(fagi, 'purple-orb-sour');
 
-  const [rule] = traitRules(fagi).filter((r) => r.verdict === 'avoid');
+  const [rule] = inducedRules(fagi).filter((r) => r.verdict === 'avoid');
   assert.equal(rule.id, 'avoid-smell-sour', 'still about sour things');
   assert.equal(rule.con, 1);
   assert.deepEqual(rule.except, ['color:purple'], 'what sets the good one apart');
@@ -164,6 +178,7 @@ test('with induction off, a trait rule comes from the trait\'s own weight', asyn
   const { createFagi } = await import('../src/fagi.js');
   const { eat } = await import('../src/feeding.js');
   const { CUES } = await import('../src/config.js');
+  const was = CUES.induce;
   CUES.induce = 0;
   try {
     const fagi = createFagi();
@@ -173,7 +188,7 @@ test('with induction off, a trait rule comes from the trait\'s own weight', asyn
     eat(fagi, 'toxic');
     assert.ok(traitRules(fagi).some((r) => r.id === 'avoid-smell-rotten'), 'two bad bites write "avoid" for its smell');
   } finally {
-    CUES.induce = 1;
+    CUES.induce = was;
   }
 });
 
@@ -189,7 +204,7 @@ test('induced rules survive export and import, and old one-trait rules still loa
   const other = createFagi();
   store.importText(other, text);
   assert.deepEqual(Object.keys(other.brain.cues).sort(), Object.keys(fagi.brain.cues).sort());
-  assert.deepEqual(traitRules(other), traitRules(fagi));
+  assert.deepEqual(inducedRules(other), inducedRules(fagi));
 
   const old = `rule('avoid-smell-rotten', {"on":["eat"],"when":{"cue":"smell:rotten"},"verdict":"avoid","weight":-0.3,"because":[],"learnedAt":1,"tries":2,"stage":"short"})`;
   store.importText(other, old);

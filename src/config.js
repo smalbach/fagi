@@ -255,8 +255,9 @@ export const CUES = {
   rate: 0.3,          // how far each present trait moves toward what she felt
   evidence: 1,        // experiences with a trait until she half trusts it
   wary: 0.35,         // predicted harm (x confidence) that kills her curiosity
-  ruleEvidence: 2,    // experiences with a trait before she writes a rule about it (induce = 0)
-  induce: 1,          // 1 = trait rules are induced from whole species (learned/induce.js)
+  ruleEvidence: 2,    // experiences with a trait before she writes a one-trait rule about it
+  induce: 2,          // trait rules: 0 = one trait at a time, from its weight; 1 = induced from
+                      // whole species (learned/induce.js); 2 = both
   induceMin: 2,       // species that must agree before she generalizes from them
 };
 
