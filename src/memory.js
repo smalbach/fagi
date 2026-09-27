@@ -98,6 +98,19 @@ export function reinforce(mem, key, reward, now, learnRate) {
            kind: first ? 'first' : coherent ? (spaced ? 'confirms' : 'repeats') : 'contradicts' };
 }
 
+// Something she saw happen to a sister, not to herself: the value moves less
+// (`rate` is already scaled down) and confidence grows by a fraction of what a
+// first try gives, but it is not a try: the fruit stays untasted, so her
+// curiosity about it, and whatever its traits suggest, still count.
+export function reinforceSeen(mem, key, reward, now, rate, confidenceGain) {
+  const r = recall(mem, key);
+  const before = { value: r.value, confidence: r.confidence, stage: r.stage };
+  r.value = Math.min(1, Math.max(-1, r.value + rate * (reward - r.value)));
+  r.confidence = Math.min(1, r.confidence + confidenceGain * (1 - r.confidence));
+  r.lastAt = now;
+  return { before, after: { value: r.value, confidence: r.confidence, stage: r.stage }, kind: 'saw' };
+}
+
 // --- places ---
 // A remembered place stores where she THINKS it is (x, y), by how much she might be off
 // (error) and the real object she saw, to know whether it still exists.

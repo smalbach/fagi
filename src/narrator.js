@@ -41,6 +41,7 @@ export const TAG_COLOR = {
   api: '#4cc9f0',
   rethink: '#f0c75e',
   why: '#b57bff',
+  told: '#e8a33d',
 };
 
 export function createNarrator() {
@@ -48,7 +49,7 @@ export function createNarrator() {
     lines: [],
     prev: { action: null, drinking: false, swimming: false, dunk: 0, probed: false, raining: false, pressureFalling: false, rainLesson: 0, pressureLesson: 0, puddleGone: 0, meal: 0, drink: 0, water: 0,
             picked: 0, stored: 0, pantry: 0, alive: true,
-            stages: {}, trusted: {}, why: {}, habit: 0, rule: 0, peril: 0, rethink: 0, leg: 0 },
+            stages: {}, trusted: {}, why: {}, habit: 0, told: 0, saw: 0, rule: 0, peril: 0, rethink: 0, leg: 0 },
     seq: 0,
   };
 }
@@ -145,6 +146,20 @@ export function narrate(narr, fagi) {
       { key: logKey, params: { rule: r.id, what: { key: `type.${r.key}` } } },
       { key: 'log.ruleSub', params: { because: why(r.because) } });
     p.rule = r.n;
+  }
+
+  // In the nest a sister told her rules she had not lived (social.js).
+  const told = fagi.brain.lastTold;
+  if (told && told.n !== p.told) {
+    push(narr, fagi, 'told', { key: 'log.told', params: { from: told.from, rules: told.ids.join(', ') } }, { key: 'log.toldSub' });
+    p.told = told.n;
+  }
+  // She watched a sister eat something, and learned a little from it.
+  const saw = fagi.brain.lastSeen;
+  if (saw && saw.n !== p.saw) {
+    push(narr, fagi, 'told', { key: 'log.saw', params: { from: saw.from, what: { key: `type.${saw.key}` } } },
+      { key: saw.reward < 0 ? 'log.sawBad' : 'log.sawGood' });
+    p.saw = saw.n;
   }
 
   // A habit moved: she does something sooner or later than before, and why.

@@ -6,6 +6,7 @@ import { pheromoneAt } from '../../src/pheromone.js';
 import { generateMap } from '../../src/mapgen.js';
 import { createFagi, updateFagi } from '../../src/fagi.js';
 import { stepWorld } from '../../src/simulation.js';
+import { createColony, updateColony } from '../../src/colony.js';
 import * as CONFIG from '../../src/config.js';
 import { rng, withRng } from './random.js';
 import { round, mean } from './stats.js';
@@ -68,6 +69,97 @@ export function runOnce(opts, fagiSeed, startHabits = null) {
   return runSummary(fagiSeed, fagi, world, s);
 }
 
+// --- a colony --------------------------------------------------------------
+
+// `opts.colony` ants on the same map and the same nest. Each is measured like a
+// lone Fagi (one summary per ant, so the report counts ants as runs), and the
+// colony adds how rules travelled between them, myths included.
+export function runColony(opts, fagiSeed) {
+  const mapRng = rng(opts.mapSeed);
+  const worldRng = rng(opts.worldVaries ? fagiSeed * 7919 : opts.mapSeed + 1);
+  const fagiRng = rng(fagiSeed);
+
+  const world = withRng(mapRng, () => { const w = createWorld(); generateMap(w); return w; });
+  const colony = withRng(fagiRng, () => createColony(opts.colony));
+  const follows = colony.ants.map((f) => newFollow(opts, f));
+  const myths = createMythLog();
+
+  const steps = Math.ceil(opts.duration / opts.dt);
+  for (let i = 0; i < steps && colony.ants.some((f) => f.alive); i++) {
+    withRng(worldRng, () => stepWorld(world, opts.dt));
+    withRng(fagiRng, () => updateColony(world, colony, opts.dt));
+    colony.ants.forEach((fagi, k) => {
+      if (!fagi.alive) return;
+      const s = follows[k];
+      const acc = fagi.thought?.action ?? '-';
+      noteAction(s, fagi, acc, opts);
+      notePosition(s, fagi, opts);
+      noteThirst(s, fagi);
+      notePhase(s, fagi, world, acc, opts);
+      noteMilestones(s.milestones, fagi);
+      noteVisits(s.visitedList, fagi, world);
+      noteLearning(s.learning, fagi);
+    });
+    if (i % Math.round(MYTH_EVERY / opts.dt) === 0) noteMyths(myths, colony, world.time);
+  }
+  noteMyths(myths, colony, world.time);
+
+  const summaries = colony.ants.map((fagi, k) => runSummary(fagiSeed * 100 + fagi.id, fagi, world, follows[k]));
+  summaries[0].colony = { size: colony.ants.length, ...colony.stats, myths: mythSummary(myths, world.time) };
+  return summaries;
+}
+
+// --- myths ------------------------------------------------------------------
+
+const MYTH_EVERY = 10;   // seconds between looks at what everyone believes
+
+// Is a rule false on this map? A rule about a species, if the species does the
+// opposite; one about traits, if some fruit it covers does not do what it says.
+function isFalse(r) {
+  if (r.when.key) {
+    if (!CONFIG.POINT_TYPES[r.when.key]) return false;
+    return r.verdict === 'avoid' ? !isHarmful(r.when.key) : isHarmful(r.when.key);
+  }
+  const t = ruleTruth(r);
+  return t.total > 0 && t.ok < t.total;
+}
+
+function createMythLog() {
+  return { rules: {}, toldTrue: 0, toldFalse: 0 };
+}
+
+// Every so often: who holds which false rule without having lived it. A myth
+// is born the first time someone holds it that way, and dies when nobody does.
+function noteMyths(log, colony, now) {
+  const holders = {};
+  for (const f of colony.ants) {
+    if (!f.alive) continue;
+    for (const r of f.brain.rules.list) {
+      if (r.retired || !r.source || !isFalse(r)) continue;
+      (holders[r.id] ??= new Set()).add(f.id);
+    }
+  }
+  for (const [id, set] of Object.entries(holders)) {
+    const m = log.rules[id] ?? (log.rules[id] = { born: now, peak: 0, lastSeen: now, died: null });
+    m.peak = Math.max(m.peak, set.size);
+    m.lastSeen = now;
+    m.died = null;
+  }
+  for (const [id, m] of Object.entries(log.rules)) if (!holders[id] && m.died == null) m.died = now;
+}
+
+function mythSummary(log, end) {
+  const all = Object.entries(log.rules);
+  return {
+    born: all.length,
+    died: all.filter(([, m]) => m.died != null).length,
+    peak: all.reduce((a, [, m]) => Math.max(a, m.peak), 0),
+    meanPeak: all.length ? round(all.reduce((a, [, m]) => a + m.peak, 0) / all.length, 2) : 0,
+    meanLife: all.length ? round(all.reduce((a, [, m]) => a + ((m.died ?? end) - m.born), 0) / all.length) : 0,
+    ids: Object.fromEntries(all.map(([id, m]) => [id, { born: round(m.born), peak: m.peak, died: m.died != null ? round(m.died) : null }])),
+  };
+}
+
 // Everything recorded step by step.
 function newFollow(opts, fagi) {
   const cols = Math.ceil(WORLD.width / opts.cell);
@@ -115,7 +207,7 @@ function noteLearning(l, fagi) {
     if (l.stances[c.key] === now) continue;
     l.stances[c.key] = now;
     const ex = explain(fagi, c.key);
-    l.opinions.push({ t: round(fagi.age), key: c.key, stance: now, traced: ex.bites.length > 0, rule: ex.rule?.id ?? null, without: ex.counterfactual?.without ?? null });
+    l.opinions.push({ t: round(fagi.age), key: c.key, stance: now, traced: ex.bites.length > 0 || Boolean(ex.rule?.source), told: ex.rule?.source?.kind ?? null, rule: ex.rule?.id ?? null, without: ex.counterfactual?.without ?? null });
   }
   if (fagi.eaten > l.eaten) {
     l.eaten = fagi.eaten;
@@ -145,6 +237,11 @@ function learningSummary(l, fagi) {
     // First bites of harmful kinds: each is a lesson paid for with her body.
     harmfulFirstBites: l.bites.filter((b) => b.first && isHarmful(b.type)).length,
     traitRules,
+    // Rules she holds without having lived them, and how many are false.
+    toldRules: fagi.brain.rules.list.filter((r) => !r.retired && r.source?.kind === 'told').length,
+    sawRules: fagi.brain.rules.list.filter((r) => !r.retired && r.source?.kind === 'saw').length,
+    falseUnlived: fagi.brain.rules.list.filter((r) => !r.retired && r.source && isFalse(r)).length,
+    falseLived: fagi.brain.rules.list.filter((r) => !r.retired && !r.source && isFalse(r)).length,
     opinions: l.opinions,
     biteLog: l.bites,
   };

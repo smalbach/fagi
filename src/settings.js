@@ -6,7 +6,7 @@
 
 import {
   FAGI, HUNGER, THIRST, ENERGY, BRAIN, CARRY, NEST, EXPLORE, WIND, PLUME, PHERO, TREE, FRUIT, MEMORY,
-  MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT,
+  MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
 } from './config.js';
 import { startRain } from './rain.js';
 import { removeAllTrees } from './trees.js';
@@ -83,6 +83,12 @@ const GROUPS = [
     n(CUES, 'ruleEvidence', 'Experiences before a one-trait rule', 'Experiencias antes de una regla de un rasgo', 1, 10, 1),
     n(LEARN, 'autosave', 'Keep a recoverable copy (1 = yes)', 'Guardar copia recuperable (1 = sí)', 0, 1, 1),
     n(LEARN, 'autosaveEvery', 'Seconds between copies', 'Segundos entre copias', 1, 120, 1),
+  ]},
+  { title: { en: 'Colony (new sessions)', es: 'Colonia (sesiones nuevas)' }, fieldsOf: [
+    n(SOCIAL, 'size', 'Ants in the colony (1 = Fagi alone)', 'Hormigas en la colonia (1 = Fagi sola)', 1, 8, 1),
+    n(SOCIAL, 'share', 'Tell each other rules in the nest (1 = yes)', 'Contarse reglas en el nido (1 = sí)', 0, 1, 1),
+    n(SOCIAL, 'observe', 'Learning from watching a sister eat', 'Aprender de ver comer a una hermana', 0, 1, 0.05),
+    n(SOCIAL, 'trust', 'Trust in a rule told', 'Confianza en una regla contada', 0.1, 1, 0.05),
   ]},
   { title: { en: 'External decision API', es: 'API de decisión externa' }, fieldsOf: [
     n(BACKEND, 'enabled', 'Ask the API (1 = yes)', 'Consultar la API (1 = sí)', 0, 1, 1),

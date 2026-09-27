@@ -8,7 +8,7 @@
 // Which screen shows before and after (login, home, admin) is not handled
 // here: app/boot.js decides that, since it's the one that creates the game.
 
-import { WORLD } from './config.js';
+import { WORLD, SOCIAL } from './config.js';
 import { createWorld, resetWorld, record } from './world.js';
 import { generateMap } from './mapgen.js';
 import { createFagi } from './fagi.js';
@@ -17,6 +17,7 @@ import { updateTrails } from './smell.js';
 import { render } from './render.js';
 import { createInput } from './input.js';
 import { createAskCard } from './ask.js';
+import { createColony } from './colony.js';
 import { createCamera, centerOn, fit } from './camera.js';
 import { createUI } from './ui.js';
 import { versionLabel, versionTitle } from './version.js';
@@ -132,6 +133,7 @@ export function createGame({ onExit } = {}) {
   function setup() {
     exitReplay();
     resetWorld(world);
+    world.colony = null;
     generateMap(world);
     newFagi();
     camera.follow = false;
@@ -153,6 +155,8 @@ export function createGame({ onExit } = {}) {
       const snap = load();
       if (snap) { restore(fagi, snap); learned = { facts: Object.keys(snap.facts ?? {}).length, rules: snap.rules?.length ?? 0 }; }
     }
+    // Her sisters, if the colony has more than one ant: born knowing nothing.
+    world.colony = SOCIAL.size > 1 ? createColony(SOCIAL.size, fagi) : null;
     // The clock starts with the session, not with the map: the time spent
     // setting up doesn't count.
     world.time = 0;

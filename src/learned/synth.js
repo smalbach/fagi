@@ -36,6 +36,21 @@ function newRule(now, key, verdict, w, because, cue = null) {
   };
 }
 
+// Where what she is learning right now comes from: null when she lived it,
+// or { kind: 'saw', from, at, trust } while she learns from watching a sister
+// (social.js sets it around learnSeen). A rule she lived never becomes one she
+// only saw; one she was told becomes hers the moment she lives it.
+function sourceFor(brain, existing) {
+  const seen = brain.learningFrom ?? null;
+  if (!seen) return null;
+  return existing && !existing.source ? null : seen;
+}
+
+function withSource(r, source) {
+  const { source: _old, ...rest } = r;
+  return source ? { ...rest, source } : rest;
+}
+
 function markRule(brain, id, kind, key, verdict, because) {
   brain.lastRule = { n: (brain.lastRule?.n ?? 0) + 1, id, kind, key, verdict, because };
 }
@@ -56,6 +71,9 @@ function because0(sensations) {
 export function refreshRules(brain) {
   for (const r of brain.rules.list) {
     if (r.retired) continue;
+    // What a sister told her rests on what the sister lived: she has nothing
+    // of her own to weigh it with.
+    if (r.source?.kind === 'told') continue;
     if (r.cases) {
       const w = r.cases.reduce((sum, k) => sum + (brain.facts[k] ? weight(brain, k) : 0), 0) / r.cases.length;
       r.weight = Number(w.toFixed(3));
@@ -113,7 +131,8 @@ export function synthInduced(brain, key, sensations, now) {
   const foundIds = new Set(found.map((d) => d.id));
   // Only its own rules (they carry `cases`): one-trait rules from synthCues
   // may live next to them.
-  const current = rules.list.filter((r) => !r.retired && r.cases && !rules.quarantined.has(r.id));
+  // Rules a sister told her are not hers to rewrite until she lives them.
+  const current = rules.list.filter((r) => !r.retired && r.cases && !r.source && !rules.quarantined.has(r.id));
   const because = because0(sensations);
 
   for (const d of found) {
@@ -163,6 +182,8 @@ function synth(brain, subject, w, stage, tries, sensations, now, cue = null) {
     // An induced rule about the same trait is backed by whole species: it
     // owns that subject, and the trait's own weight does not touch it.
     if (cue && existing?.cases) continue;
+    // Nor does a trait she has barely met overturn what a sister told her.
+    if (cue && existing?.source && (brain.cues[cue]?.n ?? 0) < CUES.ruleEvidence) continue;
 
     if (sign * w >= enters) {
       // Retire the opposite one if there is one: she can't avoid and prefer the same thing.
@@ -173,13 +194,14 @@ function synth(brain, subject, w, stage, tries, sensations, now, cue = null) {
       }
 
       if (!existing) {
-        const r = upsertRule(rules, { ...newRule(now, key, verdict, w, sensations, cue), ...(cue ? { tries, stage } : {}) });
+        const r = upsertRule(rules, withSource(
+          { ...newRule(now, key, verdict, w, sensations, cue), ...(cue ? { tries, stage } : {}) }, sourceFor(brain, null)));
         markRule(brain, r.id, 'new', key, verdict, sensations);
       } else {
-        const r = upsertRule(rules, {
+        const r = upsertRule(rules, withSource({
           ...existing, weight: Number(w.toFixed(3)), because: sensations,
           revisedAt: now, tries, stage,
-        });
+        }, sourceFor(brain, existing)));
         markRule(brain, r.id, 'revised', key, verdict, sensations);
       }
     } else if (existing && sign * w <= exits) {

@@ -19,7 +19,7 @@
 // statistics and the report. Here they are only run and counted.
 
 import { args, applySets } from './batch/args.js';
-import { runOnce } from './batch/run.js';
+import { runOnce, runColony } from './batch/run.js';
 import { report } from './batch/report.js';
 import { round } from './batch/stats.js';
 import { writeFileSync, readFileSync } from 'node:fs';
@@ -32,10 +32,11 @@ const runs = [];
 const t0 = Date.now();
 let habits = opts.habitsIn ? JSON.parse(readFileSync(opts.habitsIn, 'utf8')) : null;
 for (let i = 0; i < opts.runs; i++) {
-  const r = runOnce(opts, opts.seed0 + i, habits);
-  runs.push(r);
+  // A colony gives one summary per ant: the report counts ants as runs.
+  const r = opts.colony > 1 ? runColony(opts, opts.seed0 + i) : runOnce(opts, opts.seed0 + i, habits);
+  if (Array.isArray(r)) runs.push(...r); else runs.push(r);
   // Chained lives: the next one starts with the habits this one ended with.
-  if (opts.chain) habits = r.habits;
+  if (opts.chain && !Array.isArray(r)) habits = r.habits;
   process.stderr.write(`\rrun ${i + 1}/${opts.runs}`);
 }
 process.stderr.write(`\r${' '.repeat(30)}\r`);

@@ -272,6 +272,18 @@ export const HABITS = {
   history: 8,         // moves kept per habit, to explain it
 };
 
+// The colony (colony.js, social.js): sisters sharing a nest, a pantry and the
+// trail pheromone, and what they learn from each other.
+export const SOCIAL = {
+  size: 1,            // ants in the colony: 1 = Fagi alone
+  share: 1,           // trophallaxis: sisters in the nest tell each other their rules
+  observe: 0.4,       // watching a sister eat teaches at this fraction of the strength (0 = off)
+  trust: 0.6,         // a rule told is trusted this fraction of the teller's own trust
+  minTrust: 0.3,      // below this, a rule is not worth passing on
+  every: 20,          // seconds before the same two sisters exchange again
+  seeRange: 1,        // fraction of her view range at which she notices a sister eat
+};
+
 // Explanations (learned/explain.js): why she thinks what she thinks of a fruit.
 export const EXPLAIN = {
   log: 80,            // experiences with fruit she keeps to point at

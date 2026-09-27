@@ -36,6 +36,7 @@ export const EVENT_TYPES = {
   fagi_rule: ['rule'],
   fagi_death: ['cause'],
   track: ['pts'],
+  sisters: ['ants'],   // her sisters (colony.js): [[id, x, y, angle, alive, carrying], ...]
   mind: [],
   log: ['tag', 'text'],
 };

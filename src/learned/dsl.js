@@ -57,14 +57,16 @@ function validateWhen(when) {
 //         because, learnedAt, revisedAt?, from?, tries, stage, retired?, retiredAt? }
 //   except: traits or species the rule does not hold for (its exceptions);
 //   pro/con: how many species she has tasted back it and contradict it;
-//   cases: the species that back it; from: the rule it grew out of.
+//   cases: the species that back it; from: the rule it grew out of;
+//   source: where it came from if she did not live it herself:
+//           { kind: 'told' | 'saw', from: <sister id>, at, trust }.
 export function rule(id, spec) {
   if (typeof id !== 'string' || !VALID_ID.test(id)) fail(`id "${id}" is malformed`);
   if (!spec || typeof spec !== 'object') fail('the rule body is missing');
 
   const {
     on, when, except, verdict, weight, pro, con, cases, because, learnedAt, revisedAt, from,
-    tries, stage, retired, retiredAt, ...rest
+    source, tries, stage, retired, retiredAt, ...rest
   } = spec;
   const extra = Object.keys(rest);
   if (extra.length) fail(`unknown fields: ${extra.join(', ')}`);
@@ -89,6 +91,7 @@ export function rule(id, spec) {
   if (!isNumber(learnedAt)) fail('"learnedAt" must be numeric');
   if (revisedAt !== undefined && !isNumber(revisedAt)) fail('"revisedAt" must be numeric');
   if (from !== undefined && (typeof from !== 'string' || !VALID_ID.test(from))) fail('"from" must be a rule id');
+  if (source !== undefined) validateSource(source);
   if (!isCount(tries)) fail('"tries" must be an integer ≥ 0');
   if (!STAGE_NAMES.includes(stage)) fail(`"stage" must be ${STAGE_NAMES.join('|')}`);
   if (retired !== undefined && typeof retired !== 'boolean') fail('"retired" must be a boolean');
@@ -104,9 +107,20 @@ export function rule(id, spec) {
     because: because.map((s) => ({ sense: s.sense, v: s.v })),
     learnedAt, ...(revisedAt !== undefined ? { revisedAt } : {}),
     ...(from !== undefined ? { from } : {}),
+    ...(source !== undefined ? { source: { kind: source.kind, from: source.from, at: source.at, trust: source.trust } } : {}),
     tries, stage,
     ...(retired ? { retired: true, retiredAt: retiredAt ?? learnedAt } : {}),
   };
+}
+
+// Where a rule came from, when she did not live it: a sister told her in the
+// nest, or she saw a sister eat it.
+function validateSource(source) {
+  if (!source || typeof source !== 'object') fail('"source" must be an object');
+  if (source.kind !== 'told' && source.kind !== 'saw') fail('"source.kind" must be told|saw');
+  if (!isCount(source.from)) fail('"source.from" must be a sister id');
+  if (!isNumber(source.at)) fail('"source.at" must be numeric');
+  if (!isNumber(source.trust) || source.trust < 0 || source.trust > 1) fail('"source.trust" must be within 0..1');
 }
 
 // A rule kept from before `when.all` existed ({ cue }) in today's shape. For
@@ -210,7 +224,10 @@ export function parseModule(text) {
 function validateBites(bites) {
   if (!Array.isArray(bites)) return [];
   return bites.slice(-200).filter((b) => b && isKey(b.key) && isNumber(b.at) && isNumber(b.reward))
-    .map((b) => ({ key: b.key, at: b.at, reward: b.reward, ...(b.late === true ? { late: true } : {}) }));
+    .map((b) => ({
+      key: b.key, at: b.at, reward: b.reward,
+      ...(b.late === true ? { late: true } : {}), ...(isCount(b.saw) ? { saw: b.saw } : {}),
+    }));
 }
 
 // Only well-formed traits get in: 'dimension:value' with a weight in [-1, 1].

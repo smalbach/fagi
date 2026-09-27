@@ -178,8 +178,8 @@ export function updateFagi(fagi, world, dt) {
   // And whatever the API had in flight stops counting: there's no one left to direct.
   if (resolveVitalFailure(fagi)) {
     deathLesson(fagi, fagi.cause, pantry);
-    save(snapshot(fagi));
+    if (!fagi.sister) save(snapshot(fagi));
     resetCortex(fagi.cortex);
   }
-  else saveLearning(fagi, dt);
+  else if (!fagi.sister) saveLearning(fagi, dt);
 }

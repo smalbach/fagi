@@ -13,6 +13,7 @@ export function report(opts, runs) {
   L.push(...reportSpread(runs));
   L.push(...reportLearning(runs));
   L.push(...reportHabits(runs));
+  L.push(...reportColony(runs));
   L.push(...reportActions(runs));
   L.push(...reportFirsts(runs));
   L.push(...reportPhases(opts, runs));
@@ -51,6 +52,24 @@ function reportSpread(runs) {
 // What she learned about food, and what it cost her. "avoided" = kinds she met
 // and never bit; "tried" = helpful kinds she did bite. Over-avoidance shows up
 // as a low "tried".
+// A colony (--colony): how rules travelled between sisters, and the myths.
+function reportColony(runs) {
+  const colonies = runs.map((r) => r.colony).filter(Boolean);
+  if (!colonies.length) return [];
+  const sum = (f) => colonies.reduce((a, c) => a + f(c), 0);
+  const per = (k) => runs.reduce((a, r) => a + (r.learning?.[k] ?? 0), 0);
+  const L = [`colony (${colonies.length} colonies of ${colonies[0].size})`];
+  L.push(`  ${pad('exchanges in the nest', 22)} ${sum((c) => c.exchanges)}   rules told ${sum((c) => c.told)}   meals seen ${sum((c) => c.seen)}`);
+  L.push(`  ${pad('held at the end', 22)} told ${per('toldRules')} · seen ${per('sawRules')}; false: ${per('falseUnlived')} unlived, ${per('falseLived')} lived`);
+  L.push(`  ${pad('myths', 22)} ${sum((c) => c.myths.born)} born, ${sum((c) => c.myths.died)} died; widest reached ${Math.max(...colonies.map((c) => c.myths.peak))} sisters; mean life ${round(sum((c) => c.myths.meanLife) / colonies.length)}s`);
+  const names = {};
+  for (const c of colonies) for (const [id, m] of Object.entries(c.myths.ids)) names[id] = Math.max(names[id] ?? 0, m.peak);
+  const top = Object.entries(names).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  if (top.length) L.push(`  ${pad('widest myths', 22)} ${top.map(([id, p]) => `${id} (${p})`).join(' · ')}`);
+  L.push('');
+  return L;
+}
+
 // Habits (habits.js): where each one ended, and how many times they moved.
 function reportHabits(runs) {
   const ids = Object.keys(runs[0]?.habitValues ?? {});
@@ -100,7 +119,8 @@ function reportLearning(runs) {
     const traced = formed.filter((o) => o.traced).length;
     const hanging = formed.filter((o) => o.without).length;
     L.push(`  ${pad('opinions on untasted', 22)} ${opinions.length}: ${Object.entries(by).map(([k, v]) => `${k} ${v}`).join(' · ')}`);
-    L.push(`  ${pad('traced to real bites', 22)} ${traced}/${formed.length} (${pctOf(traced, formed.length)}); ${hanging} would change with one trait less`);
+    const told = formed.filter((o) => o.told).length;
+    L.push(`  ${pad('traced to real bites', 22)} ${traced}/${formed.length} (${pctOf(traced, formed.length)})${told ? `, ${told} of them through a sister` : ''}; ${hanging} would change with one trait less`);
   }
   L.push('');
   return L;

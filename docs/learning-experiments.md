@@ -233,6 +233,64 @@ node scripts/batch.js --map-seed 1 --runs 12 --duration 1800 --world-varies \
   --set MAPGEN.species=6 --habits-in H.json --set HABITS.learn=0
 ```
 
+## Phase 5: the colony
+
+`SOCIAL.size` ants share the map, the nest and its pantry, and the trail
+pheromone (`src/colony.js`). Each ant has her own body and head. What one
+learns reaches the others two ways (`src/social.js`):
+
+- **trophallaxis**: sisters who are in the nest at the same time (each pair at
+  most every 20 s) tell each other their rules. A rule told comes in marked
+  `source: { kind: 'told', from, trust }`, weighing `SOCIAL.trust` (0.6) of
+  what it weighed for the teller. It can be told on again, weaker each time,
+  until its trust falls below `SOCIAL.minTrust` (after two tellings). Nobody
+  is told about a fruit she has tasted, or about anything she already has, or
+  had, a rule on;
+- **observation**: watching a sister eat (within her view range) teaches at
+  `SOCIAL.observe` (0.4) of the strength. It does not count as having tasted
+  it, and the rules it writes are marked `saw`.
+
+A rule told becomes hers when she lives it (the mark goes), or is retired if
+her own experience says otherwise. Explanations say where a rule came from
+("Fagi 2 told me in the nest; I trust it 60%"). The narrator tells each
+exchange, and her sisters are drawn with their number and replayed.
+
+A **myth** is a rule that is false on this map (checked against the hidden
+chemistry) and that someone holds without having lived it (`batch --colony`
+tracks them every 10 s: when each one is born, how far it spreads, and when
+nobody holds it any more).
+
+### Experiment
+
+Colonies of 4 on the chemistry maps (4 maps × 6 colonies × 1800 s, 96 ants
+per variant). Every variant has the same competition for fruit; only what
+they tell each other changes.
+
+| variant | alive | harmful bites | first harmful bites / ant | harmful kinds avoided | helpful kinds tried |
+|---|---|---|---|---|---|
+| isolated (no social learning) | 74/96 (77%) | 31% | 1.93 | 48% | 52% |
+| observation only | 74/96 (77%) | 29% | 1.69 | 55% | 51% |
+| trophallaxis only | 83/96 (86%) | 24% | 1.25 | 66% | 58% |
+| **both** (default) | **85/96 (89%)** | **22%** | **1.14** | **70%** | 56% |
+
+- The colony learns faster: each ant pays for 41% fewer lessons with her own
+  body (first harmful bites), avoids more harmful kinds without tasting them,
+  and still tries more helpful ones. Hunger deaths go from 20 to 9.
+- Trophallaxis does most of it. Watching helps a little: a meal is only seen
+  when a sister happens to be close.
+- **Myths**: with both channels, 21 myths were born in 24 colonies and
+  reached up to 3 of the 4 sisters. At the end, 41 false rules were held
+  without having been lived, against 29 held first-hand. The most common
+  myths were `avoid-shape-round` (11 colonies: rotten fruit and a poison
+  happened to be round), `avoid-color-orange` and `avoid-color-blue`.
+- **Myths hardly die**: 1 of 21. An "avoid" myth protects itself: whoever
+  believes it never tastes the fruit, so she never finds out it is false.
+
+```bash
+node scripts/batch.js --map-seed 1 --runs 6 --duration 1800 --world-varies \
+  --set MAPGEN.species=6 --colony 4 [--set SOCIAL.share=0] [--set SOCIAL.observe=0]
+```
+
 ## Cost
 
 A chemistry map costs about 190 µs per simulation step on one core (six trees,

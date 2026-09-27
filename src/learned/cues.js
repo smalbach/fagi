@@ -53,13 +53,14 @@ export function predict(cues, list) {
 }
 
 // One experience: every cue that was there moves by the same surprise.
-export function learnCues(cues, list, reward, now) {
+// `rate` defaults to CUES.rate; watching a sister learns at a fraction of it.
+export function learnCues(cues, list, reward, now, rate = CUES.rate) {
   if (!cues || !list.length) return null;
   const before = predict(cues, list).value;
   const surprise = reward - before;
   for (const c of list) {
     const e = cues[c] ?? (cues[c] = { w: 0, n: 0, lastAt: now });
-    e.w = clamp(e.w + CUES.rate * surprise);
+    e.w = clamp(e.w + rate * surprise);
     e.n += 1;
     e.lastAt = now;
   }

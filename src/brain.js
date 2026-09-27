@@ -1,8 +1,8 @@
 // Fagi's brain: she decides with what she remembers, and what she remembers lives in
 // memory.js. Here we only score: what she wants most out of everything she perceives.
 
-import { BRAIN, CUES } from './config.js';
-import { createMemory, recall, weight, curious, reinforce } from './memory.js';
+import { BRAIN, CUES, SOCIAL, MEMORY } from './config.js';
+import { createMemory, recall, weight, curious, reinforce, reinforceSeen } from './memory.js';
 import { createRules } from './learned/rules.js';
 import { synthAfterLearn, synthCues, synthInduced } from './learned/synth.js';
 import { createCues, cuesOf, learnCues, predict, wariness } from './learned/cues.js';
@@ -82,6 +82,29 @@ export function choose(brain, candidates) {
 // synthAfterLearn: that way nobody has to remember to synthesize rules at every
 // place that calls learn(), and any future source of learning (whatever it is)
 // gets them for free just by calling this function.
+// Learn from watching a sister eat `key` and feel `reward` (social.js). The
+// same paths as learn(), at SOCIAL.observe of the strength, without counting as
+// a try, and every rule it writes says where it came from: { kind: 'saw', from }.
+export function learnSeen(brain, key, reward, now, from) {
+  const change = reinforceSeen(brain, key, reward, now, BRAIN.learnRate * SOCIAL.observe, MEMORY.first * SOCIAL.observe);
+  const because = [{ sense: 'saw', v: Math.round(reward * 100) / 100 }];
+  brain.learningFrom = { kind: 'saw', from, at: Math.round(now * 10) / 10, trust: SOCIAL.observe };
+  try {
+    synthAfterLearn(brain, key, change, because, now);
+    const traits = CUES.enabled ? cuesOf(key) : [];
+    if (traits.length) {
+      learnCues(brain.cues, traits, reward, now, CUES.rate * SOCIAL.observe);
+      if (CUES.induce !== 1) synthCues(brain, traits, because, now);
+    }
+    logBite(brain, key, reward, now, false, from);
+    brain.lastSeen = { n: (brain.lastSeen?.n ?? 0) + 1, from, key, reward };
+  } finally {
+    brain.learningFrom = null;
+  }
+  brain.version = (brain.version ?? 0) + 1;
+  return change;
+}
+
 export function learn(brain, key, reward, now, because = []) {
   const change = reinforce(brain, key, reward, now, BRAIN.learnRate);
   synthAfterLearn(brain, key, change, because, now);

@@ -25,10 +25,15 @@ import { verdict, traitsMatch } from './rules.js';
 // Every experience with a fruit, in order: what, when, how it felt, and
 // whether it was the later reckoning of an earlier bite (episodes.js).
 // Bounded: the oldest go first.
-export function logBite(brain, key, reward, now, late) {
+//
+// `saw`: the id of the sister she watched eat it, when it was not her bite.
+export function logBite(brain, key, reward, now, late, saw = null) {
   if (!cuesOf(key).length) return;
   const log = brain.bites ?? (brain.bites = []);
-  log.push({ key, at: Math.round(now * 10) / 10, reward: Math.round(reward * 1000) / 1000, ...(late ? { late: true } : {}) });
+  log.push({
+    key, at: Math.round(now * 10) / 10, reward: Math.round(reward * 1000) / 1000,
+    ...(late ? { late: true } : {}), ...(saw != null ? { saw } : {}),
+  });
   if (log.length > EXPLAIN.log) log.splice(0, log.length - EXPLAIN.log);
 }
 
@@ -37,6 +42,7 @@ export function logBite(brain, key, reward, now, late) {
 function kindsFromLog(brain) {
   const kinds = {};
   for (const b of brain.bites ?? []) {
+    if (b.saw != null) continue;   // what she tasted herself
     const k = kinds[b.key] ?? (kinds[b.key] = { bites: 0, sum: 0 });
     if (!b.late) k.bites += 1;   // a later reckoning is not another bite
     k.sum += b.reward;
@@ -164,7 +170,10 @@ export function explain(fagi, key) {
     tasted,
     stance,
     tries: brain.facts[key]?.tries ?? 0,
-    rule: rule ? { id: rule.id, verdict: rule.verdict, pro: rule.pro ?? null, con: rule.con ?? null, except: rule.except ?? [] } : null,
+    rule: rule ? {
+      id: rule.id, verdict: rule.verdict, pro: rule.pro ?? null, con: rule.con ?? null, except: rule.except ?? [],
+      source: rule.source ?? null,
+    } : null,
     trait: cue ? traitRecord(brain, cue) : null,
     bites: backingBites(fagi, key, tasted, rule, cue, stance),
     counterfactual: tasted ? null : counterfactual(fagi, key, traits, stance),
@@ -185,6 +194,9 @@ export function lines(ex) {
     out.push(ex.rule.pro != null
       ? { key: 'why.ruleInduced', params: { id: ex.rule.id, pro: ex.rule.pro, con: ex.rule.con } }
       : { key: 'why.rule', params: { id: ex.rule.id } });
+    // Not lived: who it came from, and how much she trusts it.
+    const src = ex.rule.source;
+    if (src) out.push({ key: `why.${src.kind}`, params: { from: src.from, trust: Math.round(src.trust * 100) } });
     const [first, ...others] = ex.rule.except;
     if (first) out.push({ key: 'why.except', params: { what: what(first), more: others.length ? ` (+${others.length})` : '' } });
   }
@@ -198,7 +210,9 @@ export function lines(ex) {
   }
   for (const b of ex.bites) {
     const felt = b.late ? 'late' : b.reward < 0 ? 'bad' : 'good';
-    out.push({ key: `why.bite.${felt}`, params: { what: what(b.key), at: { dur: b.at } } });
+    out.push(b.saw != null
+      ? { key: `why.bite.saw.${b.reward < 0 ? 'bad' : 'good'}`, params: { what: what(b.key), from: b.saw, at: { dur: b.at } } }
+      : { key: `why.bite.${felt}`, params: { what: what(b.key), at: { dur: b.at } } });
   }
   const cf = ex.counterfactual;
   if (cf) {

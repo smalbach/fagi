@@ -179,6 +179,9 @@ export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
     route.push(route[i - 1] + Math.hypot(track[i][1] - track[i - 1][1], track[i][2] - track[i - 1][2]));
   }
   const markers = events.filter((e) => MARKER_TYPES.has(e.type));
+  // Her sisters' samples, if the session had a colony: sorted by time.
+  const sisterTrack = events.filter((e) => e.type === 'sisters');
+  const sisters = new Map();   // id -> the sister drawn, reused frame to frame
 
   let state = createReplayState();
   let cursor = 0;          // next event to apply
@@ -233,6 +236,7 @@ export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
     w.wind.angle = normalizeAngle(w.wind.angle + Math.sign(diff) * turn);
     state.windAt = time;
     putFagi(fagi, track, route, time, state.dead, w);
+    w.colony = sisterTrack.length ? { ants: putSisters(sisters, sisterTrack, time) } : null;
     putMind(fagi, state, time);
     return { world: w, fagi, time, config: state.config, configSeq: state.configSeq };
   }
@@ -249,6 +253,32 @@ export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
     get log() { return state.log; },
     get logEpoch() { return logEpoch; },
   };
+}
+
+// Her sisters at moment t, between the two samples around it.
+function putSisters(sisters, samples, t) {
+  let lo = 0;
+  let hi = samples.length - 1;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (samples[mid].t <= t) lo = mid; else hi = mid;
+  }
+  if (samples[hi].t <= t) lo = hi;
+  const a = samples[lo];
+  const b = samples[Math.min(lo + 1, samples.length - 1)];
+  if (t < a.t) return [];
+  const k = b.t > a.t ? Math.min(1, Math.max(0, (t - a.t) / (b.t - a.t))) : 0;
+  const next = new Map(b.ants.map((s) => [s[0], s]));
+  return a.ants.map(([id, x, y, angle, alive, carrying]) => {
+    const n = next.get(id) ?? [id, x, y, angle, alive, carrying];
+    const f = sisters.get(id) ?? { id, sister: true, stride: 0, castSide: 1 };
+    const nx = x + (n[1] - x) * k;
+    const ny = y + (n[2] - y) * k;
+    f.stride += Math.hypot(nx - (f.x ?? nx), ny - (f.y ?? ny));
+    Object.assign(f, { x: nx, y: ny, angle: angle + normalizeAngle(n[3] - angle) * k, alive: Boolean(alive), carrying: carrying ? { type: carrying } : null });
+    sisters.set(id, f);
+    return f;
+  });
 }
 
 // Fagi at moment t: between two path samples the position and heading are

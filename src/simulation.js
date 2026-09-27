@@ -10,6 +10,7 @@ import { updateFood } from './food.js';
 import { updateNest } from './world.js';
 import { updateRain } from './rain.js';
 import { updateFagi } from './fagi.js';
+import { updateSisters } from './colony.js';
 
 export function stepWorld(world, dt) {
   world.time = (world.time ?? 0) + dt;
@@ -25,4 +26,6 @@ export function stepWorld(world, dt) {
 export function step(world, fagi, dt) {
   stepWorld(world, dt);
   updateFagi(fagi, world, dt);
+  // Her sisters, if she has any (colony.js): they move after her.
+  if (world.colony) updateSisters(world, world.colony, dt);
 }

@@ -549,4 +549,16 @@ export default {
   'habit.why.died': 'she died {cause}',
   'habit.short.tasteAt': 'taste from hunger', 'habit.short.hungerAt': 'food at', 'habit.short.thirstAt': 'water at',
   'habit.short.restAt': 'rest at', 'habit.short.reserve': 'reserve',
+  // Learning from sisters (social.js).
+  'why.told': 'Fagi {from} told me in the nest; I trust it {trust}%.',
+  'why.saw': 'I saw Fagi {from} eat it; I trust it {trust}%.',
+  'why.bite.saw.bad': 'I saw Fagi {from} get sick from {what} ({at}).',
+  'why.bite.saw.good': 'I saw {what} do Fagi {from} good ({at}).',
+  'log.told': 'Fagi {from} tells her: {rules}',
+  'log.toldSub': 'rules she has not lived: they weigh less until she does',
+  'log.saw': 'Sees Fagi {from} eat {what}',
+  'tag.told': 'TOLD',
+  'colony.size': 'Sisters in the colony',
+  'log.sawBad': 'it made her sick: she learns a little, without having tasted it',
+  'log.sawGood': 'it did her good: she learns a little, without having tasted it',
 };

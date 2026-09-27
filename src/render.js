@@ -91,6 +91,12 @@ function foreground(ctx, world, fagi, camera, inside) {
   drawPheromone(ctx, world);
   for (const o of world.objects) drawObject(ctx, o, inside, world.wind, rainFalling());
   for (const p of world.points) drawFruit(ctx, p);
+  // Her sisters (colony.js), under her: the one you follow stays on top.
+  for (const s of world.colony?.ants ?? []) {
+    if (!s.sister || (s.alive && s.thought && hidden(s, world))) continue;
+    drawFagi(ctx, s);
+    if (!world.immersive) drawSisterId(ctx, s);
+  }
   if (!fagi) return;
 
   // The cone is perception, not debugging: it must show in clean mode too.
@@ -109,6 +115,19 @@ function foreground(ctx, world, fagi, camera, inside) {
   drawFagi(ctx, fagi);
   drawBuffRings(ctx, fagi);
   if (!world.immersive) drawCoords(ctx, fagi, camera.zoom);
+}
+
+// Which sister it is, small, above her: 'Fagi 3' in the narration is this one.
+function drawSisterId(ctx, s) {
+  ctx.save();
+  ctx.font = '600 9px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(230,232,238,0.85)';
+  ctx.strokeStyle = 'rgba(20,22,28,0.8)';
+  ctx.lineWidth = 3;
+  ctx.strokeText(String(s.id), s.x, s.y - 12);
+  ctx.fillText(String(s.id), s.x, s.y - 12);
+  ctx.restore();
 }
 
 function drawGroundShadows(ctx, world) {

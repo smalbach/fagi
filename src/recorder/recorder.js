@@ -19,6 +19,8 @@
 import { TRACK_FIELDS } from './events.js';
 import { normalizeAngle } from '../vision.js';
 
+const SISTERS_EVERY = 0.25;   // seconds between samples of her sisters
+
 // Row columns that, if they change, call for a new point: action, target,
 // load, target kind, whether she's drinking, exploration leg.
 const DISCRETE = [4, 5, 6, 10, 11, 17];
@@ -211,6 +213,19 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     }
   }
 
+  // Her sisters, a few times a second: enough to see them come and go in a
+  // replay. What they do to the world (fruit eaten, rations stored) is
+  // recorded anyway, like anything else that changes it.
+  let nextSisters = 0;
+  function observeSisters(colony) {
+    if (!colony || world.time < nextSisters) return;
+    nextSisters = world.time + SISTERS_EVERY;
+    const ants = colony.ants.filter((f) => f.sister).map((f) => [
+      f.id, round(f.x, 1), round(f.y, 1), round(f.angle, 2), f.alive ? 1 : 0, f.carrying?.type ?? null,
+    ]);
+    if (ants.length) emit('sisters', { ants });
+  }
+
   // Once per frame, after step(). `lines`: what narrate() returns.
   function observe(fagi, lines) {
     if (ended) return;
@@ -224,6 +239,7 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
       emit('wind', { angle: world.wind.angle, target: world.wind.target });
     }
     observeFagi(fagi);
+    observeSisters(world.colony);
     if (fagi.alive) sampleFagi(fagi);
     if (!fagi.alive && !deathNoted) {
       // She also moved on the frame she dies: that's the last spot.

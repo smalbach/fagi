@@ -551,4 +551,16 @@ export default {
   'habit.why.died': 'murió {cause}',
   'habit.short.tasteAt': 'probar desde hambre', 'habit.short.hungerAt': 'comida al', 'habit.short.thirstAt': 'agua al',
   'habit.short.restAt': 'descansar al', 'habit.short.reserve': 'reserva',
+  // Aprender de las hermanas (social.js).
+  'why.told': 'Me lo contó Fagi {from} en el nido; me fío un {trust}%.',
+  'why.saw': 'Vi a Fagi {from} comerlo; me fío un {trust}%.',
+  'why.bite.saw.bad': 'Vi a Fagi {from} enfermar con {what} ({at}).',
+  'why.bite.saw.good': 'Vi que {what} le sentó bien a Fagi {from} ({at}).',
+  'log.told': 'Fagi {from} le cuenta: {rules}',
+  'log.toldSub': 'reglas que no ha vivido: pesan menos hasta que las viva',
+  'log.saw': 'Ve a Fagi {from} comer {what}',
+  'tag.told': 'LE CUENTAN',
+  'colony.size': 'Hermanas en la colonia',
+  'log.sawBad': 'le sentó mal: aprende un poco, sin haberlo probado',
+  'log.sawGood': 'le sentó bien: aprende un poco, sin haberlo probado',
 };
