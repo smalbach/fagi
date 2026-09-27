@@ -14,112 +14,112 @@
 import Split from 'split.js';
 import { t, onLangChange } from './i18n.js';
 
-const CLAVE = 'fagi.panel-layout';
-const MEDIA_ESCRITORIO = '(min-width: 861px)';
-const ALTO_CABECERA = 32; // px de un .pane-head: mínimo al arrastrar y tamaño al colapsar
+const KEY = 'fagi.panel-layout';
+const DESKTOP_MEDIA = '(min-width: 861px)';
+const HEADER_HEIGHT = 32; // px de un .pane-head: mínimo al arrastrar y tamaño al colapsar
 
-function leerEstado() {
+function readState() {
   try {
-    const guardado = localStorage.getItem(CLAVE);
-    return guardado ? JSON.parse(guardado) : {};
+    const saved = localStorage.getItem(KEY);
+    return saved ? JSON.parse(saved) : {};
   } catch { return {}; }
 }
 
-function guardarEstado(estado) {
-  try { localStorage.setItem(CLAVE, JSON.stringify(estado)); } catch { /* sin localStorage, no persiste */ }
+function saveState(state) {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* sin localStorage, no persiste */ }
 }
 
-function initTabs(root, estado) {
-  const tabs = [...root.querySelectorAll('#consola-tabs > .tab')];
+function initTabs(root, state) {
+  const tabs = [...root.querySelectorAll('#console-tabs > .tab')];
   const paneles = [...root.querySelectorAll('.tab-panel')];
   if (tabs.length === 0) return;
 
-  function activar(nombre) {
-    for (const boton of tabs) {
-      const activo = boton.dataset.tab === nombre;
-      boton.classList.toggle('active', activo);
-      boton.setAttribute('aria-selected', String(activo));
+  function activate(name) {
+    for (const btn of tabs) {
+      const isActive = btn.dataset.tab === name;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', String(isActive));
     }
-    for (const panel of paneles) panel.hidden = panel.dataset.panel !== nombre;
-    estado.tab = nombre;
-    guardarEstado(estado);
+    for (const panel of paneles) panel.hidden = panel.dataset.panel !== name;
+    state.tab = name;
+    saveState(state);
   }
 
-  for (const boton of tabs) boton.addEventListener('click', () => activar(boton.dataset.tab));
-  const inicial = tabs.some((b) => b.dataset.tab === estado.tab) ? estado.tab : tabs[0].dataset.tab;
-  activar(inicial);
+  for (const btn of tabs) btn.addEventListener('click', () => activate(btn.dataset.tab));
+  const initial = tabs.some((b) => b.dataset.tab === state.tab) ? state.tab : tabs[0].dataset.tab;
+  activate(initial);
 }
 
 // Un controlador por `.split-pane`: sabe colapsar/expandir cada mitad (algo
 // que vale tanto en escritorio como en móvil) y, solo cuando hace falta,
 // montar o desmontar la instancia de Split.js que permite arrastrar.
-function crearControlador(split, estado) {
-  const clave = split.dataset.split;
+function createController(split, state) {
+  const key = split.dataset.split;
   const [a, b] = split.querySelectorAll(':scope > .pane');
-  const guardado = estado[clave] ?? {};
-  let tamanos = guardado.sizes ?? [50, 50];
-  let instancia = null;
+  const saved = state[key] ?? {};
+  let sizesOf = saved.sizes ?? [50, 50];
+  let instance = null;
 
-  function marcarColapso(pane, colapsado) {
-    pane.classList.toggle('collapsed', colapsado);
-    const boton = pane.querySelector('.pane-toggle');
-    boton.textContent = colapsado ? '▸' : '▾';
-    boton.setAttribute('aria-expanded', String(!colapsado));
+  function markCollapse(pane, collapsedState) {
+    pane.classList.toggle('collapsed', collapsedState);
+    const btn = pane.querySelector('.pane-toggle');
+    btn.textContent = collapsedState ? '▸' : '▾';
+    btn.setAttribute('aria-expanded', String(!collapsedState));
   }
 
-  function actualizarGutter() {
-    const algunoColapsado = a.classList.contains('collapsed') || b.classList.contains('collapsed');
-    split.classList.toggle('resizer-hidden', algunoColapsado);
+  function updateGutter() {
+    const anyCollapsed = a.classList.contains('collapsed') || b.classList.contains('collapsed');
+    split.classList.toggle('resizer-hidden', anyCollapsed);
   }
 
-  function guardar() {
-    estado[clave] = {
-      sizes: tamanos,
+  function save() {
+    state[key] = {
+      sizes: sizesOf,
       collapsed: [a.classList.contains('collapsed'), b.classList.contains('collapsed')],
     };
-    guardarEstado(estado);
+    saveState(state);
   }
 
-  if (guardado.collapsed?.[0]) marcarColapso(a, true);
-  if (guardado.collapsed?.[1]) marcarColapso(b, true);
-  actualizarGutter();
+  if (saved.collapsed?.[0]) markCollapse(a, true);
+  if (saved.collapsed?.[1]) markCollapse(b, true);
+  updateGutter();
 
-  function alternar(pane, otro, indice) {
-    const colapsado = !pane.classList.contains('collapsed');
+  function toggleSplit(pane, other, index) {
+    const collapsedState = !pane.classList.contains('collapsed');
     // Las dos mitades no pueden colapsarse a la vez: no quedaría nada que mostrar.
-    if (colapsado && otro.classList.contains('collapsed')) marcarColapso(otro, false);
-    marcarColapso(pane, colapsado);
-    actualizarGutter();
-    if (instancia) {
-      if (colapsado) instancia.collapse(indice);
-      else instancia.setSizes(tamanos);
+    if (collapsedState && other.classList.contains('collapsed')) markCollapse(other, false);
+    markCollapse(pane, collapsedState);
+    updateGutter();
+    if (instance) {
+      if (collapsedState) instance.collapse(index);
+      else instance.setSizes(sizesOf);
     }
-    guardar();
+    save();
   }
-  a.querySelector('.pane-toggle').addEventListener('click', () => alternar(a, b, 0));
-  b.querySelector('.pane-toggle').addEventListener('click', () => alternar(b, a, 1));
+  a.querySelector('.pane-toggle').addEventListener('click', () => toggleSplit(a, b, 0));
+  b.querySelector('.pane-toggle').addEventListener('click', () => toggleSplit(b, a, 1));
 
   return {
     // Solo se llama en escritorio: aquí sí hay un tirador que arrastrar.
-    montar() {
-      if (instancia) return;
-      instancia = Split([a, b], {
+    mount() {
+      if (instance) return;
+      instance = Split([a, b], {
         direction: 'vertical',
-        sizes: tamanos,
-        minSize: ALTO_CABECERA,
+        sizes: sizesOf,
+        minSize: HEADER_HEIGHT,
         gutterSize: 8,
         snapOffset: 0,
-        onDragEnd(sizes) { tamanos = sizes; guardar(); },
+        onDragEnd(sizes) { sizesOf = sizes; save(); },
       });
-      if (a.classList.contains('collapsed')) instancia.collapse(0);
-      else if (b.classList.contains('collapsed')) instancia.collapse(1);
+      if (a.classList.contains('collapsed')) instance.collapse(0);
+      else if (b.classList.contains('collapsed')) instance.collapse(1);
     },
     // Solo se llama en móvil: sin Split.js, cada mitad usa su alto natural
     // (definido por el CSS de móvil), sin estilos inline que lo compliquen.
-    desmontar() {
-      if (!instancia) return;
-      instancia.destroy(false, false);
-      instancia = null;
+    unmount() {
+      if (!instance) return;
+      instance.destroy(false, false);
+      instance = null;
     },
   };
 }
@@ -128,64 +128,64 @@ function crearControlador(split, estado) {
 // cosa) no hay nada que organizar.
 export function initPanelLayout(root) {
   if (!root) return;
-  const estado = leerEstado();
-  initTabs(root, estado);
+  const state = readState();
+  initTabs(root, state);
 
-  const controladores = [...root.querySelectorAll('.split-pane')].map((sp) => crearControlador(sp, estado));
+  const controllers = [...root.querySelectorAll('.split-pane')].map((sp) => createController(sp, state));
 
-  const mq = window.matchMedia(MEDIA_ESCRITORIO);
-  const sincronizar = () => {
-    for (const c of controladores) (mq.matches ? c.montar() : c.desmontar());
+  const mq = window.matchMedia(DESKTOP_MEDIA);
+  const sync = () => {
+    for (const c of controllers) (mq.matches ? c.mount() : c.unmount());
   };
-  mq.addEventListener('change', sincronizar);
-  sincronizar();
+  mq.addEventListener('change', sync);
+  sync();
 }
 
 // Un botón para abrir o cerrar TODAS las secciones del HUD (Food, Map,
 // State...) de una vez: cerrarlas una por una en el móvil, cuando lo que se
 // quiere es despejar la pantalla para mirar el mapa, era demasiado lento.
-export function initHudGroups(hud, boton) {
-  if (!hud || !boton) return;
-  const grupos = () => [...hud.querySelectorAll('.hud-group')];
+export function initHudGroups(hud, btn) {
+  if (!hud || !btn) return;
+  const groups = () => [...hud.querySelectorAll('.hud-group')];
 
-  function actualizarBoton() {
-    const algunoAbierto = grupos().some((g) => g.open);
-    boton.textContent = algunoAbierto ? t('app.collapseAll') : t('app.expandAll');
+  function updateButton() {
+    const anyOpen = groups().some((g) => g.open);
+    btn.textContent = anyOpen ? t('app.collapseAll') : t('app.expandAll');
   }
 
-  boton.addEventListener('click', () => {
-    const abrir = !grupos().some((g) => g.open);
-    for (const g of grupos()) g.open = abrir;
-    actualizarBoton();
+  btn.addEventListener('click', () => {
+    const open = !groups().some((g) => g.open);
+    for (const g of groups()) g.open = open;
+    updateButton();
   });
   // Cerrar o abrir una sección a mano también debe refrescar la etiqueta del
   // botón: "toggle" en <details> no burbujea, así que se escucha en cada una.
-  for (const g of grupos()) g.addEventListener('toggle', actualizarBoton);
-  onLangChange(actualizarBoton);
-  actualizarBoton();
+  for (const g of groups()) g.addEventListener('toggle', updateButton);
+  onLangChange(updateButton);
+  updateButton();
 }
 
 // El botón ▾/▸ de una cabecera (#hud o #consola): oculta o muestra TODO el
 // contenido de ese panel de un tirón, dejando solo la barra de título — para
 // cuando lo que estorba no es una sección, sino el panel entero.
-export function initContainerToggle(boton, cuerpo, clave) {
-  if (!boton || !cuerpo) return;
+export function initContainerToggle(btn, body, key) {
+  if (!btn || !body) return;
 
-  function marcar(colapsado) {
-    cuerpo.classList.toggle('collapsed', colapsado);
-    boton.textContent = colapsado ? '▸' : '▾';
-    boton.setAttribute('aria-expanded', String(!colapsado));
-    boton.title = colapsado ? t('app.showPanel') : t('app.hidePanel');
+  function markRule(collapsedState) {
+    body.classList.toggle('collapsed', collapsedState);
+    btn.textContent = collapsedState ? '▸' : '▾';
+    btn.setAttribute('aria-expanded', String(!collapsedState));
+    btn.title = collapsedState ? t('app.showPanel') : t('app.hidePanel');
   }
 
-  let colapsado = false;
-  try { colapsado = localStorage.getItem(clave) === '1'; } catch { /* sin localStorage, empieza abierto */ }
-  marcar(colapsado);
+  let collapsedState = false;
+  try { collapsedState = localStorage.getItem(key) === '1'; } catch { /* sin localStorage, empieza abierto */ }
+  markRule(collapsedState);
 
-  boton.addEventListener('click', () => {
-    colapsado = !cuerpo.classList.contains('collapsed');
-    marcar(colapsado);
-    try { localStorage.setItem(clave, colapsado ? '1' : '0'); } catch { /* sin localStorage, no persiste */ }
+  btn.addEventListener('click', () => {
+    collapsedState = !body.classList.contains('collapsed');
+    markRule(collapsedState);
+    try { localStorage.setItem(key, collapsedState ? '1' : '0'); } catch { /* sin localStorage, no persiste */ }
   });
-  onLangChange(() => marcar(cuerpo.classList.contains('collapsed')));
+  onLangChange(() => markRule(body.classList.contains('collapsed')));
 }

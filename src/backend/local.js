@@ -16,13 +16,13 @@ export function createLocalBackend() {
         return { action: 'pantry', reason: { key: 'reason.api', params: { backend: 'local' } } };
       }
 
-      const util = candidates.filter((c) => c.verdict !== 'avoid');
-      const mejor = util.reduce((a, b) => (!a || b.score > a.score ? b : a), null);
-      if (!mejor) return { action: 'explore', reason: { key: 'reason.api', params: { backend: 'local' } } };
+      const utilFn = candidates.filter((c) => c.verdict !== 'avoid');
+      const best = utilFn.reduce((a, b) => (!a || b.score > a.score ? b : a), null);
+      if (!best) return { action: 'explore', reason: { key: 'reason.api', params: { backend: 'local' } } };
 
       return {
-        action: mejor.kind === 'water' ? 'seekWater' : (mejor.via === 'olfato' ? 'track' : 'seekFood'),
-        targetId: mejor.id,
+        action: best.kind === 'water' ? 'seekWater' : (best.via === 'smell' ? 'track' : 'seekFood'),
+        targetId: best.id,
         reason: { key: 'reason.api', params: { backend: 'local' } },
       };
     },

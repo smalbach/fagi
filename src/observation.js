@@ -12,10 +12,10 @@ import { verdict } from './learned/rules.js';
 
 const r2 = (v) => Math.round(v * 100) / 100;
 
-function aguaEstado(ctx) {
+function waterState(ctx) {
   if (ctx.visible) return 'sees';
   if (ctx.smellsWater) return 'smells';
-  if (ctx.sitioAgua) return 'remembers';
+  if (ctx.waterPlace) return 'remembers';
   return 'unknown';
 }
 
@@ -30,16 +30,16 @@ export function observe(fagi, world, ctx) {
     const id = c.ref?.id;
     if (id == null) continue;   // sin id no hay forma de que la API lo nombre de vuelta
     refs.set(id, c.ref);
-    const resumen = {
+    const summary = {
       id, key: c.key, kind: c.kind, via: c.via,
       dist: r2(c.dist), score: r2(c.score),
       belief: { value: r2(c.value), confidence: r2(c.confidence), stage: c.stage },
       verdict: c.kind === 'food' ? verdict(fagi, 'pursue', c.key) : null,
       // Acaba de entrar en lo que percibe: la directiva anterior no contaba con esto.
-      new: Boolean(ctx.nuevas?.some((n) => n.ref === c.ref)),
+      new: Boolean(ctx.newOnes?.some((n) => n.ref === c.ref)),
     };
-    byId.set(id, resumen);
-    candidates.push(resumen);
+    byId.set(id, summary);
+    candidates.push(summary);
   }
 
   const beliefs = {};
@@ -53,10 +53,10 @@ export function observe(fagi, world, ctx) {
     needs: { hungerU: r2(ctx.hungerU), thirstU: r2(ctx.thirstU), energyU: r2(ctx.energyU) },
     effects: Object.values(fagi.effects ?? {}).map((e) => ({ stat: e.stat, mult: e.mult, left: r2(e.time) })),
     carrying: fagi.carrying?.type ?? null,
-    atNest: Boolean(ctx.enNido),
-    nestKnown: Boolean(ctx.nido),
+    atNest: Boolean(ctx.inNest),
+    nestKnown: Boolean(ctx.nest),
     pantry: { ...fagi.pantry },
-    water: aguaEstado(ctx),
+    water: waterState(ctx),
     candidates,
     beliefs,
     rules: fagi.brain.rules.list.filter((r) => !r.retired).map(renderRule),

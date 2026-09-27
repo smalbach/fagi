@@ -12,13 +12,13 @@ const DICT = { en, es };
 
 export const LANGS = Object.keys(DICT);
 
-let lang = leerGuardado();
-const oyentes = new Set();
+let lang = readSaved();
+const listeners = new Set();
 
-function leerGuardado() {
+function readSaved() {
   try {
-    const guardado = localStorage.getItem('fagi.lang');
-    if (guardado && DICT[guardado]) return guardado;
+    const saved = localStorage.getItem('fagi.lang');
+    if (saved && DICT[saved]) return saved;
   } catch { /* sin localStorage: inglés y ya está */ }
   return 'en';
 }
@@ -27,17 +27,17 @@ export function getLang() {
   return lang;
 }
 
-export function setLang(nuevo) {
-  if (!DICT[nuevo] || nuevo === lang) return;
-  lang = nuevo;
-  try { localStorage.setItem('fagi.lang', nuevo); } catch { /* da igual */ }
-  for (const f of oyentes) f(lang);
+export function setLang(fresh) {
+  if (!DICT[fresh] || fresh === lang) return;
+  lang = fresh;
+  try { localStorage.setItem('fagi.lang', fresh); } catch { /* da igual */ }
+  for (const f of listeners) f(lang);
 }
 
 // Para que el HUD y el panel se reconstruyan al cambiar de idioma.
 export function onLangChange(fn) {
-  oyentes.add(fn);
-  return () => oyentes.delete(fn);
+  listeners.add(fn);
+  return () => listeners.delete(fn);
 }
 
 // t('reason.memory', { sec: { dur: 1.4, precise: true } })
@@ -68,46 +68,46 @@ export function t(key, params) {
 //
 // `precise` deja un decimal en los segundos, para cuentas atrás cortas (efectos
 // activos, insistencia de memoria) donde la décima sí se nota.
-export function formatDuration(segundos, { precise = false } = {}) {
+export function formatDuration(seconds, { precise = false } = {}) {
   const u = (k) => t(`unit.${k}`);
-  const bruto = Math.max(0, Number(segundos) || 0);
+  const raw = Math.max(0, Number(seconds) || 0);
   // Redondear ANTES de repartir, o 59.7 saldría como '60s'.
-  const total = precise ? Math.round(bruto * 10) / 10 : Math.round(bruto);
+  const total = precise ? Math.round(raw * 10) / 10 : Math.round(raw);
 
   if (total < 60) return `${precise ? total.toFixed(1) : total}${u('sec')}`;
 
-  const seg = Math.floor(total % 60);
+  const sec = Math.floor(total % 60);
   const min = Math.floor(total / 60) % 60;
-  const hor = Math.floor(total / 3600) % 24;
-  const dia = Math.floor(total / 86400);
+  const hours = Math.floor(total / 3600) % 24;
+  const day = Math.floor(total / 86400);
 
   // La unidad pequeña desaparece cuando es cero: '5m' antes que '5m 00s'.
-  if (total < 3600) return seg === 0 ? `${min}${u('min')}` : `${min}${u('min')} ${dos(seg)}${u('sec')}`;
-  if (total < 86400) return min === 0 ? `${hor}${u('hour')}` : `${hor}${u('hour')} ${dos(min)}${u('min')}`;
-  return hor === 0 ? `${dia}${u('day')}` : `${dia}${u('day')} ${dos(hor)}${u('hour')}`;
+  if (total < 3600) return sec === 0 ? `${min}${u('min')}` : `${min}${u('min')} ${two(sec)}${u('sec')}`;
+  if (total < 86400) return min === 0 ? `${hours}${u('hour')}` : `${hours}${u('hour')} ${two(min)}${u('min')}`;
+  return hours === 0 ? `${day}${u('day')}` : `${day}${u('day')} ${two(hours)}${u('hour')}`;
 }
 
 // Marca de tiempo de cronómetro, para el histórico de la consola: ahí dos
 // líneas seguidas tienen que distinguirse, así que los segundos no se pierden.
 //
 //   formatClock(12.4) -> '12.4s'   formatClock(90) -> '1:30'   formatClock(3725) -> '1:02:05'
-export function formatClock(segundos) {
-  const total = Math.max(0, Number(segundos) || 0);
+export function formatClock(seconds) {
+  const total = Math.max(0, Number(seconds) || 0);
   if (total < 60) return `${total.toFixed(1)}${t('unit.sec')}`;
-  const seg = Math.floor(total % 60);
+  const sec = Math.floor(total % 60);
   const min = Math.floor(total / 60) % 60;
-  const hor = Math.floor(total / 3600);
-  return hor > 0 ? `${hor}:${dos(min)}:${dos(seg)}` : `${min}:${dos(seg)}`;
+  const hours = Math.floor(total / 3600);
+  return hours > 0 ? `${hours}:${two(min)}:${two(sec)}` : `${min}:${two(sec)}`;
 }
 
-function dos(n) {
+function two(n) {
   return String(n).padStart(2, '0');
 }
 
 // Un texto que puede ser una clave con parámetros: { key, params } o ya una cadena.
-export function tx(valor) {
-  if (!valor) return '';
-  return typeof valor === 'string' ? valor : t(valor.key, valor.params);
+export function tx(value) {
+  if (!value) return '';
+  return typeof value === 'string' ? value : t(value.key, value.params);
 }
 
 // Nombre traducido de un alimento o de un objeto del mapa.
@@ -118,7 +118,7 @@ export function labelOf(key) {
 // Rellena los textos fijos del HTML (los que llevan data-i18n) y vuelve a
 // hacerlo cada vez que se cambia de idioma.
 export function bindDom() {
-  const aplicar = () => {
+  const applySets = () => {
     document.documentElement.lang = lang;
     for (const el of document.querySelectorAll('[data-i18n]')) {
       el.textContent = t(el.dataset.i18n);
@@ -129,6 +129,6 @@ export function bindDom() {
     selector.value = lang;
     selector.addEventListener('change', () => setLang(selector.value));
   }
-  onLangChange(aplicar);
-  aplicar();
+  onLangChange(applySets);
+  applySets();
 }

@@ -8,20 +8,20 @@ import { weight } from './memory.js';
 import { verdict } from './learned/rules.js';
 
 export function nestUnder(fagi, world) {
-  const nido = nestOf(world);
-  if (!nido) return null;
-  return Math.hypot(nido.x - fagi.x, nido.y - fagi.y) <= radiusOf(nido) ? nido : null;
+  const nestObj = nestOf(world);
+  if (!nestObj) return null;
+  return Math.hypot(nestObj.x - fagi.x, nestObj.y - fagi.y) <= radiusOf(nestObj) ? nestObj : null;
 }
 
 // Lo que pasa al estar dentro del nido: suelta la carga, come de las reservas
 // si le hace falta, y descansa.
 export function useNest(fagi, world) {
-  const nido = nestUnder(fagi, world);
-  if (!nido) return null;
+  const nestObj = nestUnder(fagi, world);
+  if (!nestObj) return null;
 
   if (fagi.carrying) {
     const t = fagi.carrying.type;
-    const total = storeInNest(nido, t, fagi.carrying.age ?? 0);
+    const total = storeInNest(nestObj, t, fagi.carrying.age ?? 0);
     record(world, 'nest_store', { what: t, age: fagi.carrying.age ?? 0 });
     fagi.stored = (fagi.stored ?? 0) + 1;
     fagi.lastDeposit = { n: fagi.stored, type: t, total };
@@ -31,23 +31,23 @@ export function useNest(fagi, world) {
   // Con hambre tira de despensa: elige lo que mejor recuerda de lo guardado,
   // pero nunca sirve algo que aprendió que le sienta mal.
   if (fagi.hunger >= CARRY.eatBelow) {
-    const guardado = Object.keys(nido.stock).filter(
-      (k) => nido.stock[k] > 0 && verdict(fagi, 'eat', k) !== 'avoid'
+    const saved = Object.keys(nestObj.stock).filter(
+      (k) => nestObj.stock[k] > 0 && verdict(fagi, 'eat', k) !== 'avoid'
     );
-    if (guardado.length) {
-      const mejor = guardado.reduce((a, b) =>
+    if (saved.length) {
+      const best = saved.reduce((a, b) =>
         (weight(fagi.brain, b) > weight(fagi.brain, a) ? b : a));
-      takeFromNest(nido, mejor);
-      record(world, 'nest_take', { what: mejor });
-      eat(fagi, mejor);
-      fagi.lastPantry = { n: (fagi.lastPantry?.n ?? 0) + 1, type: mejor };
+      takeFromNest(nestObj, best);
+      record(world, 'nest_take', { what: best });
+      eat(fagi, best);
+      fagi.lastPantry = { n: (fagi.lastPantry?.n ?? 0) + 1, type: best };
     }
   }
 
   // Está dentro: ve la despensa con sus propios ojos. Este es el único sitio
   // donde se escribe fagi.pantry, y por eso enterarse cuesta una visita.
-  fagi.pantry = { ...nido.stock };
+  fagi.pantry = { ...nestObj.stock };
   fagi.pantryAt = fagi.age;
 
-  return nido;
+  return nestObj;
 }

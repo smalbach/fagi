@@ -1,0 +1,62 @@
+// --- fruta ----------------------------------------------------------------
+
+import { TREE, POINT_TYPES } from '../config.js';
+import { mix, seededRng, seedFor } from '../sprite-kit.js';
+import { CROWN_RISE, LX, LY } from './common.js';
+
+const SPROUTS = 4;              // sitios de la copa donde puede colgar fruta
+
+// La fruta colgada. Una madura —la que va a caer— y el resto, brotes que
+// esperan turno. Cuál madura sale de cuántas lleva soltadas, así que después de
+// cada caída le toca a otra rama.
+export function fruitsOf(ctx, o, r, v, dry) {
+  const spec = POINT_TYPES[TREE.fruit];
+  if (!spec) return;
+
+  const rnd = seededRng((seedFor(o) ^ 0x9e3779b9) >>> 0);
+  const ready = 1 - Math.max(0, Math.min(1, (o.timer ?? 0) / TREE.interval));
+  const which = (o.lastDrop ?? 0) % SPROUTS;
+  const green = mix(spec.color, '#39603a', 0.55);
+
+  for (let i = 0; i < SPROUTS; i++) {
+    // Cuelgan de la mitad de abajo de la copa, que es donde se ven.
+    const a = Math.PI * 0.12 + rnd() * Math.PI * 0.76;
+    const d = r * (0.24 + rnd() * 0.38);
+    const x = o.x + v.x + Math.cos(a) * d;
+    const y = o.y + v.y - r * CROWN_RISE + Math.sin(a) * d;
+
+    const t = i === which ? ready : 0.15 + rnd() * 0.1;
+    const rad = spec.radius * (0.35 + t * 0.85) * (1 - dry * 0.5);
+    if (rad < 0.8) continue;
+
+    // Rabito: es lo que la sostiene, y lo que se rompe cuando cae.
+    ctx.strokeStyle = 'rgba(58,40,24,0.7)';
+    ctx.lineWidth = Math.max(1, rad * 0.25);
+    ctx.beginPath();
+    ctx.moveTo(x, y - rad * 1.7);
+    ctx.lineTo(x, y - rad * 0.7);
+    ctx.stroke();
+    ctx.lineWidth = 1;
+
+    const color = mix(green, spec.color, t);
+    const g = ctx.createRadialGradient(x + LX * rad * 0.4, y + LY * rad * 0.4, 0, x, y, rad * 1.2);
+    g.addColorStop(0, mix(color, '#ffffff', 0.35));
+    g.addColorStop(0.55, color);
+    g.addColorStop(1, mix(color, '#101a12', 0.55));
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, rad, 0, Math.PI * 2);
+    ctx.fill();
+
+    // La que está a punto se enciende un poco: es el aviso de que va a caer.
+    if (i === which && t > 0.82) {
+      const halo = ctx.createRadialGradient(x, y, rad, x, y, rad * 2.4);
+      halo.addColorStop(0, `rgba(255,246,214,${(t - 0.82) * 0.9})`);
+      halo.addColorStop(1, 'rgba(255,246,214,0)');
+      ctx.fillStyle = halo;
+      ctx.beginPath();
+      ctx.arc(x, y, rad * 2.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}

@@ -29,45 +29,45 @@
 // guardan los lienzos ya pintados y se decide qué se estampa y dónde.
 
 import { treeAge } from './trees.js';
-import { cacheSprite, detalle, estampar, semillaDe } from './sprite-kit.js';
-import { pintarTronco } from './tree-sprite/tronco.js';
-import { pintarRamaje } from './tree-sprite/ramaje.js';
-import { pintarCopa } from './tree-sprite/copa.js';
-import { copaRealistaCargada, estamparCopaRealista } from './tree-sprite/copa-realista.js';
-import { vaiven } from './tree-sprite/viento.js';
-import { frutos } from './tree-sprite/frutos.js';
+import { cacheSprite, detail, stamp, seedFor } from './sprite-kit.js';
+import { paintTrunk } from './tree-sprite/trunk.js';
+import { paintBranches } from './tree-sprite/branches.js';
+import { paintCrown } from './tree-sprite/crown.js';
+import { realisticCrownLoaded, stampRealisticCrown } from './tree-sprite/realistic-crown.js';
+import { swayOf } from './tree-sprite/wind.js';
+import { fruitsOf } from './tree-sprite/fruits.js';
 
-const troncos = new Map();     // clave: semilla|radio|escalón de sequía
-const copas = new Map();       // clave: semilla|radio|color|escalón de sequía
-const ramajes = new Map();     // las puntas que van por encima de la hoja
+const trunks = new Map();     // clave: semilla|radio|escalón de sequía
+const crowns = new Map();       // clave: semilla|radio|color|escalón de sequía
+const branchings = new Map();     // las puntas que van por encima de la hoja
 
-const PASOS = 8;               // escalones en que se redondea la sequía
+const STEPS = 8;               // escalones en que se redondea la sequía
 
-export function drawTree(ctx, o, spec, r, wind, ahora) {
+export function drawTree(ctx, o, spec, r, wind, now) {
   // Con la cámara cerca se pinta el árbol con más píxeles en vez de estirar el
   // que ya estaba: el radio va multiplicado por la escala de detalle.
-  const z = detalle();
-  const semilla = semillaDe(o);
+  const z = detail();
+  const seedOf = seedFor(o);
   const R = Math.round(r * z);
-  const paso = Math.round(treeAge(o) * PASOS);
-  const seco = paso / PASOS;
+  const step = Math.round(treeAge(o) * STEPS);
+  const dry = step / STEPS;
 
-  const tronco = cacheSprite(troncos, `${semilla}|${R}|${paso}`,
-    () => pintarTronco(semilla, R, seco), 120);
-  estampar(ctx, tronco, o.x, o.y, z);
+  const trunk = cacheSprite(trunks, `${seedOf}|${R}|${step}`,
+    () => paintTrunk(seedOf, R, dry), 120);
+  stamp(ctx, trunk, o.x, o.y, z);
 
   // La copa va suelta del tronco: se tumba a favor del viento y respira con él.
   // Las ramas que asoman entre la hoja se mueven con ella, que es lo suyo.
-  const v = vaiven(wind, ahora, r, semilla, seco);
-  if (copaRealistaCargada()) {
-    estamparCopaRealista(ctx, o, r, v, seco, semilla);
+  const v = swayOf(wind, now, r, seedOf, dry);
+  if (realisticCrownLoaded()) {
+    stampRealisticCrown(ctx, o, r, v, dry, seedOf);
   } else {
-    const copa = cacheSprite(copas, `${semilla}|${R}|${spec.color}|${paso}`,
-      () => pintarCopa(semilla, R, spec.color, seco), 120);
-    const puntas = cacheSprite(ramajes, `${semilla}|${R}|${paso}`,
-      () => pintarRamaje(semilla, R, seco), 120);
-    estampar(ctx, copa, o.x + v.x, o.y + v.y, z);
-    estampar(ctx, puntas, o.x + v.x, o.y + v.y, z);
+    const crown = cacheSprite(crowns, `${seedOf}|${R}|${spec.color}|${step}`,
+      () => paintCrown(seedOf, R, spec.color, dry), 120);
+    const tips = cacheSprite(branchings, `${seedOf}|${R}|${step}`,
+      () => paintBranches(seedOf, R, dry), 120);
+    stamp(ctx, crown, o.x + v.x, o.y + v.y, z);
+    stamp(ctx, tips, o.x + v.x, o.y + v.y, z);
   }
-  frutos(ctx, o, r, v, seco);
+  fruitsOf(ctx, o, r, v, dry);
 }

@@ -15,11 +15,11 @@
 
 import { MEMORY } from './config.js';
 
-const STAGES = ['corta', 'media', 'larga'];
-const DECAY = { corta: 'decayShort', media: 'decayMedium', larga: 'decayLong' };
+const STAGES = ['short', 'medium', 'long'];
+const DECAY = { short: 'decayShort', medium: 'decayMedium', long: 'decayLong' };
 
-function nuevoRecuerdo() {
-  return { value: 0, confidence: 0, confirms: 0, lastAt: -Infinity, stage: 'corta', tries: 0 };
+function newMemoryEntry() {
+  return { value: 0, confidence: 0, confirms: 0, lastAt: -Infinity, stage: 'short', tries: 0 };
 }
 
 // Nace sin saber nada: ni una creencia sobre nada de lo que hay en el mapa.
@@ -31,7 +31,7 @@ export function createMemory() {
 }
 
 export function recall(mem, key) {
-  return mem.facts[key] ?? (mem.facts[key] = nuevoRecuerdo());
+  return mem.facts[key] ?? (mem.facts[key] = newMemoryEntry());
 }
 
 // Lo que pesa un recuerdo al decidir. La confianza lo modula, no lo borra:
@@ -54,12 +54,12 @@ export function curious(mem, key, triesNeeded) {
   return r.tries < triesNeeded || r.confidence < MEMORY.minConfidence;
 }
 
-function subirEtapa(r) {
-  if (r.confirms >= MEMORY.toLong) r.stage = 'larga';
-  else if (r.confirms >= MEMORY.toMedium) r.stage = 'media';
+function promote(r) {
+  if (r.confirms >= MEMORY.toLong) r.stage = 'long';
+  else if (r.confirms >= MEMORY.toMedium) r.stage = 'medium';
 }
 
-function bajarEtapa(r) {
+function demote(r) {
   const i = STAGES.indexOf(r.stage);
   r.stage = STAGES[Math.max(0, i - 1)];
 }
@@ -67,9 +67,9 @@ function bajarEtapa(r) {
 // Una experiencia nueva. `reward` es lo que sintió; `now`, la edad de Fagi.
 export function reinforce(mem, key, reward, now, learnRate) {
   const r = recall(mem, key);
-  const primera = r.tries === 0;
-  const coherente = primera || Math.sign(reward) === Math.sign(r.value) || r.value === 0;
-  const espaciada = now - r.lastAt >= MEMORY.spacing;
+  const first = r.tries === 0;
+  const coherent = first || Math.sign(reward) === Math.sign(r.value) || r.value === 0;
+  const spaced = now - r.lastAt >= MEMORY.spacing;
 
   const before = { value: r.value, confidence: r.confidence, stage: r.stage };
 
@@ -79,47 +79,47 @@ export function reinforce(mem, key, reward, now, learnRate) {
   r.tries += 1;
   r.lastAt = now;
 
-  if (primera) {
+  if (first) {
     r.confidence = MEMORY.first;
-  } else if (coherente) {
+  } else if (coherent) {
     // Confirmación. Espaciada consolida; seguida apenas aporta.
-    const gain = MEMORY.gain * (espaciada ? 1 : MEMORY.massedGain);
+    const gain = MEMORY.gain * (spaced ? 1 : MEMORY.massedGain);
     r.confidence += gain * (1 - r.confidence);
-    if (espaciada) { r.confirms += 1; subirEtapa(r); }
+    if (spaced) { r.confirms += 1; promote(r); }
   } else {
     // Chasco: se fía mucho menos y el recuerdo se vuelve lábil otra vez.
     r.confidence *= MEMORY.contradiction;
     r.confirms = Math.max(0, r.confirms - 1);
-    bajarEtapa(r);
+    demote(r);
   }
   r.confidence = Math.min(1, Math.max(0, r.confidence));
 
   return { before, after: { value: r.value, confidence: r.confidence, stage: r.stage },
-           kind: primera ? 'primera' : coherente ? (espaciada ? 'confirma' : 'repite') : 'contradice' };
+           kind: first ? 'first' : coherent ? (spaced ? 'confirms' : 'repeats') : 'contradicts' };
 }
 
 // --- sitios ---
 // Un sitio recordado guarda dónde CREE que está (x, y), cuánto puede fallar
 // (error) y el objeto real que vio, para saber si sigue existiendo.
 export function rememberPlace(mem, kind, obj, now) {
-  const p = mem.places[kind] ?? (mem.places[kind] = { ...nuevoRecuerdo(), x: obj.x, y: obj.y, error: 0, ref: obj });
+  const p = mem.places[kind] ?? (mem.places[kind] = { ...newMemoryEntry(), x: obj.x, y: obj.y, error: 0, ref: obj });
   p.ref = obj;
   p.x = obj.x;
   p.y = obj.y;
   p.error = 0;
 
-  const espaciada = now - p.lastAt >= MEMORY.spacing;
+  const spaced = now - p.lastAt >= MEMORY.spacing;
   p.lastAt = now;
   p.tries += 1;
-  p.confidence += (p.tries === 1 ? MEMORY.first : MEMORY.gain * (espaciada ? 1 : MEMORY.massedGain)) * (1 - p.confidence);
+  p.confidence += (p.tries === 1 ? MEMORY.first : MEMORY.gain * (spaced ? 1 : MEMORY.massedGain)) * (1 - p.confidence);
   p.confidence = Math.min(1, p.confidence);
-  if (espaciada) { p.confirms += 1; subirEtapa(p); }
+  if (spaced) { p.confirms += 1; promote(p); }
   return p;
 }
 
 // Bajo qué nombre se recuerda un agua: el lago o un charco de lluvia.
 export function waterPlaceKind(obj) {
-  return obj?.type === 'charco' ? 'charco' : 'agua';
+  return obj?.type === 'puddle' ? 'puddle' : 'water';
 }
 
 export function recallPlace(mem, kind) {

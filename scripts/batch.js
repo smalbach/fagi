@@ -18,31 +18,31 @@
 // Las piezas están en batch/: argumentos, azar con semilla, una corrida,
 // estadística e informe. Aquí solo se corren y se cuentan.
 
-import { args, aplicar } from './batch/argumentos.js';
-import { correr } from './batch/corrida.js';
-import { informe } from './batch/informe.js';
-import { round } from './batch/estadistica.js';
+import { args, applySets } from './batch/args.js';
+import { runOnce } from './batch/run.js';
+import { report } from './batch/report.js';
+import { round } from './batch/stats.js';
 import { writeFileSync } from 'node:fs';
 
 // --- main -------------------------------------------------------------------
 
 const opts = args(process.argv.slice(2));
-aplicar(opts.sets);
+applySets(opts.sets);
 const runs = [];
 const t0 = Date.now();
 for (let i = 0; i < opts.runs; i++) {
-  const r = correr(opts, opts.seed0 + i);
+  const r = runOnce(opts, opts.seed0 + i);
   runs.push(r);
   process.stderr.write(`\rcorrida ${i + 1}/${opts.runs}`);
 }
 process.stderr.write(`\r${' '.repeat(30)}\r`);
 
-console.log(informe(opts, runs));
+console.log(report(opts, runs));
 console.log(`\n(${round((Date.now() - t0) / 1000)}s reales)`);
 
 if (opts.check) {
-  const otra = correr(opts, opts.seed0);
-  const ok = otra.fingerprint === runs[0].fingerprint && JSON.stringify(otra.sequence) === JSON.stringify(runs[0].sequence);
+  const another = runOnce(opts, opts.seed0);
+  const ok = another.fingerprint === runs[0].fingerprint && JSON.stringify(another.sequence) === JSON.stringify(runs[0].sequence);
   console.log(ok
     ? `check: semilla ${opts.seed0} repetida da la misma sesión ✓`
     : `check: semilla ${opts.seed0} repetida da OTRA sesión ✗ — hay azar fuera de las semillas`);

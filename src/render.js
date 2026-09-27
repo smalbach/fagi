@@ -12,49 +12,49 @@ import { heading } from './compass.js';
 import { viewRangeOf, fovOf } from './vision.js';
 import { activeEffects } from './effects.js';
 import { isWater, isNest, isTree, radiusOf } from './obstacles.js';
-import { colorDe, aRGB } from './colors.js';
-import { drawFagi, elipse } from './fagi-sprite.js';
+import { colorOf, toRGB } from './colors.js';
+import { drawFagi, ellipse } from './fagi-sprite.js';
 import { scentSources } from './smell.js';
 import { drawRock } from './rock-sprite.js';
 import { drawNest, drawNestMouth } from './nest-sprite.js';
 import { drawTree } from './tree-sprite.js';
 import { drawFruit } from './fruit-sprite.js';
-import { drawTerrain, drawShore, drawGranoZoom, drawDetalleCerca } from './terrain.js';
+import { drawTerrain, drawShore, drawZoomGrain, drawNearDetail } from './terrain.js';
 import { drawLake } from './water-sprite.js';
 import { drawPuddle, drawRipples, drawWetGround, drawOvercast, drawSplashes, drawRainDrops, rainLook, rainFalling } from './rain-sprite.js';
-import { setDetalle } from './sprite-kit.js';
-import { aplicar, sinCamara, detalleDe } from './camera.js';
+import { setDetail } from './sprite-kit.js';
+import { applySets, noCamera, detailOf } from './camera.js';
 import { nestUnder } from './nest.js';
 
 // La luz del mundo, la misma que la del suelo, la roca y el árbol. Aquí la
 // necesitan las pocas cosas que no pinta un módulo de sprite.
-const LUZ = -Math.PI * 0.72;
-const LX = Math.cos(LUZ);
-const LY = Math.sin(LUZ);
+const LIGHT = -Math.PI * 0.72;
+const LX = Math.cos(LIGHT);
+const LY = Math.sin(LIGHT);
 
 // Descansando dentro del nido no se la ve: está bajo tierra. Ni ella, ni su
 // cono de visión, ni las etiquetas que la siguen.
-function escondida(fagi, world) {
+function hidden(fagi, world) {
   return fagi.alive && fagi.thought?.action === 'rest' && !!nestUnder(fagi, world);
 }
 
 export function render(ctx, world, fagi, camera) {
-  setDetalle(detalleDe(camera));
-  aplicar(ctx, camera, ctx.canvas);
-  const lluvia = rainLook(world, performance.now());
-  escena(ctx, world, fagi, camera, lluvia);
-  sinCamara(ctx);
+  setDetail(detailOf(camera));
+  applySets(ctx, camera, ctx.canvas);
+  const rain = rainLook(world, performance.now());
+  scene(ctx, world, fagi, camera, rain);
+  noCamera(ctx);
   // Las gotas caen entre la cámara y el suelo: no crecen con el zoom.
-  if (lluvia > 0) drawRainDrops(ctx, world, performance.now());
+  if (rain > 0) drawRainDrops(ctx, world, performance.now());
   drawZoom(ctx, camera);
 }
 
-function escena(ctx, world, fagi, camera, lluvia) {
+function scene(ctx, world, fagi, camera, rain) {
   drawTerrain(ctx, world);
   // Lo que el suelo pierde al estirarse con el zoom: el grano, en píxeles de
   // pantalla, y las cosas pequeñas —chinas, briznas, hoja— en píxeles de mundo.
-  drawGranoZoom(ctx, camera.zoom);
-  drawDetalleCerca(ctx, world, camera, ctx.canvas);
+  drawZoomGrain(ctx, camera.zoom);
+  drawNearDetail(ctx, world, camera, ctx.canvas);
   // La tierra mojada va antes que las estelas y que todo lo demás: es suelo.
   for (const o of world.objects) if (isWater(o)) drawShore(ctx, o, radiusOf(o));
   // El suelo mojado tarda en secarse, así que va aunque ya no llueva.
@@ -70,33 +70,33 @@ function escena(ctx, world, fagi, camera, lluvia) {
     // olor hacia el del tóxico antes incluso de pudrirse del todo.
     // El árbol es un caso aparte: anuncia el fruto que da, pero él no se pudre,
     // así que va del color liso del fruto y no se le pregunta por su madurez.
-    const color = POINT_TYPES[src.type] ? colorDe(src)
+    const color = POINT_TYPES[src.type] ? colorOf(src)
       : POINT_TYPES[key] ? POINT_TYPES[key].color
       : OBJECT_TYPES[key].color;
     drawTrail(ctx, src, color);
   }
 
   // Sin Fagi (preparando una sesión) solo se dibuja el mapa.
-  const dentro = fagi ? escondida(fagi, world) : false;
-  primerPlano(ctx, world, fagi, camera, dentro);
+  const inside = fagi ? hidden(fagi, world) : false;
+  foreground(ctx, world, fagi, camera, inside);
   // La luz del día nublado y sus nubes caen sobre todo, Fagi incluida.
-  if (lluvia > 0) {
+  if (rain > 0) {
     drawOvercast(ctx, world, performance.now());
     drawSplashes(ctx, world, performance.now());
   }
 }
 
-function primerPlano(ctx, world, fagi, camera, dentro) {
+function foreground(ctx, world, fagi, camera, inside) {
 
   drawPheromone(ctx, world);
-  for (const o of world.objects) drawObject(ctx, o, dentro, world.wind, rainFalling());
+  for (const o of world.objects) drawObject(ctx, o, inside, world.wind, rainFalling());
   for (const p of world.points) drawFruit(ctx, p);
   if (!fagi) return;
 
   // El cono es percepción, no depuración: debe verse también en el modo limpio.
-  if (!dentro) drawVisionCone(ctx, fagi);
+  if (!inside) drawVisionCone(ctx, fagi);
 
-  if (dentro) {
+  if (inside) {
     drawSleepMark(ctx, nestUnder(fagi, world));
     return;
   }
@@ -115,41 +115,41 @@ function drawGroundShadows(ctx, world) {
   for (const o of world.objects) {
     if (isWater(o)) continue;
     const r = radiusOf(o);
-    const arbol = isTree(o);
-    const largo = arbol ? r * 1.72 : r * 0.7;
-    const ancho = arbol ? r * 0.52 : r * 0.34;
-    const distancia = arbol ? r * 0.82 : r * 0.22;
-    const x = o.x - LX * distancia;
-    const y = o.y - LY * distancia;
+    const tree = isTree(o);
+    const length = tree ? r * 1.72 : r * 0.7;
+    const width = tree ? r * 0.52 : r * 0.34;
+    const distance = tree ? r * 0.82 : r * 0.22;
+    const x = o.x - LX * distance;
+    const y = o.y - LY * distance;
 
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(Math.atan2(-LY, -LX));
-    ctx.scale(1, ancho / largo);
-    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, largo);
-    g.addColorStop(0, arbol ? 'rgba(8,12,9,0.28)' : 'rgba(8,10,12,0.22)');
-    g.addColorStop(0.55, arbol ? 'rgba(8,12,9,0.14)' : 'rgba(8,10,12,0.1)');
+    ctx.scale(1, width / length);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, length);
+    g.addColorStop(0, tree ? 'rgba(8,12,9,0.28)' : 'rgba(8,10,12,0.22)');
+    g.addColorStop(0.55, tree ? 'rgba(8,12,9,0.14)' : 'rgba(8,10,12,0.1)');
     g.addColorStop(1, 'rgba(8,10,12,0)');
     ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.arc(0, 0, largo, 0, Math.PI * 2);
+    ctx.arc(0, 0, length, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
 }
 
 // Lo único que delata que está dentro: tres zetas subiendo de la boca.
-function drawSleepMark(ctx, nido) {
+function drawSleepMark(ctx, nestObj) {
   const t = performance.now() / 1000;
   ctx.font = '600 11px system-ui, sans-serif';
   ctx.textAlign = 'center';
   for (let i = 0; i < 3; i++) {
-    const fase = (t * 0.45 + i / 3) % 1;
-    ctx.fillStyle = `rgba(226,205,167,${Math.sin(fase * Math.PI) * 0.6})`;
+    const phase = (t * 0.45 + i / 3) % 1;
+    ctx.fillStyle = `rgba(226,205,167,${Math.sin(phase * Math.PI) * 0.6})`;
     ctx.fillText(
       'z',
-      nido.x + 8 + fase * 10,
-      nido.y - 10 - fase * 22
+      nestObj.x + 8 + phase * 10,
+      nestObj.y - 10 - phase * 22
     );
   }
   ctx.textAlign = 'left';
@@ -158,12 +158,12 @@ function drawSleepMark(ctx, nido) {
 // El aumento, abajo a la izquierda, y si la cámara va pegada a Fagi. Con el mapa
 // entero a la vista no hace falta decir nada.
 function drawZoom(ctx, camera) {
-  if (camera.zoom <= 1.001 && !camera.seguir) return;
+  if (camera.zoom <= 1.001 && !camera.follow) return;
   ctx.font = '600 11px system-ui, sans-serif';
   ctx.fillStyle = 'rgba(240,242,248,0.5)';
   ctx.textAlign = 'left';
   ctx.fillText(
-    `×${camera.zoom.toFixed(1)}${camera.seguir ? '  ⦿ Fagi' : ''}`,
+    `×${camera.zoom.toFixed(1)}${camera.follow ? '  ⦿ Fagi' : ''}`,
     12, ctx.canvas.height - 12
   );
 }
@@ -183,15 +183,15 @@ function drawCoords(ctx, fagi, zoom = 1) {
 
 function drawVisionCone(ctx, fagi) {
   const half = fovOf(fagi) / 2;
-  const alcance = viewRangeOf(fagi);
-  const luz = ctx.createRadialGradient(fagi.x, fagi.y, 0, fagi.x, fagi.y, alcance);
-  luz.addColorStop(0, fagi.alive ? 'rgba(224,238,209,0.22)' : 'rgba(255,255,255,0.03)');
-  luz.addColorStop(0.72, fagi.alive ? 'rgba(213,230,199,0.13)' : 'rgba(255,255,255,0.02)');
-  luz.addColorStop(1, 'rgba(213,230,199,0.045)');
-  ctx.fillStyle = luz;
+  const scope = viewRangeOf(fagi);
+  const light = ctx.createRadialGradient(fagi.x, fagi.y, 0, fagi.x, fagi.y, scope);
+  light.addColorStop(0, fagi.alive ? 'rgba(224,238,209,0.22)' : 'rgba(255,255,255,0.03)');
+  light.addColorStop(0.72, fagi.alive ? 'rgba(213,230,199,0.13)' : 'rgba(255,255,255,0.02)');
+  light.addColorStop(1, 'rgba(213,230,199,0.045)');
+  ctx.fillStyle = light;
   ctx.beginPath();
   ctx.moveTo(fagi.x, fagi.y);
-  ctx.arc(fagi.x, fagi.y, alcance, fagi.angle - half, fagi.angle + half);
+  ctx.arc(fagi.x, fagi.y, scope, fagi.angle - half, fagi.angle + half);
   ctx.closePath();
   ctx.fill();
 
@@ -211,10 +211,10 @@ function drawPheromone(ctx, world) {
     const a = Math.max(0, Math.min(1, m.life / 45));
 
     // La tierra mojada alrededor: más ancha que la gota y más tenue.
-    const mojado = ctx.createRadialGradient(m.x, m.y, 0.8, m.x, m.y, 7.2);
-    mojado.addColorStop(0, `rgba(46,33,10,${a * 0.48})`);
-    mojado.addColorStop(1, 'rgba(46,33,10,0)');
-    ctx.fillStyle = mojado;
+    const wetness = ctx.createRadialGradient(m.x, m.y, 0.8, m.x, m.y, 7.2);
+    wetness.addColorStop(0, `rgba(46,33,10,${a * 0.48})`);
+    wetness.addColorStop(1, 'rgba(46,33,10,0)');
+    ctx.fillStyle = wetness;
     ctx.beginPath();
     ctx.arc(m.x, m.y, 7.2, 0, Math.PI * 2);
     ctx.fill();
@@ -242,17 +242,17 @@ function drawPheromone(ctx, world) {
 
 // Cada cosa del mapa la pinta su módulo: el lago, la roca, el nido y el árbol.
 // `ocupado` es Fagi durmiendo dentro del nido.
-function drawObject(ctx, o, ocupado, wind, lloviendo) {
+function drawObject(ctx, o, busy, wind, raining) {
   const spec = OBJECT_TYPES[o.type];
   const r = radiusOf(o);
   if (spec.shallow) {
-    drawPuddle(ctx, o, r, lloviendo, performance.now());
+    drawPuddle(ctx, o, r, raining, performance.now());
   } else if (isWater(o)) {
     drawLake(ctx, o, spec, r, wind, performance.now());
-    drawRipples(ctx, o, r * 0.8, lloviendo, performance.now());
+    drawRipples(ctx, o, r * 0.8, raining, performance.now());
   } else if (isNest(o)) {
     drawNest(ctx, o, spec, r);
-    drawNestMouth(ctx, o, r, ocupado, performance.now());
+    drawNestMouth(ctx, o, r, busy, performance.now());
   } else if (isTree(o)) {
     drawTree(ctx, o, spec, r, wind, performance.now());
   } else {
@@ -266,7 +266,7 @@ function drawTrail(ctx, src, color) {
   const nodes = src.trail?.nodes;
   if (!nodes || nodes.length < 2) return;
 
-  const [r, g, b] = aRGB(color);
+  const [r, g, b] = toRGB(color);
   ctx.lineCap = 'round';
   for (let i = 1; i < nodes.length; i++) {
     const t = i / nodes.length;

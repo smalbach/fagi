@@ -13,6 +13,7 @@ import { createWorld } from '../world.js';
 import { createFagi } from '../fagi.js';
 import { normalizeAngle } from '../vision.js';
 import { MARKER_TYPES } from './events.js';
+import { modernize } from '../legacy.js';
 
 // --- el estado: un mundo con la misma forma que el de verdad ---
 
@@ -35,7 +36,7 @@ export function createReplayState() {
 
 const LOG_MAX = 80;   // las mismas que guarda narrator.js
 
-const byId = (lista, id) => lista.findIndex((o) => o.id === id);
+const byId = (list, id) => list.findIndex((o) => o.id === id);
 
 // Aplica un evento al estado. Pura salvo por mutar `state`.
 export function applyEvent(state, ev) {
@@ -71,9 +72,9 @@ export function applyEvent(state, ev) {
     }
     case 'rain': {
       w.rain = { ...(w.rain ?? {}), on: Boolean(ev.on) };
-      const ultimo = state.rainSpans.at(-1);
-      if (ev.on && !(ultimo && ultimo[1] == null)) state.rainSpans.push([ev.t, null]);
-      else if (!ev.on && ultimo && ultimo[1] == null) ultimo[1] = ev.t;
+      const lastItem = state.rainSpans.at(-1);
+      if (ev.on && !(lastItem && lastItem[1] == null)) state.rainSpans.push([ev.t, null]);
+      else if (!ev.on && lastItem && lastItem[1] == null) lastItem[1] = ev.t;
       break;
     }
     case 'obj_resize': {
@@ -86,7 +87,7 @@ export function applyEvent(state, ev) {
       break;
     case 'point_rot': {
       const p = w.points[byId(w.points, ev.id)];
-      if (p) { p.type = ev.what; p.born = ev.t; p.podrido = true; }
+      if (p) { p.type = ev.what; p.born = ev.t; p.rotten = true; }
       break;
     }
     case 'point_remove': {
@@ -95,7 +96,7 @@ export function applyEvent(state, ev) {
       break;
     }
     case 'nest_store': {
-      const n = nido(w);
+      const n = nestObj(w);
       if (n) {
         n.stock[ev.what] = (n.stock[ev.what] ?? 0) + 1;
         (n.ages[ev.what] ??= []).push(ev.age ?? 0);
@@ -103,20 +104,20 @@ export function applyEvent(state, ev) {
       break;
     }
     case 'nest_take': {
-      const n = nido(w);
+      const n = nestObj(w);
       if (n) {
         n.stock[ev.what] = Math.max(0, (n.stock[ev.what] ?? 0) - 1);
-        const lista = n.ages[ev.what] ?? [];
-        if (lista.length) lista.splice(lista.indexOf(Math.max(...lista)), 1);
+        const list = n.ages[ev.what] ?? [];
+        if (list.length) list.splice(list.indexOf(Math.max(...list)), 1);
       }
       break;
     }
     case 'nest_spoil': {
-      const n = nido(w);
+      const n = nestObj(w);
       if (n && ev.what) {
         n.stock[ev.what] = Math.max(0, (n.stock[ev.what] ?? 0) - ev.count);
-        const lista = n.ages[ev.what] ?? [];
-        lista.sort((a, b) => b - a).splice(0, ev.count);
+        const list = n.ages[ev.what] ?? [];
+        list.sort((a, b) => b - a).splice(0, ev.count);
       }
       break;
     }
@@ -135,9 +136,9 @@ export function applyEvent(state, ev) {
       state.ended = { t: ev.t, reason: ev.reason };
       break;
     case 'mind': {
-      const { seq, t, type, ...partes } = ev;
-      if ('rules' in partes || 'facts' in partes) state.mindSeq++;
-      Object.assign(state.mind, partes);
+      const { seq, t, type, ...parts } = ev;
+      if ('rules' in parts || 'facts' in parts) state.mindSeq++;
+      Object.assign(state.mind, parts);
       break;
     }
     case 'log':
@@ -150,22 +151,22 @@ export function applyEvent(state, ev) {
   return state;
 }
 
-function nido(w) {
+function nestObj(w) {
   return w.objects.find((o) => OBJECT_TYPES[o.type]?.kind === 'nest') ?? null;
 }
 
 // --- el reproductor ---
 
-export function createPlayer(eventos, { checkpointEvery = 60 } = {}) {
-  const events = [...eventos].sort((a, b) => a.seq - b.seq);
+export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
+  const events = eventList.map(modernize).sort((a, b) => a.seq - b.seq);
   const duration = events.reduce((m, e) => Math.max(m, e.t, e.t1 ?? 0), 0);
 
   // El recorrido de Fagi, todo junto y ordenado, para buscar por tiempo.
   const track = events.filter((e) => e.type === 'track').flatMap((e) => e.pts);
   // Distancia recorrida hasta cada punto: mueve las patas al dibujar.
-  const recorrido = [0];
+  const route = [0];
   for (let i = 1; i < track.length; i++) {
-    recorrido.push(recorrido[i - 1] + Math.hypot(track[i][1] - track[i - 1][1], track[i][2] - track[i - 1][2]));
+    route.push(route[i - 1] + Math.hypot(track[i][1] - track[i - 1][1], track[i][2] - track[i - 1][2]));
   }
   const markers = events.filter((e) => MARKER_TYPES.has(e.type));
 
@@ -173,16 +174,16 @@ export function createPlayer(eventos, { checkpointEvery = 60 } = {}) {
   let cursor = 0;          // siguiente evento por aplicar
   let time = 0;
   let logEpoch = 0;        // sube al volver atrás: la consola se repinta entera
-  const checkpoints = [{ t: 0, cursor: 0, state: clonar(state) }];
+  const checkpoints = [{ t: 0, cursor: 0, state: clone(state) }];
   const fagi = createFagi();
 
-  function aplicarHasta(t) {
+  function applyUntil(t) {
     while (cursor < events.length && events[cursor].t <= t) {
       const ev = events[cursor];
       // El punto de control se toma ANTES del primer evento que lo pasa.
-      const ultimo = checkpoints[checkpoints.length - 1];
-      if (ev.t - ultimo.t >= checkpointEvery && cursor > ultimo.cursor) {
-        checkpoints.push({ t: events[cursor - 1].t, cursor, state: clonar(state) });
+      const lastItem = checkpoints[checkpoints.length - 1];
+      if (ev.t - lastItem.t >= checkpointEvery && cursor > lastItem.cursor) {
+        checkpoints.push({ t: events[cursor - 1].t, cursor, state: clone(state) });
       }
       applyEvent(state, ev);
       cursor++;
@@ -195,11 +196,11 @@ export function createPlayer(eventos, { checkpointEvery = 60 } = {}) {
       // Hacia atrás: desde el último punto de control anterior.
       let cp = checkpoints[0];
       for (const c of checkpoints) if (c.t <= t) cp = c;
-      state = clonar(cp.state);
+      state = clone(cp.state);
       cursor = cp.cursor;
       logEpoch++;
     }
-    aplicarHasta(t);
+    applyUntil(t);
     time = t;
     return view();
   }
@@ -212,8 +213,8 @@ export function createPlayer(eventos, { checkpointEvery = 60 } = {}) {
     for (const o of w.objects) if (o.born !== undefined) o.age = time - o.born;
     w.pheromone = w.pheromone.filter((m) => {
       // Bajo la lluvia se borra RAIN.washPhero veces más rápido, como en vivo.
-      const mojada = lluviaEntre(state.rainSpans, m.born, time);
-      m.life = PHERO.life - (time - m.born) - (RAIN.washPhero - 1) * mojada;
+      const wetOne = rainBetween(state.rainSpans, m.born, time);
+      m.life = PHERO.life - (time - m.born) - (RAIN.washPhero - 1) * wetOne;
       return m.life > 0;
     });
     // El viento gira hacia su objetivo a velocidad fija.
@@ -221,8 +222,8 @@ export function createPlayer(eventos, { checkpointEvery = 60 } = {}) {
     const giro = Math.min(Math.abs(diff), WIND.turnRate * Math.max(0, time - state.windAt));
     w.wind.angle = normalizeAngle(w.wind.angle + Math.sign(diff) * giro);
     state.windAt = time;
-    ponerFagi(fagi, track, recorrido, time, state.dead, w);
-    ponerMente(fagi, state, time);
+    putFagi(fagi, track, route, time, state.dead, w);
+    putMind(fagi, state, time);
     return { world: w, fagi, time, config: state.config, configSeq: state.configSeq };
   }
 
@@ -243,7 +244,7 @@ export function createPlayer(eventos, { checkpointEvery = 60 } = {}) {
 // Fagi en el instante t: entre dos muestras del recorrido se interpola la
 // posición y el giro; lo demás (acción, carga, necesidades) es el de la
 // muestra anterior.
-function ponerFagi(fagi, track, recorrido, t, dead, w) {
+function putFagi(fagi, track, route, t, dead, w) {
   if (!track.length) { fagi.alive = !dead; return; }
   let lo = 0;
   let hi = track.length - 1;
@@ -261,7 +262,7 @@ function ponerFagi(fagi, track, recorrido, t, dead, w) {
   fagi.x = a[1] + (b[1] - a[1]) * k;
   fagi.y = a[2] + (b[2] - a[2]) * k;
   fagi.angle = a[3] + normalizeAngle(b[3] - a[3]) * k;
-  fagi.stride = recorrido[lo] + (recorrido[Math.min(lo + 1, track.length - 1)] - recorrido[lo]) * k;
+  fagi.stride = route[lo] + (route[Math.min(lo + 1, track.length - 1)] - route[lo]) * k;
   fagi.thought = { action: a[4] ?? 'explore', reason: null };
   // Sesiones grabadas antes de que la fila llevara estas columnas: sin ellas.
   fagi.target = a[5] != null ? (w.points.find((p) => p.id === a[5]) ?? w.objects.find((o) => o.id === a[5]) ?? null) : null;
@@ -288,7 +289,7 @@ function ponerFagi(fagi, track, recorrido, t, dead, w) {
 // Su cabeza en el instante t, con la forma que leen los cuadros. Sesiones
 // grabadas antes de que existieran los eventos `mind`: la cabeza queda vacía
 // y el pensamiento sale del recorrido.
-function ponerMente(fagi, state, t) {
+function putMind(fagi, state, t) {
   const m = state.mind;
   if (m.thought) fagi.thought = { ...m.thought, ranked: m.thought.ranked ?? [] };
   else fagi.thought = { ...fagi.thought, ranked: [] };
@@ -308,8 +309,8 @@ function ponerMente(fagi, state, t) {
   }
   fagi.effects = {};
   for (const e of m.effects ?? []) {
-    const queda = e.until - t;
-    if (queda > 0) fagi.effects[e.stat] = { stat: e.stat, mult: e.mult, sec: e.sec, color: e.color, time: queda };
+    const remains = e.until - t;
+    if (remains > 0) fagi.effects[e.stat] = { stat: e.stat, mult: e.mult, sec: e.sec, color: e.color, time: remains };
   }
   const st = m.stats ?? {};
   fagi.eaten = st.eaten ?? 0;
@@ -323,15 +324,15 @@ function ponerMente(fagi, state, t) {
 }
 
 // Segundos de lluvia entre a y b.
-function lluviaEntre(spans, a, b) {
+function rainBetween(spans, a, b) {
   let total = 0;
-  for (const [ini, fin] of spans) total += Math.max(0, Math.min(b, fin ?? b) - Math.max(a, ini));
+  for (const [init, end] of spans) total += Math.max(0, Math.min(b, end ?? b) - Math.max(a, init));
   return total;
 }
 
-function clonar(state) {
+function clone(state) {
   // Las estelas de olor no se copian: se regeneran solas al dibujar.
-  const copia = structuredClone({
+  const copy = structuredClone({
     ...state,
     world: {
       ...state.world,
@@ -340,5 +341,5 @@ function clonar(state) {
       objects: state.world.objects.map(({ trail, ...o }) => o),
     },
   });
-  return copia;
+  return copy;
 }

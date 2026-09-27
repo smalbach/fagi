@@ -25,7 +25,7 @@
 //   · gotas.js     rachas, gotas y relámpago, delante de la cámara (pantalla)
 //   · util.js      hash, ruido de nubes, teselas, vista y viento
 
-export { rainLook, rainLevel, rainFalling } from './rain-sprite/estado.js';
-export { drawWetGround, drawOvercast, drawSplashes } from './rain-sprite/suelo.js';
-export { drawRipples, drawPuddle } from './rain-sprite/charcos.js';
-export { drawRainDrops } from './rain-sprite/gotas.js';
+export { rainLook, rainLevel, rainFalling } from './rain-sprite/state.js';
+export { drawWetGround, drawOvercast, drawSplashes } from './rain-sprite/ground.js';
+export { drawRipples, drawPuddle } from './rain-sprite/puddles.js';
+export { drawRainDrops } from './rain-sprite/drops.js';

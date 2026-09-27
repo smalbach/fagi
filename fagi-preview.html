@@ -12,10 +12,10 @@ function fagi(x, y, angle, extra = {}) {
     carrying: null, ...extra };
 }
 
-function bicho(f, escala, t) {
+function bicho(f, scaleOf, t) {
   ctx.save();
   ctx.translate(f.x, f.y);
-  ctx.scale(escala, escala);
+  ctx.scale(scaleOf, scaleOf);
   ctx.translate(-f.x, -f.y);
   drawFagi(ctx, { ...f, stride: f.alive ? t * 9 : 0 });
   ctx.restore();

@@ -32,10 +32,10 @@ export function evaluate(brain, candidates) {
     const r = recall(brain, c.key);
     // Lo que sabe pesa por lo que se fía de ello: un recuerdo sin confianza
     // apenas tira, y entonces vuelve la curiosidad y lo prueba otra vez.
-    const sabido = weight(brain, c.key);
-    const curiosidad = curious(brain, c.key, BRAIN.curiosityTries) ? BRAIN.curiosityBonus : 0;
+    const known = weight(brain, c.key);
+    const curiosity = curious(brain, c.key, BRAIN.curiosityTries) ? BRAIN.curiosityBonus : 0;
     // Las ganas van con la necesidad: saciado, lo que sabe bueno tira poco de él.
-    const ganas = BRAIN.baseInterest + (1 - BRAIN.baseInterest) * c.urgency;
+    const appetite = BRAIN.baseInterest + (1 - BRAIN.baseInterest) * c.urgency;
     const near = -BRAIN.distanceWeight * (c.dist / c.range);
     const penalty = -(c.penalty ?? 0); // olerlo sin verlo da posición imprecisa
 
@@ -44,10 +44,10 @@ export function evaluate(brain, candidates) {
       value: r.value,
       confidence: r.confidence,
       stage: r.stage,
-      score: sabido * ganas + curiosidad + c.urgency + near + penalty,
+      score: known * appetite + curiosity + c.urgency + near + penalty,
       parts: {
-        creencia: sabido * ganas, curiosidad, necesidad: c.urgency,
-        distancia: near, ...(penalty ? { olfato: penalty } : {}),
+        belief: known * appetite, curiosity, need: c.urgency,
+        distance: near, ...(penalty ? { smell: penalty } : {}),
       },
     };
   }).sort((a, b) => b.score - a.score);
@@ -65,10 +65,10 @@ export function choose(brain, candidates) {
 // sitio que llama a learn(), y una futura fuente de aprendizaje (la que sea)
 // las genera gratis con solo llamar a esta función.
 export function learn(brain, key, reward, now, because = []) {
-  const cambio = reinforce(brain, key, reward, now, BRAIN.learnRate);
-  synthAfterLearn(brain, key, cambio, because, now);
+  const change = reinforce(brain, key, reward, now, BRAIN.learnRate);
+  synthAfterLearn(brain, key, change, because, now);
   brain.version = (brain.version ?? 0) + 1;
   // Aprender también conecta: el concepto con lo que el cuerpo sintió.
   if (brain.synapses) wire(brain.synapses, key, because, now);
-  return cambio;
+  return change;
 }

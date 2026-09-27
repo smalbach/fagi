@@ -53,8 +53,8 @@ export function invalidEvent(ev) {
   if (!ev || typeof ev !== 'object' || Array.isArray(ev)) return 'not_object';
   if (!Number.isInteger(ev.seq) || ev.seq < 0) return 'seq';
   if (typeof ev.t !== 'number' || !Number.isFinite(ev.t) || ev.t < 0) return 't';
-  const campos = EVENT_TYPES[ev.type];
-  if (!campos) return `type:${String(ev.type).slice(0, 40)}`;
-  for (const c of campos) if (ev[c] === undefined) return `${ev.type}.${c}`;
+  const fieldsOf = EVENT_TYPES[ev.type];
+  if (!fieldsOf) return `type:${String(ev.type).slice(0, 40)}`;
+  for (const c of fieldsOf) if (ev[c] === undefined) return `${ev.type}.${c}`;
   return null;
 }

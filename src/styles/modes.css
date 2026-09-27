@@ -1,11 +1,11 @@
 /* --- modos del juego --- */
 #setup-bar, #replay-bar, #btn-end { display: none; }
-body.mode-idle #hud, body.mode-idle #consola, body.mode-idle #topbar { display: none; }
+body.mode-idle #hud, body.mode-idle #console, body.mode-idle #topbar { display: none; }
 
 /* Preparar: el mapa sin Fagi, los botones para poner cosas y los ajustes
    al lado. Nada de estado, consola ni efectos: todavía no hay nadie. */
 body.mode-setup #setup-bar { display: flex; }
-body.mode-setup #consola { display: none; }
+body.mode-setup #console { display: none; }
 body.mode-setup #hud { display: flex; }
 body.mode-setup .play-only { display: none; }
 body.mode-setup #btn-settings { display: none; }

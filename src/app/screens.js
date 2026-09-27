@@ -9,47 +9,47 @@ import { get, post, del } from './api.js';
 import { t, formatDuration, getLang } from '../i18n.js';
 import { versionLabel, versionTitle } from '../version.js';
 
-const raiz = () => document.getElementById('screen');
+const root = () => document.getElementById('screen');
 
 export function esc(v) {
   return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-function pintar(html) {
-  const el = raiz();
+function paint(html) {
+  const el = root();
   el.innerHTML = `<div class="screen-card">${html}</div>`;
   el.hidden = false;
   document.body.classList.add('screen-open');
   return el;
 }
 
-export function ocultar() {
-  raiz().hidden = true;
-  raiz().innerHTML = '';
+export function hide() {
+  root().hidden = true;
+  root().innerHTML = '';
   document.body.classList.remove('screen-open');
 }
 
-function mensajeDeError(err) {
-  const clave = `err.${err?.code ?? 'network'}`;
-  const txt = t(clave);
-  return txt === clave ? t('err.generic') : txt;
+function errorMessage(err) {
+  const key = `err.${err?.code ?? 'network'}`;
+  const txt = t(key);
+  return txt === key ? t('err.generic') : txt;
 }
 
 // Cada celda lleva el título de su columna: en el móvil la tabla se pinta como
 // tarjetas y la cabecera no se ve.
-function etiquetar(lista) {
-  const titulos = [...lista.querySelectorAll('thead th')].map((th) => th.textContent);
-  for (const tr of lista.querySelectorAll('tbody tr')) {
-    [...tr.children].forEach((td, i) => { if (titulos[i]) td.dataset.label = titulos[i]; });
+function labelIt(list) {
+  const titles = [...list.querySelectorAll('thead th')].map((th) => th.textContent);
+  for (const tr of list.querySelectorAll('tbody tr')) {
+    [...tr.children].forEach((td, i) => { if (titles[i]) td.dataset.label = titles[i]; });
   }
 }
 
-const fecha = (iso) => (iso ? new Date(iso).toLocaleString(getLang(), { dateStyle: 'medium', timeStyle: 'short' }) : '—');
+const date = (iso) => (iso ? new Date(iso).toLocaleString(getLang(), { dateStyle: 'medium', timeStyle: 'short' }) : '—');
 
-const cabecera = (titulo, extra = '') => `
+const header = (title, extra = '') => `
   <header class="screen-head">
     <h1>${t('app.title')}</h1>
-    <span class="screen-sub">${titulo}</span>
+    <span class="screen-sub">${title}</span>
     ${extra}
     <span class="app-version" title="${esc(versionTitle())}">${esc(versionLabel())}</span>
   </header>`;
@@ -57,8 +57,8 @@ const cabecera = (titulo, extra = '') => `
 // --- entrar y registrarse ---
 
 export function showLogin({ onDone }) {
-  const el = pintar(`
-    ${cabecera(t('auth.login'))}
+  const el = paint(`
+    ${header(t('auth.login'))}
     <form class="screen-form" id="f-login">
       <label>${t('auth.email')}<input name="email" type="email" autocomplete="email" required></label>
       <label>${t('auth.password')}<input name="password" type="password" autocomplete="current-password" required></label>
@@ -67,15 +67,15 @@ export function showLogin({ onDone }) {
       <p class="screen-alt">${t('auth.noAccount')} <a href="#" id="go-register">${t('auth.register')}</a></p>
     </form>`);
   el.querySelector('#go-register').addEventListener('click', (e) => { e.preventDefault(); showRegister({ onDone }); });
-  enviarFormulario(el.querySelector('#f-login'), async (datos) => {
-    const { user } = await post('/auth/login', { email: datos.email, password: datos.password });
+  submitForm(el.querySelector('#f-login'), async (data) => {
+    const { user } = await post('/auth/login', { email: data.email, password: data.password });
     onDone(user);
   });
 }
 
 export function showRegister({ onDone }) {
-  const el = pintar(`
-    ${cabecera(t('auth.register'))}
+  const el = paint(`
+    ${header(t('auth.register'))}
     <form class="screen-form" id="f-register">
       <label>${t('auth.name')}<input name="name" type="text" autocomplete="name" maxlength="80"></label>
       <label>${t('auth.email')}<input name="email" type="email" autocomplete="email" required></label>
@@ -86,30 +86,30 @@ export function showRegister({ onDone }) {
       <p class="screen-alt">${t('auth.haveAccount')} <a href="#" id="go-login">${t('auth.login')}</a></p>
     </form>`);
   el.querySelector('#go-login').addEventListener('click', (e) => { e.preventDefault(); showLogin({ onDone }); });
-  enviarFormulario(el.querySelector('#f-register'), async (datos) => {
-    const { user } = await post('/auth/register', datos);
+  submitForm(el.querySelector('#f-register'), async (data) => {
+    const { user } = await post('/auth/register', data);
     onDone(user);
   });
 }
 
-function enviarFormulario(form, accion) {
+function submitForm(form, action) {
   const error = form.querySelector('.screen-error');
-  const boton = form.querySelector('button[type=submit]');
+  const btn = form.querySelector('button[type=submit]');
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     error.textContent = '';
-    boton.disabled = true;
+    btn.disabled = true;
     try {
-      await accion(Object.fromEntries(new FormData(form)));
+      await action(Object.fromEntries(new FormData(form)));
     } catch (err) {
-      error.textContent = mensajeDeError(err);
+      error.textContent = errorMessage(err);
     } finally {
-      boton.disabled = false;
+      btn.disabled = false;
     }
   });
 }
 
-async function salirDeCuenta(onLogout) {
+async function logout(onLogout) {
   try { await post('/auth/logout'); } catch { /* la cookie se va igual */ }
   onLogout();
 }
@@ -117,11 +117,11 @@ async function salirDeCuenta(onLogout) {
 // --- lista de espera ---
 
 export function showWaitlist(user, { onRetry, onLogout }) {
-  const clave = user.status === 'pending' ? 'wait.pending' : `wait.${user.status}`;
-  const el = pintar(`
-    ${cabecera(t('wait.title'))}
+  const key = user.status === 'pending' ? 'wait.pending' : `wait.${user.status}`;
+  const el = paint(`
+    ${header(t('wait.title'))}
     <div class="screen-body">
-      <p class="screen-big">${t(clave)}</p>
+      <p class="screen-big">${t(key)}</p>
       <p class="screen-muted">${esc(user.email)}</p>
       <div class="screen-actions">
         <button id="w-retry">${t('wait.check')}</button>
@@ -129,14 +129,14 @@ export function showWaitlist(user, { onRetry, onLogout }) {
       </div>
     </div>`);
   el.querySelector('#w-retry').addEventListener('click', onRetry);
-  el.querySelector('#w-logout').addEventListener('click', () => salirDeCuenta(onLogout));
+  el.querySelector('#w-logout').addEventListener('click', () => logout(onLogout));
 }
 
 // --- inicio: la lista de sesiones ---
 
 export async function showHome(user, { onNew, onReplay, onAdmin, onLogout }) {
-  const el = pintar(`
-    ${cabecera(t('home.title'), `
+  const el = paint(`
+    ${header(t('home.title'), `
       <span class="screen-user">${esc(user.name || user.email)}</span>
       ${user.role === 'admin' ? `<button id="h-admin">${t('home.admin')}</button>` : ''}
       <button id="h-logout">${t('auth.logout')}</button>`)}
@@ -150,48 +150,48 @@ export async function showHome(user, { onNew, onReplay, onAdmin, onLogout }) {
       <div id="h-list" class="screen-list"><p class="screen-muted">${t('home.loading')}</p></div>
     </div>`);
   el.querySelector('#h-new').addEventListener('click', onNew);
-  el.querySelector('#h-logout').addEventListener('click', () => salirDeCuenta(onLogout));
+  el.querySelector('#h-logout').addEventListener('click', () => logout(onLogout));
   el.querySelector('#h-admin')?.addEventListener('click', onAdmin);
   const error = el.querySelector('.screen-error');
 
-  const fichero = el.querySelector('#h-import-file');
-  el.querySelector('#h-import').addEventListener('click', () => fichero.click());
-  fichero.addEventListener('change', async () => {
-    const f = fichero.files?.[0];
-    fichero.value = '';
+  const fileHandle = el.querySelector('#h-import-file');
+  el.querySelector('#h-import').addEventListener('click', () => fileHandle.click());
+  fileHandle.addEventListener('change', async () => {
+    const f = fileHandle.files?.[0];
+    fileHandle.value = '';
     if (!f) return;
     error.textContent = '';
     try {
-      const datos = JSON.parse(await f.text());
-      await post('/sessions/import', { session: datos.session ?? {}, events: datos.events });
-      await pintarLista();
+      const data = JSON.parse(await f.text());
+      await post('/sessions/import', { session: data.session ?? {}, events: data.events });
+      await paintList();
     } catch (err) {
-      error.textContent = err instanceof SyntaxError ? t('err.badFile') : mensajeDeError(err);
+      error.textContent = err instanceof SyntaxError ? t('err.badFile') : errorMessage(err);
     }
   });
 
-  async function pintarLista() {
-    const lista = el.querySelector('#h-list');
-    let sesiones;
+  async function paintList() {
+    const list = el.querySelector('#h-list');
+    let sessions;
     try {
-      ({ sessions: sesiones } = await get('/sessions'));
+      ({ sessions: sessions } = await get('/sessions'));
     } catch (err) {
-      lista.innerHTML = `<p class="screen-error">${esc(mensajeDeError(err))}</p>`;
+      list.innerHTML = `<p class="screen-error">${esc(errorMessage(err))}</p>`;
       return;
     }
-    if (!sesiones.length) { lista.innerHTML = `<p class="screen-muted">${t('home.empty')}</p>`; return; }
-    lista.innerHTML = `
+    if (!sessions.length) { list.innerHTML = `<p class="screen-muted">${t('home.empty')}</p>`; return; }
+    list.innerHTML = `
       <table>
         <thead><tr>
           <th>${t('home.started')}</th><th>${t('home.duration')}</th><th>${t('home.outcome')}</th>
           <th>${t('home.eaten')}</th><th>${t('home.stored')}</th><th>${t('home.rules')}</th>
           <th>${t('home.dunks')}</th><th>${t('home.rains')}</th><th></th>
         </tr></thead>
-        <tbody>${sesiones.map((s) => `
+        <tbody>${sessions.map((s) => `
           <tr data-id="${esc(s.id)}">
-            <td>${fecha(s.startedAt)}</td>
+            <td>${date(s.startedAt)}</td>
             <td>${formatDuration(s.duration ?? 0)}</td>
-            <td>${resultado(s)}</td>
+            <td>${result(s)}</td>
             <td>${esc(s.summary?.eaten ?? '—')}</td>
             <td>${esc(s.summary?.stored ?? '—')}</td>
             <td>${esc(s.summary?.rules ?? '—')}</td>
@@ -205,11 +205,11 @@ export async function showHome(user, { onNew, onReplay, onAdmin, onLogout }) {
           </tr>`).join('')}
         </tbody>
       </table>`;
-    etiquetar(lista);
-    lista.querySelectorAll('button[data-act]').forEach((b) => b.addEventListener('click', async () => {
-      const fila = b.closest('tr');
-      const id = fila.dataset.id;
-      const s = sesiones.find((x) => x.id === id);
+    labelIt(list);
+    list.querySelectorAll('button[data-act]').forEach((b) => b.addEventListener('click', async () => {
+      const row = b.closest('tr');
+      const id = row.dataset.id;
+      const s = sessions.find((x) => x.id === id);
       error.textContent = '';
       try {
         if (b.dataset.act === 'replay') {
@@ -218,101 +218,101 @@ export async function showHome(user, { onNew, onReplay, onAdmin, onLogout }) {
           onReplay(s, events);
         } else if (b.dataset.act === 'export') {
           const { events } = await get(`/sessions/${id}/events`);
-          descargar(`fagi-sesion-${s.startedAt.slice(0, 19).replace(/[:T]/g, '-')}.json`, { session: s, events });
+          download(`fagi-sesion-${s.startedAt.slice(0, 19).replace(/[:T]/g, '-')}.json`, { session: s, events });
         } else if (b.dataset.act === 'delete') {
           if (!confirm(t('home.confirmDelete'))) return;
           await del(`/sessions/${id}`);
-          await pintarLista();
+          await paintList();
         }
       } catch (err) {
         b.disabled = false;
-        error.textContent = mensajeDeError(err);
+        error.textContent = errorMessage(err);
       }
     }));
   }
 
-  await pintarLista();
+  await paintList();
 }
 
-function resultado(s) {
+function result(s) {
   if (!s.endedAt) return t('home.open');
   if (s.summary?.cause) return t('home.died', { cause: t(`cause.${s.summary.cause}`) });
   return t(`end.${s.endReason}`) === `end.${s.endReason}` ? esc(s.endReason) : t(`end.${s.endReason}`);
 }
 
-function descargar(nombre, datos) {
-  const blob = new Blob([JSON.stringify(datos)], { type: 'application/json' });
+function download(name, data) {
+  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = nombre;
+  a.download = name;
   a.click();
   URL.revokeObjectURL(url);
 }
 
 // --- admin: aprobar la lista de espera ---
 
-const FILTROS = ['pending', 'approved', 'rejected', 'disabled', ''];
+const FILTERS = ['pending', 'approved', 'rejected', 'disabled', ''];
 
 export async function showAdmin(user, { onBack }) {
-  let filtro = 'pending';
-  const el = pintar(`
-    ${cabecera(t('admin.title'), `<button id="a-back">${t('admin.back')}</button>`)}
+  let filterFn = 'pending';
+  const el = paint(`
+    ${header(t('admin.title'), `<button id="a-back">${t('admin.back')}</button>`)}
     <div class="screen-body">
-      <div class="screen-tabs">${FILTROS.map((f) => `<button data-f="${f}">${t(`admin.f.${f || 'all'}`)}</button>`).join('')}</div>
+      <div class="screen-tabs">${FILTERS.map((f) => `<button data-f="${f}">${t(`admin.f.${f || 'all'}`)}</button>`).join('')}</div>
       <p class="screen-error" role="alert"></p>
       <div id="a-list" class="screen-list"></div>
     </div>`);
   el.querySelector('#a-back').addEventListener('click', onBack);
   const error = el.querySelector('.screen-error');
-  el.querySelectorAll('.screen-tabs button').forEach((b) => b.addEventListener('click', () => { filtro = b.dataset.f; pintarLista(); }));
+  el.querySelectorAll('.screen-tabs button').forEach((b) => b.addEventListener('click', () => { filterFn = b.dataset.f; paintList(); }));
 
-  async function pintarLista() {
-    el.querySelectorAll('.screen-tabs button').forEach((b) => b.classList.toggle('active', b.dataset.f === filtro));
-    const lista = el.querySelector('#a-list');
-    let usuarios;
+  async function paintList() {
+    el.querySelectorAll('.screen-tabs button').forEach((b) => b.classList.toggle('active', b.dataset.f === filterFn));
+    const list = el.querySelector('#a-list');
+    let users;
     try {
-      ({ users: usuarios } = await get(`/admin/users${filtro ? `?status=${filtro}` : ''}`));
+      ({ users: users } = await get(`/admin/users${filterFn ? `?status=${filterFn}` : ''}`));
     } catch (err) {
-      error.textContent = mensajeDeError(err);
+      error.textContent = errorMessage(err);
       return;
     }
-    if (!usuarios.length) { lista.innerHTML = `<p class="screen-muted">${t('admin.empty')}</p>`; return; }
-    lista.innerHTML = `
+    if (!users.length) { list.innerHTML = `<p class="screen-muted">${t('admin.empty')}</p>`; return; }
+    list.innerHTML = `
       <table>
         <thead><tr><th>${t('auth.email')}</th><th>${t('auth.name')}</th><th>${t('admin.registered')}</th>
           <th>${t('admin.status')}</th><th>${t('admin.sessions')}</th><th></th></tr></thead>
-        <tbody>${usuarios.map((u) => `
+        <tbody>${users.map((u) => `
           <tr data-id="${esc(u.id)}">
             <td>${esc(u.email)}${u.role === 'admin' ? ' <span class="tag">admin</span>' : ''}</td>
             <td>${esc(u.name)}</td>
-            <td>${fecha(u.createdAt)}</td>
+            <td>${date(u.createdAt)}</td>
             <td><span class="status status-${esc(u.status)}">${t(`admin.f.${u.status}`)}</span></td>
             <td>${esc(u.sessions)}</td>
-            <td><div class="screen-row-actions">${u.id === user.id ? '' : acciones(u.status)}</div></td>
+            <td><div class="screen-row-actions">${u.id === user.id ? '' : actions(u.status)}</div></td>
           </tr>`).join('')}
         </tbody>
       </table>`;
-    etiquetar(lista);
-    lista.querySelectorAll('button[data-act]').forEach((b) => b.addEventListener('click', async () => {
+    labelIt(list);
+    list.querySelectorAll('button[data-act]').forEach((b) => b.addEventListener('click', async () => {
       error.textContent = '';
       b.disabled = true;
       try {
         await post(`/admin/users/${b.closest('tr').dataset.id}/${b.dataset.act}`);
-        await pintarLista();
+        await paintList();
       } catch (err) {
         b.disabled = false;
-        error.textContent = mensajeDeError(err);
+        error.textContent = errorMessage(err);
       }
     }));
   }
 
-  function acciones(estado) {
+  function actions(state) {
     const b = (act, cls = '') => `<button data-act="${act}" class="${cls}">${t(`admin.${act}`)}</button>`;
-    if (estado === 'pending') return b('approve', 'primary') + b('reject');
-    if (estado === 'approved') return b('disable');
+    if (state === 'pending') return b('approve', 'primary') + b('reject');
+    if (state === 'approved') return b('disable');
     return b('approve', 'primary');
   }
 
-  await pintarLista();
+  await paintList();
 }

@@ -22,10 +22,10 @@ export function turnTowards(fagi, targetAngle, dt) {
 // donde la tensión superficial la atrapa y apenas avanza pataleando.
 // Con las antenas sobre el hondo avanza tanteando, y empapada va lastrada
 // hasta secarse. Al notar que se acerca un frente, se apresura.
-function arrastre(world, fagi) {
-  const zona = waterZone(world, fagi.x, fagi.y);
-  let f = !zona ? 1 : zona.deep ? WATER.swimSpeed : WATER.wadeSpeed;
-  if (zona?.deep) return f;
+function drag(world, fagi) {
+  const zone = waterZone(world, fagi.x, fagi.y);
+  let f = !zone ? 1 : zone.deep ? WATER.swimSpeed : WATER.wadeSpeed;
+  if (zone?.deep) return f;
   if (fagi.probing) f *= WATER.probeSpeed;
   if (fagi.wet > 0) f *= 1 - (1 - WATER.wetSpeed) * (fagi.wet / WATER.dryTime);
   // Nota que baja la presión: instinto de darse prisa (INSTINCT.pressureHaste).
@@ -43,31 +43,31 @@ function arrastre(world, fagi) {
 // para dar media vuelta, el reflejo la devuelve de cara al otro lado) y
 // quedarse clavada en la orilla. Si aun así lleva un rato topando, se da la
 // vuelta hacia fuera: nunca se queda ahí para siempre.
-function frenarEnElBorde(fagi, world, antes, dt) {
+function brakeAtEdge(fagi, world, before, dt) {
   if (!fearsDeep(fagi)) return;
-  const ahora = waterZone(world, fagi.x, fagi.y);
-  if (!ahora?.deep || waterZone(world, antes.x, antes.y)?.deep) {
+  const now = waterZone(world, fagi.x, fagi.y);
+  if (!now?.deep || waterZone(world, before.x, before.y)?.deep) {
     fagi.edgeStuck = 0;
     return;
   }
-  fagi.x = antes.x;
-  fagi.y = antes.y;
+  fagi.x = before.x;
+  fagi.y = before.y;
   fagi.edgeStuck = (fagi.edgeStuck ?? 0) + dt;
   if (fagi.edgeStuck > WATER.edgeGiveUp) {
-    fagi.angle = Math.atan2(antes.y - ahora.pool.y, antes.x - ahora.pool.x);
+    fagi.angle = Math.atan2(before.y - now.pool.y, before.x - now.pool.x);
     fagi.edgeStuck = 0;
   }
 }
 
 export function advance(fagi, world, dt) {
   // Sin energía se arrastra: no muere, pero le cuesta todo el doble.
-  const flojera = fagi.energy <= 0 ? ENERGY.weakSpeed : 1;
-  const speed = FAGI.speed * statMult(fagi, 'speed') * flojera * arrastre(world, fagi);
-  const antes = { x: fagi.x, y: fagi.y };
+  const weakness = fagi.energy <= 0 ? ENERGY.weakSpeed : 1;
+  const speed = FAGI.speed * statMult(fagi, 'speed') * weakness * drag(world, fagi);
+  const before = { x: fagi.x, y: fagi.y };
   fagi.stride += speed * dt;
   fagi.x += Math.cos(fagi.angle) * speed * dt;
   fagi.y += Math.sin(fagi.angle) * speed * dt;
-  frenarEnElBorde(fagi, world, antes, dt);
+  brakeAtEdge(fagi, world, before, dt);
 
   // Rebota en los bordes del mundo.
   if (fagi.x < FAGI.radius || fagi.x > WORLD.width - FAGI.radius) {
@@ -87,22 +87,22 @@ export function advance(fagi, world, dt) {
 
 // ¿Hay paso de A a B? Las rocas cortan siempre; el hondo, solo a quien ya
 // aprendió a temerlo. `margin` es el cuerpo: ¿cabe, no solo un rayo?
-function cerrado(fagi, world, bx, by, margin) {
+function closed(fagi, world, bx, by, margin) {
   return segmentBlocked(world, fagi.x, fagi.y, bx, by, margin)
-    || (fearsDeep(fagi) && deepBlocked(world, fagi.x, fagi.y, bx, by, margin && WATER.vado / 2));
+    || (fearsDeep(fagi) && deepBlocked(world, fagi.x, fagi.y, bx, by, margin && WATER.shallows / 2));
 }
 
 // ¿Cabe el cuerpo por ahí? Mira un trecho corto en esa dirección.
-function hueco(fagi, world, a) {
+function gap(fagi, world, a) {
   const look = FAGI.radius + 34;
-  return !cerrado(fagi, world, fagi.x + Math.cos(a) * look, fagi.y + Math.sin(a) * look, FAGI.radius);
+  return !closed(fagi, world, fagi.x + Math.cos(a) * look, fagi.y + Math.sin(a) * look, FAGI.radius);
 }
 
 // El primer rumbo libre girando desde `base` hacia `side`, a pasos de 15°.
-function primerHueco(fagi, world, base, side) {
+function firstGap(fagi, world, base, side) {
   for (let k = 0; k <= 12; k++) {
     const a = base + side * k * (Math.PI / 12);
-    if (hueco(fagi, world, a)) return { a, k };
+    if (gap(fagi, world, a)) return { a, k };
   }
   return null;
 }
@@ -111,37 +111,37 @@ function primerHueco(fagi, world, base, side) {
 // (el que antes deja paso) y lo MANTIENE hasta volver a tener el objetivo a la
 // vista. Decidir el lado en cada frame la hacía ir y venir a lo largo de un
 // muro sin llegar nunca a su final. Así bordean las hormigas un obstáculo.
-function rumbo(fagi, world, target) {
+function headingOf(fagi, world, target) {
   // Al agua se va a la orilla más cercana, no al centro: se bebe desde el vado.
   const pool = poolOf(target);
-  const meta = pool ? shorePoint(target, radiusOf(pool), fagi, WATER.vado * 0.3) : target;
-  const directo = angleTo(fagi, meta);
-  if (!cerrado(fagi, world, meta.x, meta.y, FAGI.radius)) {
+  const meta = pool ? shorePoint(target, radiusOf(pool), fagi, WATER.shallows * 0.3) : target;
+  const direct = angleTo(fagi, meta);
+  if (!closed(fagi, world, meta.x, meta.y, FAGI.radius)) {
     fagi.detour = null;
-    return directo;
+    return direct;
   }
   if (fagi.detour?.target !== target) {
-    const izq = primerHueco(fagi, world, directo, -1);
-    const der = primerHueco(fagi, world, directo, 1);
-    const side = !izq ? 1 : !der ? -1 : izq.k < der.k ? -1 : 1;
+    const left = firstGap(fagi, world, direct, -1);
+    const right = firstGap(fagi, world, direct, 1);
+    const side = !left ? 1 : !right ? -1 : left.k < right.k ? -1 : 1;
     fagi.detour = { target, side };
   }
-  return primerHueco(fagi, world, directo, fagi.detour.side)?.a ?? null;
+  return firstGap(fagi, world, direct, fagi.detour.side)?.a ?? null;
 }
 
 export function moveToward(fagi, world, target, dt) {
   // Rodear la roca manda sobre ir en línea recta. Si ni así hay hueco, el
   // esquive de siempre, que al menos la saca de ahí.
-  const goal = rumbo(fagi, world, target);
+  const goal = headingOf(fagi, world, target);
   const dodge = goal == null ? avoidanceTurn(fagi, world, fearsDeep(fagi)) || 1 : 0;
   turnTowards(fagi, goal ?? fagi.angle + dodge * 0.9, dt);
   // Ya está encima del punto que perseguía: el radio de giro es menor que
   // eatRadius, así que seguir avanzando sería orbitarlo sin llegar a tocarlo.
   // Se para. Al agua y al nido no se les frena: entrar en ellos ya resuelve lo
   // que iba a hacer. Y si hay roca que esquivar, tampoco: primero salir de ella.
-  const encima = fagi.targetKind === 'food' && world.points.includes(target)
+  const above = fagi.targetKind === 'food' && world.points.includes(target)
     && Math.hypot(target.x - fagi.x, target.y - fagi.y) <= FAGI.eatRadius;
-  if (dodge === 0 && encima) return;
+  if (dodge === 0 && above) return;
   advance(fagi, world, dt);
 }
 
@@ -154,19 +154,19 @@ export function moveToward(fagi, world, target, dt) {
 // los puntos que ve ahora. Si ya no vale (lo alcanzó, se tapó o lo abandonó
 // por tiempo), no entra.
 export function explore(fagi, world, dt) {
-  const destino = fagi.exploreTarget;
+  const destination = fagi.exploreTarget;
   fagi.exploreTimer -= dt;
-  const llegó = destino && Math.hypot(destino.x - fagi.x, destino.y - fagi.y)
-    <= (destino.inView ? EXPLORE.waypointReach : EXPLORE.reach);
-  const tapado = destino?.inView && cerrado(fagi, world, destino.x, destino.y, 0);
-  const vale = destino && !llegó && !tapado && fagi.exploreTimer > 0;
+  const arrived = destination && Math.hypot(destination.x - fagi.x, destination.y - fagi.y)
+    <= (destination.inView ? EXPLORE.waypointReach : EXPLORE.reach);
+  const covered = destination?.inView && closed(fagi, world, destination.x, destination.y, 0);
+  const valid = destination && !arrived && !covered && fagi.exploreTimer > 0;
 
-  if (!vale || fagi.exploreResume) {
-    const previo = fagi.exploreResume && vale && destino.inView ? destino : null;
-    fagi.exploreTarget = waypointInView(fagi, fagi.explored, nestOf(world), world, previo);
+  if (!valid || fagi.exploreResume) {
+    const prior = fagi.exploreResume && valid && destination.inView ? destination : null;
+    fagi.exploreTarget = waypointInView(fagi, fagi.explored, nestOf(world), world, prior);
     fagi.exploreLegs = (fagi.exploreLegs ?? 0) + 1;
     fagi.exploreTimer = EXPLORE.giveUp;
-    if (previo) {
+    if (prior) {
       const e = fagi.exploreTarget;
       fagi.legChoice = { n: (fagi.legChoice?.n ?? 0) + 1, resumed: e.resumed, score: e.score, rival: e.rival };
     }
@@ -187,43 +187,43 @@ export function trackScent(fagi, world, key, dt) {
   const ny = Math.cos(wind.angle);
   const d = FAGI.probe;
 
-  const aqui = scentAt(fagi, world, key, fagi.x, fagi.y);
-  const izq = scentAt(fagi, world, key, fagi.x + nx * d, fagi.y + ny * d);
-  const der = scentAt(fagi, world, key, fagi.x - nx * d, fagi.y - ny * d);
+  const here = scentAt(fagi, world, key, fagi.x, fagi.y);
+  const left = scentAt(fagi, world, key, fagi.x + nx * d, fagi.y + ny * d);
+  const right = scentAt(fagi, world, key, fagi.x - nx * d, fagi.y - ny * d);
 
   // Mira también hacia delante: el hilo serpentea, así que no basta el viento.
-  const frente = scentAt(fagi, world, key,
+  const front = scentAt(fagi, world, key,
     fagi.x + Math.cos(fagi.angle) * d, fagi.y + Math.sin(fagi.angle) * d);
-  const frenteIzq = scentAt(fagi, world, key,
+  const frontLeft = scentAt(fagi, world, key,
     fagi.x + Math.cos(fagi.angle - 0.7) * d, fagi.y + Math.sin(fagi.angle - 0.7) * d);
-  const frenteDer = scentAt(fagi, world, key,
+  const frontRight = scentAt(fagi, world, key,
     fagi.x + Math.cos(fagi.angle + 0.7) * d, fagi.y + Math.sin(fagi.angle + 0.7) * d);
 
   let goal;
-  if (aqui > 0 || izq > 0 || der > 0 || frente > 0 || frenteIzq > 0 || frenteDer > 0) {
+  if (here > 0 || left > 0 || right > 0 || front > 0 || frontLeft > 0 || frontRight > 0) {
     // Dentro del rastro: hacia donde el olor sube. Si empata, contra el viento,
     // que es de donde viene lo que huele.
-    const opciones = [
-      { a: fagi.angle, v: frente },
-      { a: fagi.angle - 0.7, v: frenteIzq },
-      { a: fagi.angle + 0.7, v: frenteDer },
-      { a: upwind, v: Math.max(izq, der, aqui) * 0.9 },
+    const options = [
+      { a: fagi.angle, v: front },
+      { a: fagi.angle - 0.7, v: frontLeft },
+      { a: fagi.angle + 0.7, v: frontRight },
+      { a: upwind, v: Math.max(left, right, here) * 0.9 },
     ];
-    const mejor = opciones.reduce((m, o) => (o.v > m.v ? o : m));
-    const lado = izq - der;
-    const correccion = Math.max(-0.5, Math.min(0.5, lado * 2));
-    goal = normalizeAngle((mejor.v > aqui ? mejor.a : upwind) + correccion);
+    const best = options.reduce((m, o) => (o.v > m.v ? o : m));
+    const sideOf = left - right;
+    const correctionEp = Math.max(-0.5, Math.min(0.5, sideOf * 2));
+    goal = normalizeAngle((best.v > here ? best.a : upwind) + correctionEp);
     fagi.trailMemory = FAGI.trailMemory;
-    if (lado !== 0) fagi.castSide = Math.sign(lado);
+    if (sideOf !== 0) fagi.castSide = Math.sign(sideOf);
     fagi.lastScent = { x: fagi.x, y: fagi.y };  // aquí olía: punto al que volver
     fagi.tracking = 'en el rastro';
   } else {
     fagi.trailMemory -= dt;
-    const vuelta = fagi.lastScent
+    const turnBack = fagi.lastScent
       ? Math.hypot(fagi.lastScent.x - fagi.x, fagi.lastScent.y - fagi.y)
       : 0;
 
-    if (fagi.lastScent && vuelta > 45) {
+    if (fagi.lastScent && turnBack > 45) {
       // Se ha salido del hilo: vuelve al último sitio donde olía algo.
       goal = Math.atan2(fagi.lastScent.y - fagi.y, fagi.lastScent.x - fagi.x);
       fagi.tracking = 'vuelve a donde olía';
@@ -244,6 +244,6 @@ export function trackScent(fagi, world, key, dt) {
   if (dodge !== 0) goal = fagi.angle + dodge * 0.9;
   turnTowards(fagi, goal, dt);
   advance(fagi, world, dt);
-  return aqui;
+  return here;
 }
 

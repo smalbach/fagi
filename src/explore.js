@@ -31,7 +31,7 @@ export function createExploreMap() {
   return new Float32Array(cols() * rows());
 }
 
-function celda(x, y) {
+function cellOf(x, y) {
   const c = Math.min(cols() - 1, Math.max(0, Math.floor(x / EXPLORE.cell)));
   const r = Math.min(rows() - 1, Math.max(0, Math.floor(y / EXPLORE.cell)));
   return r * cols() + c;
@@ -42,35 +42,35 @@ export function markVisited(map, x, y, dt) {
   for (let k = 0; k < map.length; k++) {
     map[k] = Math.max(0, map[k] - EXPLORE.fade * dt);
   }
-  const i = celda(x, y);
+  const i = cellOf(x, y);
   map[i] = Math.min(EXPLORE.visitMax, map[i] + EXPLORE.visitGain * dt);
 }
 
 // La casilla a la que merece la pena ir: la que menos conoce, restándole lo que
 // cuesta llegar y sumándole un empujón por alejarse del nido, que es de donde
 // ya viene todo lo sabido.
-export function exploreTarget(fagi, map, nido) {
+export function exploreTarget(fagi, map, nestObj) {
   const nc = cols();
   const diag = diagonal();
-  const dNido = nido ? Math.hypot(nido.x - fagi.x, nido.y - fagi.y) : 0;
+  const dNestObj = nestObj ? Math.hypot(nestObj.x - fagi.x, nestObj.y - fagi.y) : 0;
 
-  let mejor = null;
+  let best = null;
   for (let i = 0; i < map.length; i++) {
     const x = ((i % nc) + 0.5) * EXPLORE.cell;
     const y = (Math.floor(i / nc) + 0.5) * EXPLORE.cell;
     if (x > WORLD.width || y > WORLD.height) continue;   // casilla cortada por el borde
 
     const dist = Math.hypot(x - fagi.x, y - fagi.y);
-    let puntos = -map[i] - EXPLORE.distanceWeight * (dist / diag);
+    let points = -map[i] - EXPLORE.distanceWeight * (dist / diag);
 
-    if (nido) {
-      const d = Math.hypot(nido.x - x, nido.y - y);
-      puntos += EXPLORE.homeBias * (d - dNido) / diag;
+    if (nestObj) {
+      const d = Math.hypot(nestObj.x - x, nestObj.y - y);
+      points += EXPLORE.homeBias * (d - dNestObj) / diag;
     }
 
-    if (!mejor || puntos > mejor.puntos) mejor = { x, y, puntos };
+    if (!best || points > best.points) best = { x, y, points };
   }
-  return mejor ? { x: mejor.x, y: mejor.y } : { x: fagi.x, y: fagi.y };
+  return best ? { x: best.x, y: best.y } : { x: fagi.x, y: fagi.y };
 }
 
 // Lo que vale un tramo que acaba en (x, y), para la única directiva que hay:
@@ -79,16 +79,16 @@ export function exploreTarget(fagi, map, nido) {
 // lo que le acerque a la zona que menos conoce (la brújula) y lo que avance de
 // una vez; y cuesta lo que tenga que girar para ir, que es tiempo y energía
 // que no gasta en avanzar.
-function puntuarTramo(fagi, map, x, y, brujula) {
+function scoreLeg(fagi, map, x, y, compassRose) {
   const dist = Math.hypot(x - fagi.x, y - fagi.y);
-  const hacia = Math.atan2(y - fagi.y, x - fagi.x);
-  const rumbo = Math.atan2(brujula.y - fagi.y, brujula.x - fagi.x);
-  const lejos = Math.hypot(brujula.x - fagi.x, brujula.y - fagi.y) > 1;
-  const avance = Math.min(1, dist / viewRangeOf(fagi));
-  const giro = Math.abs(normalizeAngle(hacia - fagi.angle)) / Math.PI;
-  return -map[celda(x, y)]
-    + (lejos ? EXPLORE.compassWeight * Math.cos(normalizeAngle(hacia - rumbo)) : 0)
-    + EXPLORE.farWeight * avance
+  const toward = Math.atan2(y - fagi.y, x - fagi.x);
+  const headingOf = Math.atan2(compassRose.y - fagi.y, compassRose.x - fagi.x);
+  const far = Math.hypot(compassRose.x - fagi.x, compassRose.y - fagi.y) > 1;
+  const advanceBy = Math.min(1, dist / viewRangeOf(fagi));
+  const giro = Math.abs(normalizeAngle(toward - fagi.angle)) / Math.PI;
+  return -map[cellOf(x, y)]
+    + (far ? EXPLORE.compassWeight * Math.cos(normalizeAngle(toward - headingOf)) : 0)
+    + EXPLORE.farWeight * advanceBy
     - EXPLORE.turnWeight * giro;
 }
 
@@ -101,35 +101,35 @@ function puntuarTramo(fagi, map, x, y, brujula) {
 //
 // Devuelve el tramo elegido; `resumed` dice si fue el viejo, y `rival` lo que
 // puntuaba la mejor alternativa, para que la consola cuente la comparación.
-export function waypointInView(fagi, map, nido, world, previo = null) {
-  const brujula = exploreTarget(fagi, map, nido);
+export function waypointInView(fagi, map, nestObj, world, prior = null) {
+  const compassRose = exploreTarget(fagi, map, nestObj);
   const range = viewRangeOf(fagi);
   const half = fovOf(fagi) / 2;
-  const margen = FAGI.radius * 2;
+  const marginOf = FAGI.radius * 2;
   // Quien ya se hundió una vez no traza tramos que acaben o pasen por el hondo.
-  const teme = world && fearsDeep(fagi);
+  const fears = world && fearsDeep(fagi);
 
-  let mejor = null;
+  let best = null;
   for (let i = 0; i < EXPLORE.rays; i++) {
     const a = fagi.angle - half + (2 * half * i) / Math.max(1, EXPLORE.rays - 1);
     for (const f of EXPLORE.depths) {
       const x = fagi.x + Math.cos(a) * range * f;
       const y = fagi.y + Math.sin(a) * range * f;
-      if (x < margen || y < margen || x > WORLD.width - margen || y > WORLD.height - margen) continue;
+      if (x < marginOf || y < marginOf || x > WORLD.width - marginOf || y > WORLD.height - marginOf) continue;
       if (world && segmentBlocked(world, fagi.x, fagi.y, x, y)) continue;
-      if (teme && (waterZone(world, x, y) || deepBlocked(world, fagi.x, fagi.y, x, y))) continue;
-      const puntos = puntuarTramo(fagi, map, x, y, brujula);
-      if (!mejor || puntos > mejor.puntos) mejor = { x, y, puntos };
+      if (fears && (waterZone(world, x, y) || deepBlocked(world, fagi.x, fagi.y, x, y))) continue;
+      const points = scoreLeg(fagi, map, x, y, compassRose);
+      if (!best || points > best.points) best = { x, y, points };
     }
   }
 
-  if (previo) {
-    const puntos = puntuarTramo(fagi, map, previo.x, previo.y, brujula);
-    if (!mejor || puntos > mejor.puntos) {
-      return { x: previo.x, y: previo.y, inView: true, resumed: true, score: puntos, rival: mejor?.puntos ?? null };
+  if (prior) {
+    const points = scoreLeg(fagi, map, prior.x, prior.y, compassRose);
+    if (!best || points > best.points) {
+      return { x: prior.x, y: prior.y, inView: true, resumed: true, score: points, rival: best?.points ?? null };
     }
-    return { x: mejor.x, y: mejor.y, inView: true, resumed: false, score: mejor.puntos, rival: puntos };
+    return { x: best.x, y: best.y, inView: true, resumed: false, score: best.points, rival: points };
   }
-  if (!mejor) return { x: brujula.x, y: brujula.y, inView: false };
-  return { x: mejor.x, y: mejor.y, inView: true, score: mejor.puntos };
+  if (!best) return { x: compassRose.x, y: compassRose.y, inView: false };
+  return { x: best.x, y: best.y, inView: true, score: best.points };
 }

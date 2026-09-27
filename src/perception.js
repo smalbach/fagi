@@ -50,24 +50,24 @@ function nearestVisible(fagi, world, predicate) {
 function rememberWater(fagi, world, visible, range) {
   if (visible) {
     const kind = waterPlaceKind(visible);
-    const antes = recallPlace(fagi.brain, kind);
+    const before = recallPlace(fagi.brain, kind);
     rememberPlace(fagi.brain, kind, visible, fagi.age);
-    if (!antes || antes.ref !== visible) fagi.waterFound = (fagi.waterFound ?? 0) + 1;
+    if (!before || before.ref !== visible) fagi.waterFound = (fagi.waterFound ?? 0) + 1;
   }
 
-  const lago = recallPlace(fagi.brain, 'agua');
-  if (lago && !world.objects.includes(lago.ref)) forgetPlace(fagi.brain, 'agua');   // lo quitaron del mapa
+  const lake = recallPlace(fagi.brain, 'water');
+  if (lake && !world.objects.includes(lake.ref)) forgetPlace(fagi.brain, 'water');   // lo quitaron del mapa
 
-  const charco = recallPlace(fagi.brain, 'charco');
-  const cerca = charco && Math.hypot(charco.x - fagi.x, charco.y - fagi.y) < range * 0.6;
-  if (charco && cerca && !world.objects.includes(charco.ref)) {
+  const puddle = recallPlace(fagi.brain, 'puddle');
+  const near = puddle && Math.hypot(puddle.x - fagi.x, puddle.y - fagi.y) < range * 0.6;
+  if (puddle && near && !world.objects.includes(puddle.ref)) {
     // Cuánto hacía que lo vio: con eso aprende cuánto suele durar un charco.
-    const edad = fagi.age - charco.lastAt;
-    const vida = fagi.brain.puddleLife;
-    fagi.brain.puddleLife = vida == null ? edad : vida + RAIN.puddleLifeRate * (edad - vida);
-    forgetPlace(fagi.brain, 'charco');
+    const age = fagi.age - puddle.lastAt;
+    const life = fagi.brain.puddleLife;
+    fagi.brain.puddleLife = life == null ? age : life + RAIN.puddleLifeRate * (age - life);
+    forgetPlace(fagi.brain, 'puddle');
     fagi.puddleGone = (fagi.puddleGone ?? 0) + 1;
-    learn(fagi.brain, 'charco', -RAIN.puddleLesson, fagi.age);
+    learn(fagi.brain, 'puddle', -RAIN.puddleLesson, fagi.age);
   }
 
   // De lo que recuerda, lo que quede más cerca. Un sitio con poca confianza no
@@ -76,14 +76,14 @@ function rememberWater(fagi, world, visible, range) {
   //
   // Y si ya ha encontrado charcos secos, sabe más o menos cuánto duran: uno
   // visto hace más de eso lo da por seco mientras tenga otra agua que recordar.
-  let sitios = ['agua', 'charco'].map((k) => recallPlace(fagi.brain, k)).filter(Boolean);
-  const vida = fagi.brain.puddleLife;
-  const caducado = (p) => p.ref?.type === 'charco' && vida != null && fagi.age - p.lastAt > vida;
-  if (sitios.length > 1) sitios = sitios.filter((p) => !caducado(p));
-  const recelo = 1 + Math.max(0, -peekWeight(fagi.brain, 'charco'));
-  const lejania = (p) => distanceTo(fagi, p) * (p.ref?.type === 'charco' ? recelo : 1);
-  const sitio = sitios.sort((a, b) => lejania(a) - lejania(b))[0] ?? null;
-  return { pool: visible ?? sitio, sitio };
+  let places = ['water', 'puddle'].map((k) => recallPlace(fagi.brain, k)).filter(Boolean);
+  const life = fagi.brain.puddleLife;
+  const expired = (p) => p.ref?.type === 'puddle' && life != null && fagi.age - p.lastAt > life;
+  if (places.length > 1) places = places.filter((p) => !expired(p));
+  const wariness = 1 + Math.max(0, -peekWeight(fagi.brain, 'puddle'));
+  const farness = (p) => distanceTo(fagi, p) * (p.ref?.type === 'puddle' ? wariness : 1);
+  const placeOf = places.sort((a, b) => farness(a) - farness(b))[0] ?? null;
+  return { pool: visible ?? placeOf, place: placeOf };
 }
 
 function rememberFoodSource(fagi, world) {
@@ -107,36 +107,36 @@ function rememberFoodSource(fagi, world) {
 // Lo que empuja a una obrera a salir a por comida: su hambre o lo que le falta
 // a la despensa según la recuerda (fagi.pantry), lo que sea mayor.
 function forageNeed(fagi, hungerU) {
-  const falta = 1 - Math.min(1, stockCount(fagi.pantry) / NEST.full);
-  return Math.max(hungerU, NEST.forageDrive * falta);
+  const missing = 1 - Math.min(1, stockCount(fagi.pantry) / NEST.full);
+  return Math.max(hungerU, NEST.forageDrive * missing);
 }
 
 function buildCandidates(fagi, world, {
-  hungerU, thirstU, range, visible, pool, sitio, visibleSource, source, smelledSource, sourceStrength,
+  hungerU, thirstU, range, visible, pool, place: placeOf, visibleSource, source, smelledSource, sourceStrength,
 }) {
-  const nido = nestOf(world);
+  const nestObj = nestOf(world);
   const forage = forageNeed(fagi, hungerU);
   // Si algo entra por los dos sentidos, manda la vista (es más precisa).
-  const porRef = new Map();
+  const byRef = new Map();
   // Lo que flota en el hondo no se persigue si ya sabe lo que es meterse ahí.
-  const teme = fearsDeep(fagi);
+  const fears = fearsDeep(fagi);
   const add = (c) => {
-    if (teme && c.kind === 'food' && waterZone(world, c.ref.x, c.ref.y)?.deep) return;
-    const ya = porRef.get(c.ref);
-    if (!ya || (ya.via === 'olfato' && c.via === 'vista')) porRef.set(c.ref, c);
+    if (fears && c.kind === 'food' && waterZone(world, c.ref.x, c.ref.y)?.deep) return;
+    const already = byRef.get(c.ref);
+    if (!already || (already.via === 'smell' && c.via === 'sight')) byRef.set(c.ref, c);
   };
 
   const seen = seenPoints(fagi, world.points, world);
   for (const { point, dist } of seen) {
-    add({ key: point.type, kind: 'food', ref: point, dist, range, urgency: hungerU, via: 'vista', penalty: 0 });
+    add({ key: point.type, kind: 'food', ref: point, dist, range, urgency: hungerU, via: 'sight', penalty: 0 });
   }
 
-  const olidos = smelledPoints(fagi, world);
-  for (const { point, fuerza } of olidos) {
+  const smelledOnes = smelledPoints(fagi, world);
+  for (const { point, force } of smelledOnes) {
     // Por el olfato no sabe a qué distancia está: solo si huele fuerte o flojo.
     const aroma = aromaOf(fagi, point.type);
-    add({ key: point.type, kind: 'food', ref: point, dist: (1 - fuerza) * aroma, range: aroma,
-          urgency: hungerU, via: 'olfato', penalty: BRAIN.smellPenalty, fuerza });
+    add({ key: point.type, kind: 'food', ref: point, dist: (1 - force) * aroma, range: aroma,
+          urgency: hungerU, via: 'smell', penalty: BRAIN.smellPenalty, force });
   }
 
   if (smelledSource && !visibleSource) {
@@ -144,8 +144,8 @@ function buildCandidates(fagi, world, {
     add({
       key: TREE.fruit, kind: 'food', ref: smelledSource,
       dist: (1 - sourceStrength) * aroma, range: aroma,
-      urgency: hungerU, via: 'olfato', penalty: BRAIN.smellPenalty,
-      fuerza: sourceStrength, source: true,
+      urgency: hungerU, via: 'smell', penalty: BRAIN.smellPenalty,
+      force: sourceStrength, source: true,
     });
   }
 
@@ -154,16 +154,16 @@ function buildCandidates(fagi, world, {
   // cuando no estamos ya bajo su copa; allí mandan los frutos concretos. Tira
   // de ella el hambre propia o la de la colonia, la que sea mayor.
   if (source && forage > 0.15 && (!smelledSource || visibleSource)) {
-    const real = visibleSource ?? source.ref;
-    const dist = Math.max(0, distanceTo(fagi, source) - radiusOf(real));
+    const realOne = visibleSource ?? source.ref;
+    const dist = Math.max(0, distanceTo(fagi, source) - radiusOf(realOne));
     if (dist > FAGI.eatRadius * 2) {
-      const via = visibleSource ? 'vista' : 'memoria';
-      const duda = via === 'memoria' ? (source.error ?? 0) / MEMORY.placeErrorMax : 0;
+      const via = visibleSource ? 'sight' : 'memory';
+      const doubt = via === 'memory' ? (source.error ?? 0) / MEMORY.placeErrorMax : 0;
       add({
         key: TREE.fruit, kind: 'food', ref: source, dist,
-        range: via === 'vista' ? range : MEMORY.travelRange,
+        range: via === 'sight' ? range : MEMORY.travelRange,
         urgency: forage, via, source: true,
-        penalty: via === 'vista' ? 0 : BRAIN.smellPenalty * (1 + duda),
+        penalty: via === 'sight' ? 0 : BRAIN.smellPenalty * (1 + doubt),
       });
     }
   }
@@ -171,26 +171,26 @@ function buildCandidates(fagi, world, {
   // Su propio rastro bajo las antenas, en el sentido que se aleja del nido.
   // Es un candidato más: si seguirlo merece la pena lo dice lo aprendido
   // (la creencia 'feromona'), no una regla. Está justo debajo: distancia 0.
-  if (nido && forage > 0) {
-    const marca = followPheromone(world, fagi, Math.hypot(nido.x - fagi.x, nido.y - fagi.y), true);
-    if (marca) {
-      add({ key: 'feromona', kind: 'trail', ref: marca, dist: 0, range: 1,
-            urgency: forage, via: 'antenas', penalty: 0 });
+  if (nestObj && forage > 0) {
+    const mark = followPheromone(world, fagi, Math.hypot(nestObj.x - fagi.x, nestObj.y - fagi.y), true);
+    if (mark) {
+      add({ key: 'pheromone', kind: 'trail', ref: mark, dist: 0, range: 1,
+            urgency: forage, via: 'antennae', penalty: 0 });
     }
   }
 
   // Sin sed apenas, el agua ni entra en la lista: no da vueltas al charco por gusto.
   if (pool && !fagi.drinking && thirstU > THIRST.ignoreBelow) {
-    const real = visible ?? pool.ref;
+    const realOne = visible ?? pool.ref;
     // Al agua se le mide la distancia al borde: un charco grande se alcanza antes.
-    const d = Math.max(0, distanceTo(fagi, pool) - radiusOf(real));
+    const d = Math.max(0, distanceTo(fagi, pool) - radiusOf(realOne));
     // Sin verla, si recuerda bien dónde está va de memoria, derecha; solo si el
     // recuerdo ya está difuminado se fía más de la nariz y sigue la estela.
-    const difuso = (pool.error ?? 0) > range / 2;
-    const via = visible ? 'vista' : (difuso && smellsObject(fagi, real, world) ? 'olfato' : 'memoria');
+    const fuzzy = (pool.error ?? 0) > range / 2;
+    const via = visible ? 'sight' : (fuzzy && smellsObject(fagi, realOne, world) ? 'smell' : 'memory');
     // Ir de memoria penaliza el doble: no lo percibe Y puede estar equivocada
     // sobre dónde estaba, tanto más cuanto más tiempo lleve sin verlo.
-    const dudaSitio = via === 'memoria' ? (pool.error ?? 0) / MEMORY.placeErrorMax : 0;
+    const placeDoubt = via === 'memory' ? (pool.error ?? 0) / MEMORY.placeErrorMax : 0;
     // La distancia se mide contra lo que toque: lo que ve, contra su vista; lo
     // que huele, contra el alcance del olor; lo que recuerda, contra lo que le
     // parece razonable caminar.
@@ -203,15 +203,15 @@ function buildCandidates(fagi, world, {
     // Y lo mismo con la vista: un charco pequeño se ve de cerca, y si verlo lo
     // midiese contra la vista puntuaba peor que recordarlo. Lo soltaba al
     // verlo, se daba la vuelta, lo recordaba y volvía, sin llegar nunca.
-    const escala = via === 'olfato' ? (sitio ? MEMORY.travelRange : aromaOf(fagi, 'agua'))
-      : via === 'memoria' ? MEMORY.travelRange
-      : sitio ? Math.max(range, MEMORY.travelRange) : range;
-    add({ key: 'agua', kind: 'water', ref: pool, dist: d, range: escala,
+    const scaleOf = via === 'smell' ? (placeOf ? MEMORY.travelRange : aromaOf(fagi, 'water'))
+      : via === 'memory' ? MEMORY.travelRange
+      : placeOf ? Math.max(range, MEMORY.travelRange) : range;
+    add({ key: 'water', kind: 'water', ref: pool, dist: d, range: scaleOf,
           urgency: thirstU, via,
-          penalty: via === 'vista' ? 0 : BRAIN.smellPenalty + dudaSitio * BRAIN.smellPenalty });
+          penalty: via === 'sight' ? 0 : BRAIN.smellPenalty + placeDoubt * BRAIN.smellPenalty });
   }
 
-  return { candidatos: [...porRef.values()], seen, olidos };
+  return { candidates: [...byRef.values()], seen, smelledOnes };
 }
 
 // Foto completa de la situación, lista para que las reglas decidan sobre ella.
@@ -220,23 +220,23 @@ export function perceive(fagi, world) {
   const hungerU = fagi.hunger / HUNGER.max;
   const range = viewRangeOf(fagi);
   const visible = nearestWater(fagi, world);
-  const { pool, sitio } = rememberWater(fagi, world, visible, range);
+  const { pool, place: placeOf } = rememberWater(fagi, world, visible, range);
   const {
     visible: visibleSource, source, smelled: smelledSource, strength: sourceStrength,
   } = rememberFoodSource(fagi, world);
 
-  const { candidatos, seen, olidos } =
+  const { candidates, seen, smelledOnes } =
     buildCandidates(fagi, world, {
-      hungerU, thirstU, range, visible, pool, sitio, visibleSource, source, smelledSource, sourceStrength,
+      hungerU, thirstU, range, visible, pool, place: placeOf, visibleSource, source, smelledSource, sourceStrength,
     });
-  const { best, ranked } = choose(fagi.brain, candidatos);
+  const { best, ranked } = choose(fagi.brain, candidates);
 
   return {
-    thirstU, hungerU, range, visible, pool, candidatos, seen, olidos, best, ranked,
+    thirstU, hungerU, range, visible, pool, candidates, seen, smelledOnes, best, ranked,
     energyU: fagi.energy / ENERGY.max,
-    nido: nestOf(world), source, visibleSource,
-    enNido: Boolean(nestUnder(fagi, world)),
-    sitioAgua: sitio,
+    nest: nestOf(world), source, visibleSource,
+    inNest: Boolean(nestUnder(fagi, world)),
+    waterPlace: placeOf,
     smellsWater: Boolean(pool) && smellsObject(fagi, visible ?? pool.ref, world),
   };
 }

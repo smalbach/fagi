@@ -7,7 +7,7 @@
 import { BACKEND } from './config.js';
 import { observe } from './observation.js';
 import { validateIntention } from './backend/index.js';
-import { apremia } from './decision.js';
+import { pressing } from './decision.js';
 
 export function createCortex(backend) {
   return {
@@ -37,25 +37,25 @@ export function resetCortex(cortex) {
 // ¿Hay algo que justifique preguntar ahora? Una clave que no había visto, algo
 // nuevo en lo que percibe, una experiencia recién cerrada, empezar a apurar,
 // llevar mucho explorando sin más, o quedarse sin directiva.
-function tocaPreguntar(cortex, fagi, ctx) {
-  let claveNueva = false;
+function shouldAsk(cortex, fagi, ctx) {
+  let newKey = false;
   for (const c of ctx.ranked) {
-    if (!cortex.seenKeys.has(c.key)) { cortex.seenKeys.add(c.key); claveNueva = true; }
+    if (!cortex.seenKeys.has(c.key)) { cortex.seenKeys.add(c.key); newKey = true; }
   }
-  const episodioNuevo = Boolean(fagi.lastEpisode) && fagi.lastEpisode.n !== cortex.lastEpisodeN;
-  const apremiaAhora = apremia(ctx);
-  const apremiaSube = apremiaAhora && !cortex.wasApremiando;
-  const inactivaMucho = fagi.thought?.action === 'explore' && cortex.idleFor >= BACKEND.idleAfter;
-  const sinDirectiva = !fagi.directive;
+  const newEpisode = Boolean(fagi.lastEpisode) && fagi.lastEpisode.n !== cortex.lastEpisodeN;
+  const pressingNow = pressing(ctx);
+  const pressingRises = pressingNow && !cortex.wasApremiando;
+  const idleTooLong = fagi.thought?.action === 'explore' && cortex.idleFor >= BACKEND.idleAfter;
+  const noDirective = !fagi.directive;
 
-  cortex.wasApremiando = apremiaAhora;
+  cortex.wasApremiando = pressingNow;
   if (fagi.lastEpisode) cortex.lastEpisodeN = fagi.lastEpisode.n;
 
   // Algo nuevo en lo que percibe (no solo un tipo nuevo): la directiva vigente
   // se pensó sin eso, así que se vuelve a preguntar con la situación de ahora.
-  const hayNovedad = (ctx.nuevas?.length ?? 0) > 0;
+  const hasNews = (ctx.newOnes?.length ?? 0) > 0;
 
-  return claveNueva || episodioNuevo || apremiaSube || inactivaMucho || sinDirectiva || hayNovedad;
+  return newKey || newEpisode || pressingRises || idleTooLong || noDirective || hasNews;
 }
 
 export function updateCortex(cortex, fagi, world, ctx, dt) {
@@ -67,9 +67,9 @@ export function updateCortex(cortex, fagi, world, ctx, dt) {
   // instinto, no una orden caducada.
   if (fagi.directive && fagi.age >= fagi.directive.until) fagi.directive = null;
 
-  const hazFalta = tocaPreguntar(cortex, fagi, ctx);
-  const puedePreguntar = !cortex.inflight && fagi.age - cortex.lastAt >= BACKEND.minInterval;
-  if (!hazFalta || !puedePreguntar) return;
+  const needed = shouldAsk(cortex, fagi, ctx);
+  const canAsk = !cortex.inflight && fagi.age - cortex.lastAt >= BACKEND.minInterval;
+  if (!needed || !canAsk) return;
 
   cortex.lastAt = fagi.age;
   cortex.inflight = true;
@@ -78,28 +78,28 @@ export function updateCortex(cortex, fagi, world, ctx, dt) {
   const { observation, refs, byId } = observe(fagi, world, ctx);
 
   Promise.resolve(cortex.backend.decide(observation, {}))
-    .then((respuesta) => aplicar(cortex, fagi, gen, respuesta, observation, refs, byId))
+    .then((response) => applySets(cortex, fagi, gen, response, observation, refs, byId))
     .catch(() => { cortex.inflight = false; });
 }
 
-function aplicar(cortex, fagi, gen, respuesta, observation, refs, byId) {
+function applySets(cortex, fagi, gen, response, observation, refs, byId) {
   cortex.inflight = false;
   // Llegó tarde: Fagi murió, reinició, o ya va por otra generación. Se tira.
   if (gen !== cortex.gen || !fagi.alive) return;
 
-  const valida = validateIntention(respuesta, observation);
-  if (!valida) return;
+  const validate = validateIntention(response, observation);
+  if (!validate) return;
 
-  const resumen = valida.targetId != null ? byId.get(valida.targetId) : null;
-  const esNido = ['toNest', 'pantry', 'carry'].includes(valida.action);
+  const summary = validate.targetId != null ? byId.get(validate.targetId) : null;
+  const isNestObj = ['toNest', 'pantry', 'carry'].includes(validate.action);
 
   fagi.directive = {
-    action: valida.action,
-    target: valida.targetId != null ? (refs.get(valida.targetId) ?? null) : null,
-    targetKind: resumen ? resumen.kind : (esNido ? 'nest' : null),
-    trailKey: resumen && resumen.via === 'olfato' ? resumen.key : null,
-    reason: valida.reason ?? { key: 'reason.api', params: { backend: cortex.backend.name } },
-    until: fagi.age + valida.ttl,
+    action: validate.action,
+    target: validate.targetId != null ? (refs.get(validate.targetId) ?? null) : null,
+    targetKind: summary ? summary.kind : (isNestObj ? 'nest' : null),
+    trailKey: summary && summary.via === 'smell' ? summary.key : null,
+    reason: validate.reason ?? { key: 'reason.api', params: { backend: cortex.backend.name } },
+    until: fagi.age + validate.ttl,
     source: cortex.backend.name,
   };
 }

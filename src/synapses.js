@@ -28,7 +28,7 @@ export function createSynapses() {
   return {};
 }
 
-function conexion(syn, a, b, kind, now) {
+function connection(syn, a, b, kind, now) {
   const id = `${a}>${b}`;
   let s = syn[id];
   if (!s) s = syn[id] = { a, b, kind, w: 0, born: now, last: now, n: 0 };
@@ -37,7 +37,7 @@ function conexion(syn, a, b, kind, now) {
 
 // Hebb: se refuerza mientras las dos se activan juntas (rate por segundo).
 export function hebb(syn, a, b, dt, now) {
-  const s = conexion(syn, a, b, 'hebb', now);
+  const s = connection(syn, a, b, 'hebb', now);
   s.w += SYNAPSE.hebbRate * dt * (1 - s.w);
   s.last = now;
   s.n += dt;
@@ -45,7 +45,7 @@ export function hebb(syn, a, b, dt, now) {
 
 // Lo que una sensación le dice de algo: de -1 (dañó) a +1 (alivió). La misma
 // cuenta que interoception.feel(), sensación a sensación.
-export function valorDe(x) {
+export function valueFrom(x) {
   const clamp = (v) => Math.max(-1, Math.min(1, v));
   if (x.sense === 'hunger') return clamp(-x.v / FEEL.hungerScale);
   if (x.sense === 'thirst') return clamp(-x.v / FEEL.thirstScale);
@@ -60,9 +60,9 @@ export function valorDe(x) {
 // Aprender de una consecuencia: concepto → sensación, hacia su valor.
 export function wire(syn, key, sensations, now) {
   for (const x of sensations ?? []) {
-    const v = valorDe(x);
+    const v = valueFrom(x);
     if (!v) continue;
-    const s = conexion(syn, `key:${key}`, `feel:${x.sense}`, 'feel', now);
+    const s = connection(syn, `key:${key}`, `feel:${x.sense}`, 'feel', now);
     s.w += SYNAPSE.learnRate * (v - s.w);
     s.last = now;
     s.n += 1;
@@ -84,12 +84,12 @@ export function decaySynapses(syn, dt, now) {
 export function perceiveSynapses(fagi, ctx, dt) {
   const syn = fagi.brain.synapses;
   if (!syn) return;
-  const vistos = new Set();
+  const seenList = new Set();
   for (const c of ctx.ranked ?? []) {
     const id = `sense:${c.via}>key:${c.key}`;
-    if (vistos.has(id)) continue;
-    vistos.add(id);
+    if (seenList.has(id)) continue;
+    seenList.add(id);
     hebb(syn, `sense:${c.via}`, `key:${c.key}`, dt, fagi.age);
   }
-  if (ctx.visible && !vistos.has('sense:vista>key:agua')) hebb(syn, 'sense:vista', 'key:agua', dt, fagi.age);
+  if (ctx.visible && !seenList.has('sense:sight>key:water')) hebb(syn, 'sense:sight', 'key:water', dt, fagi.age);
 }

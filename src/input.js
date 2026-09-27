@@ -20,7 +20,7 @@
 import { addPoint, addObject, removeObject, waterSource, nestOf, record } from './world.js';
 import { objectAt, radiusOf } from './obstacles.js';
 import { TYPE_KEYS, OBJECT_TYPES, CAMERA } from './config.js';
-import { aPunto, acercar, mover, encajar } from './camera.js';
+import { ripe, approach, move, fit } from './camera.js';
 
 const SIZE_LIMITS = { min: 18, max: 200 };
 
@@ -33,68 +33,68 @@ const PANEO = {
 export function createInput(canvas, world, camera) {
   // selected = clave de POINT_TYPES o de OBJECT_TYPES.
   const state = { selectedType: TYPE_KEYS[0], editable: true };
-  const pulsadas = new Set();
+  const pressed = new Set();
 
   // Del lienzo puede verse una versión escalada por CSS: este factor lo deshace.
-  function escala() {
+  function scaleOf() {
     const rect = canvas.getBoundingClientRect();
     return { k: canvas.width / rect.width, rect };
   }
 
   // Devuelve el punto del MUNDO bajo el cursor, y también el del lienzo, que es
   // el que necesita el zoom para saber sobre qué pixel clavarse.
-  function puntoMundo(e) {
-    const { k, rect } = escala();
+  function worldPoint(e) {
+    const { k, rect } = scaleOf();
     const sx = (e.clientX - rect.left) * k;
     const sy = (e.clientY - rect.top) * k;
-    return { ...aPunto(camera, canvas, sx, sy), sx, sy };
+    return { ...ripe(camera, canvas, sx, sy), sx, sy };
   }
 
-  function mover(obj, x, y) {
+  function move(obj, x, y) {
     obj.x = x; obj.y = y;
     record(world, 'obj_move', { id: obj.id, x, y });
   }
 
   // Arrastrar con el izquierdo mueve el objeto de debajo. Hasta que el ratón
   // no se aleja unos píxeles es un clic normal, que coloca.
-  let agarre = null;
-  let acabaDeArrastrar = false;
+  let grip = null;
+  let justDragged = false;
   canvas.addEventListener('mousedown', (e) => {
     if (e.button !== 0 || !state.editable) return;
-    const p = puntoMundo(e);
+    const p = worldPoint(e);
     const obj = objectAt(world, p.x, p.y);
-    if (obj) agarre = { obj, x0: e.clientX, y0: e.clientY, dx: obj.x - p.x, dy: obj.y - p.y, moviendo: false };
+    if (obj) grip = { obj, x0: e.clientX, y0: e.clientY, dx: obj.x - p.x, dy: obj.y - p.y, moving: false };
   });
   window.addEventListener('mousemove', (e) => {
-    if (!agarre) return;
-    if (!agarre.moviendo && Math.hypot(e.clientX - agarre.x0, e.clientY - agarre.y0) < 5) return;
-    agarre.moviendo = true;
+    if (!grip) return;
+    if (!grip.moving && Math.hypot(e.clientX - grip.x0, e.clientY - grip.y0) < 5) return;
+    grip.moving = true;
     canvas.style.cursor = 'grabbing';
-    const p = puntoMundo(e);
+    const p = worldPoint(e);
     // Mientras se arrastra no se graba cada píxel: solo donde se suelta.
-    agarre.obj.x = Math.max(0, Math.min(world.width, p.x + agarre.dx));
-    agarre.obj.y = Math.max(0, Math.min(world.height, p.y + agarre.dy));
+    grip.obj.x = Math.max(0, Math.min(world.width, p.x + grip.dx));
+    grip.obj.y = Math.max(0, Math.min(world.height, p.y + grip.dy));
   });
   window.addEventListener('mouseup', () => {
-    if (!agarre) return;
-    if (agarre.moviendo) {
-      mover(agarre.obj, agarre.obj.x, agarre.obj.y);
-      acabaDeArrastrar = true;
+    if (!grip) return;
+    if (grip.moving) {
+      move(grip.obj, grip.obj.x, grip.obj.y);
+      justDragged = true;
       canvas.style.cursor = 'crosshair';
     }
-    agarre = null;
+    grip = null;
   });
 
   canvas.addEventListener('click', (e) => {
-    if (acabaDeArrastrar) { acabaDeArrastrar = false; return; }
+    if (justDragged) { justDragged = false; return; }
     if (!state.editable) return;
-    const { x, y } = puntoMundo(e);
+    const { x, y } = worldPoint(e);
 
     // De agua y nido solo hay uno: el clic los MUEVE en vez de duplicarlos.
-    const unicos = { agua: waterSource, nido: nestOf };
-    if (unicos[state.selectedType]) {
-      const existente = unicos[state.selectedType](world);
-      if (existente) { mover(existente, x, y); return; }
+    const uniques = { water: waterSource, nest: nestOf };
+    if (uniques[state.selectedType]) {
+      const existing = uniques[state.selectedType](world);
+      if (existing) { move(existing, x, y); return; }
       addObject(world, x, y, state.selectedType, undefined, 'user');
       return;
     }
@@ -107,7 +107,7 @@ export function createInput(canvas, world, camera) {
   canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     if (!state.editable) return;
-    const { x, y } = puntoMundo(e);
+    const { x, y } = worldPoint(e);
     const obj = objectAt(world, x, y);
     if (obj) removeObject(world, obj, 'user');
   });
@@ -116,75 +116,75 @@ export function createInput(canvas, world, camera) {
   // antes la rueda sola.
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
-    const p = puntoMundo(e);
+    const p = worldPoint(e);
 
     if (e.shiftKey) {
       if (!state.editable) return;
       const obj = objectAt(world, p.x, p.y);
       if (!obj) return;
-      const paso = e.deltaY < 0 ? 6 : -6;
-      obj.r = Math.max(SIZE_LIMITS.min, Math.min(SIZE_LIMITS.max, radiusOf(obj) + paso));
+      const step = e.deltaY < 0 ? 6 : -6;
+      obj.r = Math.max(SIZE_LIMITS.min, Math.min(SIZE_LIMITS.max, radiusOf(obj) + step));
       record(world, 'obj_resize', { id: obj.id, r: obj.r });
       return;
     }
 
-    acercar(camera, canvas, world, p.sx, p.sy, e.deltaY < 0 ? CAMERA.paso : 1 / CAMERA.paso);
+    approach(camera, canvas, world, p.sx, p.sy, e.deltaY < 0 ? CAMERA.step : 1 / CAMERA.step);
   }, { passive: false });
 
   // Arrastrar con el botón central: el izquierdo ya coloca cosas y el derecho las
   // borra, así que el paneo se queda con el que no hace nada más.
-  let arrastre = null;
+  let drag = null;
   canvas.addEventListener('mousedown', (e) => {
     if (e.button !== 1) return;
     e.preventDefault();
-    arrastre = { x: e.clientX, y: e.clientY };
+    drag = { x: e.clientX, y: e.clientY };
     canvas.style.cursor = 'grabbing';
   });
   canvas.addEventListener('auxclick', (e) => { if (e.button === 1) e.preventDefault(); });
 
   window.addEventListener('mousemove', (e) => {
-    if (!arrastre) return;
-    const { k } = escala();
-    mover(camera, canvas, world, (e.clientX - arrastre.x) * k, (e.clientY - arrastre.y) * k);
-    arrastre = { x: e.clientX, y: e.clientY };
+    if (!drag) return;
+    const { k } = scaleOf();
+    move(camera, canvas, world, (e.clientX - drag.x) * k, (e.clientY - drag.y) * k);
+    drag = { x: e.clientX, y: e.clientY };
   });
 
   window.addEventListener('mouseup', () => {
-    if (!arrastre) return;
-    arrastre = null;
+    if (!drag) return;
+    drag = null;
     canvas.style.cursor = 'crosshair';
   });
 
   // Teclado. Escribiendo en un campo de los ajustes no se toca la cámara.
-  const escribiendo = (e) => ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target?.tagName);
+  const writing = (e) => ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target?.tagName);
 
   window.addEventListener('keydown', (e) => {
-    if (escribiendo(e)) return;
-    const centro = { sx: canvas.width / 2, sy: canvas.height / 2 };
+    if (writing(e)) return;
+    const center = { sx: canvas.width / 2, sy: canvas.height / 2 };
 
-    if (PANEO[e.key]) { pulsadas.add(e.key); e.preventDefault(); return; }
+    if (PANEO[e.key]) { pressed.add(e.key); e.preventDefault(); return; }
 
-    if (e.key === '+' || e.key === '=') acercar(camera, canvas, world, centro.sx, centro.sy, CAMERA.paso);
-    else if (e.key === '-' || e.key === '_') acercar(camera, canvas, world, centro.sx, centro.sy, 1 / CAMERA.paso);
-    else if (e.key === '0') { camera.zoom = CAMERA.min; camera.seguir = false; encajar(camera, canvas, world); }
-    else if (e.key === 'f' || e.key === 'F') camera.seguir = !camera.seguir;
+    if (e.key === '+' || e.key === '=') approach(camera, canvas, world, center.sx, center.sy, CAMERA.step);
+    else if (e.key === '-' || e.key === '_') approach(camera, canvas, world, center.sx, center.sy, 1 / CAMERA.step);
+    else if (e.key === '0') { camera.zoom = CAMERA.min; camera.follow = false; fit(camera, canvas, world); }
+    else if (e.key === 'f' || e.key === 'F') camera.follow = !camera.follow;
   });
 
-  window.addEventListener('keyup', (e) => pulsadas.delete(e.key));
-  window.addEventListener('blur', () => pulsadas.clear());
+  window.addEventListener('keyup', (e) => pressed.delete(e.key));
+  window.addEventListener('blur', () => pressed.clear());
 
   // Paneo con teclas: va por fotograma, no por pulsación, para que se mueva
   // suave mientras la tecla siga abajo.
   state.pan = (dt) => {
     let dx = 0;
     let dy = 0;
-    for (const k of pulsadas) {
+    for (const k of pressed) {
       const v = PANEO[k];
       if (v) { dx += v[0]; dy += v[1]; }
     }
     if (!dx && !dy) return;
-    const paso = CAMERA.teclas * dt;
-    mover(camera, canvas, world, -dx * paso, -dy * paso);
+    const step = CAMERA.keysDown * dt;
+    move(camera, canvas, world, -dx * step, -dy * step);
   };
 
   return state;

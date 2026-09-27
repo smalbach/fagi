@@ -22,13 +22,13 @@ export async function hashPassword(password) {
 }
 
 export async function verifyPassword(password, stored) {
-  const partes = String(stored).split('$');
-  if (partes.length !== 6 || partes[0] !== 'scrypt') return false;
-  const [, N, r, p, saltB64, keyB64] = partes;
-  const esperado = Buffer.from(keyB64, 'base64');
-  const key = await scryptAsync(password, Buffer.from(saltB64, 'base64'), esperado.length,
+  const parts = String(stored).split('$');
+  if (parts.length !== 6 || parts[0] !== 'scrypt') return false;
+  const [, N, r, p, saltB64, keyB64] = parts;
+  const expected = Buffer.from(keyB64, 'base64');
+  const key = await scryptAsync(password, Buffer.from(saltB64, 'base64'), expected.length,
     { N: Number(N), r: Number(r), p: Number(p), maxmem: PARAMS.maxmem });
-  return key.length === esperado.length && timingSafeEqual(key, esperado);
+  return key.length === expected.length && timingSafeEqual(key, expected);
 }
 
 // Para que un email que no existe tarde lo mismo que una contraseña mala: sin

@@ -1,5 +1,5 @@
 /* --- responsiva: en pantallas angostas los paneles se apilan ---
-   En vez de meter #hud y #consola cada uno en su propia caja con
+   En vez de meter #hud y #console cada uno en su propia caja con
    overflow-y:auto (dos "ventanas" con scroll propio, más el de la
    página, atrapando el gesto de arrastre del dedo), en móvil se
    desactiva ese scroll interno: todo pasa a fluir en una sola página
@@ -10,9 +10,9 @@
   body { flex-direction: column; }
   #stage { flex-basis: auto; min-width: 0; padding: 10px; }
   #canvas { max-height: 46vh; }
-  #hud, #consola { width: 100%; flex: none; max-height: none; }
+  #hud, #console { width: 100%; flex: none; max-height: none; }
   #hud { overflow-y: visible; }
-  #consola-body { flex: none; }
+  #console-body { flex: none; }
   .tab-panel { flex: none; }
   .split-pane { flex: none; }
   .split-pane .pane { overflow: visible; }

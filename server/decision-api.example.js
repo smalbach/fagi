@@ -10,13 +10,13 @@
 import { createServer } from 'node:http';
 import { createLocalBackend } from '../src/backend/local.js';
 
-const PUERTO = Number(process.env.PORT ?? 8787);
+const PORT = Number(process.env.PORT ?? 8787);
 const backend = createLocalBackend();
 
-async function leerCuerpo(req) {
-  const trozos = [];
-  for await (const t of req) trozos.push(t);
-  return JSON.parse(Buffer.concat(trozos).toString('utf8') || '{}');
+async function readBody(req) {
+  const chunks = [];
+  for await (const t of req) chunks.push(t);
+  return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
 }
 
 const server = createServer(async (req, res) => {
@@ -27,7 +27,7 @@ const server = createServer(async (req, res) => {
 
   if (req.method === 'POST' && req.url === '/decide') {
     try {
-      const observation = await leerCuerpo(req);
+      const observation = await readBody(req);
       // AQUÍ es donde iría el LLM: pasarle `observation` en el prompt y
       // devolver { action, targetId?, ttl?, reason? } a partir de su respuesta.
       const intention = await backend.decide(observation);
@@ -44,6 +44,6 @@ const server = createServer(async (req, res) => {
   res.end();
 });
 
-server.listen(PUERTO, () => {
-  console.log(`Decision API de ejemplo escuchando en http://localhost:${PUERTO} (POST /decide)`);
+server.listen(PORT, () => {
+  console.log(`Decision API de ejemplo escuchando en http://localhost:${PORT} (POST /decide)`);
 });

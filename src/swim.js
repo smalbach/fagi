@@ -24,61 +24,61 @@ import { waterZone } from './obstacles.js';
 import { hebb } from './synapses.js';
 import { nestUnder } from './nest.js';
 
-export const DEEP = 'hondo';
+export const DEEP = 'deep';
 
 // ¿Ya aprendió a no meterse? Lo dice la regla escrita, no un instinto.
 export function fearsDeep(fagi) {
   return verdict(fagi, 'pursue', DEEP) === 'avoid';
 }
 
-function aprender(fagi, dunk) {
+function learnFrom(fagi, dunk) {
   // Perder pie asusta ya de por sí; lo que dure el pataleo lo empeora.
-  const parte = WATER.shock + (1 - WATER.shock) * Math.min(1, dunk.secs / WATER.sample);
-  const perdida = Math.max(0, dunk.energy - fagi.energy);
-  const cambio = learn(fagi.brain, DEEP, -WATER.lesson * parte, fagi.age, [
+  const part = WATER.shock + (1 - WATER.shock) * Math.min(1, dunk.secs / WATER.sample);
+  const lost = Math.max(0, dunk.energy - fagi.energy);
+  const change = learn(fagi.brain, DEEP, -WATER.lesson * part, fagi.age, [
     { sense: 'speed', v: WATER.swimSpeed },
-    { sense: 'energy', v: -Math.round(perdida * 100) / 100 },
+    { sense: 'energy', v: -Math.round(lost * 100) / 100 },
   ]);
   fagi.dunks = (fagi.dunks ?? 0) + 1;
   fagi.lastDunk = {
     n: fagi.dunks, secs: dunk.secs,
-    beliefBefore: cambio.before.value, beliefAfter: cambio.after.value,
+    beliefBefore: change.before.value, beliefAfter: change.after.value,
   };
 }
 
 // Se llama una vez por frame, antes de decidir: deja fagi.swimming al día y
 // cierra la experiencia cuando toca.
 // ¿Tiene alguna antena sobre el hondo? Las dos puntas, un poco por delante.
-function antenasEnElAgua(fagi, world) {
-  const lejos = FAGI.radius + WATER.probeReach;
-  for (const lado of [-0.35, 0.35]) {
-    const a = fagi.angle + lado;
-    if (waterZone(world, fagi.x + Math.cos(a) * lejos, fagi.y + Math.sin(a) * lejos)?.deep) return true;
+function antennaeInWater(fagi, world) {
+  const far = FAGI.radius + WATER.probeReach;
+  for (const sideOf of [-0.35, 0.35]) {
+    const a = fagi.angle + sideOf;
+    if (waterZone(world, fagi.x + Math.cos(a) * far, fagi.y + Math.sin(a) * far)?.deep) return true;
   }
   return false;
 }
 
 export function swim(fagi, world, dt) {
-  const zona = waterZone(world, fagi.x, fagi.y);
-  const hondo = Boolean(zona?.deep);
-  fagi.swimming = hondo;
+  const zone = waterZone(world, fagi.x, fagi.y);
+  const deep = Boolean(zone?.deep);
+  fagi.swimming = deep;
   // Bajo la lluvia, fuera del nido, se empapa igual que en el hondo.
   fagi.raining = Boolean(world.rain?.on);
-  const aCubierto = Boolean(nestUnder(fagi, world));
-  fagi.wet = hondo || (fagi.raining && !aCubierto) ? WATER.dryTime : Math.max(0, (fagi.wet ?? 0) - dt);
-  fagi.probing = !hondo && antenasEnElAgua(fagi, world);
+  const sheltered = Boolean(nestUnder(fagi, world));
+  fagi.wet = deep || (fagi.raining && !sheltered) ? WATER.dryTime : Math.max(0, (fagi.wet ?? 0) - dt);
+  fagi.probing = !deep && antennaeInWater(fagi, world);
   if (fagi.probing) {
     fagi.probed = true;
-    if (fagi.brain.synapses) hebb(fagi.brain.synapses, 'sense:antenas', `key:${DEEP}`, dt, fagi.age);
+    if (fagi.brain.synapses) hebb(fagi.brain.synapses, 'sense:antennae', `key:${DEEP}`, dt, fagi.age);
   }
 
-  if (hondo && !fagi.dunk) fagi.dunk = { secs: 0, energy: fagi.energy };
+  if (deep && !fagi.dunk) fagi.dunk = { secs: 0, energy: fagi.energy };
   const dunk = fagi.dunk;
   if (!dunk) return;
-  if (hondo) dunk.secs += dt;
+  if (deep) dunk.secs += dt;
 
-  if (!hondo || dunk.secs >= WATER.sample) {
-    aprender(fagi, dunk);
-    fagi.dunk = hondo ? { secs: 0, energy: fagi.energy } : null;
+  if (!deep || dunk.secs >= WATER.sample) {
+    learnFrom(fagi, dunk);
+    fagi.dunk = deep ? { secs: 0, energy: fagi.energy } : null;
   }
 }

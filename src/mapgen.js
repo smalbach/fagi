@@ -15,20 +15,20 @@ function fits(world, x, y, r) {
 }
 
 // escala = [min, max] sobre el radio del tipo. Sin ella, todos del mismo tamaño.
-function place(world, type, count, escala = null) {
+function place(world, type, count, scaleOf = null) {
   const base = OBJECT_TYPES[type].radius;
   const cx = WORLD.width / 2;
   const cy = WORLD.height / 2;
 
   for (let n = 0; n < count; n++) {
     // Reintenta unas cuantas veces; si el mapa está lleno, se salta este.
-    for (let intento = 0; intento < 40; intento++) {
+    for (let attemptOf = 0; attemptOf < 40; attemptOf++) {
       // El tamaño se sortea en cada intento: si no cabe la grande, entra otra.
       // Al cuadrado, para que salgan muchas pequeñas y pocos pedruscos: si la
       // mitad fueran enormes, taparían el mapa y Fagi no encontraría el agua.
       const t = Math.random() ** 2;
-      const r = escala
-        ? Math.round(base * (escala[0] + t * (escala[1] - escala[0])))
+      const r = scaleOf
+        ? Math.round(base * (scaleOf[0] + t * (scaleOf[1] - scaleOf[0])))
         : base;
       const x = MAPGEN.margin + r + Math.random() * (WORLD.width - 2 * (MAPGEN.margin + r));
       const y = MAPGEN.margin + r + Math.random() * (WORLD.height - 2 * (MAPGEN.margin + r));
@@ -47,7 +47,7 @@ function placeNearSpawn(world, type, count, minDistance, maxDistance) {
   const cx = WORLD.width / 2;
   const cy = WORLD.height / 2;
   let placed = 0;
-  for (let intento = 0; intento < count * 80 && placed < count; intento++) {
+  for (let attemptOf = 0; attemptOf < count * 80 && placed < count; attemptOf++) {
     const angle = Math.random() * Math.PI * 2;
     const distance = minDistance + Math.random() * (maxDistance - minDistance);
     const x = cx + Math.cos(angle) * distance;
@@ -85,12 +85,12 @@ export function generateMap(world) {
   const cx = WORLD.width / 2;
   const cy = WORLD.height / 2;
   const ang = Math.random() * Math.PI * 2;
-  const nest = addObject(world, cx + Math.cos(ang) * 90, cy + Math.sin(ang) * 90, 'nido', undefined, 'map');
+  const nest = addObject(world, cx + Math.cos(ang) * 90, cy + Math.sin(ang) * 90, 'nest', undefined, 'map');
 
-  placeNearSpawn(world, 'agua', MAPGEN.pools, 175, 240);
+  placeNearSpawn(world, 'water', MAPGEN.pools, 175, 240);
   placeFarFrom(
-    world, 'arbol', MAPGEN.trees, nest,
+    world, 'tree', MAPGEN.trees, nest,
     MAPGEN.treeMinNestDistance, MAPGEN.treeMaxNestDistance, ang + Math.PI,
   );
-  place(world, 'roca', MAPGEN.rocks, MAPGEN.rockScale);
+  place(world, 'rock', MAPGEN.rocks, MAPGEN.rockScale);
 }

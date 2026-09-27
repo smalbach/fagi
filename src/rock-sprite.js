@@ -13,31 +13,31 @@
 // forma, lo que le pasa por encima y el pintado de la procedural. Aquí solo se
 // elige cuál se dibuja y se guardan los lienzos ya pintados.
 
-import { semillaDe, detalle, estampar } from './sprite-kit.js';
-import { rocaRealistaDe, drawRockRealista } from './rock-sprite/realista.js';
-import { pintarRoca } from './rock-sprite/pintar.js';
+import { seedFor, detail, stamp } from './sprite-kit.js';
+import { realisticRockOf, drawRealisticRock } from './rock-sprite/realistic.js';
+import { paintRock } from './rock-sprite/paint.js';
 
 const sprites = new Map();   // clave: semilla|radio
 
 export function drawRock(ctx, o, spec, r) {
-  const semilla = semillaDe(o) >>> 0;
-  const realista = rocaRealistaDe(semilla);
-  if (realista) {
-    drawRockRealista(ctx, o, r, realista.roca, realista.tipo, semilla);
+  const seedOf = seedFor(o) >>> 0;
+  const realistic = realisticRockOf(seedOf);
+  if (realistic) {
+    drawRealisticRock(ctx, o, r, realistic.rock, realistic.type, seedOf);
     return;
   }
   // Se pinta con el radio multiplicado por la escala de detalle y se estampa al
   // tamaño de mundo: de cerca la piedra tiene más píxeles, no los mismos estirados.
-  const z = detalle();
-  const img = spriteDe(semillaDe(o), r * z, spec.color);
-  estampar(ctx, img, o.x, o.y, z);
+  const z = detail();
+  const img = spriteOf(seedFor(o), r * z, spec.color);
+  stamp(ctx, img, o.x, o.y, z);
 }
 
-function spriteDe(semilla, r, color) {
-  const clave = `${semilla}|${Math.round(r)}|${color}`;
-  const guardado = sprites.get(clave);
-  if (guardado) return guardado;
-  const img = pintarRoca(semilla, Math.round(r), color);
-  sprites.set(clave, img);
+function spriteOf(seedOf, r, color) {
+  const key = `${seedOf}|${Math.round(r)}|${color}`;
+  const saved = sprites.get(key);
+  if (saved) return saved;
+  const img = paintRock(seedOf, Math.round(r), color);
+  sprites.set(key, img);
   return img;
 }

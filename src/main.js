@@ -16,13 +16,13 @@ import { step } from './simulation.js';
 import { updateTrails } from './smell.js';
 import { render } from './render.js';
 import { createInput } from './input.js';
-import { createCamera, centrarEn, encajar } from './camera.js';
+import { createCamera, centerOn, fit } from './camera.js';
 import { createUI } from './ui.js';
 import { versionLabel, versionTitle } from './version.js';
 import { createSettings, loadSettings, configSnapshot, applyConfig, onConfigChange } from './settings.js';
 import { bindDom, t, onLangChange, formatDuration } from './i18n.js';
 import { createNarrator, narrate } from './narrator.js';
-import { createConsola } from './consola.js';
+import { createConsole } from './console.js';
 import { createLearnedPanel } from './learned/panel.js';
 import { createBrainMap } from './brainmap.js';
 import { initPanelLayout, initHudGroups, initContainerToggle } from './panel-layout.js';
@@ -51,33 +51,33 @@ export function createGame({ onExit } = {}) {
 
   // Quién decide, si alguien además del instinto: se guarda en el navegador y
   // se puede cambiar en caliente desde el panel de código aprendido.
-  function montarBackend(kind, url) {
+  function mountBackend(kind, url) {
     fagi.cortex = createCortex(createBackend(kind, { url }));
   }
   {
-    const kindGuardado = (() => { try { return localStorage.getItem('fagi.backend') ?? 'none'; } catch { return 'none'; } })();
+    const savedKind = (() => { try { return localStorage.getItem('fagi.backend') ?? 'none'; } catch { return 'none'; } })();
     const urlGuardada = (() => { try { return localStorage.getItem('fagi.backend.url') ?? ''; } catch { return ''; } })();
-    montarBackend(kindGuardado, urlGuardada);
+    mountBackend(savedKind, urlGuardada);
   }
 
   // La cámara es de la vista, no del mundo: cambiar de sesión no la toca.
-  const camera = encajar(createCamera(world), canvas, world);
+  const camera = fit(createCamera(world), canvas, world);
 
   const input = createInput(canvas, world, camera);
-  const ui = createUI(input, world, () => terminar('user'));
+  const ui = createUI(input, world, () => finishUp('user'));
   // Qué versión corre: para saber qué hay en producción.
-  const etiqueta = document.getElementById('app-version');
-  if (etiqueta) { etiqueta.textContent = versionLabel(); etiqueta.title = versionTitle(); }
+  const tagLabel = document.getElementById('app-version');
+  if (tagLabel) { tagLabel.textContent = versionLabel(); tagLabel.title = versionTitle(); }
   const narrator = createNarrator();
-  const consola = createConsola();
-  const learnedPanel = createLearnedPanel(fagi, { onBackendChange: montarBackend });
+  const console = createConsole();
+  const learnedPanel = createLearnedPanel(fagi, { onBackendChange: mountBackend });
   const brainMap = createBrainMap(document.getElementById('brainmap'), document.getElementById('brainmap-status'), document.getElementById('brainmap-expand'));
   createSettings(world, () => fagi);
   bindDom();
-  initPanelLayout(document.getElementById('consola'));
+  initPanelLayout(document.getElementById('console'));
   initHudGroups(document.getElementById('hud'), document.getElementById('btn-toggle-groups'));
   initContainerToggle(document.getElementById('btn-toggle-hud'), document.getElementById('hud-body'), 'fagi.hud-collapsed');
-  initContainerToggle(document.getElementById('btn-toggle-consola'), document.getElementById('consola-body'), 'fagi.consola-collapsed');
+  initContainerToggle(document.getElementById('btn-toggle-console'), document.getElementById('console-body'), 'fagi.console-collapsed');
 
   // Presentación limpia por defecto; las ayudas de simulación siguen disponibles
   // sin tocar la lógica del mundo.
@@ -99,16 +99,16 @@ export function createGame({ onExit } = {}) {
   let mode = 'idle';
   let session = null;     // { id, rec, sink }
   let player = null;
-  const reproduciendo = { on: true, speed: 1, configSeq: -1, configAntes: null };
+  const replaying = { on: true, speed: 1, configSeq: -1, configBefore: null };
 
-  function ponerModo(nuevo) {
-    mode = nuevo;
-    for (const m of ['idle', 'setup', 'play', 'replay']) document.body.classList.toggle(`mode-${m}`, m === nuevo);
-    input.editable = nuevo === 'setup' || nuevo === 'play';
-    document.getElementById('settings-overlay').hidden = nuevo !== 'setup';
+  function setMode(fresh) {
+    mode = fresh;
+    for (const m of ['idle', 'setup', 'play', 'replay']) document.body.classList.toggle(`mode-${m}`, m === fresh);
+    input.editable = fresh === 'setup' || fresh === 'play';
+    document.getElementById('settings-overlay').hidden = fresh !== 'setup';
   }
 
-  function fagiNueva() {
+  function newFagi() {
     // createFagi() trae su propio cortex:null; el de verdad (con el backend que
     // haya elegido la persona) se conserva y solo se le limpia lo pendiente.
     const cortex = fagi.cortex;
@@ -116,7 +116,7 @@ export function createGame({ onExit } = {}) {
     fagi.cortex = cortex;
     resetCortex(cortex);
     Object.assign(narrator, createNarrator());
-    consola.reset();
+    console.reset();
   }
 
   // Cada ajuste tocado a mano durante la partida queda grabado.
@@ -126,26 +126,26 @@ export function createGame({ onExit } = {}) {
 
   // --- setup ---
   function setup() {
-    salirDeReplay();
+    exitReplay();
     resetWorld(world);
     generateMap(world);
-    fagiNueva();
-    camera.seguir = false;
+    newFagi();
+    camera.follow = false;
     ui.sync();
-    ponerModo('setup');
+    setMode('setup');
   }
 
-  function regenerar() {
+  function regenerate() {
     resetWorld(world);
     generateMap(world);
   }
 
   // --- play ---
-  async function comenzar({ recuperar = false } = {}) {
+  async function begin({ recoverLearning = false } = {}) {
     const { session: s } = await post('/sessions');
-    fagiNueva();
+    newFagi();
     let learned = null;
-    if (recuperar) {
+    if (recoverLearning) {
       const snap = load();
       if (snap) { restore(fagi, snap); learned = { facts: Object.keys(snap.facts ?? {}).length, rules: snap.rules?.length ?? 0 }; }
     }
@@ -153,31 +153,31 @@ export function createGame({ onExit } = {}) {
     // preparando no cuenta.
     world.time = 0;
     const sink = createSink(s.id);
-    const rec = createRecorder(world, { send: (lote) => sink.send(lote) });
+    const rec = createRecorder(world, { send: (batch) => sink.send(batch) });
     world.rec = rec;
     rec.start({ config: configSnapshot(), learned });
     session = { id: s.id, rec, sink };
-    ponerModo('play');
+    setMode('play');
   }
 
   // Cierra la grabación. La vista sigue como estaba hasta que se sale.
-  function cerrarGrabacion(reason) {
+  function closeRecording(reason) {
     if (!session) return null;
-    if (!session.cierre) {
+    if (!session.closing) {
       const summary = session.rec.end(reason, fagi, narrator.lines);
       world.rec = null;
-      session.cierre = session.sink.end({ reason, age: fagi.age, summary });
+      session.closing = session.sink.end({ reason, age: fagi.age, summary });
     }
-    return session.cierre;
+    return session.closing;
   }
 
-  async function terminar(reason) {
+  async function finishUp(reason) {
     if (mode !== 'play') return;
-    const cierre = cerrarGrabacion(reason);
+    const closing = closeRecording(reason);
     save(snapshot(fagi));
-    ponerModo('idle');
+    setMode('idle');
     // La lista de sesiones tiene que ver esta ya cerrada.
-    await cierre;
+    await closing;
     session = null;
     onExit?.();
   }
@@ -186,31 +186,31 @@ export function createGame({ onExit } = {}) {
   // la sesión sus últimos segundos.
   window.addEventListener('pagehide', () => {
     save(snapshot(fagi));
-    if (session) { cerrarGrabacion('unload'); session.sink.unload(); }
+    if (session) { closeRecording('unload'); session.sink.unload(); }
   });
 
   // --- replay ---
-  function reproducir(eventos) {
-    Object.assign(reproduciendo, { on: true, speed: 1, configSeq: -1, configAntes: configSnapshot(), logEpoch: -1 });
-    player = createPlayer(eventos);
+  function replay(eventList) {
+    Object.assign(replaying, { on: true, speed: 1, configSeq: -1, configBefore: configSnapshot(), logEpoch: -1 });
+    player = createPlayer(eventList);
     player.seek(0);
-    camera.seguir = false;
-    ponerModo('replay');
+    camera.follow = false;
+    setMode('replay');
     return player;
   }
 
-  function salirDeReplay() {
+  function exitReplay() {
     if (!player) return;
     // Los ajustes de la sesión reproducida eran suyos: se vuelve a los propios.
-    applyConfig(reproduciendo.configAntes);
+    applyConfig(replaying.configBefore);
     ui.sync();
     player = null;
   }
 
-  function salir() {
-    if (mode === 'play') { terminar('user'); return; }
-    salirDeReplay();
-    ponerModo('idle');
+  function leave() {
+    if (mode === 'play') { finishUp('user'); return; }
+    exitReplay();
+    setMode('idle');
     onExit?.();
   }
 
@@ -222,41 +222,41 @@ export function createGame({ onExit } = {}) {
 
   function framePlay(dt) {
     step(world, fagi, dt);
-    const lineas = narrate(narrator, fagi);
+    const lines = narrate(narrator, fagi);
     if (session && !session.rec.ended) {
-      session.rec.observe(fagi, lineas);
-      if (!fagi.alive) cerrarGrabacion('death');
+      session.rec.observe(fagi, lines);
+      if (!fagi.alive) closeRecording('death');
     }
-    if (camera.seguir) centrarEn(camera, canvas, world, fagi);
+    if (camera.follow) centerOn(camera, canvas, world, fagi);
     render(ctx, world, fagi, camera);
     ui.update(fagi, world);
-    consola.update(fagi, lineas);
+    console.update(fagi, lines);
     learnedPanel.update();
     brainMap.update(fagi, world);
   }
 
   function frameReplay(dt) {
-    if (reproduciendo.on) {
-      player.advance(dt * reproduciendo.speed);
-      if (player.time >= player.duration) reproduciendo.on = false;
+    if (replaying.on) {
+      player.advance(dt * replaying.speed);
+      if (player.time >= player.duration) replaying.on = false;
     }
-    if (player.configSeq !== reproduciendo.configSeq) {
+    if (player.configSeq !== replaying.configSeq) {
       applyConfig(player.config);
-      reproduciendo.configSeq = player.configSeq;
+      replaying.configSeq = player.configSeq;
     }
     updateTrails(player.world, dt);
-    if (camera.seguir) centrarEn(camera, canvas, player.world, player.fagi);
+    if (camera.follow) centerOn(camera, canvas, player.world, player.fagi);
     render(ctx, player.world, player.fagi, camera);
     ui.update(player.fagi, player.world);
     // Volver atrás deja en la consola líneas del futuro: se repinta entera.
-    if (player.logEpoch !== reproduciendo.logEpoch) {
-      consola.reset();
-      reproduciendo.logEpoch = player.logEpoch;
+    if (player.logEpoch !== replaying.logEpoch) {
+      console.reset();
+      replaying.logEpoch = player.logEpoch;
     }
-    consola.update(player.fagi, player.log);
+    console.update(player.fagi, player.log);
     learnedPanel.update(player.fagi);
     brainMap.update(player.fagi, player.world);
-    onReplayFrame?.(player, reproduciendo);
+    onReplayFrame?.(player, replaying);
   }
 
   let last = performance.now();
@@ -276,15 +276,15 @@ export function createGame({ onExit } = {}) {
   let onReplayFrame = null;
 
   return {
-    setup, regenerar, comenzar, reproducir, salir,
+    setup, regenerate, begin, replay, leave,
     get mode() { return mode; },
     get player() { return player; },
-    replayControls: reproduciendo,
+    replayControls: replaying,
     set onReplayFrame(fn) { onReplayFrame = fn; },
-    togglePlay() { reproduciendo.on = !reproduciendo.on; if (player && reproduciendo.on && player.time >= player.duration) player.seek(0); return reproduciendo.on; },
-    setSpeed(v) { reproduciendo.speed = v; },
+    togglePlay() { replaying.on = !replaying.on; if (player && replaying.on && player.time >= player.duration) player.seek(0); return replaying.on; },
+    setSpeed(v) { replaying.speed = v; },
     seek(tt) { player?.seek(tt); },
-    focus(x, y) { camera.seguir = false; centrarEn(camera, canvas, player?.world ?? world, { x, y }); },
+    focus(x, y) { camera.follow = false; centerOn(camera, canvas, player?.world ?? world, { x, y }); },
     formatTime: (s) => formatDuration(s),
   };
 }

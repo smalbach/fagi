@@ -16,7 +16,7 @@ import { BACKEND } from '../config.js';
 import { createLocalBackend } from './local.js';
 import { createHttpBackend } from './http.js';
 
-export const ACCIONES_VALIDAS = new Set([
+export const VALID_ACTIONS = new Set([
   'seekFood', 'seekWater', 'track', 'explore', 'toNest', 'pantry', 'rest', 'carry',
 ]);
 
@@ -25,12 +25,12 @@ export const ACCIONES_VALIDAS = new Set([
 // que apunte a un fantasma.
 export function validateIntention(intention, observation) {
   if (!intention || typeof intention !== 'object') return null;
-  if (!ACCIONES_VALIDAS.has(intention.action)) return null;
+  if (!VALID_ACTIONS.has(intention.action)) return null;
 
-  const necesitaObjetivo = !['explore', 'rest', 'toNest', 'pantry'].includes(intention.action);
-  if (necesitaObjetivo) {
-    const existe = observation.candidates.some((c) => c.id === intention.targetId);
-    if (!existe) return null;
+  const needsTarget = !['explore', 'rest', 'toNest', 'pantry'].includes(intention.action);
+  if (needsTarget) {
+    const exists = observation.candidates.some((c) => c.id === intention.targetId);
+    if (!exists) return null;
   }
 
   const ttl = Number.isFinite(intention.ttl) ? intention.ttl : BACKEND.ttl;

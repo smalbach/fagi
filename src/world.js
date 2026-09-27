@@ -27,14 +27,14 @@ export function record(world, type, data) {
 
 // Un id nuevo por cosa. No se reutiliza nunca, ni al vaciar el mapa: una
 // respuesta de la API que llegue tarde no puede confundir un fruto con otro.
-function nuevoId(world) {
+function newId(world) {
   world.nextId = (world.nextId ?? 1);
   return world.nextId++;
 }
 
 // `from` es quién lo puso: el id del árbol del que cayó, o 'user'.
 export function addPoint(world, x, y, type, from = null) {
-  const p = { id: nuevoId(world), x, y, type };
+  const p = { id: newId(world), x, y, type };
   world.points.push(p);
   record(world, 'point_add', { id: p.id, what: type, x, y, from });
   return p;
@@ -51,7 +51,7 @@ export function removePoint(world, point, reason = 'removed') {
 // Cada objeto lleva su propio radio: así se puede agrandar o encoger después.
 // `source`: 'map' (generado), 'user' (colocado a mano) o 'sim'.
 export function addObject(world, x, y, type, r = OBJECT_TYPES[type].radius, source = 'sim') {
-  const obj = { id: nuevoId(world), x, y, type, r };
+  const obj = { id: newId(world), x, y, type, r };
   if (OBJECT_TYPES[type].kind === 'nest') {
     obj.stock = {};   // cuántas raciones hay de cada cosa
     obj.ages = {};    // y la edad de cada una, para que también se echen a perder
@@ -64,7 +64,7 @@ export function addObject(world, x, y, type, r = OBJECT_TYPES[type].radius, sour
 
 // La fuente de agua del mapa (solo hay una). Los charcos de lluvia no cuentan.
 export function waterSource(world) {
-  return world.objects.find((o) => o.type === 'agua') ?? null;
+  return world.objects.find((o) => o.type === 'water') ?? null;
 }
 
 // El nido: casa, despensa y sitio donde mejor se descansa.
@@ -87,81 +87,81 @@ export function stockFull(stock) {
 
 // Cuánto hay guardado de verdad en el nido. Esto es el mundo, no lo que Fagi
 // sabe: para el panel y para lo que pasa al estar dentro del nido.
-export function nestStock(nido) {
-  return nido ? stockCount(nido.stock) : 0;
+export function nestStock(nestObj) {
+  return nestObj ? stockCount(nestObj.stock) : 0;
 }
 
-export function nestFull(nido) {
-  return Boolean(nido) && stockFull(nido.stock);
+export function nestFull(nestObj) {
+  return Boolean(nestObj) && stockFull(nestObj.stock);
 }
 
 // La despensa lleva dos libros: cuánto hay (stock) y la edad de cada ración
 // (ages). Se escriben SOLO desde aquí, y sincronizar() los cuadra si alguien
 // toca el stock por su cuenta, así que no pueden separarse.
-function sincronizar(nido) {
-  nido.ages ??= {};
-  for (const type of Object.keys(nido.stock)) {
-    const lista = (nido.ages[type] ??= []);
-    while (lista.length < nido.stock[type]) lista.push(0);
-    while (lista.length > nido.stock[type]) lista.pop();
+function sync(nestObj) {
+  nestObj.ages ??= {};
+  for (const type of Object.keys(nestObj.stock)) {
+    const list = (nestObj.ages[type] ??= []);
+    while (list.length < nestObj.stock[type]) list.push(0);
+    while (list.length > nestObj.stock[type]) list.pop();
   }
 }
 
 // Guardar una ración. Entra con la edad que traía: el nido la conserva, no la
 // rejuvenece.
-export function storeInNest(nido, type, age = 0) {
-  sincronizar(nido);
-  nido.stock[type] = (nido.stock[type] ?? 0) + 1;
-  (nido.ages[type] ??= []).push(age);
-  return nido.stock[type];
+export function storeInNest(nestObj, type, age = 0) {
+  sync(nestObj);
+  nestObj.stock[type] = (nestObj.stock[type] ?? 0) + 1;
+  (nestObj.ages[type] ??= []).push(age);
+  return nestObj.stock[type];
 }
 
 // Servir una ración: sale la más vieja, que es la que se iba a echar a perder.
-export function takeFromNest(nido, type) {
-  sincronizar(nido);
-  if (!nido.stock[type]) return false;
-  nido.stock[type] -= 1;
-  const lista = nido.ages[type] ?? [];
-  if (lista.length) {
-    let peor = 0;
-    for (let i = 1; i < lista.length; i++) if (lista[i] > lista[peor]) peor = i;
-    lista.splice(peor, 1);
+export function takeFromNest(nestObj, type) {
+  sync(nestObj);
+  if (!nestObj.stock[type]) return false;
+  nestObj.stock[type] -= 1;
+  const list = nestObj.ages[type] ?? [];
+  if (list.length) {
+    let worst = 0;
+    for (let i = 1; i < list.length; i++) if (list[i] > list[worst]) worst = i;
+    list.splice(worst, 1);
   }
   return true;
 }
 
 // Cuánto le queda a la ración más vieja de un tipo, de 0 (recién guardada) a 1
 // (a punto de echarse a perder). Para el panel.
-export function nestRipeness(nido, type) {
-  const vida = (POINT_TYPES[type]?.life ?? 0) * NEST.keepFactor;
-  if (vida <= 0) return 0;
-  const lista = nido.ages?.[type] ?? [];
-  return lista.length ? Math.min(1, Math.max(...lista) / vida) : 0;
+export function nestRipeness(nestObj, type) {
+  const life = (POINT_TYPES[type]?.life ?? 0) * NEST.keepFactor;
+  if (life <= 0) return 0;
+  const list = nestObj.ages?.[type] ?? [];
+  return list.length ? Math.min(1, Math.max(...list) / life) : 0;
 }
 
 // El tiempo también corre en la despensa, solo que NEST.keepFactor veces más
 // despacio. Cumplida su vida, la ración se echa a perder y desaparece.
 export function updateNest(world, dt) {
-  const nido = nestOf(world);
-  if (!nido) return;
-  sincronizar(nido);
-  const paso = dt / NEST.keepFactor;
+  const nestObj = nestOf(world);
+  if (!nestObj) return;
+  sync(nestObj);
+  const step = dt / NEST.keepFactor;
 
-  for (const [type, lista] of Object.entries(nido.ages)) {
-    const vida = POINT_TYPES[type]?.life ?? 0;
-    const quedan = [];
-    let perdidas = 0;
-    for (const age of lista) {
-      const edad = age + paso;
-      if (vida > 0 && edad >= vida) { perdidas++; continue; }
-      quedan.push(edad);
+  for (const [type, list] of Object.entries(nestObj.ages)) {
+    const life = POINT_TYPES[type]?.life ?? 0;
+    const remain = [];
+    let losses = 0;
+    for (const age of list) {
+      const ageOf = age + step;
+      if (life > 0 && ageOf >= life) { losses++; continue; }
+      remain.push(ageOf);
     }
-    nido.ages[type] = quedan;
-    if (!perdidas) continue;
-    nido.stock[type] = Math.max(0, (nido.stock[type] ?? 0) - perdidas);
-    nido.spoiled = (nido.spoiled ?? 0) + perdidas;
-    nido.lastSpoiled = { type, n: perdidas, total: nido.spoiled };
-    record(world, 'nest_spoil', { what: type, count: perdidas });
+    nestObj.ages[type] = remain;
+    if (!losses) continue;
+    nestObj.stock[type] = Math.max(0, (nestObj.stock[type] ?? 0) - losses);
+    nestObj.spoiled = (nestObj.spoiled ?? 0) + losses;
+    nestObj.lastSpoiled = { type, n: losses, total: nestObj.spoiled };
+    record(world, 'nest_spoil', { what: type, count: losses });
   }
 }
 
@@ -196,12 +196,12 @@ export function clearWorld(world) {
 // manda ese: si no, dos puntos pegados se tapan el uno al otro y el suyo no le
 // llega nunca a las manos. Entre los demás, el más cercano.
 export function pointTouching(world, fagi) {
-  const alcance = FAGI.eatRadius * FAGI.eatRadius;
+  const scope = FAGI.eatRadius * FAGI.eatRadius;
   let best = null;
   let bestDist = Infinity;
   for (const p of world.points) {
     const dist = (p.x - fagi.x) ** 2 + (p.y - fagi.y) ** 2;
-    if (dist > alcance) continue;
+    if (dist > scope) continue;
     if (p === fagi.target) return p;
     if (dist < bestDist) { bestDist = dist; best = p; }
   }

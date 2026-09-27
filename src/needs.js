@@ -17,9 +17,9 @@ import { learn } from './brain.js';
 // Por eso puede esperar a que escampe; si la lluvia se alarga y le entra
 // hambre, come de la despensa (nest.js).
 export function increaseNeeds(fagi, world, dt) {
-  const durmiendo = fagi.thought?.action === 'rest' && !fagi.swimming && Boolean(nestUnder(fagi, world));
-  fagi.hunger += HUNGER.rate * statMult(fagi, 'hungerRate') * (durmiendo ? NEST.restHunger : 1) * dt;
-  fagi.thirst += THIRST.rate * (durmiendo ? NEST.restThirst : 1) * dt;
+  const sleeping = fagi.thought?.action === 'rest' && !fagi.swimming && Boolean(nestUnder(fagi, world));
+  fagi.hunger += HUNGER.rate * statMult(fagi, 'hungerRate') * (sleeping ? NEST.restHunger : 1) * dt;
+  fagi.thirst += THIRST.rate * (sleeping ? NEST.restThirst : 1) * dt;
 }
 
 export function resolveVitalFailure(fagi) {
@@ -40,9 +40,9 @@ export function resolveVitalFailure(fagi) {
 
 // Bebe en el vado, donde hace pie. En el hondo no bebe: patalea. El agua no se gasta.
 export function drink(fagi, world, dt) {
-  const zona = waterZone(world, fagi.x, fagi.y);
-  const pool = zona && !zona.deep ? zona.pool : null;
-  const empieza = Boolean(pool) && !fagi.drinking;
+  const zone = waterZone(world, fagi.x, fagi.y);
+  const pool = zone && !zone.deep ? zone.pool : null;
+  const starts = Boolean(pool) && !fagi.drinking;
   fagi.drinking = Boolean(pool);
   if (!pool) return;
   fagi.homeSearched = false;   // encontró agua: la próxima búsqueda vuelve a empezar en casa
@@ -50,12 +50,12 @@ export function drink(fagi, world, dt) {
   // Empezar a beber abre una experiencia: se juzga tras un rato bebiendo, por
   // lo que le quitó la sed de verdad. Beber sin sed no enseña nada, porque no
   // siente nada.
-  if (empieza) {
-    const ep = openEpisode(fagi, { action: 'drink', key: 'agua', before: snapshotBody(fagi) });
+  if (starts) {
+    const ep = openEpisode(fagi, { action: 'drink', key: 'water', before: snapshotBody(fagi) });
     ep.thirstAtStart = fagi.thirst;
     // Llegar con sed a un charco y que haya agua: los charcos sirven.
-    if (waterPlaceKind(pool) === 'charco' && fagi.thirst / THIRST.max > THIRST.ignoreBelow) {
-      learn(fagi.brain, 'charco', RAIN.puddleLesson, fagi.age);
+    if (waterPlaceKind(pool) === 'puddle' && fagi.thirst / THIRST.max > THIRST.ignoreBelow) {
+      learn(fagi.brain, 'puddle', RAIN.puddleLesson, fagi.age);
     }
   }
 
@@ -68,17 +68,17 @@ export function drink(fagi, world, dt) {
 
 // Gasta energía andando y la recupera parada. En el nido descansa mejor.
 // En el hondo patalea: gasta el triple y no hay forma de descansar.
-export function spendEnergy(fagi, world, dt, moviendose) {
-  const enNido = Boolean(nestUnder(fagi, world));
+export function spendEnergy(fagi, world, dt, isMoving) {
+  const inNest = Boolean(nestUnder(fagi, world));
 
   if (fagi.swimming) {
     fagi.energy -= ENERGY.drain * WATER.swimEffort * dt;
-  } else if (moviendose) {
+  } else if (isMoving) {
     // Bajo la lluvia, fuera del nido, cada gota la zarandea: cuesta más.
-    const gotas = fagi.raining && !enNido ? RAIN.effort : 1;
-    fagi.energy -= ENERGY.drain * statMult(fagi, 'speed') * gotas * dt;
+    const drops = fagi.raining && !inNest ? RAIN.effort : 1;
+    fagi.energy -= ENERGY.drain * statMult(fagi, 'speed') * drops * dt;
   } else {
-    fagi.energy += (enNido ? ENERGY.restNest : ENERGY.restOutside) * dt;
+    fagi.energy += (inNest ? ENERGY.restNest : ENERGY.restOutside) * dt;
   }
   fagi.energy = Math.max(0, Math.min(ENERGY.max, fagi.energy));
 }

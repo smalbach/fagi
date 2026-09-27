@@ -51,42 +51,42 @@ export function createNarrator() {
   };
 }
 
-function push(nar, fagi, tag, text, detail = null) {
-  nar.lines.push({ id: ++nar.seq, t: fagi.age, tag, text, detail });
-  if (nar.lines.length > MAX_LINES) nar.lines.shift();
+function push(narr, fagi, tag, text, detail = null) {
+  narr.lines.push({ id: ++narr.seq, t: fagi.age, tag, text, detail });
+  if (narr.lines.length > MAX_LINES) narr.lines.shift();
 }
 
-const flecha = (antes, despues) => (despues - antes >= 0 ? '↑' : '↓');
+const arrow = (before, after) => (after - before >= 0 ? '↑' : '↓');
 
 // Traduce la lista de sensaciones ("hambre +25 · velocidad ×0.60") a un único
 // texto ya resuelto: log.ruleSub solo tiene que insertarlo, sin saber de
 // sensaciones ni de idiomas.
-function porQue(because) {
+function why(because) {
   return (because ?? []).map((s) => t(`sense.${s.sense}`, { v: s.v })).join(' · ');
 }
 
-export function narrate(nar, fagi) {
+export function narrate(narr, fagi) {
   const th = fagi.thought;
-  if (!th) return nar.lines;
-  const p = nar.prev;
+  if (!th) return narr.lines;
+  const p = narr.prev;
 
   // Muerte.
   if (p.alive && !fagi.alive) {
-    push(nar, fagi, 'dead',
+    push(narr, fagi, 'dead',
       { key: 'log.died', params: { cause: { key: `cause.${fagi.cause}` } } },
       { key: 'log.diedSub', params: { age: { dur: fagi.age }, eaten: fagi.eaten } });
   }
   p.alive = fagi.alive;
-  if (!fagi.alive) return nar.lines;
+  if (!fagi.alive) return narr.lines;
 
   // Bocado: qué comió, cómo le sentó y qué aprendió de ello.
   if (fagi.lastMeal && fagi.lastMeal.n !== p.meal) {
     const m = fagi.lastMeal;
-    push(nar, fagi, 'eat',
+    push(narr, fagi, 'eat',
       { key: 'log.ate', params: { what: { key: `type.${m.type}` } } },
       { key: 'log.ateSub', params: {
         hunger: `${Math.round(m.hungerAfter)}%`,
-        arrow: flecha(m.beliefBefore, m.beliefAfter),
+        arrow: arrow(m.beliefBefore, m.beliefAfter),
         before: m.beliefBefore.toFixed(2), after: m.beliefAfter.toFixed(2),
       } });
     p.meal = m.n;
@@ -94,7 +94,7 @@ export function narrate(nar, fagi) {
 
   // Carga un punto en vez de comérselo.
   if ((fagi.picked ?? 0) !== p.picked) {
-    push(nar, fagi, 'pick',
+    push(narr, fagi, 'pick',
       { key: 'log.pick', params: { what: { key: `type.${fagi.carrying?.type ?? 'nectar'}` } } },
       { key: 'log.pickSub' });
     p.picked = fagi.picked ?? 0;
@@ -103,7 +103,7 @@ export function narrate(nar, fagi) {
   // Lo deja en la despensa.
   if (fagi.lastDeposit && fagi.lastDeposit.n !== p.stored) {
     const d = fagi.lastDeposit;
-    push(nar, fagi, 'nest',
+    push(narr, fagi, 'nest',
       { key: 'log.store', params: { what: { key: `type.${d.type}` } } },
       { key: 'log.storeSub', params: { what: { key: `type.${d.type}` }, total: d.total } });
     p.stored = d.n;
@@ -111,44 +111,44 @@ export function narrate(nar, fagi) {
 
   // Tira de despensa.
   if (fagi.lastPantry && fagi.lastPantry.n !== p.pantry) {
-    push(nar, fagi, 'nest', { key: 'log.pantry' },
+    push(narr, fagi, 'nest', { key: 'log.pantry' },
       { key: 'log.pantrySub', params: { what: { key: `type.${fagi.lastPantry.type}` } } });
     p.pantry = fagi.lastPantry.n;
   }
 
   // Un recuerdo se consolida o deja de merecer confianza.
   for (const [key, r] of Object.entries(fagi.brain.facts)) {
-    const antes = p.stages[key];
-    if (antes !== 'larga' && r.stage === 'larga') {
-      push(nar, fagi, 'learn',
+    const before = p.stages[key];
+    if (before !== 'long' && r.stage === 'long') {
+      push(narr, fagi, 'learn',
         { key: 'log.consolidated', params: { what: { key: `type.${key}` } } },
         { key: 'log.consolidatedSub' });
     }
     p.stages[key] = r.stage;
 
-    const fiable = r.confidence >= MEMORY.minConfidence;
-    if (p.trusted[key] && !fiable && r.tries > 0) {
-      push(nar, fagi, 'explore',
+    const reliable = r.confidence >= MEMORY.minConfidence;
+    if (p.trusted[key] && !reliable && r.tries > 0) {
+      push(narr, fagi, 'explore',
         { key: 'log.forgot', params: { what: { key: `type.${key}` } } },
         { key: 'log.forgotSub' });
     }
-    p.trusted[key] = fiable;
+    p.trusted[key] = reliable;
   }
 
   // Escribe, revisa o retira una regla: la experiencia se convirtió en código.
   if (fagi.brain.lastRule && fagi.brain.lastRule.n !== p.rule) {
     const r = fagi.brain.lastRule;
-    const logKey = { nueva: 'log.rule', revisada: 'log.ruleRevised', retirada: 'log.ruleRetired' }[r.kind];
-    push(nar, fagi, 'learn',
+    const logKey = { new: 'log.rule', revised: 'log.ruleRevised', retired: 'log.ruleRetired' }[r.kind];
+    push(narr, fagi, 'learn',
       { key: logKey, params: { rule: r.id, what: { key: `type.${r.key}` } } },
-      { key: 'log.ruleSub', params: { because: porQue(r.because) } });
+      { key: 'log.ruleSub', params: { because: why(r.because) } });
     p.rule = r.n;
   }
 
   // Un bocado que parecía llevadero acabó sentando peor de lo que se notó al
   // probarlo: la creencia se corrige aparte, más tarde.
   if (fagi.lastEpisode?.correction && fagi.lastEpisode.n !== p.peril) {
-    push(nar, fagi, 'learn',
+    push(narr, fagi, 'learn',
       { key: 'log.peril', params: { what: { key: `type.${fagi.lastEpisode.key}` } } },
       { key: 'log.perilSub' });
     p.peril = fagi.lastEpisode.n;
@@ -156,48 +156,48 @@ export function narrate(nar, fagi) {
 
   // Descubre una fuente de agua: la memoriza aunque no vaya a ella.
   if ((fagi.waterFound ?? 0) !== p.water) {
-    push(nar, fagi, 'spot', { key: 'log.spotWater' }, { key: 'log.spotWaterSub' });
+    push(narr, fagi, 'spot', { key: 'log.spotWater' }, { key: 'log.spotWaterSub' });
     p.water = fagi.waterFound ?? 0;
   }
 
   // Bebe por primera vez con sed: descubre para qué sirve el agua.
   if (fagi.lastDrink && fagi.lastDrink.n !== p.drink) {
     const d = fagi.lastDrink;
-    push(nar, fagi, 'learn', { key: 'log.tryWater' },
+    push(narr, fagi, 'learn', { key: 'log.tryWater' },
       { key: 'log.tryWaterSub', params: {
         thirst: `${Math.round(d.thirst)}%`,
-        arrow: flecha(d.beliefBefore, d.beliefAfter),
+        arrow: arrow(d.beliefBefore, d.beliefAfter),
         before: d.beliefBefore.toFixed(2), after: d.beliefAfter.toFixed(2),
       } });
     p.drink = d.n;
   }
 
   // Se mete en el hondo: no hace pie.
-  if (fagi.swimming && !p.swimming) push(nar, fagi, 'swim', { key: 'log.sink' }, { key: 'log.sinkSub' });
+  if (fagi.swimming && !p.swimming) push(narr, fagi, 'swim', { key: 'log.sink' }, { key: 'log.sinkSub' });
   // Sale del hondo: empapada hasta secarse.
   if (!fagi.swimming && p.swimming && fagi.alive) {
-    push(nar, fagi, 'swim', { key: 'log.soaked' }, { key: 'log.soakedSub', params: { sec: WATER.dryTime } });
+    push(narr, fagi, 'swim', { key: 'log.soaked' }, { key: 'log.soakedSub', params: { sec: WATER.dryTime } });
   }
   p.swimming = fagi.swimming;
 
   // Empieza y deja de llover.
   if (fagi.raining !== p.raining) {
-    push(nar, fagi, 'rain', { key: fagi.raining ? 'log.rain' : 'log.rainStop' },
+    push(narr, fagi, 'rain', { key: fagi.raining ? 'log.rain' : 'log.rainStop' },
       { key: fagi.raining ? 'log.rainSub' : 'log.rainStopSub' });
     p.raining = fagi.raining;
   }
 
   // Nota que baja la presión (una vez por frente).
   if (fagi.pressureFalling && !p.pressureFalling) {
-    push(nar, fagi, 'rain', { key: 'log.pressure' }, { key: 'log.pressureSub' });
+    push(narr, fagi, 'rain', { key: 'log.pressure' }, { key: 'log.pressureSub' });
   }
   p.pressureFalling = Boolean(fagi.pressureFalling);
 
   // La primera vez que la lluvia la pilla fuera: lo que le cuesta.
   const lr = fagi.lastRainLesson;
   if (lr && lr.n === 1 && p.rainLesson !== 1) {
-    push(nar, fagi, 'learn', { key: 'log.rainLearn' }, { key: 'log.rainLearnSub', params: {
-      arrow: flecha(lr.beliefBefore, lr.beliefAfter),
+    push(narr, fagi, 'learn', { key: 'log.rainLearn' }, { key: 'log.rainLearnSub', params: {
+      arrow: arrow(lr.beliefBefore, lr.beliefAfter),
       before: lr.beliefBefore.toFixed(2), after: lr.beliefAfter.toFixed(2),
     } });
   }
@@ -206,8 +206,8 @@ export function narrate(nar, fagi) {
   // Escampa y relaciona el frente que notó con la lluvia que vino.
   const pl = fagi.lastPressureLesson;
   if (pl && pl.n !== p.pressureLesson) {
-    push(nar, fagi, 'learn', { key: 'log.pressureLearn' }, { key: 'log.pressureLearnSub', params: {
-      arrow: flecha(pl.beliefBefore, pl.beliefAfter),
+    push(narr, fagi, 'learn', { key: 'log.pressureLearn' }, { key: 'log.pressureLearnSub', params: {
+      arrow: arrow(pl.beliefBefore, pl.beliefAfter),
       before: pl.beliefBefore.toFixed(2), after: pl.beliefAfter.toFixed(2),
     } });
   }
@@ -215,21 +215,21 @@ export function narrate(nar, fagi) {
 
   // Va al charco que recordaba y ya se ha secado.
   if ((fagi.puddleGone ?? 0) !== p.puddleGone) {
-    push(nar, fagi, 'spot', { key: 'log.puddleGone' }, { key: 'log.puddleGoneSub' });
+    push(narr, fagi, 'spot', { key: 'log.puddleGone' }, { key: 'log.puddleGoneSub' });
     p.puddleGone = fagi.puddleGone ?? 0;
   }
 
   // La primera vez que las antenas le avisan del agua antes de pisarla.
-  if (fagi.probed && !p.probed) push(nar, fagi, 'spot', { key: 'log.probe' }, { key: 'log.probeSub' });
+  if (fagi.probed && !p.probed) push(narr, fagi, 'spot', { key: 'log.probe' }, { key: 'log.probeSub' });
   p.probed = Boolean(fagi.probed);
 
   // Lo que le costó el rato en el hondo, y lo que aprende de ello.
   if (fagi.lastDunk && fagi.lastDunk.n !== p.dunk) {
     const d = fagi.lastDunk;
-    push(nar, fagi, 'learn', { key: 'log.dunk' },
+    push(narr, fagi, 'learn', { key: 'log.dunk' },
       { key: 'log.dunkSub', params: {
         secs: d.secs.toFixed(1),
-        arrow: flecha(d.beliefBefore, d.beliefAfter),
+        arrow: arrow(d.beliefBefore, d.beliefAfter),
         before: d.beliefBefore.toFixed(2), after: d.beliefAfter.toFixed(2),
       } });
     p.dunk = d.n;
@@ -237,18 +237,18 @@ export function narrate(nar, fagi) {
 
   // Empieza y termina de beber.
   if (fagi.drinking !== p.drinking) {
-    const sed = { key: 'log.thirstIs', params: { thirst: `${Math.round(th.thirstU * 100)}%` } };
-    if (fagi.drinking) push(nar, fagi, 'drink', { key: 'log.reachWater' }, sed);
-    else push(nar, fagi, 'done', { key: 'log.leaveWater' }, sed);
+    const thirst = { key: 'log.thirstIs', params: { thirst: `${Math.round(th.thirstU * 100)}%` } };
+    if (fagi.drinking) push(narr, fagi, 'drink', { key: 'log.reachWater' }, thirst);
+    else push(narr, fagi, 'done', { key: 'log.leaveWater' }, thirst);
     p.drinking = fagi.drinking;
   }
 
   // Algo nuevo entró en lo que percibe: qué hizo con ello.
   if (fagi.rethink && fagi.rethink.n !== p.rethink) {
     p.rethink = fagi.rethink.n;
-    const linea = rethinkLine(fagi.rethink, th);
-    if (linea) {
-      push(nar, fagi, 'rethink', linea.text, linea.detail);
+    const line = rethinkLine(fagi.rethink, th);
+    if (line) {
+      push(narr, fagi, 'rethink', line.text, line.detail);
       p.action = th.action;   // el cambio ya queda contado aquí
     }
   }
@@ -257,17 +257,17 @@ export function narrate(nar, fagi) {
   if (fagi.legChoice && fagi.legChoice.n !== p.leg) {
     p.leg = fagi.legChoice.n;
     const l = legLine(fagi.legChoice);
-    push(nar, fagi, 'rethink', l.text, l.detail);
+    push(narr, fagi, 'rethink', l.text, l.detail);
     if (th.action === 'explore') p.action = th.action;
   }
 
   // Cambio de decisión.
   if (th.action !== p.action) {
-    push(nar, fagi, th.action, { key: `action.${th.action}` }, th.reason);
+    push(narr, fagi, th.action, { key: `action.${th.action}` }, th.reason);
     p.action = th.action;
   }
 
-  return nar.lines;
+  return narr.lines;
 }
 
 // La línea de una reconsideración: qué vio, dónde, y si siguió o cambió.

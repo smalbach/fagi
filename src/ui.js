@@ -112,20 +112,20 @@ export function createUI(input, world, onReset) {
   // Cada cuánto dan fruta los árboles. Vale para los que ya están puestos.
   const slider = document.getElementById('tree-interval');
   const sliderVal = document.getElementById('tree-interval-val');
-  const pintar = () => { sliderVal.textContent = formatDuration(Number(slider.value)); };
+  const paint = () => { sliderVal.textContent = formatDuration(Number(slider.value)); };
   slider.addEventListener('input', () => {
-    const antes = TREE.interval;
+    const before = TREE.interval;
     const v = Number(slider.value);
     setFruitInterval(world, v);
-    if (antes !== v) record(world, 'config', { id: configIdOf(TREE, 'interval'), from: antes, to: v, source: 'user' });
-    pintar();
+    if (before !== v) record(world, 'config', { id: configIdOf(TREE, 'interval'), from: before, to: v, source: 'user' });
+    paint();
   });
   // El deslizador enseña lo que hay, no lo impone: los ajustes guardados o los
   // de la sesión mandan.
-  const sincronizar = () => { slider.value = TREE.interval; pintar(); };
-  sincronizar();
+  const sync = () => { slider.value = TREE.interval; paint(); };
+  sync();
 
-  return { update: (fagi, w) => update(el, beliefBox, beliefs, fagi, w), sync: sincronizar };
+  return { update: (fagi, w) => update(el, beliefBox, beliefs, fagi, w), sync: sync };
 }
 
 // Una creencia va de -1 a +1 y la barra crece desde el centro. La opacidad de
@@ -142,18 +142,18 @@ function paintBelief(bar, r) {
 
 // Lo que hay guardado en el nido.
 function paintStock(container, world) {
-  const nido = nestOf(world);
-  if (!nido) { container.innerHTML = `<div class="none">${t('word.noNest')}</div>`; return; }
+  const nestObj = nestOf(world);
+  if (!nestObj) { container.innerHTML = `<div class="none">${t('word.noNest')}</div>`; return; }
 
-  const filas = Object.keys(nido.stock).filter((k) => nido.stock[k] > 0);
-  if (filas.length === 0) { container.innerHTML = `<div class="none">${t('word.empty')}</div>`; return; }
+  const rows = Object.keys(nestObj.stock).filter((k) => nestObj.stock[k] > 0);
+  if (rows.length === 0) { container.innerHTML = `<div class="none">${t('word.empty')}</div>`; return; }
 
   // La fila se apaga a medida que lo guardado se acerca a echarse a perder.
-  container.innerHTML = filas.map((k) => {
-    const paso = nestRipeness(nido, k);
-    return `<div class="label" style="opacity:${(1 - paso * 0.6).toFixed(2)}">` +
+  container.innerHTML = rows.map((k) => {
+    const step = nestRipeness(nestObj, k);
+    return `<div class="label" style="opacity:${(1 - step * 0.6).toFixed(2)}">` +
       `<span style="color:${specOf(k).color}">${labelOf(k)}</span>` +
-      `<span>${nido.stock[k]}</span></div>`;
+      `<span>${nestObj.stock[k]}</span></div>`;
   }).join('');
 }
 
@@ -172,27 +172,27 @@ function paintEffects(container, fagi) {
 // El cuerpo (empapada, en el hondo, tanteando) y el cielo tal como lo nota:
 // si llueve y cuánto ha bajado la presión, y si sigue bajando.
 function paintSky(el, fagi, world) {
-  let cuerpo = t('body.dry');
-  if (fagi.swimming) cuerpo = t('body.swimming');
-  else if (fagi.wet > 0) cuerpo = t('body.wet', { sec: { dur: fagi.wet, precise: true } });
-  if (fagi.probing && !fagi.swimming) cuerpo += ` · ${t('body.probing')}`;
-  el.bodyVal.textContent = cuerpo;
+  let body = t('body.dry');
+  if (fagi.swimming) body = t('body.swimming');
+  else if (fagi.wet > 0) body = t('body.wet', { sec: { dur: fagi.wet, precise: true } });
+  if (fagi.probing && !fagi.swimming) body += ` · ${t('body.probing')}`;
+  el.bodyVal.textContent = body;
   el.skyVal.textContent = t(world.rain?.on ? 'sky.rain' : 'sky.clear');
   const p = fagi.pressure ?? 0;
   el.pressureVal.textContent = p <= 0 ? t('pressure.normal')
     : `${fagi.pressureFalling ? '↓ ' : ''}${t(fagi.pressureFalling ? 'pressure.falling' : 'pressure.low')} ${Math.round(p * 100)}%`;
 }
 
-function barra(bar, val, valor, max) {
-  const pct = (valor / max) * 100;
+function barEl(bar, val, value, max) {
+  const pct = (value / max) * 100;
   bar.style.width = `${pct}%`;
   val.textContent = `${Math.round(pct)}%`;
 }
 
 function update(el, beliefBox, beliefs, fagi, world) {
-  barra(el.hungerBar, el.hungerVal, fagi.hunger, HUNGER.max);
-  barra(el.thirstBar, el.thirstVal, fagi.thirst, THIRST.max);
-  barra(el.energyBar, el.energyVal, fagi.energy, ENERGY.max);
+  barEl(el.hungerBar, el.hungerVal, fagi.hunger, HUNGER.max);
+  barEl(el.thirstBar, el.thirstVal, fagi.thirst, THIRST.max);
+  barEl(el.energyBar, el.energyVal, fagi.energy, ENERGY.max);
 
   el.ageVal.textContent = formatDuration(fagi.age);
   el.eatenVal.textContent = String(fagi.eaten);
@@ -203,10 +203,10 @@ function update(el, beliefBox, beliefs, fagi, world) {
   el.posVal.textContent = `x ${Math.round(fagi.x)}, y ${Math.round(fagi.y)}`;
   const dir = heading(fagi.angle);
   const vert = verticalSense(fagi.angle);
-  const viento = heading(world.wind.angle);
+  const wind = heading(world.wind.angle);
   el.headingVal.textContent = `${dir.arrow} ${t(dir.key)}`;
   el.verticalVal.textContent = `${vert.arrow} ${t(vert.key)}`;
-  el.windVal.textContent = `${viento.arrow} ${t(viento.key)}`;
+  el.windVal.textContent = `${wind.arrow} ${t(wind.key)}`;
   paintSky(el, fagi, world);
 
   paintEffects(el.effects, fagi);

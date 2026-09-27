@@ -19,33 +19,33 @@ export function dropPheromone(world, x, y, dNest) {
 
 // Evapora. Se llama una vez por frame.
 export function updatePheromone(world, dt) {
-  const marcas = world.pheromone;
+  const marksOf = world.pheromone;
   // La lluvia lava el rastro: se borra RAIN.washPhero veces más rápido.
-  const paso = dt * (world.rain?.on ? RAIN.washPhero : 1);
-  for (let i = marcas.length - 1; i >= 0; i--) {
-    marcas[i].life -= paso;
-    if (marcas[i].life <= 0) marcas.splice(i, 1);
+  const step = dt * (world.rain?.on ? RAIN.washPhero : 1);
+  for (let i = marksOf.length - 1; i >= 0; i--) {
+    marksOf[i].life -= step;
+    if (marksOf[i].life <= 0) marksOf.splice(i, 1);
   }
 }
 
 // La marca a seguir desde donde está Fagi.
 //   alejandose = true  -> hacia la comida (marcas más lejos del nido)
 //   alejandose = false -> hacia el nido (marcas más cerca)
-export function followPheromone(world, fagi, dNestActual, alejandose) {
-  let mejor = null;
-  let mejorD = alejandose ? dNestActual : Infinity;
+export function followPheromone(world, fagi, dNestNow, movingAway) {
+  let best = null;
+  let bestD = movingAway ? dNestNow : Infinity;
 
   for (const m of world.pheromone) {
     const d = Math.hypot(m.x - fagi.x, m.y - fagi.y);
     if (d > PHERO.sense || d < 4) continue;
-    if (alejandose ? m.dNest > mejorD : m.dNest < mejorD) {
+    if (movingAway ? m.dNest > bestD : m.dNest < bestD) {
       // Las antenas tocan el suelo: una marca al otro lado de una roca no llega.
       if (segmentBlocked(world, fagi.x, fagi.y, m.x, m.y)) continue;
-      mejorD = m.dNest;
-      mejor = m;
+      bestD = m.dNest;
+      best = m;
     }
   }
-  return mejor;
+  return best;
 }
 
 // Fuerza de la feromona bajo los pies, para el HUD y la consola.

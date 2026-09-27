@@ -30,8 +30,8 @@ test('formatDuration redondea antes de repartir, no después', () => {
 });
 
 test('formatDuration aguanta valores raros', () => {
-  for (const malo of [undefined, null, NaN, -5, 'x']) {
-    assert.equal(formatDuration(malo), '0s');
+  for (const bad of [undefined, null, NaN, -5, 'x']) {
+    assert.equal(formatDuration(bad), '0s');
   }
 });
 

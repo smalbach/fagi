@@ -16,11 +16,11 @@ export function tryPickOrEat(fagi, world) {
 
   // Lo tenga o no que coger, ya está encima: deja de ser un objetivo al que ir.
   // Sin esto, un punto que rechaza se queda fichado y Fagi le da vueltas eternas.
-  const suelta = () => { if (fagi.target === p) { fagi.target = null; fagi.memory = 0; } };
+  const release = () => { if (fagi.target === p) { fagi.target = null; fagi.memory = 0; } };
 
   // No come ni recoge por accidente algo que ya aprendió que es perjudicial.
   // Solo vuelve a probarlo cuando era su objetivo deliberado (curiosidad).
-  if (verdict(fagi, 'eat', p.type, { deliberate: fagi.target === p }) === 'avoid') { suelta(); return; }
+  if (verdict(fagi, 'eat', p.type, { deliberate: fagi.target === p }) === 'avoid') { release(); return; }
 
   if (fagi.hunger >= CARRY.eatBelow) {
     eat(fagi, p.type);
@@ -28,7 +28,7 @@ export function tryPickOrEat(fagi, world) {
   } else if (verdict(fagi, 'store', p.type) === 'avoid') {
     // Probarlo por curiosidad es una cosa; llenar la despensa de lo que cree
     // malo es otra. Lo deja donde está y deja de tenerlo por objetivo.
-    suelta();
+    release();
     return;
   } else if (!fagi.carrying && !stockFull(fagi.pantry)) {
     // La fruta sigue teniendo la edad que traía: guardarla la conserva, no la
@@ -37,11 +37,11 @@ export function tryPickOrEat(fagi, world) {
     fagi.picked = (fagi.picked ?? 0) + 1;
     removePoint(world, p, 'picked');
   } else {
-    suelta();
+    release();
     return; // ya lleva algo, o la despensa está hecha: lo deja donde está
   }
 
-  suelta();
+  release();
 }
 
 // Si ya lleva una ración encima no tiene sentido morir de hambre mientras
@@ -67,9 +67,9 @@ export function eat(fagi, type) {
   fagi.eaten += 1;
   fagi.lastMeal = {
     n: fagi.eaten, type,
-    beliefBefore: ep.cambio.before.value,
-    beliefAfter: ep.cambio.after.value,
-    kind: ep.cambio.kind,
+    beliefBefore: ep.change.before.value,
+    beliefAfter: ep.change.after.value,
+    kind: ep.change.kind,
     hungerAfter: fagi.hunger,
     reward: ep.reward,
     sensations: ep.sensations,

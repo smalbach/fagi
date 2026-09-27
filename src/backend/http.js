@@ -9,7 +9,7 @@ export function createHttpBackend({ url, fetch = globalThis.fetch }) {
     name: 'http',
     async decide(observation) {
       const controller = new AbortController();
-      const limite = setTimeout(() => controller.abort(), BACKEND.timeout * 1000);
+      const limitOf = setTimeout(() => controller.abort(), BACKEND.timeout * 1000);
       try {
         const res = await fetch(`${url.replace(/\/$/, '')}/decide`, {
           method: 'POST',
@@ -22,7 +22,7 @@ export function createHttpBackend({ url, fetch = globalThis.fetch }) {
       } catch {
         return null;   // se cae, tarda o contesta basura: decide el instinto
       } finally {
-        clearTimeout(limite);
+        clearTimeout(limitOf);
       }
     },
   };

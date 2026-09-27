@@ -24,8 +24,8 @@ import { peekWeight } from './memory.js';
 import { hebb } from './synapses.js';
 import { nestUnder } from './nest.js';
 
-export const RAIN_KEY = 'lluvia';
-export const PRESSURE_KEY = 'presion';
+export const RAIN_KEY = 'rain';
+export const PRESSURE_KEY = 'pressure';
 
 // Cuánto quiere estar a cubierto mientras llueve: instinto + lo aprendido.
 export function rainAversion(fagi) {
@@ -37,61 +37,61 @@ export function pressureAversion(fagi) {
   return INSTINCT.pressureShelter + Math.max(0, -peekWeight(fagi.brain, PRESSURE_KEY));
 }
 
-function aprenderLluvia(fagi, ep) {
-  const parte = Math.min(1, ep.secs / RAIN.sample);
-  const perdida = Math.max(0, ep.energy - fagi.energy);
-  const cambio = learn(fagi.brain, RAIN_KEY, -RAIN.lesson * parte, fagi.age, [
+function learnRain(fagi, ep) {
+  const part = Math.min(1, ep.secs / RAIN.sample);
+  const lost = Math.max(0, ep.energy - fagi.energy);
+  const change = learn(fagi.brain, RAIN_KEY, -RAIN.lesson * part, fagi.age, [
     { sense: 'speed', v: WATER.wetSpeed },
-    { sense: 'energy', v: -Math.round(perdida * 100) / 100 },
+    { sense: 'energy', v: -Math.round(lost * 100) / 100 },
   ]);
   fagi.rainLessons = (fagi.rainLessons ?? 0) + 1;
   fagi.lastRainLesson = {
-    n: fagi.rainLessons, beliefBefore: cambio.before.value, beliefAfter: cambio.after.value,
+    n: fagi.rainLessons, beliefBefore: change.before.value, beliefAfter: change.after.value,
   };
 }
 
 // La bajada de presión se carga con lo que vino después: la lluvia.
-function aprenderPresion(fagi) {
-  const lluvia = fagi.brain.facts[RAIN_KEY]?.value ?? 0;
-  if (!lluvia) return;
-  const cambio = learn(fagi.brain, PRESSURE_KEY, lluvia, fagi.age, [
+function learnPressure(fagi) {
+  const rain = fagi.brain.facts[RAIN_KEY]?.value ?? 0;
+  if (!rain) return;
+  const change = learn(fagi.brain, PRESSURE_KEY, rain, fagi.age, [
     { sense: 'speed', v: WATER.wetSpeed },
   ]);
   fagi.lastPressureLesson = {
     n: (fagi.lastPressureLesson?.n ?? 0) + 1,
-    beliefBefore: cambio.before.value, beliefAfter: cambio.after.value,
+    beliefBefore: change.before.value, beliefAfter: change.after.value,
   };
 }
 
 // Una vez por frame, después de swim() (que ya dejó fagi.raining al día).
 export function senseWeather(fagi, world, dt) {
-  const cielo = world.rain;
-  const antes = fagi.pressure ?? 0;
+  const sky = world.rain;
+  const before = fagi.pressure ?? 0;
   // Lo que nota: la caída real, según su sensibilidad, y solo pasado un mínimo.
-  const caida = (cielo?.drop ?? 0) * INSTINCT.pressureSense;
-  fagi.pressure = caida >= INSTINCT.pressureMin ? caida : 0;
+  const fall = (sky?.drop ?? 0) * INSTINCT.pressureSense;
+  fagi.pressure = fall >= INSTINCT.pressureMin ? fall : 0;
   // Nota que BAJA (no que está baja): tras escampar sube, y eso no asusta.
-  fagi.pressureFalling = !fagi.raining && fagi.pressure > 0 && fagi.pressure > antes;
+  fagi.pressureFalling = !fagi.raining && fagi.pressure > 0 && fagi.pressure > before;
   if (fagi.pressureFalling) fagi.feltFront = true;
 
   const syn = fagi.brain.synapses;
-  if (syn && fagi.pressure > 0) hebb(syn, 'sense:presion', `key:${fagi.raining ? RAIN_KEY : PRESSURE_KEY}`, dt, fagi.age);
+  if (syn && fagi.pressure > 0) hebb(syn, 'sense:pressure', `key:${fagi.raining ? RAIN_KEY : PRESSURE_KEY}`, dt, fagi.age);
 
   // Una experiencia de lluvia: el rato que pasa a la intemperie mientras cae.
-  const fuera = fagi.raining && !nestUnder(fagi, world);
-  if (fuera && !fagi.rainEp) fagi.rainEp = { secs: 0, energy: fagi.energy };
+  const outside = fagi.raining && !nestUnder(fagi, world);
+  if (outside && !fagi.rainEp) fagi.rainEp = { secs: 0, energy: fagi.energy };
   const ep = fagi.rainEp;
   if (ep) {
-    if (fuera) ep.secs += dt;
-    if (!fuera || ep.secs >= RAIN.sample) {
-      aprenderLluvia(fagi, ep);
-      fagi.rainEp = fuera ? { secs: 0, energy: fagi.energy } : null;
+    if (outside) ep.secs += dt;
+    if (!outside || ep.secs >= RAIN.sample) {
+      learnRain(fagi, ep);
+      fagi.rainEp = outside ? { secs: 0, energy: fagi.energy } : null;
     }
   }
 
   // Escampa: ¿había notado el frente? Entonces aprende lo que anunciaba.
   if (fagi.wasRaining && !fagi.raining) {
-    if (fagi.feltFront) aprenderPresion(fagi);
+    if (fagi.feltFront) learnPressure(fagi);
     fagi.feltFront = false;
   }
   fagi.wasRaining = fagi.raining;

@@ -27,10 +27,10 @@ function ensureTrail(src, wind) {
   if (t && t.originX === src.x && t.originY === src.y) {
     // Si la fuente cambió de tipo (una fruta que se pudrió), el rastro sigue
     // ahí pero ya es otro olor: se queda con el largo que permita el nuevo.
-    if (t.tipo !== src.type) {
-      t.tipo = src.type;
-      const tope = maxNodes(src.type);
-      if (t.nodes.length > tope) t.nodes.length = Math.max(1, tope);
+    if (t.type !== src.type) {
+      t.type = src.type;
+      const cap = maxNodes(src.type);
+      if (t.nodes.length > cap) t.nodes.length = Math.max(1, cap);
     }
     return t;
   }
@@ -41,7 +41,7 @@ function ensureTrail(src, wind) {
     timer: 0,
     originX: src.x,
     originY: src.y,
-    tipo: src.type,
+    type: src.type,
   };
   return src.trail;
 }
@@ -50,14 +50,14 @@ function ensureTrail(src, wind) {
 // lo va enderezando. Rebota en los bordes del mapa.
 function grow(src, key, wind, dt) {
   const trail = ensureTrail(src, wind);
-  const tope = maxNodes(key);
+  const cap = maxNodes(key);
 
   trail.timer -= dt;
   let guard = 0;
-  while (trail.timer <= 0 && trail.nodes.length < tope && guard++ < 20) {
-    const haciaViento = normalizeAngle(wind.angle - trail.dir);
+  while (trail.timer <= 0 && trail.nodes.length < cap && guard++ < 20) {
+    const towardWind = normalizeAngle(wind.angle - trail.dir);
     trail.dir = normalizeAngle(
-      trail.dir + (Math.random() - 0.5) * PLUME.drift + haciaViento * PLUME.windPull
+      trail.dir + (Math.random() - 0.5) * PLUME.drift + towardWind * PLUME.windPull
     );
 
     const last = trail.nodes[trail.nodes.length - 1];
@@ -91,17 +91,17 @@ function wash(src, key, dt) {
   const trail = src.trail;
   if (!trail || trail.nodes.length <= 1) return;
   trail.washed = (trail.washed ?? 0) + dt * maxNodes(key) / Math.max(0.1, RAIN.washScent);
-  const quitar = Math.floor(trail.washed);
-  trail.washed -= quitar;
-  trail.nodes.length = Math.max(1, trail.nodes.length - quitar);
+  const remove = Math.floor(trail.washed);
+  trail.washed -= remove;
+  trail.nodes.length = Math.max(1, trail.nodes.length - remove);
   trail.timer = Math.max(trail.timer, 0);
 }
 
 // Hace crecer (o lava, si llueve) todos los hilos del mapa. Una vez por frame.
 export function updateTrails(world, dt) {
-  const llueve = world.rain?.on;
+  const rains = world.rain?.on;
   for (const { src, key } of scentSources(world)) {
-    if (llueve) wash(src, key, dt);
+    if (rains) wash(src, key, dt);
     else grow(src, key, world.wind, dt);
   }
 }
@@ -125,8 +125,8 @@ export function scentFromSourceAt(fagi, source, x, y) {
     const dy = nodes[i].y - y;
     if (dx * dx + dy * dy > r2) continue;
     // Cuanto más lejos de la fuente está el tramo, más diluido va el olor.
-    const fuerza = 1 - (i / nodes.length) * PLUME.faint;
-    if (fuerza > max) max = fuerza;
+    const force = 1 - (i / nodes.length) * PLUME.faint;
+    if (force > max) max = force;
   }
   return max;
 }
@@ -146,8 +146,8 @@ export function scentAt(fagi, world, key, x, y) {
 export function smelledPoints(fagi, world) {
   const out = [];
   for (const p of world.points) {
-    const fuerza = scentFromSourceAt(fagi, { src: p, extra: 0 }, fagi.x, fagi.y);
-    if (fuerza > 0) out.push({ point: p, dist: distanceTo(fagi, p), fuerza });
+    const force = scentFromSourceAt(fagi, { src: p, extra: 0 }, fagi.x, fagi.y);
+    if (force > 0) out.push({ point: p, dist: distanceTo(fagi, p), force });
   }
   return out;
 }

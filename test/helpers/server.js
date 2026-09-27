@@ -8,18 +8,18 @@ import { buildApp } from '../../server/app.js';
 export const DB_URL = process.env.DATABASE_URL_TEST;
 export const SKIP = DB_URL ? false : 'sin DATABASE_URL_TEST';
 
-export async function montar() {
+export async function mount() {
   const pool = createPool(DB_URL);
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await migrate(pool);
   const app = await buildApp({ pool, adminEmail: 'admin@fagi.test', rateLimitMax: 1000 });
-  return { app, pool, async cerrar() { await app.close(); await pool.end(); } };
+  return { app, pool, async close() { await app.close(); await pool.end(); } };
 }
 
 // Un cliente con su propia cookie, como un navegador.
-export function cliente(app) {
+export function client(app) {
   let cookie = '';
-  async function pedir(method, url, body) {
+  async function request(method, url, body) {
     const res = await app.inject({
       method, url,
       headers: { ...(cookie ? { cookie } : {}), ...(method !== 'GET' ? { 'x-fagi': '1' } : {}) },
@@ -30,8 +30,8 @@ export function cliente(app) {
     return { status: res.statusCode, body: res.body ? res.json() : null };
   }
   return {
-    get: (url) => pedir('GET', url),
-    post: (url, body = {}) => pedir('POST', url, body),
-    del: (url) => pedir('DELETE', url),
+    get: (url) => request('GET', url),
+    post: (url, body = {}) => request('POST', url, body),
+    del: (url) => request('DELETE', url),
   };
 }

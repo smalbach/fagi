@@ -17,38 +17,38 @@
 //
 // Cada parte vive en su módulo de `fagi-sprite/`; aquí solo se montan en orden.
 
-import { PIEL, MUERTA, HOJA, HOJA_MUERTA } from './fagi-sprite/paleta.js';
-import { luzLocal, sombra } from './fagi-sprite/luz.js';
-import { drawLegs } from './fagi-sprite/patas.js';
-import { drawBody } from './fagi-sprite/cuerpo.js';
-import { drawAntennas } from './fagi-sprite/antenas.js';
-import { drawCarried } from './fagi-sprite/carga.js';
+import { SKIN, DEAD, LEAF, DEAD_LEAF } from './fagi-sprite/palette.js';
+import { localLight, shadow } from './fagi-sprite/light.js';
+import { drawLegs } from './fagi-sprite/legs.js';
+import { drawBody } from './fagi-sprite/body.js';
+import { drawAntennas } from './fagi-sprite/antennae.js';
+import { drawCarried } from './fagi-sprite/cargo.js';
 
-export { elipse } from './fagi-sprite/trazo.js';
+export { ellipse } from './fagi-sprite/stroke.js';
 
 export function drawFagi(ctx, fagi) {
-  const vivo = fagi.alive;
-  const c = vivo ? PIEL : MUERTA;
-  const hoja = vivo ? HOJA : HOJA_MUERTA;
-  const paso = vivo ? fagi.stride * 0.07 : 0;
+  const alive = fagi.alive;
+  const c = alive ? SKIN : DEAD;
+  const leaf = alive ? LEAF : DEAD_LEAF;
+  const step = alive ? fagi.stride * 0.07 : 0;
 
   ctx.save();
   ctx.translate(fagi.x, fagi.y);
   ctx.rotate(fagi.angle);              // +x es hacia delante
 
   // La luz del mundo, vista desde dentro del cuerpo.
-  const L = luzLocal(fagi.angle);
+  const L = localLight(fagi.angle);
 
-  sombra(ctx, L, vivo);
+  shadow(ctx, L, alive);
 
   // Andar no es solo mover las patas: el cuerpo cabecea a cada trípode. Muy
   // poco —medio grado— pero es lo que separa caminar de deslizarse.
-  const bamboleo = vivo ? Math.sin(paso) * 0.035 : 0;
-  ctx.rotate(bamboleo);
+  const wobble = alive ? Math.sin(step) * 0.035 : 0;
+  ctx.rotate(wobble);
 
-  drawLegs(ctx, paso, c, L, vivo);
-  drawBody(ctx, c, hoja, L, vivo);
-  drawAntennas(ctx, fagi, paso, c, L, vivo);
+  drawLegs(ctx, step, c, L, alive);
+  drawBody(ctx, c, leaf, L, alive);
+  drawAntennas(ctx, fagi, step, c, L, alive);
   if (fagi.carrying) drawCarried(ctx, fagi.carrying.type, L);
 
   ctx.restore();

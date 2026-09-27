@@ -14,12 +14,12 @@ export function createRules() {
   return { list: [], seq: 0, quarantined: new Set() };
 }
 
-function reglasVivas(rules) {
+function liveRules(rules) {
   return rules.list.filter((r) => !r.retired && !rules.quarantined.has(r.id));
 }
 
 export function activeRule(rules, key, verdict) {
-  return reglasVivas(rules).find((r) => r.when.key === key && r.verdict === verdict) ?? null;
+  return liveRules(rules).find((r) => r.when.key === key && r.verdict === verdict) ?? null;
 }
 
 export function retiredRule(rules, key, verdict) {
@@ -36,16 +36,16 @@ export function upsertRule(rules, r) {
 
 export function retireRule(rules, r, age) {
   if (!r || r.retired) return r;
-  const retirada = { ...r, retired: true, retiredAt: age };
-  upsertRule(rules, retirada);
+  const retiredOne = { ...r, retired: true, retiredAt: age };
+  upsertRule(rules, retiredOne);
   // Historial acotado: se descartan las retiradas más viejas, no las activas.
-  const retiradas = rules.list.filter((x) => x.retired).sort((a, b) => a.retiredAt - b.retiredAt);
-  const sobran = retiradas.length - LEARN.maxRetired;
-  if (sobran > 0) {
-    const fuera = new Set(retiradas.slice(0, sobran).map((x) => x.id));
-    rules.list = rules.list.filter((x) => !fuera.has(x.id));
+  const retiredList = rules.list.filter((x) => x.retired).sort((a, b) => a.retiredAt - b.retiredAt);
+  const extra = retiredList.length - LEARN.maxRetired;
+  if (extra > 0) {
+    const outside = new Set(retiredList.slice(0, extra).map((x) => x.id));
+    rules.list = rules.list.filter((x) => !outside.has(x.id));
   }
-  return retirada;
+  return retiredOne;
 }
 
 export function quarantine(rules, id) {
@@ -59,12 +59,12 @@ export function quarantine(rules, id) {
 // se la reescriba.
 export function verdict(fagi, scope, key, { deliberate = false } = {}) {
   const rules = fagi.brain.rules;
-  let resultado = null;
-  for (const r of reglasVivas(rules)) {
+  let result = null;
+  for (const r of liveRules(rules)) {
     try {
       if (r.on.includes(scope) && r.when.key === key) {
-        if (r.verdict === 'avoid') resultado = 'avoid';
-        else if (r.verdict === 'prefer' && resultado === null) resultado = 'prefer';
+        if (r.verdict === 'avoid') result = 'avoid';
+        else if (r.verdict === 'prefer' && result === null) result = 'prefer';
       }
     } catch {
       quarantine(rules, r.id);
@@ -72,8 +72,8 @@ export function verdict(fagi, scope, key, { deliberate = false } = {}) {
   }
   // La curiosidad es instinto, no una regla: probar a propósito algo que se
   // cree malo sigue permitido mientras no se haya agotado la curiosidad.
-  if (resultado === 'avoid' && scope === 'eat' && deliberate && curious(fagi.brain, key, BRAIN.curiosityTries)) {
+  if (result === 'avoid' && scope === 'eat' && deliberate && curious(fagi.brain, key, BRAIN.curiosityTries)) {
     return null;
   }
-  return resultado;
+  return result;
 }

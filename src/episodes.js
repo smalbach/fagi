@@ -23,15 +23,15 @@ function needU(body, need) {
 
 // learn() ya se ocupa de todo: ajusta la creencia y, si toca, escribe o
 // revisa la regla. Aquí solo se le pasan las sensaciones que la explican.
-function aprender(fagi, key, reward, sensations) {
+function learnFrom(fagi, key, reward, sensations) {
   return learn(fagi.brain, key, reward, fagi.age, sensations);
 }
 
 // Abre un episodio y enseña de inmediato lo que sintió. `before` es la foto del
 // cuerpo antes de comer o de empezar a beber.
 export function openEpisode(fagi, { action, key, before }) {
-  const anterior = fagi.episode;
-  if (anterior) cerrar(fagi, anterior, null);   // el susto, si viene, es del nuevo
+  const previous = fagi.episode;
+  if (previous) close(fagi, previous, null);   // el susto, si viene, es del nuevo
 
   const need = NEED_OF[action] ?? 'hunger';
   const ep = {
@@ -45,25 +45,25 @@ export function openEpisode(fagi, { action, key, before }) {
     critAt: needU(before, need) >= NEEDS.critical,
     reward: 0,
     sensations: [],
-    cambio: null,
+    change: null,
     correction: null,
     pending: true,
   };
 
   // Beber se juzga después, cuando ya haya bebido un rato (o al salir del agua).
-  if (action !== 'drink') sentir(fagi, ep);
+  if (action !== 'drink') feelNow(fagi, ep);
 
   fagi.episode = ep;
   fagi.lastEpisode = ep;
   return ep;
 }
 
-function sentir(fagi, ep) {
+function feelNow(fagi, ep) {
   const after = snapshotBody(fagi);
   const { reward, sensations } = feel(ep.before, after);
   ep.reward = reward;
   ep.sensations = sensations;
-  ep.cambio = aprender(fagi, ep.key, reward, sensations);
+  ep.change = learnFrom(fagi, ep.key, reward, sensations);
 }
 
 // El tiempo pasa: comprueba si el episodio pendiente ya se puede cerrar.
@@ -76,16 +76,16 @@ export function resolveEpisodes(fagi, dt) {
     // moja las patas y quita un poco de sed, pero no es beber: si se juzgara,
     // el sorbo de paso enseñaría que el agua apenas quita sed.
     if (fagi.thought?.action === 'drink') ep.stopped = true;
-    if (!fagi.drinking && !ep.stopped) { cerrar(fagi, ep, null); return; }
-    const basta = fagi.age - ep.at >= FEEL.drinkSample || !fagi.drinking;
-    if (basta) {
-      sentir(fagi, ep);
+    if (!fagi.drinking && !ep.stopped) { close(fagi, ep, null); return; }
+    const enough = fagi.age - ep.at >= FEEL.drinkSample || !fagi.drinking;
+    if (enough) {
+      feelNow(fagi, ep);
       fagi.lastDrink = {
         n: ep.n, thirst: ep.before.thirst,
-        beliefBefore: ep.cambio.before.value, beliefAfter: ep.cambio.after.value,
-        kind: ep.cambio.kind,
+        beliefBefore: ep.change.before.value, beliefAfter: ep.change.after.value,
+        kind: ep.change.kind,
       };
-      cerrar(fagi, ep, null);
+      close(fagi, ep, null);
     }
     return;
   }
@@ -93,9 +93,9 @@ export function resolveEpisodes(fagi, dt) {
   if (fagi.age - ep.at < FEEL.window) return;
 
   // Mal desenlace: venía a calmar una necesidad y acabó crítica en la ventana.
-  const ahoraCritica = needU(fagi, ep.need) >= NEEDS.critical;   // fagi = cuerpo AHORA
-  const correction = !ep.critAt && ahoraCritica ? -FEEL.perilWeight : null;
-  cerrar(fagi, ep, correction);
+  const nowCritical = needU(fagi, ep.need) >= NEEDS.critical;   // fagi = cuerpo AHORA
+  const correction = !ep.critAt && nowCritical ? -FEEL.perilWeight : null;
+  close(fagi, ep, correction);
 }
 
 // Seguir su propio rastro también es una experiencia, y se juzga por cómo
@@ -104,21 +104,21 @@ export function resolveEpisodes(fagi, dt) {
 // (sed, hambre crítica), no se juzga: no es culpa del rastro.
 // Se llama después de actuar, cuando ya se sabe si recogió o comió.
 export function resolveTrail(fagi) {
-  const comida = (fagi.picked ?? 0) + fagi.eaten;
-  const siguiendo = fagi.thought?.action === 'pheromone';
+  const food = (fagi.picked ?? 0) + fagi.eaten;
+  const following = fagi.thought?.action === 'pheromone';
   const ep = fagi.trailEp;
 
   if (!ep) {
-    if (siguiendo) fagi.trailEp = { at: fagi.age, comida };
+    if (following) fagi.trailEp = { at: fagi.age, food };
     return;
   }
-  if (comida > ep.comida) {
-    aprender(fagi, 'feromona', PHERO.found, [{ sense: 'found', v: 1 }]);
+  if (food > ep.food) {
+    learnFrom(fagi, 'pheromone', PHERO.found, [{ sense: 'found', v: 1 }]);
     fagi.trailEp = null;
-  } else if (!siguiendo && fagi.thought?.tier === 'survive') {
+  } else if (!following && fagi.thought?.tier === 'survive') {
     fagi.trailEp = null;
   } else if (fagi.age - ep.at >= PHERO.learnWindow) {
-    aprender(fagi, 'feromona', PHERO.miss, [{ sense: 'lost', v: -1 }]);
+    learnFrom(fagi, 'pheromone', PHERO.miss, [{ sense: 'lost', v: -1 }]);
     fagi.trailEp = null;
   }
 }
@@ -127,17 +127,17 @@ export function resolveTrail(fagi) {
 export function closeOnDeath(fagi) {
   const ep = fagi.episode;
   if (!ep) return null;
-  if (ep.action === 'drink' && ep.cambio === null) sentir(fagi, ep);
-  cerrar(fagi, ep, -FEEL.deathPenalty);
+  if (ep.action === 'drink' && ep.change === null) feelNow(fagi, ep);
+  close(fagi, ep, -FEEL.deathPenalty);
   return ep;
 }
 
-function cerrar(fagi, ep, correction) {
+function close(fagi, ep, correction) {
   if (!ep.pending) return;
   ep.pending = false;
   if (correction !== null && correction !== 0) {
     ep.correction = correction;
-    ep.cambio = aprender(fagi, ep.key, correction, [{ sense: 'peril', v: correction }]);
+    ep.change = learnFrom(fagi, ep.key, correction, [{ sense: 'peril', v: correction }]);
   }
   if (fagi.episode === ep) fagi.episode = null;
 }

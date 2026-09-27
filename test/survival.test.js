@@ -55,7 +55,7 @@ test('a scent trail is attributed only to the source that emitted it', () => {
 test('food and water can save Fagi during the last viable turn', () => {
   const waterWorld = createWorld();
   const drinking = createFagi();
-  addObject(waterWorld, drinking.x + OBJECT_TYPES.agua.radius - WATER.vado / 2, drinking.y, 'agua');
+  addObject(waterWorld, drinking.x + OBJECT_TYPES.water.radius - WATER.shallows / 2, drinking.y, 'water');
   drinking.thirst = 99.99;
   step(waterWorld, drinking, 0.05);
   assert.equal(drinking.alive, true);
@@ -87,7 +87,7 @@ test('critical decisions use remaining lifetime, not the largest percentage', ()
   fagi.hunger = 80; // 14.3 seconds left
   fagi.thirst = 70; // 13.6 seconds left
   addPoint(world, fagi.x + 20, fagi.y, 'nectar');
-  addObject(world, fagi.x + 100, fagi.y, 'agua');
+  addObject(world, fagi.x + 100, fagi.y, 'water');
 
   step(world, fagi, 0.01);
   assert.equal(fagi.thought.action, 'seekWater');
@@ -97,12 +97,12 @@ test('one bad experience is enough: it does not eat that again merely by walking
   const world = createWorld();
   const fagi = createFagi();
   fagi.hunger = 50;
-  eat(fagi, 'toxico');            // it feels it: more hunger, slower legs
+  eat(fagi, 'toxic');            // it feels it: more hunger, slower legs
   assert.equal(fagi.eaten, 1);
-  assert.ok(fagi.brain.facts.toxico.value < 0);
+  assert.ok(fagi.brain.facts.toxic.value < 0);
 
   fagi.target = { x: fagi.x + 100, y: fagi.y, type: 'nectar' };
-  addPoint(world, fagi.x, fagi.y, 'toxico');
+  addPoint(world, fagi.x, fagi.y, 'toxic');
   tryPickOrEat(fagi, world);
   assert.equal(fagi.eaten, 1);
   assert.equal(world.points.length, 1);
@@ -119,13 +119,13 @@ test('does not get stuck retargeting food it already learned to avoid, with noth
   // tercer encuentro ya no es "probar otra vez", es un rechazo de verdad.
   // Empieza sin hambre para que los dos bocados de +25 no la maten (0→50).
   fagi.hunger = 0;
-  eat(fagi, 'toxico');
-  eat(fagi, 'toxico');
+  eat(fagi, 'toxic');
+  eat(fagi, 'toxic');
   assert.equal(fagi.hunger, 50);   // urgente pero por debajo de NEEDS.critical: tier "proveer", no "urgencia"
-  assert.ok(fagi.brain.rules.list.some((r) => r.id === 'evitar-toxico' && !r.retired));
+  assert.ok(fagi.brain.rules.list.some((r) => r.id === 'avoid-toxic' && !r.retired));
 
   // Lo único que hay para comer es otro tóxico, justo delante.
-  addPoint(world, fagi.x + 30, fagi.y, 'toxico');
+  addPoint(world, fagi.x + 30, fagi.y, 'toxic');
 
   // Primero se acerca (eso es normal); lo que no puede pasar es que se quede
   // clavada ahí para siempre, re-eligiéndolo y rechazándolo cada frame. Se
@@ -147,47 +147,47 @@ test('the pantry never serves food that sat badly with it', () => {
   const world = createWorld();
   const fagi = createFagi();
   fagi.hunger = 50;
-  eat(fagi, 'toxico');
-  addObject(world, fagi.x, fagi.y, 'nido').stock.toxico = 2;
+  eat(fagi, 'toxic');
+  addObject(world, fagi.x, fagi.y, 'nest').stock.toxic = 2;
   fagi.hunger = 90;
 
   useNest(fagi, world);
   assert.equal(fagi.hunger, 90);
-  assert.equal(nestOf(world).stock.toxico, 2);
+  assert.equal(nestOf(world).stock.toxic, 2);
 });
 
 test('stored food lasts NEST.keepFactor times longer, then spoils away', () => {
   const world = createWorld();
-  const nido = addObject(world, 200, 200, 'nido');
-  const vida = POINT_TYPES.nectar.life;
-  storeInNest(nido, 'nectar');
+  const nestObj = addObject(world, 200, 200, 'nest');
+  const life = POINT_TYPES.nectar.life;
+  storeInNest(nestObj, 'nectar');
 
   // A la vida que tendría en el suelo todavía sigue guardado.
-  updateNest(world, vida);
-  assert.equal(nido.stock.nectar, 1);
+  updateNest(world, life);
+  assert.equal(nestObj.stock.nectar, 1);
 
   // Justo antes de cumplir su vida larga (vida × keepFactor) aguanta...
-  updateNest(world, vida * NEST.keepFactor - vida - 1);
-  assert.equal(nido.stock.nectar, 1);
+  updateNest(world, life * NEST.keepFactor - life - 1);
+  assert.equal(nestObj.stock.nectar, 1);
 
   // ...y al cumplirla se echa a perder y desaparece de las reservas.
   updateNest(world, 1);
-  assert.equal(nido.stock.nectar, 0);
-  assert.equal(nestStock(nido), 0);
-  assert.equal(nido.spoiled, 1);
+  assert.equal(nestObj.stock.nectar, 0);
+  assert.equal(nestStock(nestObj), 0);
+  assert.equal(nestObj.spoiled, 1);
 });
 
 test('the pantry serves the oldest ration first', () => {
   const world = createWorld();
   const fagi = createFagi();
-  const nido = addObject(world, fagi.x, fagi.y, 'nido');
-  storeInNest(nido, 'nectar', POINT_TYPES.nectar.life - 1); // a punto de pasarse
-  storeInNest(nido, 'nectar', 0);                           // recién cogida
+  const nestObj = addObject(world, fagi.x, fagi.y, 'nest');
+  storeInNest(nestObj, 'nectar', POINT_TYPES.nectar.life - 1); // a punto de pasarse
+  storeInNest(nestObj, 'nectar', 0);                           // recién cogida
   fagi.hunger = 90;
 
   useNest(fagi, world);
-  assert.equal(nido.stock.nectar, 1);
-  assert.deepEqual(nido.ages.nectar, [0]);
+  assert.equal(nestObj.stock.nectar, 1);
+  assert.deepEqual(nestObj.ages.nectar, [0]);
 });
 
 test('survival regression across deterministic generated worlds', () => {

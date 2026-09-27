@@ -9,33 +9,33 @@ import { LEARN, POINT_TYPES } from '../config.js';
 import { weight } from '../memory.js';
 import { activeRule, retireRule, upsertRule } from './rules.js';
 
-const ALCANCE = { avoid: ['eat', 'store', 'pursue'], prefer: ['eat', 'store'] };
+const SCOPE = { avoid: ['eat', 'store', 'pursue'], prefer: ['eat', 'store'] };
 // Lo que no se come (el hondo, la lluvia, la bajada de presión, el agua, los
 // charcos) solo se persigue o se evita: una regla suya no habla de comer.
-const alcance = (key, verdict) => (POINT_TYPES[key] ? ALCANCE[verdict] : ['pursue']);
-const PREFIJO = { avoid: 'evitar', prefer: 'preferir' };
-const CONTRARIO = { avoid: 'prefer', prefer: 'avoid' };
+const scope = (key, verdict) => (POINT_TYPES[key] ? SCOPE[verdict] : ['pursue']);
+const PREFIJO = { avoid: 'avoid', prefer: 'prefer' };
+const OPPOSITE = { avoid: 'prefer', prefer: 'avoid' };
 
-function nuevaRegla(now, key, verdict, w, because) {
+function newRule(now, key, verdict, w, because) {
   return {
     id: `${PREFIJO[verdict]}-${key}`,
-    on: alcance(key, verdict),
+    on: scope(key, verdict),
     when: { key },
     verdict,
     weight: Number(w.toFixed(3)),
     because,
     learnedAt: now,
     tries: 1,
-    stage: 'corta',
+    stage: 'short',
   };
 }
 
-function marcar(brain, id, kind, key, verdict, because) {
+function markRule(brain, id, kind, key, verdict, because) {
   brain.lastRule = { n: (brain.lastRule?.n ?? 0) + 1, id, kind, key, verdict, because };
 }
 
 function because0(sensations) {
-  return sensations && sensations.length ? sensations : [{ sense: 'contradiccion', v: 0 }];
+  return sensations && sensations.length ? sensations : [{ sense: 'contradiction', v: 0 }];
 }
 
 // El olvido también cambia lo que pesa una creencia: la confianza cae sola
@@ -61,39 +61,39 @@ export function refreshRules(brain) {
 // Se llama desde brain.js, tras CADA learn() (bocado, corrección diferida,
 // muerte): así no hay ningún camino de aprendizaje que se olvide de escribir
 // código. `cambio` es lo que devolvió reinforce(): {before, after, kind}.
-export function synthAfterLearn(brain, key, cambio, sensations, now) {
+export function synthAfterLearn(brain, key, change, sensations, now) {
   const rules = brain.rules;
   const w = weight(brain, key);
-  const stage = cambio.after.stage;
-  const tries = brain.facts[key]?.tries ?? cambio.after.tries ?? 1;
+  const stage = change.after.stage;
+  const tries = brain.facts[key]?.tries ?? change.after.tries ?? 1;
 
   for (const verdict of ['avoid', 'prefer']) {
-    const entra = verdict === 'avoid' ? LEARN.avoidFrom : LEARN.preferFrom;
-    const sale = verdict === 'avoid' ? LEARN.avoidUntil : LEARN.preferUntil;
+    const enters = verdict === 'avoid' ? LEARN.avoidFrom : LEARN.preferFrom;
+    const exits = verdict === 'avoid' ? LEARN.avoidUntil : LEARN.preferUntil;
     const signo = verdict === 'avoid' ? -1 : 1;
-    const existente = activeRule(rules, key, verdict);
+    const existing = activeRule(rules, key, verdict);
 
-    if (signo * w >= entra) {
+    if (signo * w >= enters) {
       // Retira la contraria si la hubiera: no se puede evitar y preferir lo mismo.
-      const opuesta = activeRule(rules, key, CONTRARIO[verdict]);
-      if (opuesta) {
-        retireRule(rules, opuesta, now);
-        marcar(brain, opuesta.id, 'retirada', key, opuesta.verdict, because0(sensations));
+      const opposite = activeRule(rules, key, OPPOSITE[verdict]);
+      if (opposite) {
+        retireRule(rules, opposite, now);
+        markRule(brain, opposite.id, 'retired', key, opposite.verdict, because0(sensations));
       }
 
-      if (!existente) {
-        const r = upsertRule(rules, nuevaRegla(now, key, verdict, w, sensations));
-        marcar(brain, r.id, 'nueva', key, verdict, sensations);
+      if (!existing) {
+        const r = upsertRule(rules, newRule(now, key, verdict, w, sensations));
+        markRule(brain, r.id, 'new', key, verdict, sensations);
       } else {
         const r = upsertRule(rules, {
-          ...existente, weight: Number(w.toFixed(3)), because: sensations,
+          ...existing, weight: Number(w.toFixed(3)), because: sensations,
           revisedAt: now, tries, stage,
         });
-        marcar(brain, r.id, 'revisada', key, verdict, sensations);
+        markRule(brain, r.id, 'revised', key, verdict, sensations);
       }
-    } else if (existente && signo * w <= sale) {
-      retireRule(rules, existente, now);
-      marcar(brain, existente.id, 'retirada', key, verdict, sensations);
+    } else if (existing && signo * w <= exits) {
+      retireRule(rules, existing, now);
+      markRule(brain, existing.id, 'retired', key, verdict, sensations);
     }
   }
 }

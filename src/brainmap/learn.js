@@ -1,0 +1,53 @@
+// 5. Aprende — la última experiencia: qué probó, qué sintió, cómo movió la
+// creencia y qué regla escribió o revisó (o cuánto le falta para escribirla).
+
+import { specOf, LEARN } from '../config.js';
+import { labelOf, t } from '../i18n.js';
+import { GREEN, RED, PURPLE, TEXT, DIM } from './palette.js';
+import { weightOf, changeOf, signo } from './reading.js';
+
+export function paintLearn(brushes, fagi, y) {
+  const { s, text, chain, header } = brushes;
+  const { W, pad, lineH } = brushes.measures();
+  const lastRule = fagi.brain.lastRule;
+  const ep = fagi.lastEpisode;
+
+  header(5, t('brainmap.sec.learn'), y, W, pad);
+  y += 18 * s;
+  if (!ep) {
+    text(t('brainmap.noEpisode'), pad, y, { size: 9.5, color: DIM });
+    return y + lineH;
+  }
+
+  const items = [];
+  const color = specOf(ep.key)?.color ?? DIM;
+  items.push({ text: t(`brainmap.ep.${ep.action}`, { what: labelOf(ep.key) }), color, bold: true });
+  const sens = (ep.sensations ?? []).filter((x) => x.sense !== 'peril' && x.sense !== 'contradiction')
+    .map((x) => t(`sense.${x.sense}`, { v: x.sense === 'hunger' || x.sense === 'thirst' ? signo(x.v, 0) : x.v }));
+  if (ep.pending && ep.action === 'drink' && !changeOf(ep)) {
+    items.push({ text: t('brainmap.pending'), color: DIM });
+  } else {
+    items.push({ text: sens.length ? t('brainmap.felt', { list: sens.join(', ') }) : t('brainmap.feltNothing'), color: TEXT });
+    items.push({ text: t('brainmap.reward', { v: signo(ep.reward ?? 0) }), color: (ep.reward ?? 0) >= 0 ? GREEN : RED, filled: true, bold: true });
+    if (ep.correction) items.push({ text: t('brainmap.correction', { v: signo(ep.correction) }), color: RED, filled: true });
+    const cb = changeOf(ep);
+    if (cb?.before && cb?.after) {
+      items.push({
+        text: `${t('brainmap.belief', { from: signo(cb.before.value), to: signo(cb.after.value) })} · ${t(`brainmap.kind.${cb.kind}`)} · ${t(`stage.${cb.after.stage}`)}`,
+        color: PURPLE,
+      });
+    }
+    if (ep.pending) items.push({ text: t('brainmap.watching'), color: DIM });
+  }
+  // La regla que salió de ahí, o cuánto le falta para escribirla.
+  const r = fagi.brain.facts[ep.key];
+  if (lastRule?.key === ep.key && lastRule.id) {
+    items.push({ text: t('brainmap.ruleWritten', { id: lastRule.id, kind: t(`brainmap.rk.${lastRule.kind}`) }),
+      color: lastRule.verdict === 'avoid' ? RED : GREEN, filled: lastRule.kind !== 'retired', bold: true });
+  } else if (r) {
+    const w = weightOf(r);
+    const missing = w >= 0 ? LEARN.preferFrom : LEARN.avoidFrom;
+    items.push({ text: t('brainmap.noRuleYet', { w: Math.abs(w).toFixed(2), need: missing.toFixed(2) }), color: DIM });
+  }
+  return chain(items, pad, y, W - pad, lineH + 2 * s) + lineH;
+}

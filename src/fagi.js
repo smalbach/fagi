@@ -109,12 +109,12 @@ export function createFagi() {
 // Mientras acarrea va marcando el camino con su feromona.
 function markTrail(fagi, world, dt) {
   if (!fagi.carrying) return;
-  const nido = nestOf(world);
-  if (!nido) return;
+  const nestObj = nestOf(world);
+  if (!nestObj) return;
   fagi.pheroTimer -= dt;
   if (fagi.pheroTimer > 0) return;
   fagi.pheroTimer = PHERO.every;
-  dropPheromone(world, fagi.x, fagi.y, Math.hypot(nido.x - fagi.x, nido.y - fagi.y));
+  dropPheromone(world, fagi.x, fagi.y, Math.hypot(nestObj.x - fagi.x, nestObj.y - fagi.y));
 }
 
 // Ejecuta la intención que salió de decide().
@@ -152,16 +152,16 @@ export function updateFagi(fagi, world, dt) {
 
   const ctx = perceive(fagi, world);
   perceiveSynapses(fagi, ctx, dt);  // percibir algo refuerza sentido→concepto (Hebb)
-  ctx.nuevas = notice(fagi, ctx);   // lo que acaba de entrar: obliga a replantearse el plan
+  ctx.newOnes = notice(fagi, ctx);   // lo que acaba de entrar: obliga a replantearse el plan
   updateCortex(fagi.cortex, fagi, world, ctx, dt);   // pregunta a la API si toca; nunca espera
   decide(fagi, world, ctx, dt);
 
   // Se queda quieta bebiendo o descansando; el resto del tiempo, en marcha.
-  const parada = !fagi.swimming
+  const stop = !fagi.swimming
     && ((fagi.drinking && fagi.thirst > 0) || fagi.thought.action === 'rest');
-  if (!parada) act(fagi, world, dt);
+  if (!stop) act(fagi, world, dt);
 
-  spendEnergy(fagi, world, dt, !parada);
+  spendEnergy(fagi, world, dt, !stop);
   markTrail(fagi, world, dt);
   tryPickOrEat(fagi, world);
   resolveTrail(fagi);            // ¿el rastro que seguía la llevó a comida?

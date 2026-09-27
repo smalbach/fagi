@@ -31,7 +31,7 @@ export function waterUnder(world, fagi) {
 // Radio del hondo de un charco: todo menos la franja del vado.
 export function deepRadius(o) {
   if (OBJECT_TYPES[o.type].shallow) return 0;
-  return Math.max(0, radiusOf(o) - WATER.vado);
+  return Math.max(0, radiusOf(o) - WATER.shallows);
 }
 
 // Qué hay bajo (x, y): { pool, deep } si es agua (deep = no hace pie), o null.
@@ -69,11 +69,11 @@ export function shorePoint(center, r, from, inset) {
 export function deepBlocked(world, ax, ay, bx, by, margin = 0) {
   for (const o of world.objects) {
     if (!isWater(o)) continue;
-    const hondo = deepRadius(o);
-    if (hondo <= 0) continue;
+    const deep = deepRadius(o);
+    if (deep <= 0) continue;
     const d = Math.hypot(o.x - ax, o.y - ay);
-    if (d < hondo) continue;   // el mismo límite que waterZone: dentro es hondo
-    const r = d < hondo + margin ? hondo : hondo + margin;
+    if (d < deep) continue;   // el mismo límite que waterZone: dentro es hondo
+    const r = d < deep + margin ? deep : deep + margin;
     if (segmentEntersCircle(ax, ay, bx, by, o.x, o.y, r)) return true;
   }
   return false;
@@ -144,7 +144,7 @@ export function avoidanceTurn(fagi, world, fearDeep = false) {
   };
   for (const o of world.objects) {
     const r = isBlock(o) ? radiusOf(o) + FAGI.radius
-      : fearDeep && isWater(o) && deepRadius(o) > 0 && !waterZone(world, fagi.x, fagi.y)?.deep ? deepRadius(o) + WATER.vado / 2
+      : fearDeep && isWater(o) && deepRadius(o) > 0 && !waterZone(world, fagi.x, fagi.y)?.deep ? deepRadius(o) + WATER.shallows / 2
       : null;
     if (r === null) continue;
     const dist = Math.hypot(o.x - ahead.x, o.y - ahead.y);

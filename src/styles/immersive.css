@@ -2,7 +2,7 @@
    modo devuelve los paneles sin perder el estado de la simulación. */
 body.immersive { background: #0d100e; }
 body.immersive #hud,
-body.immersive #consola { display: none; }
+body.immersive #console { display: none; }
 body.immersive #stage {
   flex-basis: 100vw;
   min-width: 0;

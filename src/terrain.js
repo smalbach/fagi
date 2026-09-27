@@ -21,6 +21,6 @@
 //   · orilla.js    la mancha de humedad alrededor de cada charco
 //   · paleta.js    la luz y los colores que comparten todas
 
-export { drawTerrain } from './terrain/suelo.js';
-export { drawGranoZoom, drawDetalleCerca } from './terrain/cerca.js';
-export { drawShore } from './terrain/orilla.js';
+export { drawTerrain } from './terrain/ground.js';
+export { drawZoomGrain, drawNearDetail } from './terrain/near.js';
+export { drawShore } from './terrain/shore.js';

@@ -6,11 +6,11 @@
 import { t, onLangChange } from '../i18n.js';
 import { exportText, importText, load, restore, wipe } from './store.js';
 
-const CLAVE_BACKEND = 'fagi.backend';
-const CLAVE_URL = 'fagi.backend.url';
+const BACKEND_KEY = 'fagi.backend';
+const URL_KEY = 'fagi.backend.url';
 
-function leerBackendGuardado() {
-  try { return { kind: localStorage.getItem(CLAVE_BACKEND) ?? 'none', url: localStorage.getItem(CLAVE_URL) ?? '' }; }
+function readSavedBackend() {
+  try { return { kind: localStorage.getItem(BACKEND_KEY) ?? 'none', url: localStorage.getItem(URL_KEY) ?? '' }; }
   catch { return { kind: 'none', url: '' }; }
 }
 
@@ -33,37 +33,37 @@ export function createLearnedPanel(fagi, { onBackendChange } = {}) {
   // no hay nada que pintar, pero tampoco hace falta romper.
   if (!el.code) return { update() {} };
 
-  let vistoSeq = -1;
-  let vistaVersion = -1;
-  let visto = fagi;
+  let seenSeq = -1;
+  let versionView = -1;
+  let seen = fagi;
 
-  function aviso(key, tipo = 'ok') {
+  function warning(key, type = 'ok') {
     el.status.textContent = t(key);
-    el.status.classList.toggle('error', tipo === 'error');
+    el.status.classList.toggle('error', type === 'error');
   }
 
-  function pintarRecuperar() {
+  function paintRecover() {
     const snap = load();
     el.recover.disabled = !snap;
     el.recover.title = snap ? t('code.recoverFrom', { age: { dur: snap.age } }) : t('code.recoverNone');
   }
 
-  function pintarCodigo(de = fagi) {
-    const texto = exportText(de);
-    el.code.textContent = texto;
+  function paintCode(de = fagi) {
+    const text = exportText(de);
+    el.code.textContent = text;
   }
 
   el.recover.addEventListener('click', () => {
     const snap = load();
     if (!snap) return;
     restore(fagi, snap);
-    pintarCodigo();
-    aviso('code.recovered');
+    paintCode();
+    warning('code.recovered');
   });
 
   el.export.addEventListener('click', () => {
-    const texto = exportText(fagi);
-    const blob = new Blob([texto], { type: 'text/javascript' });
+    const text = exportText(fagi);
+    const blob = new Blob([text], { type: 'text/javascript' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -78,45 +78,45 @@ export function createLearnedPanel(fagi, { onBackendChange } = {}) {
     el.importFile.value = '';
     if (!file) return;
     try {
-      const texto = await file.text();
-      importText(fagi, texto);
-      pintarCodigo();
-      pintarRecuperar();
-      aviso('code.imported');
+      const text = await file.text();
+      importText(fagi, text);
+      paintCode();
+      paintRecover();
+      warning('code.imported');
     } catch (e) {
-      aviso('code.importError', 'error');
+      warning('code.importError', 'error');
     }
   });
 
   el.forget.addEventListener('click', () => {
     wipe(fagi);
-    pintarCodigo();
-    pintarRecuperar();
+    paintCode();
+    paintRecover();
   });
 
   // Quién decide: instinto solo, el emulador local, o una API de verdad.
   // Se guarda en el navegador y se avisa a quien montó el panel para que
   // arme (o desarme) el córtex de verdad.
   if (el.backend) {
-    const guardado = leerBackendGuardado();
-    el.backend.value = guardado.kind;
-    el.backendUrl.value = guardado.url;
-    el.backendUrl.hidden = guardado.kind !== 'http';
+    const saved = readSavedBackend();
+    el.backend.value = saved.kind;
+    el.backendUrl.value = saved.url;
+    el.backendUrl.hidden = saved.kind !== 'http';
 
-    const avisarCambio = () => {
+    const notifyChange = () => {
       const kind = el.backend.value;
       const url = el.backendUrl.value.trim();
       el.backendUrl.hidden = kind !== 'http';
-      try { localStorage.setItem(CLAVE_BACKEND, kind); localStorage.setItem(CLAVE_URL, url); } catch { /* sin localStorage, se queda en memoria */ }
+      try { localStorage.setItem(BACKEND_KEY, kind); localStorage.setItem(URL_KEY, url); } catch { /* sin localStorage, se queda en memoria */ }
       onBackendChange?.(kind, url);
     };
-    el.backend.addEventListener('change', avisarCambio);
-    el.backendUrl.addEventListener('change', avisarCambio);
+    el.backend.addEventListener('change', notifyChange);
+    el.backendUrl.addEventListener('change', notifyChange);
   }
 
-  onLangChange(() => { pintarRecuperar(); });
-  pintarRecuperar();
-  pintarCodigo();
+  onLangChange(() => { paintRecover(); });
+  paintRecover();
+  paintCode();
 
   return {
     // Repintar el código cada frame sería tirar CPU en vano: solo hace falta
@@ -127,12 +127,12 @@ export function createLearnedPanel(fagi, { onBackendChange } = {}) {
     // reproduce). Cambiar de una a otra también obliga a repintar.
     update(de = fagi) {
       const version = de.brain.version ?? 0;
-      if (de.brain.rules.seq === vistoSeq && version === vistaVersion && de === visto) return;
-      vistoSeq = de.brain.rules.seq;
-      vistaVersion = version;
-      visto = de;
-      pintarCodigo(de);
-      pintarRecuperar();
+      if (de.brain.rules.seq === seenSeq && version === versionView && de === seen) return;
+      seenSeq = de.brain.rules.seq;
+      versionView = version;
+      seen = de;
+      paintCode(de);
+      paintRecover();
     },
   };
 }

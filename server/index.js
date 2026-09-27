@@ -9,16 +9,16 @@ import path from 'node:path';
 import { createPool, migrate } from './db.js';
 import { buildApp } from './app.js';
 
-const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const port = Number(process.env.PORT ?? 8787);
 
 const pool = createPool();
-const aplicadas = await migrate(pool);
-if (aplicadas.length) console.log(`Migraciones aplicadas: ${aplicadas.join(', ')}`);
+const applied = await migrate(pool);
+if (applied.length) console.log(`Migraciones aplicadas: ${applied.join(', ')}`);
 
-const app = await buildApp({ pool, staticDir: path.join(raiz, 'dist'), logger: true });
+const app = await buildApp({ pool, staticDir: path.join(root, 'dist'), logger: true });
 await app.listen({ host: '0.0.0.0', port });
 
-for (const senal of ['SIGINT', 'SIGTERM']) {
-  process.once(senal, async () => { await app.close(); await pool.end(); process.exit(0); });
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.once(signal, async () => { await app.close(); await pool.end(); process.exit(0); });
 }

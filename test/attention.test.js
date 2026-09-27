@@ -20,13 +20,13 @@ function tranquila() {
   return { world, fagi };
 }
 
-function correr(world, fagi, segundos, dt = 0.05) {
-  for (let t = 0; t < segundos; t += dt) step(world, fagi, dt);
+function runOnce(world, fagi, seconds, dt = 0.05) {
+  for (let t = 0; t < seconds; t += dt) step(world, fagi, dt);
 }
 
 // Pone algo a un lado de su rumbo, dentro del cono de visión.
-function alCostado(fagi, grados, dist) {
-  const a = fagi.angle + (grados * Math.PI) / 180;
+function alongside(fagi, degrees, dist) {
+  const a = fagi.angle + (degrees * Math.PI) / 180;
   return { x: fagi.x + Math.cos(a) * dist, y: fagi.y + Math.sin(a) * dist };
 }
 
@@ -42,24 +42,24 @@ test('exploring goes leg by leg to a point it can see', () => {
   assert.ok(rel <= fovOf(fagi) / 2 + 0.2, 'the leg lies inside its field of view');
 
   // Al llegar al final del tramo, traza otro con lo que ve entonces.
-  const primero = fagi.exploreLegs;
-  correr(world, fagi, 8);
-  assert.ok(fagi.exploreLegs > primero + 1, 'keeps deciding new legs as it walks');
+  const firstOne = fagi.exploreLegs;
+  runOnce(world, fagi, 8);
+  assert.ok(fagi.exploreLegs > firstOne + 1, 'keeps deciding new legs as it walks');
 });
 
 test('something new at its side mid-leg makes it reconsider and go for it', () => {
   const { world, fagi } = tranquila();
   fagi.hunger = 40;                  // con ganas, sin llegar a apurarse
-  correr(world, fagi, 0.5);
+  runOnce(world, fagi, 0.5);
   assert.equal(fagi.thought.action, 'explore');
 
-  const p = alCostado(fagi, -40, 120);
+  const p = alongside(fagi, -40, 120);
   addPoint(world, p.x, p.y, 'nectar');
-  const fruta = world.points[world.points.length - 1];
+  const fruit = world.points[world.points.length - 1];
   step(world, fagi, 0.05);
 
   assert.equal(fagi.thought.action, 'seekFood');
-  assert.equal(fagi.target, fruta);
+  assert.equal(fagi.target, fruit);
   assert.equal(fagi.rethink.what, 'nectar');
   assert.equal(fagi.rethink.side, 'left');
   assert.equal(fagi.rethink.changed, true);
@@ -69,12 +69,12 @@ test('something new at its side mid-leg makes it reconsider and go for it', () =
 
 test('something new that is no use now is weighed and the leg goes on', () => {
   const { world, fagi } = tranquila();
-  addObject(world, fagi.x - 300, fagi.y, 'nido');
+  addObject(world, fagi.x - 300, fagi.y, 'nest');
   fagi.pantry = { nectar: NEST.full };   // cree tener la despensa llena
-  correr(world, fagi, 0.5);
+  runOnce(world, fagi, 0.5);
   assert.equal(fagi.thought.action, 'explore');
 
-  const p = alCostado(fagi, 35, 110);
+  const p = alongside(fagi, 35, 110);
   addPoint(world, p.x, p.y, 'nectar');
   step(world, fagi, 0.05);
 
@@ -92,13 +92,13 @@ test('something new that is no use now is weighed and the leg goes on', () => {
 
 test('carrying home, water in sight with some thirst is worth a detour', () => {
   const { world, fagi } = tranquila();
-  addObject(world, fagi.x - 350, fagi.y, 'nido');
+  addObject(world, fagi.x - 350, fagi.y, 'nest');
   fagi.carrying = { type: 'nectar', age: 0 };
   fagi.thirst = 40;
   step(world, fagi, 0.05);
   assert.equal(fagi.thought.action, 'carry');
 
-  addObject(world, fagi.x + 30, fagi.y + 140, 'agua');   // al costado
+  addObject(world, fagi.x + 30, fagi.y + 140, 'water');   // al costado
   fagi.angle = Math.PI / 2;                              // gira y lo ve
   step(world, fagi, 0.05);
   assert.equal(fagi.thought.action, 'seekWater');
@@ -107,37 +107,37 @@ test('carrying home, water in sight with some thirst is worth a detour', () => {
 });
 
 test('with a directive in force, something new makes it ask the API again', () => {
-  const antes = BACKEND.enabled;
+  const before = BACKEND.enabled;
   BACKEND.enabled = 1;
   try {
     const { world, fagi } = tranquila();
-    let llamadas = 0;
-    const cortex = createCortex({ name: 'stub', decide: () => { llamadas++; return new Promise(() => {}); } });
+    let callCount = 0;
+    const cortex = createCortex({ name: 'stub', decide: () => { callCount++; return new Promise(() => {}); } });
     cortex.inflight = false;
     fagi.directive = { action: 'explore', until: 999, source: 'stub' };
     fagi.age = 10;
 
     const ctx = perceive(fagi, world);
-    ctx.nuevas = notice(fagi, ctx);
+    ctx.newOnes = notice(fagi, ctx);
     updateCortex(cortex, fagi, world, ctx, 0.05);
-    assert.equal(llamadas, 0, 'nothing new, directive in force: no need to ask');
+    assert.equal(callCount, 0, 'nothing new, directive in force: no need to ask');
 
-    const p = alCostado(fagi, 20, 100);
+    const p = alongside(fagi, 20, 100);
     addPoint(world, p.x, p.y, 'nectar');
     cortex.seenKeys.add('nectar');     // no es un tipo nuevo: es una fruta nueva
     fagi.age = 13;
     const ctx2 = perceive(fagi, world);
-    ctx2.nuevas = notice(fagi, ctx2);
-    assert.equal(ctx2.nuevas.length, 1);
+    ctx2.newOnes = notice(fagi, ctx2);
+    assert.equal(ctx2.newOnes.length, 1);
     updateCortex(cortex, fagi, world, ctx2, 0.05);
-    assert.equal(llamadas, 1);
+    assert.equal(callCount, 1);
   } finally {
-    BACKEND.enabled = antes;
+    BACKEND.enabled = before;
   }
 });
 
 // Marca todo el mapa mental como conocido salvo alrededor de (x, y).
-function soloDesconocido(fagi, x, y) {
+function onlyUnknown(fagi, x, y) {
   fagi.explored.fill(EXPLORE.visitMax);
   const cols = Math.ceil(WORLD.width / EXPLORE.cell);
   fagi.explored[Math.floor(y / EXPLORE.cell) * cols + Math.floor(x / EXPLORE.cell)] = 0;
@@ -148,20 +148,20 @@ test('back to exploring, the unfinished leg competes with new ones on the same t
 
   // El tramo viejo acaba fuera de su vista, en lo único que no conoce: lo
   // retoma aunque tenga que girar, porque lo que ve ya lo conoce.
-  const viejo = alCostado(fagi, 90, 200);
-  soloDesconocido(fagi, viejo.x, viejo.y);
-  const a = waypointInView(fagi, fagi.explored, null, world, { ...viejo, inView: true });
+  const old = alongside(fagi, 90, 200);
+  onlyUnknown(fagi, old.x, old.y);
+  const a = waypointInView(fagi, fagi.explored, null, world, { ...old, inView: true });
   assert.equal(a.resumed, true);
   assert.ok(a.score > a.rival);
 
   // El tramo viejo queda a la espalda, en terreno ya conocido, y lo que tiene
   // delante no lo conoce: traza uno nuevo.
-  const atras = alCostado(fagi, 180, 150);
+  const behind = alongside(fagi, 180, 150);
   fagi.explored.fill(EXPLORE.visitMax);
   const cols = Math.ceil(WORLD.width / EXPLORE.cell);
-  const delante = alCostado(fagi, 0, 180);
-  fagi.explored[Math.floor(delante.y / EXPLORE.cell) * cols + Math.floor(delante.x / EXPLORE.cell)] = 0;
-  const b = waypointInView(fagi, fagi.explored, null, world, { ...atras, inView: true });
+  const ahead = alongside(fagi, 0, 180);
+  fagi.explored[Math.floor(ahead.y / EXPLORE.cell) * cols + Math.floor(ahead.x / EXPLORE.cell)] = 0;
+  const b = waypointInView(fagi, fagi.explored, null, world, { ...behind, inView: true });
   assert.equal(b.resumed, false);
   assert.ok(b.score > b.rival);
 });
@@ -169,20 +169,20 @@ test('back to exploring, the unfinished leg competes with new ones on the same t
 test('after a detour it decides whether to resume the leg, and says so', () => {
   const { world, fagi } = tranquila();
   fagi.hunger = 40;
-  correr(world, fagi, 0.5);
+  runOnce(world, fagi, 0.5);
   assert.equal(fagi.thought.action, 'explore');
-  const tramo = { ...fagi.exploreTarget };
+  const leg = { ...fagi.exploreTarget };
 
-  const p = alCostado(fagi, -30, 60);
+  const p = alongside(fagi, -30, 60);
   addPoint(world, p.x, p.y, 'nectar');
-  let pasos = 0;
-  while (world.points.length && pasos++ < 200) step(world, fagi, 0.05);   // va, y se la come o la carga
+  let steps = 0;
+  while (world.points.length && steps++ < 200) step(world, fagi, 0.05);   // va, y se la come o la carga
   fagi.carrying = null;
   fagi.hunger = 0;
-  correr(world, fagi, 0.2);
+  runOnce(world, fagi, 0.2);
 
   assert.equal(fagi.thought.action, 'explore');
   assert.ok(fagi.legChoice, 'weighed resuming against a new leg');
-  const retomado = fagi.exploreTarget.x === tramo.x && fagi.exploreTarget.y === tramo.y;
-  assert.equal(fagi.legChoice.resumed, retomado);
+  const resumed = fagi.exploreTarget.x === leg.x && fagi.exploreTarget.y === leg.y;
+  assert.equal(fagi.legChoice.resumed, resumed);
 });

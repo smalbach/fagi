@@ -27,18 +27,18 @@ test('a hungry Fagi feels nectar as clearly good, from the hunger it removes', (
 test('toxic fruit feels bad from what it does to the body: more hunger and slower legs', () => {
   const fagi = createFagi();
   fagi.hunger = 50;
-  eat(fagi, 'toxico');
+  eat(fagi, 'toxic');
   assert.ok(fagi.lastMeal.reward <= -0.7, `reward ${fagi.lastMeal.reward}`);
   const senses = fagi.lastMeal.sensations.map((s) => s.sense);
   assert.ok(senses.includes('hunger'));
   assert.ok(senses.includes('speed'));
-  assert.ok(fagi.brain.facts.toxico.value < 0);
+  assert.ok(fagi.brain.facts.toxic.value < 0);
 });
 
 test('a speed buff feels good even though it barely feeds', () => {
   const fagi = createFagi();
   fagi.hunger = 50;
-  eat(fagi, 'chispa');
+  eat(fagi, 'spark');
   assert.ok(fagi.lastMeal.reward > 0.3, `reward ${fagi.lastMeal.reward}`);
   assert.ok(fagi.lastMeal.sensations.some((s) => s.sense === 'speed' && s.v > 1));
 });
@@ -46,10 +46,10 @@ test('a speed buff feels good even though it barely feeds', () => {
 test('refreshing an effect that is already active is not felt as a change', () => {
   const fagi = createFagi();
   fagi.hunger = 50;
-  eat(fagi, 'chispa');
+  eat(fagi, 'spark');
   const first = fagi.lastMeal.reward;
   fagi.hunger = 50;
-  eat(fagi, 'chispa');
+  eat(fagi, 'spark');
   const second = fagi.lastMeal.reward;
   assert.ok(second < first);
   assert.equal(fagi.lastMeal.sensations.some((s) => s.sense === 'speed'), false);

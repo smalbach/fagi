@@ -17,25 +17,25 @@ export function createCamera(world) {
     x: world.width / 2,
     y: world.height / 2,
     zoom: 1,
-    seguir: false,   // encuadre pegado a Fagi
+    follow: false,   // encuadre pegado a Fagi
   };
 }
 
-function limitar(v, min, max) {
+function limit(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
 // Deja el centro donde la vista siga cayendo entera dentro del mundo.
-export function encajar(cam, canvas, world) {
-  cam.zoom = limitar(cam.zoom, CAMERA.min, CAMERA.max);
+export function fit(cam, canvas, world) {
+  cam.zoom = limit(cam.zoom, CAMERA.min, CAMERA.max);
   const vw = canvas.width / cam.zoom;
   const vh = canvas.height / cam.zoom;
-  cam.x = vw >= world.width ? world.width / 2 : limitar(cam.x, vw / 2, world.width - vw / 2);
-  cam.y = vh >= world.height ? world.height / 2 : limitar(cam.y, vh / 2, world.height - vh / 2);
+  cam.x = vw >= world.width ? world.width / 2 : limit(cam.x, vw / 2, world.width - vw / 2);
+  cam.y = vh >= world.height ? world.height / 2 : limit(cam.y, vh / 2, world.height - vh / 2);
   return cam;
 }
 
-export function aplicar(ctx, cam, canvas) {
+export function applySets(ctx, cam, canvas) {
   ctx.setTransform(
     cam.zoom, 0, 0, cam.zoom,
     canvas.width / 2 - cam.x * cam.zoom,
@@ -44,12 +44,12 @@ export function aplicar(ctx, cam, canvas) {
 }
 
 // Vuelve a píxeles de pantalla: para el HUD, que no debe crecer con el zoom.
-export function sinCamara(ctx) {
+export function noCamera(ctx) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
 // Píxel del lienzo → punto del mundo.
-export function aPunto(cam, canvas, sx, sy) {
+export function ripe(cam, canvas, sx, sy) {
   return {
     x: (sx - canvas.width / 2) / cam.zoom + cam.x,
     y: (sy - canvas.height / 2) / cam.zoom + cam.y,
@@ -58,31 +58,31 @@ export function aPunto(cam, canvas, sx, sy) {
 
 // Zoom con el punto de debajo del cursor clavado: la rueda acerca hacia donde se
 // está mirando, no hacia el centro de la pantalla.
-export function acercar(cam, canvas, world, sx, sy, factor) {
-  const antes = aPunto(cam, canvas, sx, sy);
-  cam.zoom = limitar(cam.zoom * factor, CAMERA.min, CAMERA.max);
-  cam.x = antes.x - (sx - canvas.width / 2) / cam.zoom;
-  cam.y = antes.y - (sy - canvas.height / 2) / cam.zoom;
-  encajar(cam, canvas, world);
+export function approach(cam, canvas, world, sx, sy, factor) {
+  const before = ripe(cam, canvas, sx, sy);
+  cam.zoom = limit(cam.zoom * factor, CAMERA.min, CAMERA.max);
+  cam.x = before.x - (sx - canvas.width / 2) / cam.zoom;
+  cam.y = before.y - (sy - canvas.height / 2) / cam.zoom;
+  fit(cam, canvas, world);
 }
 
 // Arrastrar el mapa: el desplazamiento viene en píxeles de pantalla.
-export function mover(cam, canvas, world, dx, dy) {
+export function move(cam, canvas, world, dx, dy) {
   cam.x -= dx / cam.zoom;
   cam.y -= dy / cam.zoom;
-  cam.seguir = false;   // tomar el mando suelta a Fagi
-  encajar(cam, canvas, world);
+  cam.follow = false;   // tomar el mando suelta a Fagi
+  fit(cam, canvas, world);
 }
 
-export function centrarEn(cam, canvas, world, p) {
+export function centerOn(cam, canvas, world, p) {
   cam.x = p.x;
   cam.y = p.y;
-  encajar(cam, canvas, world);
+  fit(cam, canvas, world);
 }
 
 // Cuántos píxeles de sprite hay que pintar por píxel de mundo. Se redondea a
 // entero porque cada escalón obliga a repintar los sprites: con medio escalón
 // por frame el zoom suave los repintaría sin parar.
-export function detalleDe(cam) {
-  return Math.min(CAMERA.detalleMax, Math.max(1, Math.ceil(cam.zoom - 0.02)));
+export function detailOf(cam) {
+  return Math.min(CAMERA.maxDetail, Math.max(1, Math.ceil(cam.zoom - 0.02)));
 }

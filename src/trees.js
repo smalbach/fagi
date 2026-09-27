@@ -10,57 +10,57 @@ export function treesOf(world) {
 }
 
 // Cuánta fruta suya sigue en el suelo, para no llenar el mapa.
-function fruitNear(world, arbol) {
-  const alcance = radiusOf(arbol) * TREE.dropRadius + 20;
+function fruitNear(world, tree) {
+  const scope = radiusOf(tree) * TREE.dropRadius + 20;
   let n = 0;
   for (const p of world.points) {
     if (p.type !== TREE.fruit) continue;
-    if (Math.hypot(p.x - arbol.x, p.y - arbol.y) <= alcance) n++;
+    if (Math.hypot(p.x - tree.x, p.y - tree.y) <= scope) n++;
   }
   return n;
 }
 
 export function updateTrees(world, dt) {
-  for (const arbol of treesOf(world)) {
+  for (const tree of treesOf(world)) {
     // Los árboles también tienen su tiempo: si TREE.life > 0, se secan y caen.
-    arbol.age = (arbol.age ?? 0) + dt;
-    if (TREE.life > 0 && arbol.age >= TREE.life) {
-      removeObject(world, arbol, 'died');
+    tree.age = (tree.age ?? 0) + dt;
+    if (TREE.life > 0 && tree.age >= TREE.life) {
+      removeObject(world, tree, 'died');
       continue;
     }
 
-    arbol.timer -= dt;
-    if (arbol.timer > 0) continue;
-    arbol.timer = TREE.interval;
+    tree.timer -= dt;
+    if (tree.timer > 0) continue;
+    tree.timer = TREE.interval;
 
-    if (fruitNear(world, arbol) >= TREE.maxNear) continue;
+    if (fruitNear(world, tree) >= TREE.maxNear) continue;
 
     // Cae en un punto al azar de la copa, nunca en el centro del tronco.
-    const r = radiusOf(arbol);
+    const r = radiusOf(tree);
     const ang = Math.random() * Math.PI * 2;
     const dist = r * 0.55 + Math.random() * (r * TREE.dropRadius - r * 0.55);
-    const x = Math.min(world.width - 10, Math.max(10, arbol.x + Math.cos(ang) * dist));
-    const y = Math.min(world.height - 10, Math.max(10, arbol.y + Math.sin(ang) * dist));
+    const x = Math.min(world.width - 10, Math.max(10, tree.x + Math.cos(ang) * dist));
+    const y = Math.min(world.height - 10, Math.max(10, tree.y + Math.sin(ang) * dist));
     // La que cae al agua se la lleva el agua: nadie la puede recoger.
     if (waterZone(world, x, y)) continue;
-    addPoint(world, x, y, TREE.fruit, arbol.id);
-    arbol.lastDrop = (arbol.lastDrop ?? 0) + 1;
+    addPoint(world, x, y, TREE.fruit, tree.id);
+    tree.lastDrop = (tree.lastDrop ?? 0) + 1;
   }
 }
 
 // Cambiar el intervalo desde el panel afecta también a los que ya están puestos.
-export function setFruitInterval(world, segundos) {
-  TREE.interval = segundos;
-  for (const arbol of treesOf(world)) arbol.timer = Math.min(arbol.timer, segundos);
+export function setFruitInterval(world, seconds) {
+  TREE.interval = seconds;
+  for (const tree of treesOf(world)) tree.timer = Math.min(tree.timer, seconds);
 }
 
 // Cuánto le queda de vida a un árbol, de 0 (recién plantado) a 1 (seco).
-export function treeAge(arbol) {
+export function treeAge(tree) {
   if (TREE.life <= 0) return 0;
-  return Math.min(1, (arbol.age ?? 0) / TREE.life);
+  return Math.min(1, (tree.age ?? 0) / TREE.life);
 }
 
 // Quitar de golpe todos los árboles del mapa.
 export function removeAllTrees(world) {
-  for (const arbol of treesOf(world)) removeObject(world, arbol, 'user');
+  for (const tree of treesOf(world)) removeObject(world, tree, 'user');
 }

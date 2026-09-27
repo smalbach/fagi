@@ -4,7 +4,7 @@
    con los @media de pantalla angosta, va siempre al final). */
 @import './base.css';
 @import './hud.css';
-@import './consola.css';
+@import './console.css';
 @import './settings.css';
 @import './immersive.css';
 @import './screens.css';

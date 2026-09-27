@@ -21,8 +21,8 @@ export function updateWind(wind, dt) {
   }
 
   const diff = normalizeAngle(wind.target - wind.angle);
-  const paso = Math.min(Math.abs(diff), WIND.turnRate * dt);
-  wind.angle = normalizeAngle(wind.angle + Math.sign(diff) * paso);
+  const step = Math.min(Math.abs(diff), WIND.turnRate * dt);
+  wind.angle = normalizeAngle(wind.angle + Math.sign(diff) * step);
 }
 
 export function windDir(wind) {

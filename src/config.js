@@ -17,30 +17,30 @@ export const WORLD = {
 // escala* = tamaño de las manchas de cada campo de ruido, en px. Grande = lomas
 // anchas y pocas; pequeño = terreno picado.
 export const TERRAIN = {
-  escalaAltura: 300,   // lomas del relieve
-  escalaHumedad: 230,  // dónde agarra el verde
-  escalaGrava: 150,    // dónde asoma el pedregal
-  celdaLuz: 4,         // px por celda del cálculo de color y luz
-  relieve: 4.4,        // cuánto marca la pendiente. Alto = terreno abrupto
-  hondo: 0.22,         // cuánto se apaga lo hondo por recibir menos cielo
-  musgoDesde: 0.5,     // humedad a partir de la cual sale verde
-  gravaDesde: 0.7,     // piedra a partir de la cual sale pedregal
-  grano: 0.08,         // opacidad del terrón fino
-  manchas: 0.05,       // opacidad de las manchas grandes de tierra
-  foto: 0.62,          // presencia de la base fotográfica
-  escalaFoto: 0.38,    // escala del material: menor = hojas y grava más pequeñas
-  claros: 42,          // manchas suaves de luz filtrada por el dosel
-  motas: 5200,         // granos de arena suelta
-  guijarros: 1400,     // intentos de piedrecita (salen los del pedregal)
-  matas: 3200,         // intentos de mata de hierba (salen los húmedos)
-  hojarasca: 700,      // intentos de ramita seca
-  hojas: 900,          // intentos de hoja caída (salen donde hay verde)
-  musgo: 700,          // intentos de mata de musgo (solo en lo húmedo y hondo)
-  raices: 90,          // intentos de raíz asomada (salen donde hay verde)
-  grietas: 260,        // intentos de grieta (salen los secos y altos)
-  orilla: 1.45,        // hasta dónde llega la tierra mojada, en radios del charco
-  vineta: 0.08,        // cuánto se apagan los bordes del mundo
-  velo: 0.015,         // velo del color de fondo por encima de todo
+  heightScale: 300,   // lomas del relieve
+  moistureScale: 230,  // dónde agarra el verde
+  gravelScale: 150,    // dónde asoma el pedregal
+  lightCell: 4,         // px por celda del cálculo de color y luz
+  relief: 4.4,        // cuánto marca la pendiente. Alto = terreno abrupto
+  deep: 0.22,         // cuánto se apaga lo hondo por recibir menos cielo
+  mossFrom: 0.5,     // humedad a partir de la cual sale verde
+  gravelFrom: 0.7,     // piedra a partir de la cual sale pedregal
+  grain: 0.08,         // opacidad del terrón fino
+  patches: 0.05,       // opacidad de las manchas grandes de tierra
+  photo: 0.62,          // presencia de la base fotográfica
+  photoScale: 0.38,    // escala del material: menor = hojas y grava más pequeñas
+  clearings: 42,          // manchas suaves de luz filtrada por el dosel
+  specks: 5200,         // granos de arena suelta
+  pebbles: 1400,     // intentos de piedrecita (salen los del pedregal)
+  bushes: 3200,         // intentos de mata de hierba (salen los húmedos)
+  litter: 700,      // intentos de ramita seca
+  leaves: 900,          // intentos de hoja caída (salen donde hay verde)
+  moss: 700,          // intentos de mata de musgo (solo en lo húmedo y hondo)
+  roots: 90,          // intentos de raíz asomada (salen donde hay verde)
+  cracks: 260,        // intentos de grieta (salen los secos y altos)
+  shore: 1.45,        // hasta dónde llega la tierra mojada, en radios del charco
+  vignette: 0.08,        // cuánto se apagan los bordes del mundo
+  veil: 0.015,         // velo del color de fondo por encima de todo
 };
 
 // La cámara. El mapa se ve entero con zoom 1; a partir de ahí se acerca.
@@ -51,24 +51,24 @@ export const TERRAIN = {
 export const CAMERA = {
   min: 1,
   max: 4,
-  paso: 1.18,        // cuánto acerca cada muesca de la rueda
-  detalleMax: 3,
-  teclas: 520,       // px por segundo al mover con las flechas
+  step: 1.18,        // cuánto acerca cada muesca de la rueda
+  maxDetail: 3,
+  keysDown: 520,       // px por segundo al mover con las flechas
 };
 
 // El lago. El círculo que decide dónde se bebe es el radio del objeto; estos
 // números son solo aspecto, y se miden en radios del lago.
 export const LAKE = {
-  orillaAncho: 0.34,  // barro y guijarros por fuera del agua
-  hondoDesde: 0.62,   // dónde empieza el hondo, más oscuro
-  bordeOnda: 0.055,   // cuánto serpentea la orilla
-  destellos: 9,       // reflejos que tiritan en la superficie
-  ondas: 3,           // círculos de onda que salen y se apagan
-  juncos: 16,         // matas de junco en la orilla
-  piedras: 18,        // piedras del fondo, junto a la orilla
-  motas: 22,          // polen y hoja suelta flotando, que el viento arrastra
-  rizos: 40,          // crestas de rizo que el viento empuja por la superficie
-  causticas: 34,      // red de luz en el fondo del vado
+  shoreWidth: 0.34,  // barro y guijarros por fuera del agua
+  deepFrom: 0.62,   // dónde empieza el hondo, más oscuro
+  waveEdge: 0.055,   // cuánto serpentea la orilla
+  sparkles: 9,       // reflejos que tiritan en la superficie
+  ripples: 3,           // círculos de onda que salen y se apagan
+  reeds: 16,         // matas de junco en la orilla
+  stones: 18,        // piedras del fondo, junto a la orilla
+  specks: 22,          // polen y hoja suelta flotando, que el viento arrastra
+  ripplets: 40,          // crestas de rizo que el viento empuja por la superficie
+  caustics: 34,      // red de luz en el fondo del vado
 };
 
 export const FAGI = {
@@ -124,7 +124,7 @@ export const THIRST = {
 // cuerpo) captan la humedad y el tacto del agua, y avanza tanteando
 // (probeSpeed) mientras las tenga sobre el hondo.
 export const WATER = {
-  vado: 10,
+  shallows: 10,
   wadeSpeed: 0.6,
   swimSpeed: 0.2,
   swimEffort: 3,
@@ -294,7 +294,7 @@ export const POINT_TYPES = {
     hunger: -35,
     effects: [],
   },
-  chispa: {
+  spark: {
     color: '#4cc9f0',
     radius: 5,
     aroma: 85,
@@ -302,7 +302,7 @@ export const POINT_TYPES = {
     hunger: -5,
     effects: [{ stat: 'speed', mult: 1.8, sec: 8 }],
   },
-  ojo: {
+  eye: {
     color: '#b57bff',
     radius: 5,
     aroma: 85,
@@ -313,7 +313,7 @@ export const POINT_TYPES = {
       { stat: 'fovDeg', mult: 1.4, sec: 10 },
     ],
   },
-  resina: {
+  resin: {
     color: '#e8a33d',
     radius: 6,
     aroma: 145,
@@ -321,7 +321,7 @@ export const POINT_TYPES = {
     hunger: -10,
     effects: [{ stat: 'hungerRate', mult: 0.5, sec: 14 }],
   },
-  toxico: {
+  toxic: {
     color: '#d95b7e',
     radius: 6,
     aroma: 130,       // el veneno también huele, y huele parecido
@@ -339,12 +339,12 @@ export const TYPE_KEYS = Object.keys(POINT_TYPES);
 //           Un charco (shallow) no tiene hondo: todo él es vado.
 //   block : roca. Corta el paso y también la línea de visión.
 export const OBJECT_TYPES = {
-  agua: { color: '#3d8fd9', radius: 44, kind: 'water', aroma: 150 },
+  water: { color: '#3d8fd9', radius: 44, kind: 'water', aroma: 150 },
   // Charco de lluvia (rain.js): agua poco honda que se seca. Apenas huele.
-  charco: { color: '#6f9fbf', radius: 16, kind: 'water', aroma: 0, shallow: true },
-  nido: { color: '#c9a227', radius: 42, kind: 'nest', aroma: 60 },
-  arbol: { color: '#4f9552', radius: 44, kind: 'spawner', aroma: 70 },
-  roca: { color: '#565c6b', radius: 28, kind: 'block', aroma: 0 },
+  puddle: { color: '#6f9fbf', radius: 16, kind: 'water', aroma: 0, shallow: true },
+  nest: { color: '#c9a227', radius: 42, kind: 'nest', aroma: 60 },
+  tree: { color: '#4f9552', radius: 44, kind: 'spawner', aroma: 70 },
+  rock: { color: '#565c6b', radius: 28, kind: 'block', aroma: 0 },
 };
 
 export const OBJECT_KEYS = Object.keys(OBJECT_TYPES);
@@ -407,7 +407,7 @@ export const MEMORY = {
   save: true,          // guardar la memoria larga entre partidas
 };
 
-export const BELIEF_KEYS = [...TYPE_KEYS, 'agua'];
+export const BELIEF_KEYS = [...TYPE_KEYS, 'water'];
 
 // Ficha de cualquier cosa perseguible, sea comida u objeto de mapa.
 export function specOf(key) {
@@ -513,7 +513,7 @@ export const TREE = {
 // Lo podrido tampoco se queda para siempre: cuando se le acaba SU vida
 // (POINT_TYPES.toxico.life) se deshace y desaparece del mapa, estela incluida.
 export const FRUIT = {
-  rot: 'toxico',      // en qué se convierte al pudrirse
+  rot: 'toxic',      // en qué se convierte al pudrirse
   warnFrom: 0.6,      // desde qué fracción de su vida empieza a verse pasada
 };
 

@@ -16,7 +16,7 @@ import { RAIN, WORLD, MAPGEN } from './config.js';
 import { addObject, removeObject, record } from './world.js';
 import { radiusOf } from './obstacles.js';
 
-const entre = ({ min, max }) => min + Math.random() * (max - min);
+const between = ({ min, max }) => min + Math.random() * (max - min);
 
 // El primer chaparrón se sortea al primer paso, no al crear el mundo: así crear
 // el mundo no gasta azar y el mapa sale igual con la misma semilla.
@@ -24,68 +24,68 @@ export function createRain() {
   return { on: false, timer: null, front: 0, drop: 0, left: 0, pending: 0, spawnIn: 0, n: 0 };
 }
 
-export const isPuddle = (o) => o.type === 'charco';
+export const isPuddle = (o) => o.type === 'puddle';
 
 // Un sitio libre para un charco: dentro del mapa y sin pisar otra cosa.
-function sitioLibre(world, r) {
-  for (let intento = 0; intento < 30; intento++) {
+function freeSpot(world, r) {
+  for (let attempt = 0; attempt < 30; attempt++) {
     const x = MAPGEN.margin + r + Math.random() * (WORLD.width - 2 * (MAPGEN.margin + r));
     const y = MAPGEN.margin + r + Math.random() * (WORLD.height - 2 * (MAPGEN.margin + r));
-    const choca = world.objects.some((o) => Math.hypot(o.x - x, o.y - y) < r + radiusOf(o) + 6);
-    if (!choca) return { x, y };
+    const collides = world.objects.some((o) => Math.hypot(o.x - x, o.y - y) < r + radiusOf(o) + 6);
+    if (!collides) return { x, y };
   }
   return null;
 }
 
-function nuevoCharco(world) {
+function newPuddle(world) {
   const [min, max] = RAIN.puddleRadius;
   const r = Math.round(min + Math.random() * (max - min));
-  const sitio = sitioLibre(world, r);
-  if (sitio) addObject(world, sitio.x, sitio.y, 'charco', r, 'rain');
+  const place = freeSpot(world, r);
+  if (place) addObject(world, place.x, place.y, 'puddle', r, 'rain');
 }
 
 // Sortea el próximo chaparrón y cuánto se le adelanta el frente.
-function proximo(lluvia) {
-  lluvia.timer = entre(RAIN.every);
-  lluvia.front = Math.min(lluvia.timer, entre(RAIN.front));
+function next(rain) {
+  rain.timer = between(RAIN.every);
+  rain.front = Math.min(rain.timer, between(RAIN.front));
 }
 
 // Empieza a llover ya (el reloj normal, o el botón de ajustes).
 export function startRain(world) {
-  const lluvia = (world.rain ??= createRain());
-  if (lluvia.on) return;
-  lluvia.on = true;
-  lluvia.n += 1;
-  lluvia.left = entre(RAIN.duration);
+  const rain = (world.rain ??= createRain());
+  if (rain.on) return;
+  rain.on = true;
+  rain.n += 1;
+  rain.left = between(RAIN.duration);
   // Los charcos no salen de golpe: se van formando mientras cae.
-  lluvia.pending = Math.round(entre(RAIN.puddles));
-  lluvia.spawnIn = lluvia.left / (lluvia.pending + 1);
+  rain.pending = Math.round(between(RAIN.puddles));
+  rain.spawnIn = rain.left / (rain.pending + 1);
   record(world, 'rain', { on: true });
 }
 
 export function updateRain(world, dt) {
-  const lluvia = (world.rain ??= createRain());
+  const rain = (world.rain ??= createRain());
 
-  if (!lluvia.on) {
-    if (lluvia.timer == null) proximo(lluvia);
-    lluvia.timer -= dt;
+  if (!rain.on) {
+    if (rain.timer == null) next(rain);
+    rain.timer -= dt;
     // Tras escampar la presión sube poco a poco; al acercarse el frente, baja.
-    const frente = lluvia.front > 0 ? Math.max(0, 1 - lluvia.timer / lluvia.front) : 0;
-    const vuelve = Math.max(0, lluvia.drop - dt / Math.max(1e-6, RAIN.recover));
-    lluvia.drop = Math.min(1, Math.max(frente, vuelve));
-    if (lluvia.timer <= 0) startRain(world);
+    const front = rain.front > 0 ? Math.max(0, 1 - rain.timer / rain.front) : 0;
+    const returns = Math.max(0, rain.drop - dt / Math.max(1e-6, RAIN.recover));
+    rain.drop = Math.min(1, Math.max(front, returns));
+    if (rain.timer <= 0) startRain(world);
   } else {
-    lluvia.drop = 1;
-    lluvia.left -= dt;
-    lluvia.spawnIn -= dt;
-    if (lluvia.pending > 0 && lluvia.spawnIn <= 0) {
-      nuevoCharco(world);
-      lluvia.pending -= 1;
-      lluvia.spawnIn = lluvia.left / (lluvia.pending + 1);
+    rain.drop = 1;
+    rain.left -= dt;
+    rain.spawnIn -= dt;
+    if (rain.pending > 0 && rain.spawnIn <= 0) {
+      newPuddle(world);
+      rain.pending -= 1;
+      rain.spawnIn = rain.left / (rain.pending + 1);
     }
-    if (lluvia.left <= 0) {
-      lluvia.on = false;
-      proximo(lluvia);
+    if (rain.left <= 0) {
+      rain.on = false;
+      next(rain);
       record(world, 'rain', { on: false });
     }
   }
@@ -95,7 +95,7 @@ export function updateRain(world, dt) {
   // `size` lleva la cuenta fina; `r`, lo que se ve y se graba, va en px enteros.
   for (const o of [...world.objects]) {
     if (!isPuddle(o)) continue;
-    o.size = (o.size ?? o.r) + (lluvia.on ? RAIN.grow : -RAIN.evaporate) * dt;
+    o.size = (o.size ?? o.r) + (rain.on ? RAIN.grow : -RAIN.evaporate) * dt;
     o.size = Math.min(max, o.size);
     if (o.size < RAIN.minRadius) { removeObject(world, o, 'dried'); continue; }
     const r = Math.round(o.size);

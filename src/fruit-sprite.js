@@ -19,46 +19,46 @@
 
 import { POINT_TYPES, FRUIT } from './config.js';
 import { ripeness } from './food.js';
-import { colorPorMadurez } from './colors.js';
-import { lienzo, azar, semillaDe, cacheSprite, detalle, estampar } from './sprite-kit.js';
-import { baya } from './fruit-sprite/baya.js';
-import { chispa } from './fruit-sprite/chispa.js';
-import { ojo } from './fruit-sprite/ojo.js';
-import { resina } from './fruit-sprite/resina.js';
-import { podrido } from './fruit-sprite/podrido.js';
+import { colorByRipeness } from './colors.js';
+import { canvasOf, seededRng, seedFor, cacheSprite, detail, stamp } from './sprite-kit.js';
+import { berry } from './fruit-sprite/berry.js';
+import { spark } from './fruit-sprite/spark.js';
+import { eye } from './fruit-sprite/eye.js';
+import { resin } from './fruit-sprite/resin.js';
+import { rotten } from './fruit-sprite/rotten.js';
 
 const sprites = new Map();     // clave: tipo|radio|variante|escalón de madurez
 
-const PASOS = 12;              // en cuántos escalones se redondea la madurez
-const VARIANTES = 4;           // piezas distintas por tipo: ni dos iguales juntas
+const STEPS = 12;              // en cuántos escalones se redondea la madurez
+const VARIANTS = 4;           // piezas distintas por tipo: ni dos iguales juntas
 
-const PINTORES = { nectar: baya, chispa, ojo, resina, toxico: podrido };
+const PAINTERS = { nectar: berry, spark, eye, resin, toxic: rotten };
 
 export function drawFruit(ctx, p) {
-  const z = detalle();
+  const z = detail();
   const r = Math.max(2, Math.round(POINT_TYPES[p.type].radius * z));
-  const paso = Math.round(ripeness(p) * PASOS);
+  const step = Math.round(ripeness(p) * STEPS);
   const img = cacheSprite(
     sprites,
-    `${p.type}|${r}|${semillaDe(p) % VARIANTES}|${paso}`,
-    () => pintar(p.type, r, semillaDe(p) % VARIANTES, paso / PASOS),
+    `${p.type}|${r}|${seedFor(p) % VARIANTS}|${step}`,
+    () => paint(p.type, r, seedFor(p) % VARIANTS, step / STEPS),
     600
   );
-  estampar(ctx, img, p.x, p.y, z);
+  stamp(ctx, img, p.x, p.y, z);
 }
 
-function pintar(tipo, r, variante, madurez) {
-  const semilla = [...tipo].reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7);
-  const rnd = azar((semilla ^ (variante * 7919)) >>> 0);
-  const base = colorPorMadurez(tipo, madurez);
+function paint(type, r, variant, ripenessOf) {
+  const seedOf = [...type].reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7);
+  const rnd = seededRng((seedOf ^ (variant * 7919)) >>> 0);
+  const base = colorByRipeness(type, ripenessOf);
   // Lo pasado: 0 = todavía buena, 1 = a punto de pudrirse (o de deshacerse, si
   // ya es lo podrido).
-  const pasado = Math.max(0, (madurez - FRUIT.warnFrom) / (1 - FRUIT.warnFrom));
+  const past = Math.max(0, (ripenessOf - FRUIT.warnFrom) / (1 - FRUIT.warnFrom));
 
   const pad = Math.ceil(r * 1.4) + 5;
   const S = (r + pad) * 2;
-  const c = lienzo(S, S);
+  const c = canvasOf(S, S);
   const ctx = c.getContext('2d');
-  (PINTORES[tipo] ?? baya)(ctx, S / 2, S / 2, r, base, rnd, pasado);
+  (PAINTERS[type] ?? berry)(ctx, S / 2, S / 2, r, base, rnd, past);
   return c;
 }

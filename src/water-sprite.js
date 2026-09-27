@@ -25,4 +25,4 @@
 //   · juncos.js      los juncos de la orilla, doblados por el viento
 //   · forma.js       la luz, los colores y el perfil de la orilla
 
-export { drawLake } from './water-sprite/lago.js';
+export { drawLake } from './water-sprite/lake.js';

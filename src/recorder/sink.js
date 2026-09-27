@@ -6,84 +6,84 @@ import { post, ApiError } from '../app/api.js';
 
 const DB = 'fagi-sessions';
 const STORE = 'pending';
-const REINTENTO_MS = 10_000;
+const RETRY_MS = 10_000;
 
 export function createSink(sessionId) {
-  const cola = [];
-  let enviando = false;
-  let temporizador = 0;
-  let fin = null;          // { reason, age, summary } cuando la sesión se cierra
-  let avisarFin;
-  const finEnviado = new Promise((resolve) => { avisarFin = resolve; });
+  const tail = [];
+  let sending = false;
+  let timer = 0;
+  let end = null;          // { reason, age, summary } cuando la sesión se cierra
+  let notifyEnd;
+  const endSent = new Promise((resolve) => { notifyEnd = resolve; });
 
-  async function bombear() {
-    if (enviando) return;
-    enviando = true;
+  async function pump() {
+    if (sending) return;
+    sending = true;
     try {
-      while (cola.length) {
+      while (tail.length) {
         try {
-          await post(`/sessions/${sessionId}/events`, { events: cola[0] });
-          cola.shift();
+          await post(`/sessions/${sessionId}/events`, { events: tail[0] });
+          tail.shift();
         } catch (err) {
           // Un 4xx no se arregla reintentando: se descarta y se sigue.
           if (err instanceof ApiError && err.status >= 400 && err.status < 500) {
             console.warn('Lote rechazado por el servidor:', err.code);
-            cola.shift();
+            tail.shift();
             continue;
           }
-          await guardarPendiente(sessionId, cola, fin);
-          programar();
-          if (fin) avisarFin(false);
+          await savePending(sessionId, tail, end);
+          schedule();
+          if (end) notifyEnd(false);
           return;
         }
       }
-      if (fin) {
-        try { await post(`/sessions/${sessionId}/end`, fin); fin.enviado = true; avisarFin(true); }
-        catch { await guardarPendiente(sessionId, cola, fin); programar(); avisarFin(false); return; }
+      if (end) {
+        try { await post(`/sessions/${sessionId}/end`, end); end.sent = true; notifyEnd(true); }
+        catch { await savePending(sessionId, tail, end); schedule(); notifyEnd(false); return; }
       }
-      await borrarPendiente(sessionId);
+      await clearPending(sessionId);
     } finally {
-      enviando = false;
+      sending = false;
     }
   }
 
-  function programar() {
-    clearTimeout(temporizador);
-    temporizador = setTimeout(bombear, REINTENTO_MS);
+  function schedule() {
+    clearTimeout(timer);
+    timer = setTimeout(pump, RETRY_MS);
   }
 
   return {
-    send(lote) { cola.push(lote); bombear(); },
+    send(batch) { tail.push(batch); pump(); },
     // Resuelve cuando el servidor ya tiene la sesión cerrada (o a los 3 s, si
     // no hay red: entonces se queda pendiente y se reintenta).
-    end(datos) {
-      fin = datos;
-      bombear();
-      return Promise.race([finEnviado, new Promise((r) => { setTimeout(() => r(false), 3000); })]);
+    end(data) {
+      end = data;
+      pump();
+      return Promise.race([endSent, new Promise((r) => { setTimeout(() => r(false), 3000); })]);
     },
     // Al cerrar la pestaña no hay tiempo de esperar respuestas: se manda lo
     // que quede con keepalive y se deja copia por si no llega.
     unload() {
-      guardarPendiente(sessionId, cola, fin);
-      for (const lote of cola) post(`/sessions/${sessionId}/events`, { events: lote }, { keepalive: true }).catch(() => {});
-      if (fin && !fin.enviado) post(`/sessions/${sessionId}/end`, fin, { keepalive: true }).catch(() => {});
+      savePending(sessionId, tail, end);
+      for (const batch of tail) post(`/sessions/${sessionId}/events`, { events: batch }, { keepalive: true }).catch(() => {});
+      if (end && !end.sent) post(`/sessions/${sessionId}/end`, end, { keepalive: true }).catch(() => {});
     },
   };
 }
 
 // Lo que quedó sin enviar de sesiones anteriores (pestaña cerrada, sin red).
 export async function retryPending() {
-  const pendientes = await leerPendientes();
-  for (const { sessionId, lotes, fin } of pendientes) {
+  const pendingList = await readPending();
+  for (const { sessionId, batches, end } of pendingList) {
     const sink = createSink(sessionId);
-    for (const lote of lotes) sink.send(lote);
-    if (fin && !fin.enviado) await sink.end(fin);
+    for (const batch of batches) sink.send(batch);
+    if (end && !end.sent) await sink.end(end);
   }
 }
 
 // --- IndexedDB, con todo envuelto: sin ella se sigue funcionando, sin copia ---
 
-function abrir() {
+function open() {
   return new Promise((resolve, reject) => {
     if (typeof indexedDB === 'undefined') { reject(new Error('sin IndexedDB')); return; }
     const req = indexedDB.open(DB, 1);
@@ -93,11 +93,11 @@ function abrir() {
   });
 }
 
-async function operar(modo, fn) {
+async function operate(mode, fn) {
   try {
-    const db = await abrir();
+    const db = await open();
     return await new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE, modo);
+      const tx = db.transaction(STORE, mode);
       const res = fn(tx.objectStore(STORE));
       tx.oncomplete = () => { db.close(); resolve(res?.result); };
       tx.onerror = () => { db.close(); reject(tx.error); };
@@ -107,15 +107,15 @@ async function operar(modo, fn) {
   }
 }
 
-function guardarPendiente(sessionId, cola, fin) {
-  if (!cola.length && (!fin || fin.enviado)) return borrarPendiente(sessionId);
-  return operar('readwrite', (s) => s.put({ sessionId, lotes: [...cola], fin }));
+function savePending(sessionId, tail, end) {
+  if (!tail.length && (!end || end.sent)) return clearPending(sessionId);
+  return operate('readwrite', (s) => s.put({ sessionId, batches: [...tail], end }));
 }
 
-function borrarPendiente(sessionId) {
-  return operar('readwrite', (s) => s.delete(sessionId));
+function clearPending(sessionId) {
+  return operate('readwrite', (s) => s.delete(sessionId));
 }
 
-async function leerPendientes() {
-  return (await operar('readonly', (s) => s.getAll())) ?? [];
+async function readPending() {
+  return (await operate('readonly', (s) => s.getAll())) ?? [];
 }

@@ -6,25 +6,27 @@
 // el único portero: valida la forma antes de dejarla entrar, tanto si la
 // escribe el aprendiz (synth.js) como si la trae un archivo importado.
 
-const ALCANCES = ['eat', 'store', 'pursue'];
-const VEREDICTOS = ['avoid', 'prefer'];
-const ETAPAS = ['corta', 'media', 'larga'];
-const ID_VALIDO = /^[a-z0-9-]{1,64}$/;
+import { modernKey, modernize } from '../legacy.js';
+
+const SCOPES = ['eat', 'store', 'pursue'];
+const VERDICTS = ['avoid', 'prefer'];
+const STAGE_NAMES = ['short', 'medium', 'long'];
+const VALID_ID = /^[a-z0-9-]{1,64}$/;
 
 function fail(msg) {
   throw new Error(`regla inválida: ${msg}`);
 }
 
-function esNumero(v) {
+function isNumber(v) {
   return typeof v === 'number' && Number.isFinite(v);
 }
 
-function validarPorque(because) {
+function validateBecause(because) {
   if (!Array.isArray(because)) fail('"because" debe ser una lista');
   if (because.length > 12) fail('"because" tiene demasiadas sensaciones');
   for (const s of because) {
     if (!s || typeof s.sense !== 'string' || s.sense.length > 40) fail('sensación sin "sense" válido');
-    if (!esNumero(s.v)) fail('sensación sin "v" numérico');
+    if (!isNumber(s.v)) fail('sensación sin "v" numérico');
   }
 }
 
@@ -32,28 +34,28 @@ function validarPorque(because) {
 // spec: { on, when:{key}, verdict, weight, because, learnedAt, revisedAt?,
 //         tries, stage, retired?, retiredAt? }
 export function rule(id, spec) {
-  if (typeof id !== 'string' || !ID_VALIDO.test(id)) fail(`id "${id}" fuera de forma`);
+  if (typeof id !== 'string' || !VALID_ID.test(id)) fail(`id "${id}" fuera de forma`);
   if (!spec || typeof spec !== 'object') fail('falta el cuerpo de la regla');
 
-  const { on, when, verdict, weight, because, learnedAt, revisedAt, tries, stage, retired, retiredAt, ...resto } = spec;
-  const sobran = Object.keys(resto);
-  if (sobran.length) fail(`campos desconocidos: ${sobran.join(', ')}`);
+  const { on, when, verdict, weight, because, learnedAt, revisedAt, tries, stage, retired, retiredAt, ...rest } = spec;
+  const extra = Object.keys(rest);
+  if (extra.length) fail(`campos desconocidos: ${extra.join(', ')}`);
 
-  if (!Array.isArray(on) || on.length === 0 || on.some((a) => !ALCANCES.includes(a))) {
-    fail(`"on" debe ser una lista no vacía dentro de ${ALCANCES.join('|')}`);
+  if (!Array.isArray(on) || on.length === 0 || on.some((a) => !SCOPES.includes(a))) {
+    fail(`"on" debe ser una lista no vacía dentro de ${SCOPES.join('|')}`);
   }
   if (!when || typeof when.key !== 'string' || !when.key || when.key.length > 80) {
     fail('"when.key" debe ser un texto no vacío');
   }
-  if (!VEREDICTOS.includes(verdict)) fail(`"verdict" debe ser ${VEREDICTOS.join('|')}`);
-  if (!esNumero(weight)) fail('"weight" debe ser numérico');
-  validarPorque(because);
-  if (!esNumero(learnedAt)) fail('"learnedAt" debe ser numérico');
-  if (revisedAt !== undefined && !esNumero(revisedAt)) fail('"revisedAt" debe ser numérico');
+  if (!VERDICTS.includes(verdict)) fail(`"verdict" debe ser ${VERDICTS.join('|')}`);
+  if (!isNumber(weight)) fail('"weight" debe ser numérico');
+  validateBecause(because);
+  if (!isNumber(learnedAt)) fail('"learnedAt" debe ser numérico');
+  if (revisedAt !== undefined && !isNumber(revisedAt)) fail('"revisedAt" debe ser numérico');
   if (!Number.isInteger(tries) || tries < 0) fail('"tries" debe ser un entero ≥ 0');
-  if (!ETAPAS.includes(stage)) fail(`"stage" debe ser ${ETAPAS.join('|')}`);
+  if (!STAGE_NAMES.includes(stage)) fail(`"stage" debe ser ${STAGE_NAMES.join('|')}`);
   if (retired !== undefined && typeof retired !== 'boolean') fail('"retired" debe ser booleano');
-  if (retiredAt !== undefined && !esNumero(retiredAt)) fail('"retiredAt" debe ser numérico');
+  if (retiredAt !== undefined && !isNumber(retiredAt)) fail('"retiredAt" debe ser numérico');
 
   return {
     id, on: [...on], when: { key: when.key }, verdict, weight,
@@ -67,31 +69,31 @@ export function rule(id, spec) {
 // Una línea de código por regla. Sin comas ni formato bonito: el objeto es
 // JSON válido, así que se reimporta con JSON.parse sin tocar `eval`.
 export function renderRule(r) {
-  const { id, ...resto } = r;
-  const linea = `rule('${id}', ${JSON.stringify(resto)})`;
-  return r.retired ? `// retirada ${r.retiredAt.toFixed(1)}s: ${linea}` : linea;
+  const { id, ...rest } = r;
+  const line = `rule('${id}', ${JSON.stringify(rest)})`;
+  return r.retired ? `// retired ${r.retiredAt.toFixed(1)}s: ${line}` : line;
 }
 
-const LINEA_REGLA = /^(?:\/\/ retirada [\d.]+s: )?rule\('([a-z0-9-]{1,64})',\s*(\{.*\})\)$/;
-const LINEA_MEMORIA = /^export const memoria = (\{.*\});$/;
+const RULE_LINE = /^(?:\/\/ (?:retired|retirada) [\d.]+s: )?rule\('([a-z0-9-]{1,64})',\s*(\{.*\})\)$/;
+const MEMORY_LINE = /^export const (?:memory|memoria) = (\{.*\});$/;
 
 // El módulo completo, tal y como se exporta y se enseña en el panel.
 export function renderModule(rules, facts, { age, puddleLife = null, synapses = null } = {}) {
-  const activas = rules.filter((r) => !r.retired);
-  const retiradas = rules.filter((r) => r.retired);
-  const cabecera = `// Código aprendido por Fagi · edad ${(age ?? 0).toFixed(1)}s · ` +
-    `${activas.length} regla(s) activa(s), ${retiradas.length} retirada(s)\n` +
+  const activeOnes = rules.filter((r) => !r.retired);
+  const retiredList = rules.filter((r) => r.retired);
+  const header = `// Código aprendido por Fagi · edad ${(age ?? 0).toFixed(1)}s · ` +
+    `${activeOnes.length} regla(s) activa(s), ${retiredList.length} retired(s)\n` +
     `// Generado por src/learned/dsl.js. Se importa sin eval: cada línea es JSON.\n`;
-  const cuerpo = [...activas, ...retiradas].map((r) => '  ' + renderRule(r)).join(',\n');
-  const lineaRules = cuerpo ? `export default [\n${cuerpo},\n];` : 'export default [];';
+  const body = [...activeOnes, ...retiredList].map((r) => '  ' + renderRule(r)).join(',\n');
+  const rulesLine = body ? `export default [\n${body},\n];` : 'export default [];';
   // Además de las creencias, lo que sabe de cómo es el mundo (cuánto dura un
   // charco) y qué le hizo sentir cada cosa (las sinapsis concepto→sensación).
   // Es lo mismo que guarda el autoguardado: exportar e importar no pierde nada.
-  const memoria = { facts };
-  if (puddleLife != null) memoria.puddleLife = Math.round(puddleLife * 10) / 10;
-  if (synapses && Object.keys(synapses).length) memoria.synapses = synapses;
-  const lineaMemoria = `export const memoria = ${JSON.stringify(memoria)};`;
-  return `${cabecera}import { rule } from './dsl.js';\n\n${lineaRules}\n${lineaMemoria}\n`;
+  const memoryOf = { facts };
+  if (puddleLife != null) memoryOf.puddleLife = Math.round(puddleLife * 10) / 10;
+  if (synapses && Object.keys(synapses).length) memoryOf.synapses = synapses;
+  const memoryLine = `export const memory = ${JSON.stringify(memoryOf)};`;
+  return `${header}import { rule } from './dsl.js';\n\n${rulesLine}\n${memoryLine}\n`;
 }
 
 // Lee un módulo generado y devuelve { rules, facts }. Nunca ejecuta el texto:
@@ -106,54 +108,54 @@ export function parseModule(text) {
   let facts = {};
   let puddleLife = null;
   let synapses = {};
-  let vistoMemoria = false;
+  let seenMemory = false;
 
-  for (const linea of text.split('\n')) {
+  for (const line of text.split('\n')) {
     // renderModule separa las reglas con comas de lista (una por línea, la
     // última incluida); se quita para que quede el `rule(...)` exacto.
-    const l = linea.trim().replace(/,\s*$/, '');
+    const l = line.trim().replace(/,\s*$/, '');
     if (!l) continue;
 
-    const m = LINEA_REGLA.exec(l);
+    const m = RULE_LINE.exec(l);
     if (m) {
       const [, id, json] = m;
       let spec;
       try { spec = JSON.parse(json); } catch { throw new Error(`línea de regla con JSON inválido: ${l.slice(0, 60)}`); }
-      rules.push(rule(id, spec));
+      rules.push(rule(modernKey(id), modernize(spec)));
       continue;
     }
 
-    const mm = LINEA_MEMORIA.exec(l);
+    const mm = MEMORY_LINE.exec(l);
     if (mm) {
-      let datos;
-      try { datos = JSON.parse(mm[1]); } catch { throw new Error('la línea de memoria trae JSON inválido'); }
-      if (datos && typeof datos === 'object' && datos.facts && typeof datos.facts === 'object') {
-        facts = datos.facts;
-        if (typeof datos.puddleLife === 'number' && Number.isFinite(datos.puddleLife) && datos.puddleLife > 0) {
-          puddleLife = datos.puddleLife;
+      let data;
+      try { data = modernize(JSON.parse(mm[1])); } catch { throw new Error('la línea de memoria trae JSON inválido'); }
+      if (data && typeof data === 'object' && data.facts && typeof data.facts === 'object') {
+        facts = data.facts;
+        if (typeof data.puddleLife === 'number' && Number.isFinite(data.puddleLife) && data.puddleLife > 0) {
+          puddleLife = data.puddleLife;
         }
-        synapses = validarSinapsis(datos.synapses);
-        vistoMemoria = true;
+        synapses = validateSynapses(data.synapses);
+        seenMemory = true;
       }
     }
     // Cualquier otra línea (comentarios, import, export default [ ... ]) se ignora.
   }
 
-  if (!vistoMemoria && rules.length === 0) throw new Error('no se reconoce ninguna regla ni memoria en el archivo');
+  if (!seenMemory && rules.length === 0) throw new Error('no se reconoce ninguna regla ni memoria en el archivo');
   return { rules, facts, puddleLife, synapses };
 }
 
 // Solo entran conexiones concepto→sensación con forma sana; el resto se ignora.
-function validarSinapsis(syn) {
-  const fuera = {};
-  if (!syn || typeof syn !== 'object') return fuera;
+function validateSynapses(syn) {
+  const outside = {};
+  if (!syn || typeof syn !== 'object') return outside;
   for (const [id, s] of Object.entries(syn).slice(0, 500)) {
     if (!s || typeof s !== 'object') continue;
     const { a, b, w, n } = s;
     if (typeof a !== 'string' || typeof b !== 'string' || a.length > 80 || b.length > 80) continue;
     if (id !== `${a}>${b}` || !a.startsWith('key:') || !b.startsWith('feel:')) continue;
-    if (!esNumero(w) || w < -1 || w > 1) continue;
-    fuera[id] = { a, b, kind: 'feel', w, n: esNumero(n) ? n : 0 };
+    if (!isNumber(w) || w < -1 || w > 1) continue;
+    outside[id] = { a, b, kind: 'feel', w, n: isNumber(n) ? n : 0 };
   }
-  return fuera;
+  return outside;
 }

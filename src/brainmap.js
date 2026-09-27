@@ -26,68 +26,68 @@
 // pinceles comunes de brainmap/pinceles.js.
 
 import { t } from './i18n.js';
-import { crearPinceles } from './brainmap/pinceles.js';
-import { pintarSiente } from './brainmap/siente.js';
-import { pintarPercibe } from './brainmap/percibe.js';
-import { pintarInstinto } from './brainmap/instinto.js';
-import { pintarDecide } from './brainmap/decide.js';
-import { pintarAprende } from './brainmap/aprende.js';
-import { pintarRed } from './brainmap/red.js';
-import { pintarMapaMental } from './brainmap/mapa-mental.js';
+import { createBrushes } from './brainmap/brushes.js';
+import { paintFeel } from './brainmap/feel.js';
+import { paintPerceive } from './brainmap/perceive.js';
+import { paintInstinct } from './brainmap/instinct.js';
+import { paintDecide } from './brainmap/decide.js';
+import { paintLearn } from './brainmap/learn.js';
+import { paintNetwork } from './brainmap/network.js';
+import { paintMentalMap } from './brainmap/mental-map.js';
 
 export function createBrainMap(canvas, statusEl, expandBtn) {
   if (!canvas) return { update() {} };
-  const pinceles = crearPinceles(canvas);
+  const brushes = createBrushes(canvas);
 
   // Ampliar: el panel entero pasa a ocupar casi toda la pantalla.
   const pane = canvas.closest('.pane');
-  function grande(si) {
+  function big(si) {
     pane?.classList.toggle('brainmap-big', si);
     if (!expandBtn) return;
     expandBtn.dataset.i18n = si ? 'brainmap.close' : 'brainmap.expand';   // bindDom lo retraduce
     expandBtn.textContent = t(expandBtn.dataset.i18n);
   }
-  function cerrarGrande() { if (pane?.classList.contains('brainmap-big')) grande(false); }
+  function closeBig() { if (pane?.classList.contains('brainmap-big')) big(false); }
   expandBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
-    grande(!pane?.classList.contains('brainmap-big'));
+    big(!pane?.classList.contains('brainmap-big'));
   });
-  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarGrande(); });
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeBig(); });
 
-  function estado(fagi) {
+  function state(fagi) {
     if (!statusEl) return;
-    const activas = fagi.brain.rules.list.filter((r) => !r.retired);
-    const retiradas = fagi.brain.rules.list.filter((r) => r.retired);
+    const activeOnes = fagi.brain.rules.list.filter((r) => !r.retired);
+    const retiredList = fagi.brain.rules.list.filter((r) => r.retired);
     statusEl.textContent = t('brainmap.status', {
       beliefs: Object.keys(fagi.brain.facts).length,
-      active: activas.length,
-      retired: retiradas.length,
+      active: activeOnes.length,
+      retired: retiredList.length,
       events: fagi.brain.lastRule?.n ?? 0,
     });
   }
 
   // Las siete secciones, una debajo de otra: cada una empieza donde acabó la
   // anterior y devuelve dónde acaba ella. El total es el alto del lienzo.
-  function todo(fagi, mundo) {
-    pinceles.empezar();
-    let y = 12 * pinceles.s;
-    y = pintarSiente(pinceles, fagi, y);
-    y = pintarPercibe(pinceles, fagi, y);
-    y = pintarInstinto(pinceles, fagi, y);
-    y = pintarDecide(pinceles, fagi, y);
-    y = pintarAprende(pinceles, fagi, y);
-    y = pintarRed(pinceles, fagi, y);
-    return pintarMapaMental(pinceles, fagi, mundo, y);
+  function everything(fagi, worldState) {
+    brushes.begin();
+    let y = 12 * brushes.s;
+    y = paintFeel(brushes, fagi, y);
+    y = paintPerceive(brushes, fagi, y);
+    y = paintInstinct(brushes, fagi, y);
+    y = paintDecide(brushes, fagi, y);
+    y = paintLearn(brushes, fagi, y);
+    y = paintNetwork(brushes, fagi, y);
+    return paintMentalMap(brushes, fagi, worldState, y);
   }
 
   function update(fagi, world = null) {
-    estado(fagi);
+    state(fagi);
     if (!canvas.getBoundingClientRect().width) return;   // panel plegado u oculto
-    if (pinceles.cssW === 0) pinceles.ajustar(200);
-    const alto = todo(fagi, world);
+    if (brushes.cssW === 0) brushes.adjust(200);
+    const tall = everything(fagi, world);
     // El alto cambió (más creencias, más neuronas): redimensionar borra el
     // lienzo, así que se vuelve a pintar en el mismo fotograma.
-    if (pinceles.ajustar(Math.ceil(alto))) todo(fagi, world);
+    if (brushes.adjust(Math.ceil(tall))) everything(fagi, world);
   }
 
   return { update };
