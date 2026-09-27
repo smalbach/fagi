@@ -1,5 +1,5 @@
-// 3. Instinto — los escalones de la directiva de sobrevivir, en orden; el
-// primero que contesta manda.
+// 3. Instinct — the tiers of the survive directive, in order; the
+// first one that answers wins.
 
 import { t } from '../i18n.js';
 import { TAG_COLOR } from '../narrator.js';

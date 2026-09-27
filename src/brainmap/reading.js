@@ -1,10 +1,10 @@
-// Lecturas pequeñas del estado de Fagi que usan varias secciones del mapa.
-// Solo leen: no crean creencias ni tocan nada.
+// Small readings of Fagi's state used by several sections of the map.
+// They only read: they create no beliefs and touch nothing.
 
 import { MEMORY } from '../config.js';
 
-// La clave detrás de lo que Fagi está haciendo ahora, si hay alguna: la de su
-// objetivo actual (comida o agua), o si no, la del rastro que sigue de olfato.
+// The key behind what Fagi is doing now, if there is one: that of her
+// current target (food or water), or failing that, the scent trail she's following.
 export function intentionKey(fagi) {
   if (fagi.target?.type && (fagi.targetKind === 'food' || fagi.targetKind === 'water')) return fagi.target.type;
   if (fagi.targetKind === 'water') return 'water';
@@ -17,13 +17,13 @@ export function ruleOf(rules, key) {
   return alive.find((r) => r.verdict === 'avoid') ?? alive.find((r) => r.verdict === 'prefer') ?? null;
 }
 
-// Lo mismo que memory.weight, sin crear la creencia si no existe.
+// Same as memory.weight, without creating the belief if it doesn't exist.
 export function weightOf(r) {
   return r.value * (MEMORY.floor + (1 - MEMORY.floor) * r.confidence);
 }
 
-// El cambio de creencia de un episodio: en vivo cuelga de ep.cambio; en una
-// repetición viene ya aplanado (recorder.js).
+// An episode's belief change: live, it hangs off ep.change; in a
+// replay it comes already flattened (recorder/recorder.js).
 export function changeOf(ep) {
   if (ep.change) return ep.change;
   if (ep.kind) return { kind: ep.kind, before: ep.before, after: ep.after };

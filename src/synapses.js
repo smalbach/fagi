@@ -1,26 +1,26 @@
-// Sinapsis: lo aprendido visto como conexiones entre neuronas, igual que en un
-// cerebro de verdad, donde aprender es crear conexiones nuevas y reforzar o
-// debilitar las que ya hay.
+// Synapses: what was learned seen as connections between neurons, just like in a
+// real brain, where learning means creating new connections and strengthening or
+// weakening the ones already there.
 //
-// Neuronas (ids con prefijo):
-//   sense:vista | sense:olfato | sense:memoria   — por dónde entra lo percibido
-//   key:<tipo>                                   — el concepto: néctar, agua…
-//   feel:<sensación>                             — lo que el cuerpo notó: hambre,
-//                                                  sed, velocidad… (interoception.js)
+// Neurons (prefixed ids):
+//   sense:sight | sense:smell | sense:memory     — where the perceived comes in
+//   key:<type>                                   — the concept: nectar, water…
+//   feel:<sensation>                             — what the body noticed: hunger,
+//                                                  thirst, speed… (interoception.js)
 //
-// Dos maneras de formarse, como en biología:
-//   - Hebb ("las neuronas que se disparan juntas se conectan"): percibir un
-//     tipo por un sentido refuerza sentido→concepto mientras dura. Sin uso se
-//     debilita y, por debajo de SYNAPSE.prune, se poda.
-//   - Aprendizaje por consecuencias: cada vez que brain.learn() aprende de
-//     algo que sintió, el concepto se conecta con esa sensación, con signo:
-//     positiva si alivió, negativa si dañó. Olvida mucho más despacio.
+// Two ways to form, as in biology:
+//   - Hebb ("neurons that fire together wire together"): perceiving a
+//     type through a sense strengthens sense→concept while it lasts. Unused it
+//     weakens and, below SYNAPSE.prune, gets pruned.
+//   - Learning from consequences: every time brain.js's learn() learns from
+//     something she felt, the concept wires to that sensation, with a sign:
+//     positive if it relieved, negative if it harmed. It forgets much more slowly.
 //
-// Los sitios recordados (memory.places) y las reglas escritas (learned/) ya
-// son conexiones por sí mismos; el mapa del cerebro los dibuja desde ahí.
+// Remembered places (memory.places) and written rules (learned/) are already
+// connections in themselves; the brain map draws them from there.
 //
-// Esto NO decide nada: la cuenta sigue en memory.js y brain.js. Es la huella
-// de ese aprendizaje con forma de red, para poder verla.
+// This decides NOTHING: the reckoning stays in memory.js and brain.js. It's the trace
+// of that learning shaped as a network, so it can be seen.
 
 import { FEEL, SYNAPSE } from './config.js';
 
@@ -35,7 +35,7 @@ function connection(syn, a, b, kind, now) {
   return s;
 }
 
-// Hebb: se refuerza mientras las dos se activan juntas (rate por segundo).
+// Hebb: strengthens while both fire together (rate per second).
 export function hebb(syn, a, b, dt, now) {
   const s = connection(syn, a, b, 'hebb', now);
   s.w += SYNAPSE.hebbRate * dt * (1 - s.w);
@@ -43,8 +43,8 @@ export function hebb(syn, a, b, dt, now) {
   s.n += dt;
 }
 
-// Lo que una sensación le dice de algo: de -1 (dañó) a +1 (alivió). La misma
-// cuenta que interoception.feel(), sensación a sensación.
+// What a sensation tells her about something: from -1 (harmed) to +1 (relieved). The same
+// reckoning as interoception.feel(), sensation by sensation.
 export function valueFrom(x) {
   const clamp = (v) => Math.max(-1, Math.min(1, v));
   if (x.sense === 'hunger') return clamp(-x.v / FEEL.hungerScale);
@@ -57,7 +57,7 @@ export function valueFrom(x) {
   return 0;
 }
 
-// Aprender de una consecuencia: concepto → sensación, hacia su valor.
+// Learning from a consequence: concept → sensation, toward its value.
 export function wire(syn, key, sensations, now) {
   for (const x of sensations ?? []) {
     const v = valueFrom(x);
@@ -69,8 +69,8 @@ export function wire(syn, key, sensations, now) {
   }
 }
 
-// El tiempo pasa: lo que no se usa se debilita y lo muy débil se poda.
-// Una recién nacida (usada hace nada) no se poda aunque aún sea débil.
+// Time passes: what isn't used weakens and what's very weak gets pruned.
+// A newborn one (used a moment ago) isn't pruned even if still weak.
 export function decaySynapses(syn, dt, now) {
   if (!syn) return;
   for (const [id, s] of Object.entries(syn)) {
@@ -80,7 +80,7 @@ export function decaySynapses(syn, dt, now) {
   }
 }
 
-// Lo que percibe este frame dispara sus conexiones sentido → concepto.
+// What she perceives this frame fires its sense → concept connections.
 export function perceiveSynapses(fagi, ctx, dt) {
   const syn = fagi.brain.synapses;
   if (!syn) return;

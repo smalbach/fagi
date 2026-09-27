@@ -1,13 +1,13 @@
-// Episodios: una experiencia desde que empieza hasta que se sabe cómo acabó.
+// Episodes: an experience from the moment it starts until we know how it ended.
 //
-// Comer o beber abre un episodio con una foto del cuerpo de antes. Lo que
-// siente justo después (interoception.js) enseña de inmediato. Pero un bocado
-// también puede sentar mal más tarde: si en los segundos siguientes la
-// necesidad que venía a calmar se dispara hasta lo crítico, o si Fagi muere con
-// él en el cuerpo, el episodio se cierra con un castigo.
+// Eating or drinking opens an episode with a snapshot of the body before. What
+// she feels right after (interoception.js) teaches immediately. But a bite
+// can also disagree with her later: if in the following seconds the
+// need it was meant to relieve shoots up to critical, or if Fagi dies with
+// it in her body, the episode closes with a punishment.
 //
-// Solo hay un episodio pendiente a la vez. Abrir otro cierra el anterior sin
-// más: dos bocados seguidos no pueden cargar los dos con el mismo susto.
+// There is only one pending episode at a time. Opening another closes the previous one
+// outright: two bites in a row can't both carry the same scare.
 
 import { FEEL, NEEDS, HUNGER, THIRST, PHERO } from './config.js';
 import { learn } from './brain.js';
@@ -15,23 +15,23 @@ import { snapshotBody, feel } from './interoception.js';
 
 const NEED_OF = { eat: 'hunger', drink: 'thirst' };
 
-// Fracción de una necesidad, leída de un cuerpo cualquiera (el de antes o el
-// de ahora): así se puede comparar sin confundir el uno con el otro.
+// Fraction of a need, read from any body (the one from before or the
+// one from now): that way they can be compared without mixing one up with the other.
 function needU(body, need) {
   return need === 'thirst' ? body.thirst / THIRST.max : body.hunger / HUNGER.max;
 }
 
-// learn() ya se ocupa de todo: ajusta la creencia y, si toca, escribe o
-// revisa la regla. Aquí solo se le pasan las sensaciones que la explican.
+// learn() already handles everything: it adjusts the belief and, when due, writes or
+// revises the rule. Here we only pass it the sensations that explain it.
 function learnFrom(fagi, key, reward, sensations) {
   return learn(fagi.brain, key, reward, fagi.age, sensations);
 }
 
-// Abre un episodio y enseña de inmediato lo que sintió. `before` es la foto del
-// cuerpo antes de comer o de empezar a beber.
+// Opens an episode and immediately teaches what she felt. `before` is the snapshot of the
+// body before eating or starting to drink.
 export function openEpisode(fagi, { action, key, before }) {
   const previous = fagi.episode;
-  if (previous) close(fagi, previous, null);   // el susto, si viene, es del nuevo
+  if (previous) close(fagi, previous, null);   // the scare, if it comes, belongs to the new one
 
   const need = NEED_OF[action] ?? 'hunger';
   const ep = {
@@ -39,9 +39,9 @@ export function openEpisode(fagi, { action, key, before }) {
     action, key, need,
     at: fagi.age,
     before,
-    // Si YA venía crítica antes del bocado, el mal desenlace no es sorpresa:
-    // la interocepción inmediata ya lo enseñó. Solo se castiga en diferido
-    // cuando el bocado la deja cruzando el umbral que antes no cruzaba.
+    // If the need was ALREADY critical before the bite, the bad outcome is no surprise:
+    // immediate interoception already taught it. Delayed punishment only applies
+    // when the bite leaves her crossing the threshold she wasn't crossing before.
     critAt: needU(before, need) >= NEEDS.critical,
     reward: 0,
     sensations: [],
@@ -50,7 +50,7 @@ export function openEpisode(fagi, { action, key, before }) {
     pending: true,
   };
 
-  // Beber se juzga después, cuando ya haya bebido un rato (o al salir del agua).
+  // Drinking is judged later, once she has been drinking a while (or on leaving the water).
   if (action !== 'drink') feelNow(fagi, ep);
 
   fagi.episode = ep;
@@ -66,15 +66,15 @@ function feelNow(fagi, ep) {
   ep.change = learnFrom(fagi, ep.key, reward, sensations);
 }
 
-// El tiempo pasa: comprueba si el episodio pendiente ya se puede cerrar.
+// Time passes: checks whether the pending episode can be closed yet.
 export function resolveEpisodes(fagi, dt) {
   const ep = fagi.episode;
   if (!ep) return;
 
   if (ep.action === 'drink') {
-    // Pasar por el vado sin pararse (rodeando el agua, de camino a otra cosa)
-    // moja las patas y quita un poco de sed, pero no es beber: si se juzgara,
-    // el sorbo de paso enseñaría que el agua apenas quita sed.
+    // Crossing the shallows without stopping (skirting the water, on the way to something else)
+    // wets her legs and eases a little thirst, but it isn't drinking: if it were judged,
+    // the passing sip would teach that water barely quenches thirst.
     if (fagi.thought?.action === 'drink') ep.stopped = true;
     if (!fagi.drinking && !ep.stopped) { close(fagi, ep, null); return; }
     const enough = fagi.age - ep.at >= FEEL.drinkSample || !fagi.drinking;
@@ -92,17 +92,17 @@ export function resolveEpisodes(fagi, dt) {
 
   if (fagi.age - ep.at < FEEL.window) return;
 
-  // Mal desenlace: venía a calmar una necesidad y acabó crítica en la ventana.
-  const nowCritical = needU(fagi, ep.need) >= NEEDS.critical;   // fagi = cuerpo AHORA
+  // Bad outcome: it was meant to relieve a need and the need ended up critical within the window.
+  const nowCritical = needU(fagi, ep.need) >= NEEDS.critical;   // fagi = body NOW
   const correction = !ep.critAt && nowCritical ? -FEEL.perilWeight : null;
   close(fagi, ep, correction);
 }
 
-// Seguir su propio rastro también es una experiencia, y se juzga por cómo
-// acaba: si en PHERO.learnWindow segundos recoge o come algo, el rastro llevó a
-// comida; si no, no llevó a nada. Si lo deja porque algo más urgente manda
-// (sed, hambre crítica), no se juzga: no es culpa del rastro.
-// Se llama después de actuar, cuando ya se sabe si recogió o comió.
+// Following her own trail is also an experience, and it's judged by how it
+// ends: if within PHERO.learnWindow seconds she picks up or eats something, the trail led to
+// food; if not, it led nowhere. If she drops it because something more urgent takes over
+// (thirst, critical hunger), it isn't judged: that's not the trail's fault.
+// Called after acting, once we know whether she picked up or ate.
 export function resolveTrail(fagi) {
   const food = (fagi.picked ?? 0) + fagi.eaten;
   const following = fagi.thought?.action === 'pheromone';
@@ -123,7 +123,7 @@ export function resolveTrail(fagi) {
   }
 }
 
-// Morir con un bocado reciente en el cuerpo es la peor lección posible.
+// Dying with a recent bite in her body is the worst possible lesson.
 export function closeOnDeath(fagi) {
   const ep = fagi.episode;
   if (!ep) return null;

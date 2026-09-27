@@ -1,29 +1,29 @@
-// El mapa del cerebro: cómo está pensando Fagi AHORA MISMO, paso a paso, y
-// cómo lo que ha aprendido entra en esa cuenta.
+// The brain map: how Fagi is thinking RIGHT NOW, step by step, and
+// how what she has learned enters into that reckoning.
 //
-//   1. Siente    — el cuerpo: hambre, sed, energía y los efectos que lleva.
-//   2. Percibe   — lo que ve, huele o recuerda, con su puntuación desglosada
-//      y puntúa    (creencia + curiosidad + necesidad + distancia) frente al
-//                  mínimo que hace falta para moverse.
-//      Recuerda  — la memoria aprendida de cada cosa: su peso frente a los
-//                  umbrales que la convierten en regla, cuánto se fía, en qué
-//                  etapa está (corta, media, larga) y la regla escrita si la hay.
-//   3. Instinto  — los escalones de la directiva de sobrevivir, en orden; el
-//                  primero que contesta manda.
-//   4. Decide    — la acción, su porqué, y si algo nuevo le hizo replantearse.
-//   5. Aprende   — la última experiencia: qué probó, qué sintió, cómo movió
-//                  la creencia y qué regla escribió o revisó.
-//   6. Red       — las neuronas y sus sinapsis, con la señal que corre ahora.
-//   7. Mapa      — lo que recuerda del sitio: por dónde ha pasado, dónde cree
-//      mental      que están el agua y el árbol, y su casa.
+//   1. Feel      — the body: hunger, thirst, energy and the effects she carries.
+//   2. Perceive  — what she sees, smells or remembers, with its score broken down
+//      and score   (belief + curiosity + need + distance) against the
+//                  minimum needed to move.
+//      Remember  — the learned memory of each thing: its weight against the
+//                  thresholds that turn it into a rule, how much she trusts it, which
+//                  stage it's at (short, medium, long) and the written rule if any.
+//   3. Instinct  — the tiers of the survive directive, in order; the
+//                  first one that answers wins.
+//   4. Decide    — the action, its why, and whether something new made her reconsider.
+//   5. Learn     — the last experience: what she tried, what she felt, how it moved
+//                  the belief and which rule she wrote or revised.
+//   6. Network   — the neurons and their synapses, with the signal running now.
+//   7. Mental    — what she remembers of the place: where she has been, where she
+//      map         thinks the water and the tree are, and her home.
 //
-// No calcula nada que no esté ya calculado: lee fagi.thought (decision.js),
-// fagi.brain (memory.js, learned/) y fagi.lastEpisode (episodes.js). El alto
-// del lienzo sale de lo que hay que dibujar; el panel hace scroll.
+// It computes nothing that isn't already computed: it reads fagi.thought (decision.js),
+// fagi.brain (memory.js, learned/) and fagi.lastEpisode (episodes.js). The canvas
+// height comes from what needs drawing; the panel scrolls.
 //
-// Aquí solo vive el panel (tamaño, ampliar, la línea de estado) y el orden de
-// las secciones; cada sección se pinta en su módulo de brainmap/, con los
-// pinceles comunes de brainmap/pinceles.js.
+// Only the panel lives here (size, expand, the status line) and the order of
+// the sections; each section is painted in its own brainmap/ module, with the
+// shared brushes from brainmap/brushes.js.
 
 import { t } from './i18n.js';
 import { createBrushes } from './brainmap/brushes.js';
@@ -39,12 +39,12 @@ export function createBrainMap(canvas, statusEl, expandBtn) {
   if (!canvas) return { update() {} };
   const brushes = createBrushes(canvas);
 
-  // Ampliar: el panel entero pasa a ocupar casi toda la pantalla.
+  // Expand: the whole panel takes up almost the entire screen.
   const pane = canvas.closest('.pane');
   function big(si) {
     pane?.classList.toggle('brainmap-big', si);
     if (!expandBtn) return;
-    expandBtn.dataset.i18n = si ? 'brainmap.close' : 'brainmap.expand';   // bindDom lo retraduce
+    expandBtn.dataset.i18n = si ? 'brainmap.close' : 'brainmap.expand';   // bindDom re-translates it
     expandBtn.textContent = t(expandBtn.dataset.i18n);
   }
   function closeBig() { if (pane?.classList.contains('brainmap-big')) big(false); }
@@ -66,8 +66,8 @@ export function createBrainMap(canvas, statusEl, expandBtn) {
     });
   }
 
-  // Las siete secciones, una debajo de otra: cada una empieza donde acabó la
-  // anterior y devuelve dónde acaba ella. El total es el alto del lienzo.
+  // The seven sections, one below another: each starts where the previous
+  // one ended and returns where it ends. The total is the canvas height.
   function everything(fagi, worldState) {
     brushes.begin();
     let y = 12 * brushes.s;
@@ -82,11 +82,11 @@ export function createBrainMap(canvas, statusEl, expandBtn) {
 
   function update(fagi, world = null) {
     state(fagi);
-    if (!canvas.getBoundingClientRect().width) return;   // panel plegado u oculto
+    if (!canvas.getBoundingClientRect().width) return;   // panel collapsed or hidden
     if (brushes.cssW === 0) brushes.adjust(200);
     const tall = everything(fagi, world);
-    // El alto cambió (más creencias, más neuronas): redimensionar borra el
-    // lienzo, así que se vuelve a pintar en el mismo fotograma.
+    // The height changed (more beliefs, more neurons): resizing clears the
+    // canvas, so it's painted again in the same frame.
     if (brushes.adjust(Math.ceil(tall))) everything(fagi, world);
   }
 

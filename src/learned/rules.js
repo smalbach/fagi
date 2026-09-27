@@ -1,11 +1,11 @@
-// El conjunto de reglas que Fagi lleva escritas en la cabeza. Vive en
-// `fagi.brain.rules`, junto a las creencias de `memory.js` de las que salen.
+// The set of rules Fagi carries written in her head. It lives in
+// `fagi.brain.rules`, next to the beliefs from `memory.js` they come from.
 //
-// Aquí no se decide NADA de contenido: eso lo hace `synth.js`, mirando lo que
-// pesa cada creencia. Este archivo solo guarda la lista, la consulta
-// (`verdict`) y la mantiene sana: una regla que lanza un error al evaluarse se
-// pone en cuarentena y deja de contar, para que un fallo de una regla nunca
-// tumbe el fotograma.
+// NOTHING about content is decided here: `synth.js` does that, looking at how much
+// each belief weighs. This file only stores the list, queries it
+// (`verdict`) and keeps it healthy: a rule that throws an error when evaluated is
+// quarantined and stops counting, so that one rule's failure never
+// brings down the frame.
 
 import { BRAIN, LEARN } from '../config.js';
 import { curious } from '../memory.js';
@@ -38,7 +38,7 @@ export function retireRule(rules, r, age) {
   if (!r || r.retired) return r;
   const retiredOne = { ...r, retired: true, retiredAt: age };
   upsertRule(rules, retiredOne);
-  // Historial acotado: se descartan las retiradas más viejas, no las activas.
+  // Bounded history: the oldest retired rules are dropped, never the active ones.
   const retiredList = rules.list.filter((x) => x.retired).sort((a, b) => a.retiredAt - b.retiredAt);
   const extra = retiredList.length - LEARN.maxRetired;
   if (extra > 0) {
@@ -53,10 +53,10 @@ export function quarantine(rules, id) {
   rules.seq += 1;
 }
 
-// ¿Qué dicen las reglas aprendidas sobre usar `key` para `scope`? 'avoid',
-// 'prefer' o null si no hay ninguna que se pronuncie. Cada regla se evalúa
-// aislada: una que lanza se pone en cuarentena y no vuelve a contar hasta que
-// se la reescriba.
+// What do the learned rules say about using `key` for `scope`? 'avoid',
+// 'prefer' or null if none has an opinion. Each rule is evaluated in
+// isolation: one that throws is quarantined and doesn't count again until
+// it's rewritten.
 export function verdict(fagi, scope, key, { deliberate = false } = {}) {
   const rules = fagi.brain.rules;
   let result = null;
@@ -70,8 +70,8 @@ export function verdict(fagi, scope, key, { deliberate = false } = {}) {
       quarantine(rules, r.id);
     }
   }
-  // La curiosidad es instinto, no una regla: probar a propósito algo que se
-  // cree malo sigue permitido mientras no se haya agotado la curiosidad.
+  // Curiosity is instinct, not a rule: deliberately trying something she
+  // believes is bad is still allowed as long as curiosity isn't used up.
   if (result === 'avoid' && scope === 'eat' && deliberate && curious(fagi.brain, key, BRAIN.curiosityTries)) {
     return null;
   }

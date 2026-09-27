@@ -1,4 +1,4 @@
-// 4. Decide — la acción, su porqué, y si algo nuevo le hizo replantearse.
+// 4. Decide — the action, its why, and whether something new made her reconsider.
 
 import { t, tx } from '../i18n.js';
 import { TAG_COLOR, rethinkLine, legLine } from '../narrator.js';
@@ -20,7 +20,7 @@ export function paintDecide(brushes, fagi, y) {
   text(tx(th.reason), pad, y, { size: 9.5, color: TEXT, maxW: W - pad * 2 });
   y += lineH * 0.9;
 
-  // Si algo nuevo le hizo replantearse lo que estaba haciendo.
+  // Whether something new made her reconsider what she was doing.
   const r = th.rethink ?? fagi.rethink;
   const line = r ? rethinkLine(r, th) : null;
   if (line) {
@@ -34,7 +34,7 @@ export function paintDecide(brushes, fagi, y) {
   }
   y += lineH * 0.9;
 
-  // Explorando: por qué tramo va y por qué lo eligió.
+  // Exploring: which leg she's on and why she chose it.
   if (th.action === 'explore' && fagi.legChoice) {
     const l = legLine(fagi.legChoice);
     text(`${t('word.leg')} ${fagi.exploreLegs ?? ''} · ${tx(l.text)} · ${tx(l.detail)}`, pad, y,

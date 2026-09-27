@@ -1,15 +1,15 @@
-// Persistencia de lo aprendido: creencias, reglas, qué le hizo sentir cada
-// cosa (sinapsis concepto→sensación) y cuánto dura un charco. Nunca las demás
-// cosas del estado de Fagi (posición, hambre, lo que lleva encima...), ni lo
-// que es de un mapa concreto (sitios recordados, lo explorado).
+// Persistence of what was learned: beliefs, rules, what each thing made her
+// feel (concept→sensation synapses) and how long a puddle lasts. Never the rest
+// of Fagi's state (position, hunger, what she's carrying...), nor anything
+// that belongs to a specific map (remembered places, what's been explored).
 //
-// El autoguardado y el módulo exportado llevan exactamente lo mismo. Vive solo en el
-// navegador de quien juega: localStorage para guardar una copia recuperable
-// entre partidas, y exportar/importar el módulo de código para llevárselo a
-// otra sesión.
+// Autosave and the exported module carry exactly the same thing. It lives only in the
+// player's browser: localStorage to keep a recoverable copy
+// between games, and export/import of the code module to take it to
+// another session.
 //
-// Nace sin saber nada (memory.js, brain.js): nada de esto se carga sola. Es
-// un gesto explícito, "Recuperar lo aprendido", nunca automático al nacer.
+// She's born knowing nothing (memory.js, brain.js): none of this loads by itself. It's
+// an explicit action, "Recover what was learned", never automatic at birth.
 
 import { modernize } from '../legacy.js';
 import { LEARN } from '../config.js';
@@ -17,9 +17,9 @@ import { renderModule, parseModule } from './dsl.js';
 
 const KEY = 'fagi.learning';
 
-// Una foto de lo aprendido, lista para guardar o exportar.
-// Las conexiones que deja aprender por consecuencias (concepto→sensación),
-// redondeadas: las de percibir (Hebb) se rehacen solas al volver a ver.
+// A snapshot of what was learned, ready to save or export.
+// The connections left by learning from consequences (concept→sensation),
+// rounded: the perception ones (Hebb) rebuild themselves on seeing again.
 function learnedSynapses(fagi) {
   const outside = {};
   for (const [id, s] of Object.entries(fagi.brain.synapses ?? {})) {
@@ -36,10 +36,10 @@ export function snapshot(fagi) {
     age: fagi.age,
     facts: fagi.brain.facts,
     rules: fagi.brain.rules.list,
-    // Solo las conexiones aprendidas por consecuencias: las de percibir se
-    // rehacen solas en cuanto vuelve a ver las cosas.
+    // Only the connections learned from consequences: the perception ones
+    // rebuild themselves as soon as she sees things again.
     synapses: learnedSynapses(fagi),
-    // Cuánto cree que dura un charco: no depende del mapa, vale para la próxima.
+    // How long she thinks a puddle lasts: it doesn't depend on the map, it holds for the next one.
     puddleLife: fagi.brain.puddleLife ?? null,
   };
 }
@@ -65,10 +65,10 @@ export function hasSnapshot(storage = safeStorage()) {
   return Boolean(load(storage));
 }
 
-// Sustituye lo que Fagi cree y las reglas que tiene escritas por lo del
-// snapshot. No toca nada más: ni posición, ni necesidades, ni lo que lleva
-// encima. Las confirmaciones espaciadas se reinician (lastAt: -Infinity) para
-// que la primera confirmación de la nueva partida no cuente como "seguida".
+// Replaces what Fagi believes and the rules she has written with those from the
+// snapshot. It touches nothing else: not position, not needs, not what she's
+// carrying. Spaced confirmations are reset (lastAt: -Infinity) so that
+// the first confirmation in the new game doesn't count as "back-to-back".
 export function restore(fagi, saved) {
   const snap = modernize(saved);
   const facts = {};
@@ -89,8 +89,8 @@ export function exportText(fagi) {
   });
 }
 
-// Lee un archivo importado y, si es válido, sustituye lo aprendido. Lanza con
-// un motivo legible si no lo es; en ese caso no toca la memoria de Fagi.
+// Reads an imported file and, if valid, replaces what was learned. Throws with
+// a readable reason if it isn't; in that case it doesn't touch Fagi's memory.
 export function importText(fagi, text) {
   const { rules, facts, puddleLife, synapses } = parseModule(text);
   restore(fagi, { facts, rules, puddleLife, synapses });
@@ -105,7 +105,7 @@ export function wipe(fagi, storage = safeStorage()) {
   fagi.brain.rules.quarantined = new Set();
   fagi.brain.rules.seq += 1;
   fagi.brain.lastRule = null;
-  if (storage) { try { storage.removeItem(KEY); } catch { /* nada que borrar */ } }
+  if (storage) { try { storage.removeItem(KEY); } catch { /* nothing to delete */ } }
 }
 
 function safeStorage() {
@@ -113,10 +113,10 @@ function safeStorage() {
   catch { return null; }
 }
 
-// Guarda solo de vez en cuando: cada LEARN.autosaveEvery segundos simulados, y
-// también cuando algo importante lo pide (morir, cerrar la pestaña). `fagi`
-// lleva su propio contador (fagi.saveIn), no uno global de módulo: así cada
-// Fagi es independiente y los tests no heredan cuenta atrás de otra prueba.
+// Saves only every so often: every LEARN.autosaveEvery simulated seconds, and
+// also when something important asks for it (dying, closing the tab). `fagi`
+// carries her own counter (fagi.saveIn), not a module-global one: that way each
+// Fagi is independent and tests don't inherit a countdown from another test.
 export function autoSave(fagi, dt, storage = safeStorage()) {
   if (!LEARN.autosave) return;
   fagi.saveIn = (fagi.saveIn ?? LEARN.autosaveEvery) - dt;

@@ -1,17 +1,17 @@
-// El aprendiz: convierte lo que pesa una creencia en una línea de código.
+// The learner: turns how much a belief weighs into a line of code.
 //
-// No inventa nada que memory.js no sepa ya: mira `weight(brain, key)` después
-// de cada `learn()` y decide si hace falta escribir, revisar o retirar una
-// regla. Los umbrales de entrada y salida son distintos (histéresis) para que
-// una creencia rondando el límite no encienda y apague la regla cada frame.
+// It invents nothing memory.js doesn't already know: it looks at `weight(brain, key)` after
+// each `learn()` and decides whether a rule needs to be written, revised or
+// retired. The entry and exit thresholds differ (hysteresis) so that
+// a belief hovering at the limit doesn't switch the rule on and off every frame.
 
 import { LEARN, POINT_TYPES } from '../config.js';
 import { weight } from '../memory.js';
 import { activeRule, retireRule, upsertRule } from './rules.js';
 
 const SCOPE = { avoid: ['eat', 'store', 'pursue'], prefer: ['eat', 'store'] };
-// Lo que no se come (el hondo, la lluvia, la bajada de presión, el agua, los
-// charcos) solo se persigue o se evita: una regla suya no habla de comer.
+// What isn't eaten (deep water, rain, the pressure drop, water,
+// puddles) is only pursued or avoided: a rule about it says nothing about eating.
 const scope = (key, verdict) => (POINT_TYPES[key] ? SCOPE[verdict] : ['pursue']);
 const PREFIJO = { avoid: 'avoid', prefer: 'prefer' };
 const OPPOSITE = { avoid: 'prefer', prefer: 'avoid' };
@@ -38,15 +38,15 @@ function because0(sensations) {
   return sensations && sensations.length ? sensations : [{ sense: 'contradiction', v: 0 }];
 }
 
-// El olvido también cambia lo que pesa una creencia: la confianza cae sola
-// (memory.decayMemory) y con ella el peso. Sin esto, el `weight` y la `stage`
-// escritos en cada regla se quedaban en los del último aprendizaje sobre esa
-// clave, hasta 0,3 por encima del peso real al cabo de una hora.
+// Forgetting also changes how much a belief weighs: confidence drops on its own
+// (memory.decayMemory) and the weight with it. Without this, the `weight` and `stage`
+// written in each rule stayed at those of the last learning about that
+// key, up to 0.3 above the real weight after an hour.
 //
-// Solo refresca lo que la regla CUENTA de la creencia; no la retira. Que una
-// regla se retire es cosa de aprender lo contrario (synthAfterLearn): lo que
-// cae con el tiempo es la confianza, no lo aprendido, y MEMORY.floor mantiene
-// el poso. Un susto fuerte (el hondo) deja su regla para siempre a propósito.
+// It only refreshes what the rule SAYS about the belief; it doesn't retire it. A
+// rule gets retired by learning the opposite (synthAfterLearn): what
+// drops over time is confidence, not what was learned, and MEMORY.floor keeps
+// the residue. A big scare (deep water) leaves its rule forever, on purpose.
 export function refreshRules(brain) {
   for (const r of brain.rules.list) {
     if (r.retired) continue;
@@ -58,9 +58,9 @@ export function refreshRules(brain) {
   }
 }
 
-// Se llama desde brain.js, tras CADA learn() (bocado, corrección diferida,
-// muerte): así no hay ningún camino de aprendizaje que se olvide de escribir
-// código. `cambio` es lo que devolvió reinforce(): {before, after, kind}.
+// Called from brain.js, after EVERY learn() (bite, delayed correction,
+// death): that way no learning path forgets to write
+// code. `change` is what reinforce() returned: {before, after, kind}.
 export function synthAfterLearn(brain, key, change, sensations, now) {
   const rules = brain.rules;
   const w = weight(brain, key);
@@ -74,7 +74,7 @@ export function synthAfterLearn(brain, key, change, sensations, now) {
     const existing = activeRule(rules, key, verdict);
 
     if (signo * w >= enters) {
-      // Retira la contraria si la hubiera: no se puede evitar y preferir lo mismo.
+      // Retire the opposite one if any: she can't avoid and prefer the same thing.
       const opposite = activeRule(rules, key, OPPOSITE[verdict]);
       if (opposite) {
         retireRule(rules, opposite, now);

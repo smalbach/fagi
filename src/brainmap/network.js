@@ -1,7 +1,7 @@
-// 6. Red neuronal — neuronas en tres capas, como un cerebro de verdad:
-// sentidos → conceptos → lo que el cuerpo sintió, los sitios que recuerda y
-// las reglas escritas. Cada línea es una sinapsis; su grosor, la fuerza. Las
-// que acaban de formarse brillan; por las que están activas ahora corre la señal.
+// 6. Neural network — neurons in three layers, like a real brain:
+// senses → concepts → what the body felt, the places she remembers and
+// the written rules. Each line is a synapse; its thickness, the strength. The
+// ones just formed glow; the signal runs along the ones active right now.
 
 import { specOf, TREE } from '../config.js';
 import { labelOf, t } from '../i18n.js';
@@ -21,8 +21,8 @@ export function paintNetwork(brushes, fagi, y) {
   header(6, t('brainmap.sec.network'), y, W, pad);
   y += 16 * s;
 
-  // Qué neuronas existen: las que tienen alguna conexión o alguna creencia.
-  // Antenas y presión solo aparecen cuando ya han conectado con algo.
+  // Which neurons exist: those with some connection or some belief.
+  // Antennae and pressure only appear once they have wired to something.
   const senses = ['sight', 'smell', 'memory'];
   for (const k of ['antennae', 'pressure']) {
     if (syn.some((x) => x.a === `sense:${k}`)) senses.push(k);
@@ -67,7 +67,7 @@ export function paintNetwork(brushes, fagi, y) {
   listC.forEach((k, i) => { pos[`key:${k}`] = { x: x2, y: yCol(i, listC.length) }; });
   right.forEach((d, i) => { pos[d.id] = { x: x3, y: yCol(i, right.length) }; });
 
-  // Qué está disparando ahora mismo.
+  // What's firing right now.
   const activeOnes = new Set();
   for (const c of th.ranked ?? []) { activeOnes.add(`sense:${c.via}`); activeOnes.add(`key:${c.key}`); }
   if (fagi.probing) activeOnes.add('sense:antennae');
@@ -80,7 +80,7 @@ export function paintNetwork(brushes, fagi, y) {
     for (const x of ep.sensations ?? []) activeOnes.add(`feel:${x.sense}`);
   }
 
-  // Todas las conexiones a dibujar, las derivadas incluidas.
+  // All connections to draw, derived ones included.
   const edges = syn.map((x) => ({ a: x.a, b: x.b, w: x.w, kind: x.kind, born: x.born }));
   for (const [k, p] of Object.entries(places)) {
     edges.push({ a: `key:${placeConcept(k)}`, b: `place:${k}`, w: p.confidence ?? 0.5, kind: 'place', born: p.born ?? -99 });
@@ -114,7 +114,7 @@ export function paintNetwork(brushes, fagi, y) {
     const c = curve(a, b);
     const force = Math.min(1, Math.abs(e.w));
     const age = now - (e.born ?? -99);
-    // recién formada: un halo que se apaga en unos segundos
+    // freshly formed: a halo that fades in a few seconds
     if (age >= 0 && age < 4) {
       g.beginPath();
       g.moveTo(c[0], c[1]);
@@ -135,7 +135,7 @@ export function paintNetwork(brushes, fagi, y) {
     g.stroke();
     g.setLineDash([]);
     g.globalAlpha = 1;
-    // la señal que corre por las sinapsis activas
+    // the signal running along the active synapses
     if (activeOnes.has(e.a) && activeOnes.has(e.b) || (e.a === `key:${winner}` && e.kind !== 'hebb')) {
       for (let k = 0; k < 2; k++) {
         const u = ((clock * (0.5 + force * 0.6)) + k * 0.5 + (e.a.length % 7) / 7) % 1;
@@ -148,7 +148,7 @@ export function paintNetwork(brushes, fagi, y) {
     }
   }
 
-  // Las neuronas, encima de sus conexiones.
+  // The neurons, on top of their connections.
   const neuron = (id, color, label, sideOf, ring = null) => {
     const p = pos[id];
     if (!p) return;
@@ -193,7 +193,7 @@ export function paintNetwork(brushes, fagi, y) {
   }
 
   y += tall + 12 * s;
-  // Leyenda
+  // Legend
   const marksOf = [
     ['#6fa8dc', t('brainmap.leg.hebb')],
     [GREEN, t('brainmap.leg.good')],

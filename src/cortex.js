@@ -1,8 +1,8 @@
-// El córtex: hace de intermediario con la API de decisión externa sin tocar
-// el ritmo del bucle. Nunca se espera a la respuesta — el instinto sigue
-// decidiendo mientras tanto — y cuando llega (si llega, y a tiempo) se
-// convierte en una directiva con fecha de caducidad que decision.js puede
-// consultar como una regla más.
+// The cortex: acts as the go-between with the external decision API without
+// touching the loop's rhythm. It never waits for the answer — instinct keeps
+// deciding meanwhile — and when it arrives (if it arrives, and in time) it
+// becomes a directive with an expiry date that decision.js can
+// consult like one more rule.
 
 import { BACKEND } from './config.js';
 import { observe } from './observation.js';
@@ -13,17 +13,17 @@ export function createCortex(backend) {
   return {
     backend,
     inflight: false,
-    gen: 0,           // se sube al morir o reiniciar: invalida una respuesta que llegue tarde
+    gen: 0,           // bumped on death or restart: invalidates an answer that arrives late
     lastAt: -Infinity,
     seenKeys: new Set(),
     lastEpisodeN: 0,
     idleFor: 0,
     wasApremiando: false,
-    calls: 0,          // cuántas veces ha preguntado, para el HUD y los tests
+    calls: 0,          // how many times it has asked, for the HUD and the tests
   };
 }
 
-// Al morir o reiniciar: lo que esté en vuelo deja de contar.
+// On death or restart: whatever is in flight stops counting.
 export function resetCortex(cortex) {
   if (!cortex) return;
   cortex.gen += 1;
@@ -34,9 +34,9 @@ export function resetCortex(cortex) {
   cortex.wasApremiando = false;
 }
 
-// ¿Hay algo que justifique preguntar ahora? Una clave que no había visto, algo
-// nuevo en lo que percibe, una experiencia recién cerrada, empezar a apurar,
-// llevar mucho explorando sin más, o quedarse sin directiva.
+// Is there anything that justifies asking now? A key she hadn't seen, something
+// new in what she perceives, a freshly closed experience, starting to get pressed,
+// having explored aimlessly for a long time, or being left without a directive.
 function shouldAsk(cortex, fagi, ctx) {
   let newKey = false;
   for (const c of ctx.ranked) {
@@ -51,8 +51,8 @@ function shouldAsk(cortex, fagi, ctx) {
   cortex.wasApremiando = pressingNow;
   if (fagi.lastEpisode) cortex.lastEpisodeN = fagi.lastEpisode.n;
 
-  // Algo nuevo en lo que percibe (no solo un tipo nuevo): la directiva vigente
-  // se pensó sin eso, así que se vuelve a preguntar con la situación de ahora.
+  // Something new in what she perceives (not just a new kind): the current directive
+  // was thought up without it, so we ask again with the situation as it is now.
   const hasNews = (ctx.newOnes?.length ?? 0) > 0;
 
   return newKey || newEpisode || pressingRises || idleTooLong || noDirective || hasNews;
@@ -63,8 +63,8 @@ export function updateCortex(cortex, fagi, world, ctx, dt) {
 
   cortex.idleFor = fagi.thought?.action === 'explore' ? cortex.idleFor + dt : 0;
 
-  // La directiva vencida se olvida: mientras no llegue otra, decide el
-  // instinto, no una orden caducada.
+  // An expired directive is forgotten: until another arrives, instinct
+  // decides, not a stale order.
   if (fagi.directive && fagi.age >= fagi.directive.until) fagi.directive = null;
 
   const needed = shouldAsk(cortex, fagi, ctx);
@@ -84,7 +84,7 @@ export function updateCortex(cortex, fagi, world, ctx, dt) {
 
 function applySets(cortex, fagi, gen, response, observation, refs, byId) {
   cortex.inflight = false;
-  // Llegó tarde: Fagi murió, reinició, o ya va por otra generación. Se tira.
+  // It arrived late: Fagi died, restarted, or is already on another generation. Discard it.
   if (gen !== cortex.gen || !fagi.alive) return;
 
   const validate = validateIntention(response, observation);

@@ -1,11 +1,11 @@
-// 2. Percibe y puntúa · Recuerda.
+// 2. Perceive and score · Remember.
 //
-//   Percibe   — lo que ve, huele o recuerda, con su puntuación desglosada
-//     y puntúa  (creencia + curiosidad + necesidad + distancia) frente al
-//               mínimo que hace falta para moverse.
-//   Recuerda  — la memoria aprendida de cada cosa: su peso frente a los
-//               umbrales que la convierten en regla, cuánto se fía, en qué
-//               etapa está (corta, media, larga) y la regla escrita si la hay.
+//   Perceive  — what she sees, smells or remembers, with its score broken down
+//    and score  (belief + curiosity + need + distance) against the
+//               minimum needed to move.
+//   Remember  — the learned memory of each thing: its weight against the
+//               thresholds that turn it into a rule, how much she trusts it, which
+//               stage it's at (short, medium, long) and the written rule if any.
 
 import { specOf, BRAIN, LEARN } from '../config.js';
 import { labelOf, t } from '../i18n.js';
@@ -25,8 +25,8 @@ export function paintPerceive(brushes, fagi, y) {
   const th = fagi.thought ?? {};
 
   y += 4 * s;
-  // Ancho de sobra: percibe a la izquierda y memoria a la derecha, unidas
-  // por líneas. Panel estrecho: una columna, la memoria debajo.
+  // Plenty of width: perceive on the left and memory on the right, joined
+  // by lines. Narrow panel: one column, memory below.
   const twoCols = W >= 460;
   const colL = pad;
   const colW = twoCols ? (W - pad * 2 - 22 * s) / 2 : W - pad * 2;
@@ -40,9 +40,9 @@ export function paintPerceive(brushes, fagi, y) {
   const rowH = 46 * s;
   const rowsL = Math.max(ranked.length, 1);
   const y0 = y;
-  // Dónde empieza la memoria: al lado, o debajo de lo percibido con su cabecera.
+  // Where memory starts: alongside, or below what's perceived, with its header.
   const y0R = twoCols ? y0 : y0 + rowsL * rowH + 20 * s;
-  // Dónde cae cada columna: lo comparten las filas y las líneas que las unen.
+  // Where each column falls: shared by the rows and the lines joining them.
   const grid = { twoCols, colL, colW, colR, rowH, y0, y0R, pad, winner: intentionKey(fagi) };
 
   const candPos = paintCandidates(brushes, fagi, th, ranked, grid);
@@ -54,13 +54,13 @@ export function paintPerceive(brushes, fagi, y) {
   return y + lineH;
 }
 
-// Lo percibido: una fila por candidato, con la suma de su puntuación.
+// What's perceived: one row per candidate, with the sum of its score.
 function paintCandidates(brushes, fagi, th, ranked, { colL, colW, rowH, y0, winner }) {
   const { g, s, text, box, chip } = brushes;
   const newOnes = new Set(th.news ?? []);
   const yRow = (i) => y0 + i * rowH;
 
-  // Hasta dónde llega una puntuación: la escala común a todas las barras.
+  // How far a score reaches: the scale shared by all the bars.
   const maxPos = Math.max(2.5, ...ranked.map((c) => Object.values(c.parts ?? {}).reduce((a, v) => a + Math.max(0, v), 0)));
   const maxNeg = Math.max(0.8, ...ranked.map((c) => -Object.values(c.parts ?? {}).reduce((a, v) => a + Math.min(0, v), 0)));
 
@@ -69,13 +69,13 @@ function paintCandidates(brushes, fagi, th, ranked, { colL, colW, rowH, y0, winn
   ranked.forEach((c, i) => {
     const yy = yRow(i);
     const color = specOf(c.key)?.color ?? DIM;
-    // En vivo se sabe a qué objeto va; en una repetición, solo de qué tipo.
+    // Live we know which object she's heading to; in a replay, only its kind.
     const isOwn = c.ref && fagi.target ? c.ref === fagi.target : c.key === winner;
     const wins = !winnerMarked && isOwn && (c.score ?? 0) > BRAIN.minScore;
     if (wins) winnerMarked = true;
     box(colL, yy + 2 * s, colW, rowH - 5 * s, 5 * s, wins ? '#262b38' : ROW_BG, wins ? '#e6e8ee' : null, 1.2);
 
-    // línea 1: qué es, si es nuevo, cuánto puntúa
+    // line 1: what it is, whether it's new, how much it scores
     g.beginPath();
     g.arc(colL + 10 * s, yy + 12 * s, 4 * s, 0, Math.PI * 2);
     g.fillStyle = color;
@@ -87,7 +87,7 @@ function paintCandidates(brushes, fagi, th, ranked, { colL, colW, rowH, y0, winn
     text((c.score ?? 0).toFixed(2), colL + colW - 6 * s, yy + 12 * s,
       { align: 'right', bold: true, color: passes ? TEXT : DIM });
 
-    // línea 2: la suma, parte a parte, frente al mínimo
+    // line 2: the sum, part by part, against the minimum
     const bx = colL + 8 * s;
     const bw = colW - 16 * s;
     const zero = bx + bw * (maxNeg / (maxNeg + maxPos));
@@ -104,11 +104,11 @@ function paintCandidates(brushes, fagi, th, ranked, { colL, colW, rowH, y0, winn
       if (v > 0) { g.fillRect(pos, by, w, bh); pos += w; } else { neg -= w; g.fillRect(neg, by, w, bh); }
     }
     g.fillStyle = '#e6e8ee';
-    g.fillRect(zero + BRAIN.minScore * k - 0.75, by - 2 * s, 1.5, bh + 4 * s);   // el mínimo
+    g.fillRect(zero + BRAIN.minScore * k - 0.75, by - 2 * s, 1.5, bh + 4 * s);   // the minimum
     g.fillStyle = '#10131a';
     g.fillRect(zero - 0.5, by, 1, bh);
 
-    // línea 3: por qué sentido y a qué distancia
+    // line 3: through which sense and at what distance
     const sense = t(`word.${SENSE[c.via] ?? 'eye'}`);
     text(`${sense} · ${Math.round(c.dist ?? 0)}px`, bx, yy + 36 * s, { size: 9, color: DIM, maxW: bw * 0.5 });
     const parts = Object.entries(c.parts ?? {}).filter(([, v]) => Math.abs(v) >= 0.05)
@@ -122,7 +122,7 @@ function paintCandidates(brushes, fagi, th, ranked, { colL, colW, rowH, y0, winn
   return candPos;
 }
 
-// Memoria: una fila por creencia.
+// Memory: one row per belief.
 function paintBeliefs(brushes, fagi, keysOf, { twoCols, colR, colW, rowH, y0R, winner }) {
   const { g, s, text, width, box, chip } = brushes;
   const yRowR = (i) => y0R + i * rowH;
@@ -137,7 +137,7 @@ function paintBeliefs(brushes, fagi, keysOf, { twoCols, colR, colW, rowH, y0R, w
     box(colR, yy + 2 * s, colW, rowH - 5 * s, 5 * s, used ? '#262b38' : ROW_BG,
       used ? '#e6e8ee' : recent ? PURPLE : null, used ? 1.2 : 1);
 
-    // línea 1: qué, y la regla que ya escribió sobre ello
+    // line 1: what, and the rule she already wrote about it
     g.beginPath();
     g.arc(colR + 10 * s, yy + 12 * s, 3 + r.confidence * 3 * s, 0, Math.PI * 2);
     g.fillStyle = color;
@@ -152,8 +152,8 @@ function paintBeliefs(brushes, fagi, keysOf, { twoCols, colR, colW, rowH, y0R, w
       text(signo(r.value), colR + colW - 6 * s, yy + 12 * s, { size: 9.5, align: 'right', color: DIM });
     }
 
-    // línea 2: el peso (lo que cree × lo que se fía) entre los dos umbrales
-    // que lo convierten en regla: evitar a la izquierda, preferir a la derecha.
+    // line 2: the weight (what she believes × how much she trusts it) between the two thresholds
+    // that turn it into a rule: avoid on the left, prefer on the right.
     const bx = colR + 8 * s;
     const bw = colW - 16 * s;
     const by = yy + 22 * s;
@@ -166,7 +166,7 @@ function paintBeliefs(brushes, fagi, keysOf, { twoCols, colR, colW, rowH, y0R, w
     if (w >= 0) g.fillRect(half, by, (bw / 2) * Math.min(1, w), bh);
     else g.fillRect(half + (bw / 2) * Math.max(-1, w), by, (bw / 2) * Math.min(1, -w), bh);
     g.globalAlpha = 1;
-    // lo que cree sin descontar la duda: el contorno
+    // what she believes without discounting doubt: the outline
     g.strokeStyle = r.value >= 0 ? GREEN : RED;
     g.lineWidth = 1;
     g.setLineDash([2, 2]);
@@ -180,7 +180,7 @@ function paintBeliefs(brushes, fagi, keysOf, { twoCols, colR, colW, rowH, y0R, w
     g.fillStyle = '#10131a';
     g.fillRect(half - 0.5, by, 1, bh);
 
-    // línea 3: etapa de memoria (corta → media → larga) y cuánto se fía
+    // line 3: memory stage (short → medium → long) and how much she trusts it
     const iStage = STAGE_NAMES.indexOf(r.stage);
     const segW = 9 * s;
     for (let e = 0; e < 3; e++) {
@@ -197,8 +197,8 @@ function paintBeliefs(brushes, fagi, keysOf, { twoCols, colR, colW, rowH, y0R, w
   return believedPos;
 }
 
-// Lo que percibe consulta lo que cree de eso mismo: la línea que los une.
-// En una columna solo se une el ganador, por el margen izquierdo.
+// What she perceives consults what she believes about that same thing: the line joining them.
+// In one column only the winner is joined, along the left margin.
 function join(brushes, candPos, believedPos, { twoCols, colL, pad }) {
   const { g } = brushes;
   for (const c of candPos) {
@@ -223,7 +223,7 @@ function join(brushes, candPos, believedPos, { twoCols, colL, pad }) {
   }
 }
 
-// Leyenda de las barras, una sola vez, saltando de línea si no cabe.
+// The bars' legend, just once, wrapping to a new line if it doesn't fit.
 function legend(brushes, y, colL, W, pad) {
   const { g, s, text, width } = brushes;
   const marksOf = [

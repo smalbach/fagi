@@ -1,7 +1,7 @@
-// El panel "Código aprendido": pinta el módulo tal y como lo escribe Fagi,
-// y da los cuatro gestos explícitos sobre él — recuperar de otra sesión,
-// exportarlo, importarlo, olvidarlo. Nada de esto pasa solo: aprender es
-// automático, pero llevarse lo aprendido a otra partida es una decisión.
+// The "Learned code" panel: paints the module exactly as Fagi writes it,
+// and offers the four explicit actions on it — recover from another session,
+// export it, import it, forget it. None of this happens on its own: learning is
+// automatic, but taking what was learned into another game is a decision.
 
 import { t, onLangChange } from '../i18n.js';
 import { exportText, importText, load, restore, wipe } from './store.js';
@@ -14,9 +14,9 @@ function readSavedBackend() {
   catch { return { kind: 'none', url: '' }; }
 }
 
-// `onBackendChange(kind, url)`: a quién avisar cuando la persona elige quién
-// decide. El panel solo guarda la preferencia; montar el backend de verdad es
-// cosa de quien lo llama (main.js), que es quien sabe crear el córtex.
+// `onBackendChange(kind, url)`: whom to notify when the person chooses who
+// decides. The panel only stores the preference; setting up the real backend is
+// up to the caller (main.js), which is the one that knows how to create the cortex.
 export function createLearnedPanel(fagi, { onBackendChange } = {}) {
   const el = {
     code: document.getElementById('learned-code'),
@@ -29,8 +29,8 @@ export function createLearnedPanel(fagi, { onBackendChange } = {}) {
     backend: document.getElementById('backend-select'),
     backendUrl: document.getElementById('backend-url'),
   };
-  // El marcado puede no estar (una página que solo prueba otra cosa): sin él
-  // no hay nada que pintar, pero tampoco hace falta romper.
+  // The markup may be missing (a page that only tests something else): without it
+  // there's nothing to paint, but no need to break either.
   if (!el.code) return { update() {} };
 
   let seenSeq = -1;
@@ -67,7 +67,7 @@ export function createLearnedPanel(fagi, { onBackendChange } = {}) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `fagi-aprendido-${Math.round(fagi.age)}s.js`;
+    a.download = `fagi-learned-${Math.round(fagi.age)}s.js`;
     a.click();
     URL.revokeObjectURL(url);
   });
@@ -94,9 +94,9 @@ export function createLearnedPanel(fagi, { onBackendChange } = {}) {
     paintRecover();
   });
 
-  // Quién decide: instinto solo, el emulador local, o una API de verdad.
-  // Se guarda en el navegador y se avisa a quien montó el panel para que
-  // arme (o desarme) el córtex de verdad.
+  // Who decides: instinct alone, the local emulator, or a real API.
+  // It's stored in the browser and whoever set up the panel is notified so it
+  // builds (or tears down) the actual cortex.
   if (el.backend) {
     const saved = readSavedBackend();
     el.backend.value = saved.kind;
@@ -107,7 +107,7 @@ export function createLearnedPanel(fagi, { onBackendChange } = {}) {
       const kind = el.backend.value;
       const url = el.backendUrl.value.trim();
       el.backendUrl.hidden = kind !== 'http';
-      try { localStorage.setItem(BACKEND_KEY, kind); localStorage.setItem(URL_KEY, url); } catch { /* sin localStorage, se queda en memoria */ }
+      try { localStorage.setItem(BACKEND_KEY, kind); localStorage.setItem(URL_KEY, url); } catch { /* no localStorage, it stays in memory */ }
       onBackendChange?.(kind, url);
     };
     el.backend.addEventListener('change', notifyChange);
@@ -119,12 +119,12 @@ export function createLearnedPanel(fagi, { onBackendChange } = {}) {
   paintCode();
 
   return {
-    // Repintar el código cada frame sería tirar CPU en vano: solo hace falta
-    // cuando algo cambió. rules.seq cuenta los cambios de reglas (y en una
-    // reproducción, cada foto de la mente); brain.version, todo lo demás que
-    // aprende: cada experiencia y el olvido, segundo a segundo.
-    // `de`: otra Fagi que enseñar en vez de la propia (la de una sesión que se
-    // reproduce). Cambiar de una a otra también obliga a repintar.
+    // Repainting the code every frame would waste CPU for nothing: it's only needed
+    // when something changed. rules.seq counts rule changes (and in a
+    // replay, each snapshot of the mind); brain.version, everything else she
+    // learns: each experience and forgetting, second by second.
+    // `de`: another Fagi to show instead of our own (the one from a session being
+    // replayed). Switching from one to the other also forces a repaint.
     update(de = fagi) {
       const version = de.brain.version ?? 0;
       if (de.brain.rules.seq === seenSeq && version === versionView && de === seen) return;

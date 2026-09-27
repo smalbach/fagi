@@ -1,6 +1,6 @@
-// Un backend de verdad: manda la observación por HTTP y espera una intención
-// de vuelta, con un límite de tiempo estricto. `fetch` se puede inyectar (los
-// tests no tocan la red); por defecto usa el global del entorno.
+// A real backend: sends the observation over HTTP and waits for an intention
+// back, with a strict time limit. `fetch` can be injected (the tests don't
+// touch the network); by default it uses the environment's global.
 
 import { BACKEND } from '../config.js';
 
@@ -20,7 +20,7 @@ export function createHttpBackend({ url, fetch = globalThis.fetch }) {
         if (!res.ok) return null;
         return await res.json();
       } catch {
-        return null;   // se cae, tarda o contesta basura: decide el instinto
+        return null;   // down, slow or answering garbage: instinct decides
       } finally {
         clearTimeout(limitOf);
       }

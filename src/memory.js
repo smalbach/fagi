@@ -1,17 +1,17 @@
-// La memoria de Fagi.
+// Fagi's memory.
 //
-// Copia tres cosas de los insectos de verdad:
+// It copies three things from real insects:
 //
-//   1. Un recuerdo tiene VALOR y CONFIANZA. El valor es lo aprendido; la
-//      confianza, cuánto se fía de ello. En las decisiones pesa el producto.
-//   2. Hay tres etapas: corta, media y larga. Se asciende repitiendo, pero solo
-//      cuentan las repeticiones ESPACIADAS: cinco bocados seguidos enseñan
-//      menos que cinco repartidos en el tiempo.
-//   3. Nada se borra: lo que cae es la confianza. Por eso un recuerdo olvidado
-//      puede volver a pesar en cuanto se confirma una vez.
+//   1. A memory has VALUE and CONFIDENCE. Value is what was learned;
+//      confidence, how much she trusts it. Decisions weigh the product.
+//   2. There are three stages: short, medium and long. It moves up through repetition, but only
+//      SPACED repetitions count: five bites in a row teach
+//      less than five spread out over time.
+//   3. Nothing is erased: what drops is confidence. That's why a forgotten memory
+//      can weigh again as soon as it's confirmed once.
 //
-// De los sitios se recuerda además "más o menos dónde": la posición se
-// difumina mientras no se vuelve a ver, así que hay que buscar al llegar.
+// For places she also remembers "roughly where": the position
+// blurs while she doesn't see it again, so she has to search on arrival.
 
 import { MEMORY } from './config.js';
 
@@ -22,10 +22,10 @@ function newMemoryEntry() {
   return { value: 0, confidence: 0, confirms: 0, lastAt: -Infinity, stage: 'short', tries: 0 };
 }
 
-// Nace sin saber nada: ni una creencia sobre nada de lo que hay en el mapa.
-// Cada clave se crea la primera vez que hace falta (recall, más abajo), no
-// antes. Tampoco carga sola lo guardado de otra partida: eso es un gesto
-// aparte, "Recuperar lo aprendido" (learned/store.js), no algo automático.
+// She's born knowing nothing: not a single belief about anything on the map.
+// Each key is created the first time it's needed (recall, below), not
+// before. Nor does it load what was saved from another game by itself: that's a separate
+// action, "Recover what was learned" (learned/store.js), not something automatic.
 export function createMemory() {
   return { facts: {}, places: {} };
 }
@@ -34,21 +34,21 @@ export function recall(mem, key) {
   return mem.facts[key] ?? (mem.facts[key] = newMemoryEntry());
 }
 
-// Lo que pesa un recuerdo al decidir. La confianza lo modula, no lo borra:
-// con la confianza a cero sigue quedando el poso de lo aprendido (MEMORY.floor).
+// How much a memory weighs when deciding. Confidence modulates it, it doesn't erase it:
+// with confidence at zero the residue of what was learned remains (MEMORY.floor).
 export function weight(mem, key) {
   const r = recall(mem, key);
   return r.value * (MEMORY.floor + (1 - MEMORY.floor) * r.confidence);
 }
 
-// Lo mismo, pero sin crear la creencia si aún no existe: para consultar algo
-// que quizá no ha vivido nunca (la lluvia, un charco) sin que aparezca como
-// "sin probar" entre lo que cree.
+// Same, but without creating the belief if it doesn't exist yet: to query something
+// she may never have experienced (rain, a puddle) without it showing up as
+// "untried" among what she believes.
 export function peekWeight(mem, key) {
   return mem.facts[key] ? weight(mem, key) : 0;
 }
 
-// ¿Le queda curiosidad por esto? La tiene si no lo ha probado o si ya no se fía.
+// Is she still curious about this? She is if she hasn't tried it or no longer trusts it.
 export function curious(mem, key, triesNeeded) {
   const r = recall(mem, key);
   return r.tries < triesNeeded || r.confidence < MEMORY.minConfidence;
@@ -64,7 +64,7 @@ function demote(r) {
   r.stage = STAGES[Math.max(0, i - 1)];
 }
 
-// Una experiencia nueva. `reward` es lo que sintió; `now`, la edad de Fagi.
+// A new experience. `reward` is what she felt; `now`, Fagi's age.
 export function reinforce(mem, key, reward, now, learnRate) {
   const r = recall(mem, key);
   const first = r.tries === 0;
@@ -73,7 +73,7 @@ export function reinforce(mem, key, reward, now, learnRate) {
 
   const before = { value: r.value, confidence: r.confidence, stage: r.stage };
 
-  // El valor se mueve siempre con la regla delta de toda la vida.
+  // Value always moves with the good old delta rule.
   r.value += learnRate * (reward - r.value);
   r.value = Math.min(1, Math.max(-1, r.value));
   r.tries += 1;
@@ -82,12 +82,12 @@ export function reinforce(mem, key, reward, now, learnRate) {
   if (first) {
     r.confidence = MEMORY.first;
   } else if (coherent) {
-    // Confirmación. Espaciada consolida; seguida apenas aporta.
+    // Confirmation. Spaced consolidates; back-to-back barely adds anything.
     const gain = MEMORY.gain * (spaced ? 1 : MEMORY.massedGain);
     r.confidence += gain * (1 - r.confidence);
     if (spaced) { r.confirms += 1; promote(r); }
   } else {
-    // Chasco: se fía mucho menos y el recuerdo se vuelve lábil otra vez.
+    // Letdown: she trusts it much less and the memory becomes labile again.
     r.confidence *= MEMORY.contradiction;
     r.confirms = Math.max(0, r.confirms - 1);
     demote(r);
@@ -98,9 +98,9 @@ export function reinforce(mem, key, reward, now, learnRate) {
            kind: first ? 'first' : coherent ? (spaced ? 'confirms' : 'repeats') : 'contradicts' };
 }
 
-// --- sitios ---
-// Un sitio recordado guarda dónde CREE que está (x, y), cuánto puede fallar
-// (error) y el objeto real que vio, para saber si sigue existiendo.
+// --- places ---
+// A remembered place stores where she THINKS it is (x, y), by how much she might be off
+// (error) and the real object she saw, to know whether it still exists.
 export function rememberPlace(mem, kind, obj, now) {
   const p = mem.places[kind] ?? (mem.places[kind] = { ...newMemoryEntry(), x: obj.x, y: obj.y, error: 0, ref: obj });
   p.ref = obj;
@@ -117,7 +117,7 @@ export function rememberPlace(mem, kind, obj, now) {
   return p;
 }
 
-// Bajo qué nombre se recuerda un agua: el lago o un charco de lluvia.
+// Under which name a body of water is remembered: the lake or a rain puddle.
 export function waterPlaceKind(obj) {
   return obj?.type === 'puddle' ? 'puddle' : 'water';
 }
@@ -131,7 +131,7 @@ export function forgetPlace(mem, kind) {
   delete mem.places[kind];
 }
 
-// El tiempo pasa: la confianza baja y los sitios se van desdibujando.
+// Time passes: confidence drops and places gradually blur.
 export function decayMemory(mem, dt) {
   for (const r of Object.values(mem.facts)) {
     r.confidence = Math.max(0, r.confidence - MEMORY[DECAY[r.stage]] * dt);
@@ -140,17 +140,17 @@ export function decayMemory(mem, dt) {
     p.confidence = Math.max(0, p.confidence - MEMORY[DECAY[p.stage]] * dt);
     if (p.error < MEMORY.placeErrorMax) {
       p.error = Math.min(MEMORY.placeErrorMax, p.error + MEMORY.placeDrift * dt);
-      // La posición recordada deriva despacio: recuerda la zona, no el punto.
+      // The remembered position drifts slowly: she remembers the area, not the point.
       p.x += (Math.random() - 0.5) * MEMORY.placeDrift * dt * 2;
       p.y += (Math.random() - 0.5) * MEMORY.placeDrift * dt * 2;
     }
   }
 }
 
-// Guardar y recuperar entre partidas ya no vive aquí: es learned/store.js,
-// que guarda facts Y reglas juntos bajo un solo gesto explícito ("Recuperar
-// lo aprendido"), nunca al nacer. Esto solo olvida los SITIOS (dónde está el
-// agua, dónde el árbol), que nunca se guardan entre partidas.
+// Saving and recovering between games no longer lives here: it's learned/store.js,
+// which saves facts AND rules together under a single explicit action ("Recover
+// what was learned"), never at birth. This only forgets the PLACES (where the
+// water is, where the tree is), which are never saved between games.
 export function forgetPlaces(mem) {
   mem.places = {};
 }

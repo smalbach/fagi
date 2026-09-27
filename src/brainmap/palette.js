@@ -1,5 +1,5 @@
-// Los colores del mapa del cerebro, compartidos por todas sus secciones, y
-// cómo se nombra cada sentido (la clave de 'word.*' en i18n).
+// The brain map's colors, shared by all its sections, and
+// how each sense is named (its 'word.*' key in i18n).
 
 export const GREEN = '#8fd93d';
 export const RED = '#d95b7e';

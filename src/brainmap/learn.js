@@ -1,5 +1,5 @@
-// 5. Aprende — la última experiencia: qué probó, qué sintió, cómo movió la
-// creencia y qué regla escribió o revisó (o cuánto le falta para escribirla).
+// 5. Learn — the last experience: what she tried, what she felt, how it moved the
+// belief and which rule she wrote or revised (or how far she is from writing it).
 
 import { specOf, LEARN } from '../config.js';
 import { labelOf, t } from '../i18n.js';
@@ -39,7 +39,7 @@ export function paintLearn(brushes, fagi, y) {
     }
     if (ep.pending) items.push({ text: t('brainmap.watching'), color: DIM });
   }
-  // La regla que salió de ahí, o cuánto le falta para escribirla.
+  // The rule that came out of it, or how far she is from writing it.
   const r = fagi.brain.facts[ep.key];
   if (lastRule?.key === ep.key && lastRule.id) {
     items.push({ text: t('brainmap.ruleWritten', { id: lastRule.id, kind: t(`brainmap.rk.${lastRule.kind}`) }),

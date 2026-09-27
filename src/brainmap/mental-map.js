@@ -1,6 +1,6 @@
-// 7. Mapa mental — lo que recuerda del sitio: por dónde ha pasado (se
-// desvanece), dónde cree que están el agua y el árbol (con cuánto puede
-// fallar), y su casa.
+// 7. Mental map — what she remembers of the place: where she has been (it
+// fades), where she thinks the water and the tree are (and by how much she might
+// be off), and her home.
 
 import { WORLD, EXPLORE } from '../config.js';
 import { nestOf } from '../world.js';
@@ -22,7 +22,7 @@ export function paintMentalMap(brushes, fagi, world, y) {
   const Y = (v) => y + v * k;
 
   box(mx, y, mw, mh, 4 * s, '#0e1015', '#262a35');
-  // casillas conocidas
+  // known cells
   const ex = fagi.explored;
   if (ex) {
     const cols = Math.ceil(WORLD.width / EXPLORE.cell);
@@ -34,7 +34,7 @@ export function paintMentalMap(brushes, fagi, world, y) {
       g.fillRect(X(cx), Y(cy), Math.min(EXPLORE.cell, WORLD.width - cx) * k, Math.min(EXPLORE.cell, WORLD.height - cy) * k);
     }
   }
-  // casa
+  // home
   const nestObj = world ? nestOf(world) : null;
   if (nestObj) {
     g.beginPath();
@@ -43,7 +43,7 @@ export function paintMentalMap(brushes, fagi, world, y) {
     g.fill();
     text(labelOf('nest'), X(nestObj.x) + 8 * s, Y(nestObj.y), { size: 8.5, color: '#c9a227' });
   }
-  // sitios recordados: dónde cree que están y cuánto puede fallar
+  // remembered places: where she thinks they are and by how much she might be off
   for (const [kind, p] of Object.entries(fagi.brain.places ?? {})) {
     const color = kind === 'water' || kind === 'puddle' ? '#3d8fd9' : '#5bd97e';
     const conf = p.confidence ?? 0.5;
@@ -63,7 +63,7 @@ export function paintMentalMap(brushes, fagi, world, y) {
     text(`${labelOf(kind === 'foodSource' ? 'tree' : kind)} ${Math.round(conf * 100)}% · ±${Math.round(p.error ?? 0)}px`,
       X(p.x) + 7 * s, Y(p.y) - 8 * s, { size: 8.5, color });
   }
-  // a dónde va a asomarse
+  // where she's going to take a peek
   if (fagi.exploreTarget && (fagi.thought?.action === 'explore')) {
     g.strokeStyle = '#e6e8ee';
     g.setLineDash([3, 3]);

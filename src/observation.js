@@ -1,11 +1,11 @@
-// La foto que le llega a la API de decisión: solo datos, nunca referencias
-// vivas del mundo. Todo lo que ve, huele y cree, en JSON puro — lo mismo que
-// ya pinta la consola, empaquetado para que lo lea quien sea, dentro o fuera
-// del navegador.
+// The snapshot the decision API receives: data only, never live references
+// into the world. Everything she sees, smells and believes, in plain JSON — the same
+// the console already paints, packaged so anyone can read it, inside or outside
+// the browser.
 //
-// Junto a la foto va `refs`: el mapa id → objeto vivo con el que el córtex
-// traduce el `targetId` de la respuesta a algo a lo que de verdad ir. Eso NO
-// se manda a la API; es la otra mitad, la que se queda en casa.
+// Alongside the snapshot goes `refs`: the id → live object map the cortex uses
+// to translate the answer's `targetId` into something to actually go to. That is NOT
+// sent to the API; it's the other half, the one that stays home.
 
 import { renderRule } from './learned/dsl.js';
 import { verdict } from './learned/rules.js';
@@ -20,22 +20,22 @@ function waterState(ctx) {
 }
 
 export function observe(fagi, world, ctx) {
-  // refs: id -> objeto vivo, para mover a Fagi de verdad hacia lo que eligió.
-  // byId: id -> el mismo resumen que se mandó, para saber SIN tocar el mundo
-  // si lo elegido era comida u agua, y si venía de vista, olfato o memoria.
+  // refs: id -> live object, to actually move Fagi toward what was chosen.
+  // byId: id -> the same summary that was sent, to know WITHOUT touching the world
+  // whether the choice was food or water, and whether it came from sight, smell or memory.
   const refs = new Map();
   const byId = new Map();
   const candidates = [];
   for (const c of ctx.ranked.slice(0, 8)) {
     const id = c.ref?.id;
-    if (id == null) continue;   // sin id no hay forma de que la API lo nombre de vuelta
+    if (id == null) continue;   // without an id there's no way for the API to name it back
     refs.set(id, c.ref);
     const summary = {
       id, key: c.key, kind: c.kind, via: c.via,
       dist: r2(c.dist), score: r2(c.score),
       belief: { value: r2(c.value), confidence: r2(c.confidence), stage: c.stage },
       verdict: c.kind === 'food' ? verdict(fagi, 'pursue', c.key) : null,
-      // Acaba de entrar en lo que percibe: la directiva anterior no contaba con esto.
+      // It just entered what she perceives: the previous directive didn't account for it.
       new: Boolean(ctx.newOnes?.some((n) => n.ref === c.ref)),
     };
     byId.set(id, summary);

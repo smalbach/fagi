@@ -1,10 +1,10 @@
-// La gramática del código que Fagi escribe sola.
+// The grammar of the code Fagi writes on her own.
 //
-// Una regla es un objeto de datos, nunca una función: por eso se puede
-// imprimir como una línea de JavaScript real (`rule('id', {...})`) y volver a
-// leer sin `eval`, solo con una expresión regular y `JSON.parse`. `rule()` es
-// el único portero: valida la forma antes de dejarla entrar, tanto si la
-// escribe el aprendiz (synth.js) como si la trae un archivo importado.
+// A rule is a data object, never a function: that's why it can be
+// printed as a line of real JavaScript (`rule('id', {...})`) and read back
+// without `eval`, just with a regular expression and `JSON.parse`. `rule()` is
+// the only gatekeeper: it validates the shape before letting it in, whether
+// the learner writes it (synth.js) or an imported file brings it.
 
 import { modernKey, modernize } from '../legacy.js';
 
@@ -14,7 +14,7 @@ const STAGE_NAMES = ['short', 'medium', 'long'];
 const VALID_ID = /^[a-z0-9-]{1,64}$/;
 
 function fail(msg) {
-  throw new Error(`regla inválida: ${msg}`);
+  throw new Error(`invalid rule: ${msg}`);
 }
 
 function isNumber(v) {
@@ -22,40 +22,40 @@ function isNumber(v) {
 }
 
 function validateBecause(because) {
-  if (!Array.isArray(because)) fail('"because" debe ser una lista');
-  if (because.length > 12) fail('"because" tiene demasiadas sensaciones');
+  if (!Array.isArray(because)) fail('"because" must be a list');
+  if (because.length > 12) fail('"because" has too many sensations');
   for (const s of because) {
-    if (!s || typeof s.sense !== 'string' || s.sense.length > 40) fail('sensación sin "sense" válido');
-    if (!isNumber(s.v)) fail('sensación sin "v" numérico');
+    if (!s || typeof s.sense !== 'string' || s.sense.length > 40) fail('sensation without a valid "sense"');
+    if (!isNumber(s.v)) fail('sensation without a numeric "v"');
   }
 }
 
-// rule(id, spec) → la regla ya validada, o lanza con un motivo legible.
+// rule(id, spec) → the validated rule, or throws with a readable reason.
 // spec: { on, when:{key}, verdict, weight, because, learnedAt, revisedAt?,
 //         tries, stage, retired?, retiredAt? }
 export function rule(id, spec) {
-  if (typeof id !== 'string' || !VALID_ID.test(id)) fail(`id "${id}" fuera de forma`);
-  if (!spec || typeof spec !== 'object') fail('falta el cuerpo de la regla');
+  if (typeof id !== 'string' || !VALID_ID.test(id)) fail(`id "${id}" is malformed`);
+  if (!spec || typeof spec !== 'object') fail('the rule body is missing');
 
   const { on, when, verdict, weight, because, learnedAt, revisedAt, tries, stage, retired, retiredAt, ...rest } = spec;
   const extra = Object.keys(rest);
-  if (extra.length) fail(`campos desconocidos: ${extra.join(', ')}`);
+  if (extra.length) fail(`unknown fields: ${extra.join(', ')}`);
 
   if (!Array.isArray(on) || on.length === 0 || on.some((a) => !SCOPES.includes(a))) {
-    fail(`"on" debe ser una lista no vacía dentro de ${SCOPES.join('|')}`);
+    fail(`"on" must be a non-empty list within ${SCOPES.join('|')}`);
   }
   if (!when || typeof when.key !== 'string' || !when.key || when.key.length > 80) {
-    fail('"when.key" debe ser un texto no vacío');
+    fail('"when.key" must be a non-empty string');
   }
-  if (!VERDICTS.includes(verdict)) fail(`"verdict" debe ser ${VERDICTS.join('|')}`);
-  if (!isNumber(weight)) fail('"weight" debe ser numérico');
+  if (!VERDICTS.includes(verdict)) fail(`"verdict" must be ${VERDICTS.join('|')}`);
+  if (!isNumber(weight)) fail('"weight" must be numeric');
   validateBecause(because);
-  if (!isNumber(learnedAt)) fail('"learnedAt" debe ser numérico');
-  if (revisedAt !== undefined && !isNumber(revisedAt)) fail('"revisedAt" debe ser numérico');
-  if (!Number.isInteger(tries) || tries < 0) fail('"tries" debe ser un entero ≥ 0');
-  if (!STAGE_NAMES.includes(stage)) fail(`"stage" debe ser ${STAGE_NAMES.join('|')}`);
-  if (retired !== undefined && typeof retired !== 'boolean') fail('"retired" debe ser booleano');
-  if (retiredAt !== undefined && !isNumber(retiredAt)) fail('"retiredAt" debe ser numérico');
+  if (!isNumber(learnedAt)) fail('"learnedAt" must be numeric');
+  if (revisedAt !== undefined && !isNumber(revisedAt)) fail('"revisedAt" must be numeric');
+  if (!Number.isInteger(tries) || tries < 0) fail('"tries" must be an integer ≥ 0');
+  if (!STAGE_NAMES.includes(stage)) fail(`"stage" must be ${STAGE_NAMES.join('|')}`);
+  if (retired !== undefined && typeof retired !== 'boolean') fail('"retired" must be a boolean');
+  if (retiredAt !== undefined && !isNumber(retiredAt)) fail('"retiredAt" must be numeric');
 
   return {
     id, on: [...on], when: { key: when.key }, verdict, weight,
@@ -66,8 +66,8 @@ export function rule(id, spec) {
   };
 }
 
-// Una línea de código por regla. Sin comas ni formato bonito: el objeto es
-// JSON válido, así que se reimporta con JSON.parse sin tocar `eval`.
+// One line of code per rule. No commas or pretty formatting: the object is
+// valid JSON, so it re-imports with JSON.parse without touching `eval`.
 export function renderRule(r) {
   const { id, ...rest } = r;
   const line = `rule('${id}', ${JSON.stringify(rest)})`;
@@ -77,18 +77,18 @@ export function renderRule(r) {
 const RULE_LINE = /^(?:\/\/ (?:retired|retirada) [\d.]+s: )?rule\('([a-z0-9-]{1,64})',\s*(\{.*\})\)$/;
 const MEMORY_LINE = /^export const (?:memory|memoria) = (\{.*\});$/;
 
-// El módulo completo, tal y como se exporta y se enseña en el panel.
+// The complete module, exactly as it's exported and shown in the panel.
 export function renderModule(rules, facts, { age, puddleLife = null, synapses = null } = {}) {
   const activeOnes = rules.filter((r) => !r.retired);
   const retiredList = rules.filter((r) => r.retired);
-  const header = `// Código aprendido por Fagi · edad ${(age ?? 0).toFixed(1)}s · ` +
-    `${activeOnes.length} regla(s) activa(s), ${retiredList.length} retired(s)\n` +
-    `// Generado por src/learned/dsl.js. Se importa sin eval: cada línea es JSON.\n`;
+  const header = `// Code learned by Fagi · age ${(age ?? 0).toFixed(1)}s · ` +
+    `${activeOnes.length} active rule(s), ${retiredList.length} retired\n` +
+    `// Generated by src/learned/dsl.js. Imported without eval: each line is JSON.\n`;
   const body = [...activeOnes, ...retiredList].map((r) => '  ' + renderRule(r)).join(',\n');
   const rulesLine = body ? `export default [\n${body},\n];` : 'export default [];';
-  // Además de las creencias, lo que sabe de cómo es el mundo (cuánto dura un
-  // charco) y qué le hizo sentir cada cosa (las sinapsis concepto→sensación).
-  // Es lo mismo que guarda el autoguardado: exportar e importar no pierde nada.
+  // Besides the beliefs, what she knows about how the world is (how long a
+  // puddle lasts) and what each thing made her feel (the concept→sensation synapses).
+  // It's the same as what autosave stores: exporting and importing loses nothing.
   const memoryOf = { facts };
   if (puddleLife != null) memoryOf.puddleLife = Math.round(puddleLife * 10) / 10;
   if (synapses && Object.keys(synapses).length) memoryOf.synapses = synapses;
@@ -96,13 +96,13 @@ export function renderModule(rules, facts, { age, puddleLife = null, synapses = 
   return `${header}import { rule } from './dsl.js';\n\n${rulesLine}\n${memoryLine}\n`;
 }
 
-// Lee un módulo generado y devuelve { rules, facts }. Nunca ejecuta el texto:
-// busca líneas con la forma exacta de renderRule/renderModule y valida cada
-// una con rule(). Cualquier cosa que no encaje se ignora o hace fallar la
-// importación entera, según el caso.
+// Reads a generated module and returns { rules, facts }. It never executes the text:
+// it looks for lines with the exact shape of renderRule/renderModule and validates each
+// one with rule(). Anything that doesn't fit is ignored or fails the
+// whole import, depending on the case.
 export function parseModule(text) {
-  if (typeof text !== 'string') throw new Error('el módulo debe ser texto');
-  if (text.length > 256 * 1024) throw new Error('el módulo es demasiado grande');
+  if (typeof text !== 'string') throw new Error('the module must be text');
+  if (text.length > 256 * 1024) throw new Error('the module is too large');
 
   const rules = [];
   let facts = {};
@@ -111,8 +111,8 @@ export function parseModule(text) {
   let seenMemory = false;
 
   for (const line of text.split('\n')) {
-    // renderModule separa las reglas con comas de lista (una por línea, la
-    // última incluida); se quita para que quede el `rule(...)` exacto.
+    // renderModule separates the rules with list commas (one per line, the
+    // last one included); it's stripped so the exact `rule(...)` remains.
     const l = line.trim().replace(/,\s*$/, '');
     if (!l) continue;
 
@@ -120,7 +120,7 @@ export function parseModule(text) {
     if (m) {
       const [, id, json] = m;
       let spec;
-      try { spec = JSON.parse(json); } catch { throw new Error(`línea de regla con JSON inválido: ${l.slice(0, 60)}`); }
+      try { spec = JSON.parse(json); } catch { throw new Error(`rule line with invalid JSON: ${l.slice(0, 60)}`); }
       rules.push(rule(modernKey(id), modernize(spec)));
       continue;
     }
@@ -128,7 +128,7 @@ export function parseModule(text) {
     const mm = MEMORY_LINE.exec(l);
     if (mm) {
       let data;
-      try { data = modernize(JSON.parse(mm[1])); } catch { throw new Error('la línea de memoria trae JSON inválido'); }
+      try { data = modernize(JSON.parse(mm[1])); } catch { throw new Error('the memory line has invalid JSON'); }
       if (data && typeof data === 'object' && data.facts && typeof data.facts === 'object') {
         facts = data.facts;
         if (typeof data.puddleLife === 'number' && Number.isFinite(data.puddleLife) && data.puddleLife > 0) {
@@ -138,14 +138,14 @@ export function parseModule(text) {
         seenMemory = true;
       }
     }
-    // Cualquier otra línea (comentarios, import, export default [ ... ]) se ignora.
+    // Any other line (comments, import, export default [ ... ]) is ignored.
   }
 
-  if (!seenMemory && rules.length === 0) throw new Error('no se reconoce ninguna regla ni memoria en el archivo');
+  if (!seenMemory && rules.length === 0) throw new Error('no rule or memory recognized in the file');
   return { rules, facts, puddleLife, synapses };
 }
 
-// Solo entran conexiones concepto→sensación con forma sana; el resto se ignora.
+// Only well-formed concept→sensation connections get in; the rest is ignored.
 function validateSynapses(syn) {
   const outside = {};
   if (!syn || typeof syn !== 'object') return outside;

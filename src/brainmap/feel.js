@@ -1,4 +1,4 @@
-// 1. Siente — el cuerpo: hambre, sed, energía y los efectos que lleva encima.
+// 1. Feel — the body: hunger, thirst, energy and the effects she's carrying.
 
 import { labelOf, t } from '../i18n.js';
 import { GREEN, RED, YELLOW, DIM } from './palette.js';

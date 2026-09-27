@@ -1,5 +1,5 @@
-// Cerebro de Fagi: decide con lo que recuerda, y lo que recuerda vive en
-// memory.js. Aquí solo se puntúa: qué le apetece más de todo lo que percibe.
+// Fagi's brain: she decides with what she remembers, and what she remembers lives in
+// memory.js. Here we only score: what she wants most out of everything she perceives.
 
 import { BRAIN } from './config.js';
 import { createMemory, recall, weight, curious, reinforce } from './memory.js';
@@ -7,37 +7,37 @@ import { createRules } from './learned/rules.js';
 import { synthAfterLearn } from './learned/synth.js';
 import { createSynapses, wire } from './synapses.js';
 
-// El cerebro es la memoria (lo que cree) más las reglas (lo que ha escrito a
-// partir de lo que cree). La memoria es la única fuente de verdad del valor;
-// las reglas son la capa simbólica: existencia, alcance y explicación.
-//   synapses : la huella de lo aprendido como conexiones (synapses.js).
-//   lastRule : la última regla escrita, revisada o retirada. Lo lee el
-//              narrador; no hace falta guardarlo en ningún otro sitio.
-//   version  : sube cada vez que cambia lo aprendido (cada experiencia, y
-//              cada segundo por el olvido). El panel del código aprendido
-//              repinta cuando cambia: con rules.seq solo se enteraba de las
-//              reglas, y las creencias que no llegan a regla (el agua, los
-//              charcos) se quedaban congeladas en pantalla.
+// The brain is memory (what she believes) plus rules (what she has written
+// from what she believes). Memory is the single source of truth for value;
+// rules are the symbolic layer: existence, scope and explanation.
+//   synapses : the trace of what was learned, as connections (synapses.js).
+//   lastRule : the last rule written, revised or retired. The narrator
+//              reads it; no need to store it anywhere else.
+//   version  : goes up every time what she learned changes (each experience, and
+//              every second through forgetting). The learned-code panel
+//              repaints when it changes: with rules.seq it only noticed the
+//              rules, and beliefs that never become a rule (water,
+//              puddles) stayed frozen on screen.
 export function createBrain() {
   return { ...createMemory(), rules: createRules(), lastRule: null, synapses: createSynapses(), version: 0 };
 }
 
-// Candidato: { key, kind, ref, dist, range, urgency }
-//   urgency = la necesidad que ESE candidato calmaría (hambre o sed).
+// Candidate: { key, kind, ref, dist, range, urgency }
+//   urgency = the need THAT candidate would relieve (hunger or thirst).
 //
-// Devuelve la lista ordenada de mejor a peor con el desglose de la suma,
-// que es justo lo que enseña la consola.
+// Returns the list sorted from best to worst with the breakdown of the sum,
+// which is exactly what the console shows.
 export function evaluate(brain, candidates) {
   return candidates.map((c) => {
     const r = recall(brain, c.key);
-    // Lo que sabe pesa por lo que se fía de ello: un recuerdo sin confianza
-    // apenas tira, y entonces vuelve la curiosidad y lo prueba otra vez.
+    // What she knows weighs as much as she trusts it: a memory without confidence
+    // barely pulls, and then curiosity comes back and she tries it again.
     const known = weight(brain, c.key);
     const curiosity = curious(brain, c.key, BRAIN.curiosityTries) ? BRAIN.curiosityBonus : 0;
-    // Las ganas van con la necesidad: saciado, lo que sabe bueno tira poco de él.
+    // Appetite follows need: when sated, what she knows is good barely pulls her.
     const appetite = BRAIN.baseInterest + (1 - BRAIN.baseInterest) * c.urgency;
     const near = -BRAIN.distanceWeight * (c.dist / c.range);
-    const penalty = -(c.penalty ?? 0); // olerlo sin verlo da posición imprecisa
+    const penalty = -(c.penalty ?? 0); // smelling it without seeing it gives an imprecise position
 
     return {
       ...c,
@@ -53,22 +53,22 @@ export function evaluate(brain, candidates) {
   }).sort((a, b) => b.score - a.score);
 }
 
-// El mejor candidato, si pasa el mínimo. Lo marginal no le mueve del sitio.
+// The best candidate, if it clears the minimum. Anything marginal doesn't budge her.
 export function choose(brain, candidates) {
   const ranked = evaluate(brain, candidates);
   const best = ranked[0];
   return { best: best && best.score > BRAIN.minScore ? best : null, ranked };
 }
 
-// Aprender de lo que acaba de pasarle. Cada aprendizaje pasa SIEMPRE por
-// synthAfterLearn: así no hace falta acordarse de sintetizar reglas en cada
-// sitio que llama a learn(), y una futura fuente de aprendizaje (la que sea)
-// las genera gratis con solo llamar a esta función.
+// Learn from what just happened to her. Every learning step ALWAYS goes through
+// synthAfterLearn: that way nobody has to remember to synthesize rules at every
+// place that calls learn(), and any future source of learning (whatever it is)
+// gets them for free just by calling this function.
 export function learn(brain, key, reward, now, because = []) {
   const change = reinforce(brain, key, reward, now, BRAIN.learnRate);
   synthAfterLearn(brain, key, change, because, now);
   brain.version = (brain.version ?? 0) + 1;
-  // Aprender también conecta: el concepto con lo que el cuerpo sintió.
+  // Learning also wires: the concept to what the body felt.
   if (brain.synapses) wire(brain.synapses, key, because, now);
   return change;
 }

@@ -1,7 +1,7 @@
-// Los pinceles del mapa del cerebro: el lienzo, su tamaño, la escala de letra
-// y los trazos básicos (texto, cajas, etiquetas, barras, cabeceras) con los
-// que se dibuja cada sección. Todas las secciones pintan con el mismo juego,
-// así que comparten un solo estado: el contexto 2D, `s`, `dpr` y el tamaño.
+// The brain map's brushes: the canvas, its size, the font scale
+// and the basic strokes (text, boxes, tags, bars, headers) that every
+// section is drawn with. All sections paint with the same set,
+// so they share a single state: the 2D context, `s`, `dpr` and the size.
 
 import { TEXT, DIM } from './palette.js';
 
@@ -12,10 +12,10 @@ export function createBrushes(canvas) {
     cssW: 0,
     cssH: 0,
     dpr: 1,
-    s: 1,   // escala de letra: el panel ampliado se lee de lejos
+    s: 1,   // font scale: the expanded panel is read from afar
   };
 
-  // El ancho lo pone el panel; el alto, lo que haya que dibujar.
+  // The panel sets the width; what needs drawing sets the height.
   function adjust(tall) {
     const width = canvas.getBoundingClientRect().width;
     if (width === p.cssW && tall === p.cssH) return false;
@@ -28,7 +28,7 @@ export function createBrushes(canvas) {
     return true;
   }
 
-  // Empieza un fotograma: la escala sale del ancho, y el lienzo, limpio.
+  // Starts a frame: the scale comes from the width, and the canvas starts clean.
   function begin() {
     const W = p.cssW;
     p.s = Math.max(0.95, Math.min(1.6, W / 380));
@@ -37,7 +37,7 @@ export function createBrushes(canvas) {
     g.lineCap = 'round';
   }
 
-  // Las medidas comunes a todas las secciones, a la escala de ahora.
+  // The measurements shared by all sections, at the current scale.
   function measures() {
     const { s } = p;
     return { W: p.cssW, pad: 10 * s, gap: 6 * s, lineH: 19 * s };
@@ -71,7 +71,7 @@ export function createBrushes(canvas) {
     if (stroke) { g.strokeStyle = stroke; g.lineWidth = lw; g.stroke(); }
   }
 
-  // Una etiqueta con fondo. Devuelve su ancho.
+  // A tag with a background. Returns its width.
   function chip(str, x, y, color, { filled = false, size = 9.5, bold = false, dim = false } = {}) {
     const { s } = p;
     const w = width(str, size, bold) + 10 * s;
@@ -83,7 +83,7 @@ export function createBrushes(canvas) {
     return w;
   }
 
-  // Varias etiquetas unidas por flechas, saltando de línea si no caben.
+  // Several tags joined by arrows, wrapping to a new line if they don't fit.
   function chain(items, x0, y0, maxX, lineH) {
     const { s } = p;
     let x = x0;
