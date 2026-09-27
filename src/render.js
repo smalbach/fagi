@@ -21,7 +21,7 @@ import { drawTree } from './tree-sprite.js';
 import { drawFruit } from './fruit-sprite.js';
 import { drawTerrain, drawShore, drawGranoZoom, drawDetalleCerca } from './terrain.js';
 import { drawLake } from './water-sprite.js';
-import { drawPuddle, drawRipples, drawWetGround, drawOvercast, drawSplashes, drawRainDrops, rainLook } from './rain-sprite.js';
+import { drawPuddle, drawRipples, drawWetGround, drawOvercast, drawSplashes, drawRainDrops, rainLook, rainFalling } from './rain-sprite.js';
 import { setDetalle } from './sprite-kit.js';
 import { aplicar, sinCamara, detalleDe } from './camera.js';
 import { nestUnder } from './nest.js';
@@ -78,7 +78,7 @@ function escena(ctx, world, fagi, camera, lluvia) {
 
   // Sin Fagi (preparando una sesión) solo se dibuja el mapa.
   const dentro = fagi ? escondida(fagi, world) : false;
-  primerPlano(ctx, world, fagi, camera, dentro, lluvia);
+  primerPlano(ctx, world, fagi, camera, dentro);
   // La luz del día nublado y sus nubes caen sobre todo, Fagi incluida.
   if (lluvia > 0) {
     drawOvercast(ctx, world, performance.now());
@@ -86,10 +86,10 @@ function escena(ctx, world, fagi, camera, lluvia) {
   }
 }
 
-function primerPlano(ctx, world, fagi, camera, dentro, lluvia) {
+function primerPlano(ctx, world, fagi, camera, dentro) {
 
   drawPheromone(ctx, world);
-  for (const o of world.objects) drawObject(ctx, o, dentro, world.wind, lluvia);
+  for (const o of world.objects) drawObject(ctx, o, dentro, world.wind, rainFalling());
   for (const p of world.points) drawFruit(ctx, p);
   if (!fagi) return;
 

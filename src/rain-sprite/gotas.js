@@ -12,7 +12,7 @@ const CAPAS = [
 
 // Va con la cámara quitada: las gotas están delante de ella, no en el suelo.
 export function drawRainDrops(ctx, world, ahora) {
-  const n = cielo.nivel;
+  const n = cielo.gotas;
   if (n <= 0.01) return;
   const W = ctx.canvas.width;
   const H = ctx.canvas.height;

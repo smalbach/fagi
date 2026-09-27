@@ -19,13 +19,13 @@
 // índice y de su ciclo, así que no hay memoria que crezca ni azar que gastar.
 //
 // Las piezas viven en rain-sprite/:
-//   · estado.js    lo que se ve (nivel del cielo, suelo mojado), subiendo y bajando suave
+//   · estado.js    lo que se ve (cielo, lo que cae, suelo mojado), subiendo y bajando suave
 //   · suelo.js     el suelo mojado, la luz nublada y las salpicaduras (mundo)
 //   · charcos.js   los charcos y las ondas de las gotas en el agua (mundo)
 //   · gotas.js     rachas, gotas y relámpago, delante de la cámara (pantalla)
 //   · util.js      hash, ruido de nubes, teselas, vista y viento
 
-export { rainLook, rainLevel } from './rain-sprite/estado.js';
+export { rainLook, rainLevel, rainFalling } from './rain-sprite/estado.js';
 export { drawWetGround, drawOvercast, drawSplashes } from './rain-sprite/suelo.js';
 export { drawRipples, drawPuddle } from './rain-sprite/charcos.js';
 export { drawRainDrops } from './rain-sprite/gotas.js';

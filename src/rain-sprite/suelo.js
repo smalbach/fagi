@@ -46,7 +46,7 @@ export function drawOvercast(ctx, world, ahora) {
 const SALPICA_POR_PX2 = 380 / (1280 * 860);   // a pleno chaparrón
 
 export function drawSplashes(ctx, world, ahora) {
-  const n = cielo.nivel;
+  const n = cielo.gotas;
   if (n <= 0.02) return;
   const { x0, y0, x1, y1, z } = vista(ctx);
   // Nunca más pequeñas que lo que se distingue en pantalla.
