@@ -1,11 +1,11 @@
-// Escalón 4, explorar: lo que queda cuando ninguna regla contesta.
+// Tier 4, explore: what's left when no rule answers.
 
 import { stockFull } from '../world.js';
 import { reasonOf } from './common.js';
 
-// Ninguna regla ha contestado: no hay necesidad que calmar ni pista que seguir.
-// Entonces lo útil es conocer mapa, que es lo que hace posible todo lo demás la
-// próxima vez. Olvida lo que tuviera fichado: ya no hay nada fichado.
+// No rule has answered: there's no need to ease nor clue to follow.
+// So the useful thing is getting to know the map, which is what makes everything else possible
+// next time. She forgets whatever she had spotted: there's nothing spotted anymore.
 export function exploreRule(fagi, world, ctx) {
   const full = ctx.nest && stockFull(fagi.pantry);
   return {

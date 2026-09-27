@@ -1,5 +1,5 @@
-// Lo que comparten las reglas de decision.js: cómo se escribe una razón, cuándo
-// apremia lo que mata y las preguntas que se hacen varios escalones.
+// What the rules in decision.js share: how a reason is written, when
+// what kills is pressing, and the questions several tiers ask.
 
 import { NEEDS, CARRY } from '../config.js';
 import { verdict } from '../learned/rules.js';
@@ -7,19 +7,19 @@ import { stockFull } from '../world.js';
 
 export const pct = (u) => `${Math.round(u * 100)}%`;
 
-// Las razones se guardan como clave + datos, nunca como frase hecha: así la
-// consola las puede escribir en el idioma que esté puesto en ese momento.
+// Reasons are stored as key + data, never as a ready-made sentence: that way the
+// console can write them in whatever language is set at the moment.
 export const reasonOf = (key, params) => ({ key, params });
 
-// El hambre o la sed ya son críticas. decision.js la reexporta para el córtex.
+// Hunger or thirst are already critical. decision.js re-exports it for the cortex.
 export const pressing = (ctx) => Math.max(ctx.thirstU, ctx.hungerU) >= NEEDS.critical;
 
-// Lo que tenía fichado (un punto de comida o un objeto del mapa) sigue ahí.
+// What she had spotted (a food point or a map object) is still there.
 export const stillInWorld = (world, ref) => world.points.includes(ref) || world.objects.includes(ref);
 
-// Comida que no puede ni comerse ni guardarse: con la despensa hecha y sin
-// hambre, perseguirla no lleva a ninguna parte. Es exactamente el caso en que
-// antes se quedaba orbitando un fruto que ya no podía recoger.
+// Food that can be neither eaten nor stored: with the pantry stocked and no
+// hunger, chasing it leads nowhere. It's exactly the case where
+// she used to end up orbiting a fruit she could no longer pick up.
 export function pantryDone(fagi, ctx) {
   if (fagi.hunger >= CARRY.eatBelow || fagi.carrying) return false;
   return Boolean(ctx.nest) && stockFull(fagi.pantry);
@@ -27,8 +27,8 @@ export function pantryDone(fagi, ctx) {
 
 export function pantryIntent(fagi, ctx) {
   if (!ctx.nest || ctx.inNest) return null;
-  // Lo que cree tener guardado. Si se equivoca, lo descubre al llegar: entrar
-  // en el nido reescribe fagi.pantry y la siguiente decisión ya es la buena.
+  // What she believes she has stored. If she's wrong, she finds out on arrival: entering
+  // the nest rewrites fagi.pantry and the next decision is already the right one.
   const has = Object.entries(fagi.pantry).some(
     ([type, amount]) => amount > 0 && verdict(fagi, 'eat', type) !== 'avoid'
   );

@@ -1,5 +1,5 @@
-// Árboles: sueltan fruta cada cierto tiempo alrededor de su copa.
-// Es la única forma de que aparezca comida sin que la coloque el jugador.
+// Trees: they drop fruit around their crown every so often.
+// It's the only way food shows up without the player placing it.
 
 import { TREE } from './config.js';
 import { addPoint, removeObject } from './world.js';
@@ -9,7 +9,7 @@ export function treesOf(world) {
   return world.objects.filter(isTree);
 }
 
-// Cuánta fruta suya sigue en el suelo, para no llenar el mapa.
+// How much of its fruit is still on the ground, so as not to fill the map.
 function fruitNear(world, tree) {
   const scope = radiusOf(tree) * TREE.dropRadius + 20;
   let n = 0;
@@ -22,7 +22,7 @@ function fruitNear(world, tree) {
 
 export function updateTrees(world, dt) {
   for (const tree of treesOf(world)) {
-    // Los árboles también tienen su tiempo: si TREE.life > 0, se secan y caen.
+    // Trees have their time too: if TREE.life > 0, they dry up and fall.
     tree.age = (tree.age ?? 0) + dt;
     if (TREE.life > 0 && tree.age >= TREE.life) {
       removeObject(world, tree, 'died');
@@ -35,32 +35,32 @@ export function updateTrees(world, dt) {
 
     if (fruitNear(world, tree) >= TREE.maxNear) continue;
 
-    // Cae en un punto al azar de la copa, nunca en el centro del tronco.
+    // It falls at a random point in the crown, never at the center of the trunk.
     const r = radiusOf(tree);
     const ang = Math.random() * Math.PI * 2;
     const dist = r * 0.55 + Math.random() * (r * TREE.dropRadius - r * 0.55);
     const x = Math.min(world.width - 10, Math.max(10, tree.x + Math.cos(ang) * dist));
     const y = Math.min(world.height - 10, Math.max(10, tree.y + Math.sin(ang) * dist));
-    // La que cae al agua se la lleva el agua: nadie la puede recoger.
+    // Fruit that falls in the water is carried off by it: nobody can pick it up.
     if (waterZone(world, x, y)) continue;
     addPoint(world, x, y, TREE.fruit, tree.id);
     tree.lastDrop = (tree.lastDrop ?? 0) + 1;
   }
 }
 
-// Cambiar el intervalo desde el panel afecta también a los que ya están puestos.
+// Changing the interval from the panel also affects the ones already placed.
 export function setFruitInterval(world, seconds) {
   TREE.interval = seconds;
   for (const tree of treesOf(world)) tree.timer = Math.min(tree.timer, seconds);
 }
 
-// Cuánto le queda de vida a un árbol, de 0 (recién plantado) a 1 (seco).
+// How much of a tree's life has gone by, from 0 (just planted) to 1 (dry).
 export function treeAge(tree) {
   if (TREE.life <= 0) return 0;
   return Math.min(1, (tree.age ?? 0) / TREE.life);
 }
 
-// Quitar de golpe todos los árboles del mapa.
+// Remove all the trees from the map at once.
 export function removeAllTrees(world) {
   for (const tree of treesOf(world)) removeObject(world, tree, 'user');
 }

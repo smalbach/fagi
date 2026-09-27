@@ -1,15 +1,15 @@
-// Fagi: una hormiga con una sola directiva, sobrevivir.
+// Fagi: an ant with a single directive, survive.
 //
-// Este archivo solo la define y ordena su turno. Cada parte vive aparte:
-//   needs.js       hambre, sed y energía
-//   perception.js  qué ve, qué huele y cómo lo puntúa
-//   attention.js   qué de eso es nuevo, y qué decidió con ello
-//   decision.js    qué hace con eso
-//   movement.js    cómo se mueve
-//   explore.js     el mapa basto de por dónde ha pasado
-//   synapses.js    lo aprendido como conexiones entre neuronas
-//   feeding.js     comer y cargar
-//   nest.js        el nido
+// This file only defines her and orders her turn. Each part lives on its own:
+//   needs.js       hunger, thirst and energy
+//   perception.js  what she sees, what she smells and how she scores it
+//   attention.js   what of that is new, and what she decided with it
+//   decision.js    what she does with it
+//   movement.js    how she moves
+//   explore.js     the coarse map of where she has been
+//   synapses.js    what's learned as connections between neurons
+//   feeding.js     eating and carrying
+//   nest.js        the nest
 
 import { WORLD, ENERGY, PHERO, LEARN } from './config.js';
 import { createBrain } from './brain.js';
@@ -39,74 +39,74 @@ export function createFagi() {
     y: WORLD.height / 2,
     angle: Math.random() * Math.PI * 2,
 
-    // necesidades
+    // needs
     hunger: 0,
     thirst: 0,
     energy: ENERGY.max,
     alive: true,
-    cause: '',         // de qué murió
+    cause: '',         // what she died of
 
-    // trabajo
-    carrying: null,    // el punto que lleva a cuestas, o null
+    // work
+    carrying: null,    // the point she's carrying on her back, or null
     resting: false,
     drinking: false,
-    swimming: false,   // atrapada en el hondo del agua, pataleando
-    dunk: null,        // el rato en el hondo que lleva, hasta saber cuánto le costó
-    wet: 0,            // segundos que le quedan para secarse tras salir del hondo
-    probing: false,    // tiene las antenas sobre el hondo: avanza tanteando
-    pressure: 0,       // cuánto nota que ha bajado la presión del aire (0-1)
-    pressureFalling: false,   // la nota bajar ahora mismo: se acerca un frente
-    rainEp: null,      // el rato a la intemperie bajo la lluvia, hasta juzgarlo
+    swimming: false,   // trapped in deep water, flailing
+    dunk: null,        // the stretch she's spent in deep water, until she knows what it cost her
+    wet: 0,            // seconds left until she dries after leaving deep water
+    probing: false,    // her antennae are over deep water: she moves forward probing
+    pressure: 0,       // how much she feels the air pressure has dropped (0-1)
+    pressureFalling: false,   // she feels it dropping right now: a front is coming
+    rainEp: null,      // the stretch out in the open in the rain, until she judges it
     pheroTimer: 0,
 
-    // cabeza
+    // head
     brain: createBrain(),
-    explored: createExploreMap(),  // por dónde ha pasado, a casillas gordas
+    explored: createExploreMap(),  // where she has been, in fat cells
     effects: createEffects(),
-    episode: null,     // la experiencia abierta (comió o bebe) hasta saber cómo acabó
-    lastEpisode: null, // la última cerrada o abierta, para el narrador
-    trailEp: null,     // desde cuándo sigue su rastro, hasta saber si llevó a comida
-    homeSearched: false, // buscando agua, ya pasó por el nido: ahora explora desde allí
-    directive: null,   // lo que mandó la API de decisión, mientras siga vigente
-    cortex: null,      // el canal con la API de decisión. null = no hay ninguna: decide el instinto
-    thought: null,     // razonamiento del último frame, lo leen consola y HUD
-    attention: createAttention(),  // qué percibió hace nada: lo que no, es nuevo
-    rethink: null,     // la última vez que algo nuevo le hizo replantearse el plan
-    target: null,      // a qué va
+    episode: null,     // the open experience (she ate or is drinking) until she knows how it ended
+    lastEpisode: null, // the last one, closed or open, for the narrator
+    trailEp: null,     // since when she's been following her trail, until she knows if it led to food
+    homeSearched: false, // looking for water, she already went by the nest: now she explores from there
+    directive: null,   // what the decision API ordered, while it's still valid
+    cortex: null,      // the channel to the decision API. null = there's none: instinct decides
+    thought: null,     // reasoning from the last frame, read by the console and HUD
+    attention: createAttention(),  // what she perceived just now: whatever she didn't is new
+    rethink: null,     // the last time something new made her rethink the plan
+    target: null,      // what she's heading for
     targetKind: null,  // 'food' | 'water' | 'nest' | 'scent' | 'phero'
-    memory: 0,         // le queda insistiendo en algo que perdió de vista
-    trailKey: null,    // qué olor está rastreando
-    trailMemory: 0,    // cuánto le queda buscando un rastro perdido
-    lastScent: null,   // último sitio donde le llegó el olor
-    castSide: 1,       // hacia qué lado barre cuando lo pierde
+    memory: 0,         // time left insisting on something she lost sight of
+    trailKey: null,    // which smell she's tracking
+    trailMemory: 0,    // how long she has left searching for a lost trail
+    lastScent: null,   // last place where the smell reached her
+    castSide: 1,       // which side she sweeps towards when she loses it
     castTimer: 0,
 
-    // andares
-    exploreTarget: null,  // la casilla poco conocida a la que va a asomarse
-    exploreTimer: 0,      // cuánto le queda insistiendo en ella
-    exploreLegs: 0,       // tramos de exploración trazados: cada uno, una decisión
-    exploreResume: false, // vuelve a explorar tras otra cosa: ¿retoma el tramo o traza otro?
-    legChoice: null,      // la última vez que decidió entre retomar y trazar uno nuevo
-    stride: 0,         // distancia recorrida: mueve las patas al dibujar
+    // walking
+    exploreTarget: null,  // the little-known cell she's going to take a look at
+    exploreTimer: 0,      // how long she has left insisting on it
+    exploreLegs: 0,       // exploration legs plotted: each one, a decision
+    exploreResume: false, // back to exploring after something else: does she resume the leg or plot another?
+    legChoice: null,      // the last time she chose between resuming and plotting a new one
+    stride: 0,         // distance traveled: moves the legs when drawing
 
-    // Lo que CREE que hay guardado en el nido. No es el nido: es su recuerdo
-    // de la última vez que estuvo dentro. Una ración que se echa a perder
-    // mientras está fuera no se entera hasta que vuelve.
+    // What she BELIEVES is stored in the nest. It isn't the nest: it's her memory
+    // of the last time she was inside. A ration that spoils
+    // while she's out, she doesn't find out about until she's back.
     pantry: {},
-    pantryAt: null,    // edad a la que miró la despensa por última vez
+    pantryAt: null,    // age at which she last checked the pantry
 
-    // contadores para el HUD y la consola
+    // counters for the HUD and the console
     age: 0,
     eaten: 0,
     drunk: 0,
     lastMeal: null,
     lastDrink: null,
 
-    saveIn: LEARN.autosaveEvery,  // cuenta atrás para el próximo guardado recuperable
+    saveIn: LEARN.autosaveEvery,  // countdown to the next recoverable save
   };
 }
 
-// Mientras acarrea va marcando el camino con su feromona.
+// While carrying she marks the path with her pheromone.
 function markTrail(fagi, world, dt) {
   if (!fagi.carrying) return;
   const nestObj = nestOf(world);
@@ -117,7 +117,7 @@ function markTrail(fagi, world, dt) {
   dropPheromone(world, fagi.x, fagi.y, Math.hypot(nestObj.x - fagi.x, nestObj.y - fagi.y));
 }
 
-// Ejecuta la intención que salió de decide().
+// Carries out the intention that came out of decide().
 function act(fagi, world, dt) {
   if (fagi.thought.action === 'eatCarried') eatCarried(fagi);
   else if (fagi.targetKind === 'scent' && fagi.trailKey) trackScent(fagi, world, fagi.trailKey, dt);
@@ -125,8 +125,8 @@ function act(fagi, world, dt) {
   else explore(fagi, world, dt);
 }
 
-// Una vez por segundo el olvido se hace visible en el código aprendido: los
-// pesos de las reglas se ponen al día y el panel se entera (brain.version).
+// Once per second forgetting becomes visible in the learned code: the
+// rule weights are brought up to date and the panel hears about it (brain.version).
 function tickLearnedCode(fagi, dt) {
   fagi.codeTick = (fagi.codeTick ?? 1) - dt;
   if (fagi.codeTick > 0) return;
@@ -140,23 +140,23 @@ export function updateFagi(fagi, world, dt) {
   fagi.age += dt;
 
   updateEffects(fagi, dt);
-  resolveEpisodes(fagi, dt);     // ¿ya se sabe cómo le sentó lo último que comió?
-  decayMemory(fagi.brain, dt);   // la confianza baja sola y los sitios se difuminan
-  tickLearnedCode(fagi, dt);     // y el código aprendido lo refleja, una vez por segundo
-  decaySynapses(fagi.brain.synapses, dt, fagi.age);   // y las conexiones sin uso se debilitan
-  markVisited(fagi.explored, fagi.x, fagi.y, dt);  // estar en un sitio es conocerlo
-  swim(fagi, world, dt);         // ¿se ha metido en el hondo? lo siente y aprende
-  senseWeather(fagi, world, dt); // la presión que nota, y lo que le enseña la lluvia
+  resolveEpisodes(fagi, dt);     // is it known yet how the last thing she ate agreed with her?
+  decayMemory(fagi.brain, dt);   // confidence drops on its own and places blur
+  tickLearnedCode(fagi, dt);     // and the learned code reflects it, once per second
+  decaySynapses(fagi.brain.synapses, dt, fagi.age);   // and unused connections weaken
+  markVisited(fagi.explored, fagi.x, fagi.y, dt);  // being in a place is knowing it
+  swim(fagi, world, dt);         // has she gone into deep water? she feels it and learns
+  senseWeather(fagi, world, dt); // the pressure she feels, and what the rain teaches her
   drink(fagi, world, dt);
   useNest(fagi, world);
 
   const ctx = perceive(fagi, world);
-  perceiveSynapses(fagi, ctx, dt);  // percibir algo refuerza sentido→concepto (Hebb)
-  ctx.newOnes = notice(fagi, ctx);   // lo que acaba de entrar: obliga a replantearse el plan
-  updateCortex(fagi.cortex, fagi, world, ctx, dt);   // pregunta a la API si toca; nunca espera
+  perceiveSynapses(fagi, ctx, dt);  // perceiving something strengthens sense→concept (Hebb)
+  ctx.newOnes = notice(fagi, ctx);   // what has just come in: forces a rethink of the plan
+  updateCortex(fagi.cortex, fagi, world, ctx, dt);   // asks the API if it's time; never waits
   decide(fagi, world, ctx, dt);
 
-  // Se queda quieta bebiendo o descansando; el resto del tiempo, en marcha.
+  // She stays still drinking or resting; the rest of the time, on the move.
   const stop = !fagi.swimming
     && ((fagi.drinking && fagi.thirst > 0) || fagi.thought.action === 'rest');
   if (!stop) act(fagi, world, dt);
@@ -164,12 +164,12 @@ export function updateFagi(fagi, world, dt) {
   spendEnergy(fagi, world, dt, !stop);
   markTrail(fagi, world, dt);
   tryPickOrEat(fagi, world);
-  resolveTrail(fagi);            // ¿el rastro que seguía la llevó a comida?
+  resolveTrail(fagi);            // did the trail she was following lead her to food?
   increaseNeeds(fagi, world, dt);
 
-  // Morir guarda ya mismo, sin esperar al próximo turno de autoguardado: lo
-  // último que aprendió (incluida la lección de esta misma muerte) no se pierde.
-  // Y lo que la API tuviera en vuelo deja de contar: ya no hay a quién dirigir.
+  // Dying saves right away, without waiting for the next autosave turn: the
+  // last thing she learned (including the lesson of this very death) isn't lost.
+  // And whatever the API had in flight stops counting: there's no one left to direct.
   if (resolveVitalFailure(fagi)) { save(snapshot(fagi)); resetCortex(fagi.cortex); }
   else saveLearning(fagi, dt);
 }

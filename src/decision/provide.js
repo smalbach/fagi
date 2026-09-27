@@ -1,14 +1,14 @@
-// Escalón 3, proveer: lo que no necesita ahora, al nido para después. Y
-// perseguir lo que percibe, que es también como se calma el hambre y la sed.
+// Tier 3, provide: what she doesn't need now, to the nest for later. And
+// pursuing what she perceives, which is also how hunger and thirst get eased.
 
 import { FAGI, BRAIN, ATTENTION } from '../config.js';
 import { verdict } from '../learned/rules.js';
 import { labelOf } from '../i18n.js';
 import { pct, reasonOf, pressing, pantryDone } from './common.js';
 
-// Lo que lleva encima va al nido. Lo único que la aparta del camino, sin
-// llegar a apurarse, es ver agua cerca con algo de sed: beber ahora, de paso,
-// sale más barato que volver luego. La comida no la desvía: ya lleva una.
+// What she's carrying goes to the nest. The only thing that pulls her off the path, without
+// it getting pressing, is seeing water nearby while somewhat thirsty: drinking now, on the way,
+// is cheaper than coming back later. Food doesn't divert her: she's already carrying one.
 export function carry(fagi, world, ctx) {
   if (!fagi.carrying || !ctx.nest || pressing(ctx)) return null;
   const water = ctx.thirstU >= ATTENTION.opportunisticThirst
@@ -34,12 +34,12 @@ function useless(fagi, ctx, candidate) {
   return (candidate.kind === 'food' || candidate.kind === 'trail') && pantryDone(fagi, ctx);
 }
 
-// El mejor candidato de lo que ve y huele, con histéresis para no zigzaguear.
-// Nunca elige perseguir comida que ya aprendió a evitar: si lo hiciera, la
-// puntuación (que no sabe de reglas, solo de creencia+urgencia+distancia)
-// podría seguir prefiriéndola sobre cualquier otra cosa, y entonces caminaría
-// hasta ella, la rechazaría al tocarla, y volvería a elegirla el frame
-// siguiente porque nada más puntúa mejor: quieta junto al fruto para siempre.
+// The best candidate among what she sees and smells, with hysteresis so she doesn't zigzag.
+// She never chooses to pursue food she has already learned to avoid: if she did, the
+// score (which knows nothing of rules, only belief+urgency+distance)
+// could keep preferring it over anything else, and then she'd walk
+// up to it, reject it on touching it, and pick it again the next
+// frame because nothing else scores better: stuck next to the fruit forever.
 export function pursue(fagi, world, ctx, dt, onlyKind = null) {
   const chosen = pickCandidate(fagi, ctx, onlyKind);
   if (!chosen) return null;
@@ -52,17 +52,17 @@ function pickCandidate(fagi, ctx, onlyKind) {
   const { ranked } = ctx;
   const canPursue = (r) => !useless(fagi, ctx, r)
     && (r.kind !== 'food' || verdict(fagi, 'pursue', r.key) !== 'avoid');
-  // El rastro propio lleva a comida (o eso cree): cuenta cuando se busca comida.
+  // Her own trail leads to food (or so she believes): it counts when looking for food.
   const ofType = (r) => !onlyKind || r.kind === onlyKind || (onlyKind === 'food' && r.kind === 'trail');
   const available = ranked.filter((r) => ofType(r) && canPursue(r));
-  // La lista viene ordenada de mejor a peor: el primero que pase el mínimo es
-  // el mejor que pasa el mínimo.
+  // The list comes sorted from best to worst: the first one that passes the minimum is
+  // the best one that passes the minimum.
   const first = available.find((r) => r.score > BRAIN.minScore);
   const current = fagi.target ? available.find((r) => r.ref === fagi.target) : null;
 
-  // La histéresis vale también para el mínimo: lo que ya persigue no se suelta
-  // hasta caer `stickiness` por debajo. Si no, un objetivo que ronda el mínimo
-  // (el agua que recuerda, a media distancia) se coge y se suelta cada frame.
+  // The hysteresis applies to the minimum too: what she's already pursuing isn't dropped
+  // until it falls `stickiness` below it. Otherwise, a target hovering around the minimum
+  // (the water she remembers, at mid distance) gets picked up and dropped every frame.
   let chosen = first;
   if (current && current.score > 0) {
     const holds = first ? current.score >= first.score - BRAIN.stickiness
@@ -73,7 +73,7 @@ function pickCandidate(fagi, ctx, onlyKind) {
 }
 
 function intentToward(fagi, ctx, chosen) {
-  // Su propio rastro: la siguiente marca, alejándose del nido.
+  // Her own trail: the next mark, moving away from the nest.
   if (chosen.kind === 'trail') {
     return {
       action: 'pheromone',
@@ -84,7 +84,7 @@ function intentToward(fagi, ctx, chosen) {
     };
   }
 
-  // Lo huele pero no lo ve: no sabe dónde está, así que sigue el rastro.
+  // She smells it but can't see it: she doesn't know where it is, so she follows the trail.
   if (chosen.via === 'smell') {
     fagi.trailMemory = FAGI.trailMemory;
     return {

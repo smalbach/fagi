@@ -1,4 +1,4 @@
-// El nido: casa, despensa y sitio de descanso.
+// The nest: home, pantry and resting place.
 
 import { CARRY } from './config.js';
 import { nestOf, storeInNest, takeFromNest, record } from './world.js';
@@ -13,8 +13,8 @@ export function nestUnder(fagi, world) {
   return Math.hypot(nestObj.x - fagi.x, nestObj.y - fagi.y) <= radiusOf(nestObj) ? nestObj : null;
 }
 
-// Lo que pasa al estar dentro del nido: suelta la carga, come de las reservas
-// si le hace falta, y descansa.
+// What happens while inside the nest: she drops her load, eats from the stores
+// if she needs to, and rests.
 export function useNest(fagi, world) {
   const nestObj = nestUnder(fagi, world);
   if (!nestObj) return null;
@@ -28,8 +28,8 @@ export function useNest(fagi, world) {
     fagi.carrying = null;
   }
 
-  // Con hambre tira de despensa: elige lo que mejor recuerda de lo guardado,
-  // pero nunca sirve algo que aprendió que le sienta mal.
+  // When hungry she draws on the pantry: she picks what she remembers best of what's stored,
+  // but never serves something she learned disagrees with her.
   if (fagi.hunger >= CARRY.eatBelow) {
     const saved = Object.keys(nestObj.stock).filter(
       (k) => nestObj.stock[k] > 0 && verdict(fagi, 'eat', k) !== 'avoid'
@@ -44,8 +44,8 @@ export function useNest(fagi, world) {
     }
   }
 
-  // Está dentro: ve la despensa con sus propios ojos. Este es el único sitio
-  // donde se escribe fagi.pantry, y por eso enterarse cuesta una visita.
+  // She's inside: she sees the pantry with her own eyes. This is the only place
+  // where fagi.pantry is written, and that's why finding out costs a visit.
   fagi.pantry = { ...nestObj.stock };
   fagi.pantryAt = fagi.age;
 

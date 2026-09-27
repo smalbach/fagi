@@ -1,22 +1,22 @@
-// Explorar no es deambular. Deambular es no tener plan; explorar es ir a donde
-// todavía no se ha estado, que es la única forma de encontrar comida y agua
-// nuevas antes de necesitarlas.
+// Exploring isn't wandering. Wandering is having no plan; exploring is going where
+// she hasn't been yet, which is the only way to find new food and water
+// before she needs them.
 //
-// Fagi lleva un mapa basto del mundo: una rejilla de casillas gordas donde
-// anota por dónde ha pasado. Para explorar elige UNA casilla —la que menos
-// conoce, descontando lo que cuesta llegar— y se va a ella. Elegir destino y no
-// rumbo es lo que evita el baile: un rumbo se puede recalcular hacia atrás cada
-// segundo y dejarla dando tumbos en el sitio; un destino se mantiene hasta que
-// se pisa.
+// Fagi keeps a coarse map of the world: a grid of fat cells where she
+// notes where she has been. To explore she picks ONE cell —the one she knows
+// least, discounting what it costs to get there— and heads for it. Choosing a destination and not
+// a heading is what prevents the dance: a heading can be recomputed backwards every
+// second and leave her stumbling around on the spot; a destination holds until
+// she steps on it.
 //
-// Pero no camina a ciegas hacia esa casilla: la casilla es solo la brújula.
-// Lo que decide es lo que tiene delante. Cada tramo va a un punto de su campo
-// de visión (waypointInView); al llegar, con lo nuevo que vea, elige el
-// siguiente. Y en cada frame, si algo nuevo entra en lo que percibe, las
-// reglas de decision.js deciden si el tramo sigue valiendo o no.
+// But she doesn't walk blindly towards that cell: the cell is only the compass.
+// What decides is what's in front of her. Each leg goes to a point in her field
+// of view (waypointInView); on arriving, with whatever new she sees, she picks the
+// next one. And every frame, if something new enters what she perceives, the
+// rules in decision.js decide whether the leg is still worth it or not.
 //
-// La anotación se desvanece sola: un sitio que lleva mucho sin pisar vuelve a
-// ser terreno nuevo. Así no explora una vez y se le acaba el mundo.
+// The notes fade on their own: a place she hasn't stepped on in a long while becomes
+// new ground again. That way she doesn't explore once and run out of world.
 
 import { EXPLORE, WORLD, FAGI } from './config.js';
 import { segmentBlocked, deepBlocked, waterZone } from './obstacles.js';
@@ -37,7 +37,7 @@ function cellOf(x, y) {
   return r * cols() + c;
 }
 
-// Estar en un sitio lo marca; todo lo demás se despinta despacio.
+// Being in a place marks it; everything else slowly fades.
 export function markVisited(map, x, y, dt) {
   for (let k = 0; k < map.length; k++) {
     map[k] = Math.max(0, map[k] - EXPLORE.fade * dt);
@@ -46,9 +46,9 @@ export function markVisited(map, x, y, dt) {
   map[i] = Math.min(EXPLORE.visitMax, map[i] + EXPLORE.visitGain * dt);
 }
 
-// La casilla a la que merece la pena ir: la que menos conoce, restándole lo que
-// cuesta llegar y sumándole un empujón por alejarse del nido, que es de donde
-// ya viene todo lo sabido.
+// The cell worth going to: the one she knows least, minus what it
+// costs to get there and plus a nudge for moving away from the nest, which is where
+// everything she already knows comes from.
 export function exploreTarget(fagi, map, nestObj) {
   const nc = cols();
   const diag = diagonal();
@@ -58,7 +58,7 @@ export function exploreTarget(fagi, map, nestObj) {
   for (let i = 0; i < map.length; i++) {
     const x = ((i % nc) + 0.5) * EXPLORE.cell;
     const y = (Math.floor(i / nc) + 0.5) * EXPLORE.cell;
-    if (x > WORLD.width || y > WORLD.height) continue;   // casilla cortada por el borde
+    if (x > WORLD.width || y > WORLD.height) continue;   // cell cut off by the edge
 
     const dist = Math.hypot(x - fagi.x, y - fagi.y);
     let points = -map[i] - EXPLORE.distanceWeight * (dist / diag);
@@ -73,12 +73,12 @@ export function exploreTarget(fagi, map, nestObj) {
   return best ? { x: best.x, y: best.y } : { x: fagi.x, y: fagi.y };
 }
 
-// Lo que vale un tramo que acaba en (x, y), para la única directiva que hay:
-// sobrevivir. Explorar sirve para saber dónde hay comida y agua antes de
-// necesitarlas, así que vale lo que le enseñe (lo poco que conoce ese sitio),
-// lo que le acerque a la zona que menos conoce (la brújula) y lo que avance de
-// una vez; y cuesta lo que tenga que girar para ir, que es tiempo y energía
-// que no gasta en avanzar.
+// What a leg ending at (x, y) is worth, for the only directive there is:
+// survive. Exploring is for knowing where there's food and water before
+// needing them, so it's worth what it teaches her (how little she knows that place),
+// how much it brings her closer to the area she knows least (the compass) and how far it advances in
+// one go; and it costs however much she has to turn to go there, which is time and energy
+// she doesn't spend advancing.
 function scoreLeg(fagi, map, x, y, compassRose) {
   const dist = Math.hypot(x - fagi.x, y - fagi.y);
   const toward = Math.atan2(y - fagi.y, x - fagi.x);
@@ -92,21 +92,21 @@ function scoreLeg(fagi, map, x, y, compassRose) {
     - EXPLORE.turnWeight * giro;
 }
 
-// El siguiente tramo, decidido con lo que tiene: los puntos que ve (sin roca
-// de por medio) y, si lo hay, el tramo que dejó a medias (`previo`) cuando
-// algo lo apartó. Todos se puntúan igual y gana el que más vale: retomar no es
-// una costumbre ni una obligación, es una opción más. Si no ve ningún punto
-// libre y no hay tramo viejo (una pared de rocas delante), va la brújula:
-// girará hacia ella y ya verá otra cosa.
+// The next leg, decided with what she has: the points she sees (with no rock
+// in between) and, if there is one, the leg she left half done (`prior`) when
+// something pulled her away. They're all scored the same and the one worth most wins: resuming isn't
+// a habit or an obligation, it's one more option. If she sees no free
+// point and there's no old leg (a wall of rocks ahead), the compass goes:
+// she'll turn towards it and then see something else.
 //
-// Devuelve el tramo elegido; `resumed` dice si fue el viejo, y `rival` lo que
-// puntuaba la mejor alternativa, para que la consola cuente la comparación.
+// Returns the chosen leg; `resumed` says whether it was the old one, and `rival` what
+// the best alternative scored, so the console can report the comparison.
 export function waypointInView(fagi, map, nestObj, world, prior = null) {
   const compassRose = exploreTarget(fagi, map, nestObj);
   const range = viewRangeOf(fagi);
   const half = fovOf(fagi) / 2;
   const marginOf = FAGI.radius * 2;
-  // Quien ya se hundió una vez no traza tramos que acaben o pasen por el hondo.
+  // Whoever has already sunk once doesn't plot legs that end in or cross deep water.
   const fears = world && fearsDeep(fagi);
 
   let best = null;

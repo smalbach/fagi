@@ -1,6 +1,6 @@
-// Un turno del mundo: lo que pasa aunque Fagi no haga nada.
-// El orden importa — el viento decide hacia dónde crecen las estelas, y la
-// fruta puede pudrirse justo antes de que Fagi decida ir a por ella.
+// One turn of the world: what happens even if Fagi does nothing.
+// The order matters — the wind decides which way the plumes grow, and the
+// fruit can rot right before Fagi decides to go for it.
 
 import { updateWind } from './wind.js';
 import { updateTrails } from './smell.js';

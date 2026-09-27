@@ -1,4 +1,4 @@
-// Comer y cargar. La regla es simple: con hambre se come, sin hambre se trabaja.
+// Eating and carrying. The rule is simple: when hungry you eat, when not hungry you work.
 
 import { HUNGER, CARRY, POINT_TYPES } from './config.js';
 import { pointTouching, removePoint, stockFull } from './world.js';
@@ -7,45 +7,45 @@ import { snapshotBody } from './interoception.js';
 import { openEpisode } from './episodes.js';
 import { verdict } from './learned/rules.js';
 
-// Con hambre se lo come en el sitio. Sin hambre lo carga y se lo lleva al nido:
-// es la diferencia entre comer y trabajar. Y con la despensa hecha no lo coge
-// siquiera: acumular de más no sirve de nada, conocer el mapa sí.
+// When hungry she eats it on the spot. When not hungry she picks it up and takes it to the nest:
+// that's the difference between eating and working. And with the pantry stocked she doesn't even
+// pick it up: hoarding extra is no use, knowing the map is.
 export function tryPickOrEat(fagi, world) {
   const p = pointTouching(world, fagi);
   if (!p) return;
 
-  // Lo tenga o no que coger, ya está encima: deja de ser un objetivo al que ir.
-  // Sin esto, un punto que rechaza se queda fichado y Fagi le da vueltas eternas.
+  // Whether or not she has to pick it up, she's already on it: it stops being a target to go to.
+  // Without this, a point she rejects stays spotted and Fagi circles it forever.
   const release = () => { if (fagi.target === p) { fagi.target = null; fagi.memory = 0; } };
 
-  // No come ni recoge por accidente algo que ya aprendió que es perjudicial.
-  // Solo vuelve a probarlo cuando era su objetivo deliberado (curiosidad).
+  // She doesn't accidentally eat or pick up something she has already learned is harmful.
+  // She only tries it again when it was her deliberate target (curiosity).
   if (verdict(fagi, 'eat', p.type, { deliberate: fagi.target === p }) === 'avoid') { release(); return; }
 
   if (fagi.hunger >= CARRY.eatBelow) {
     eat(fagi, p.type);
     removePoint(world, p, 'eaten');
   } else if (verdict(fagi, 'store', p.type) === 'avoid') {
-    // Probarlo por curiosidad es una cosa; llenar la despensa de lo que cree
-    // malo es otra. Lo deja donde está y deja de tenerlo por objetivo.
+    // Trying it out of curiosity is one thing; filling the pantry with what she believes
+    // is bad is another. She leaves it where it is and stops treating it as a target.
     release();
     return;
   } else if (!fagi.carrying && !stockFull(fagi.pantry)) {
-    // La fruta sigue teniendo la edad que traía: guardarla la conserva, no la
-    // rejuvenece.
+    // The fruit keeps the age it already had: storing it preserves it, it doesn't
+    // make it younger.
     fagi.carrying = { type: p.type, age: p.age ?? 0 };
     fagi.picked = (fagi.picked ?? 0) + 1;
     removePoint(world, p, 'picked');
   } else {
     release();
-    return; // ya lleva algo, o la despensa está hecha: lo deja donde está
+    return; // she's already carrying something, or the pantry is stocked: she leaves it where it is
   }
 
   release();
 }
 
-// Si ya lleva una ración encima no tiene sentido morir de hambre mientras
-// busca otra. En una emergencia la prueba, igual que haría con comida del suelo.
+// If she's already carrying a ration it makes no sense to starve while
+// looking for another. In an emergency she tries it, just as she would with food on the ground.
 export function eatCarried(fagi) {
   if (!fagi.carrying) return false;
   const { type } = fagi.carrying;
@@ -55,9 +55,9 @@ export function eatCarried(fagi) {
   return true;
 }
 
-// Comer es física: el bocado hace lo que hace al cuerpo. Lo que Fagi aprende
-// de él no viene de aquí ni de la ficha del alimento: viene de comparar cómo
-// estaba antes con cómo se siente después (episodes.js).
+// Eating is physics: the bite does what it does to the body. What Fagi learns
+// from it doesn't come from here or from the food's spec: it comes from comparing how
+// she was before with how she feels afterwards (episodes.js).
 export function eat(fagi, type) {
   const spec = POINT_TYPES[type];
   const before = snapshotBody(fagi);

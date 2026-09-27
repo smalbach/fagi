@@ -1,12 +1,12 @@
-// Lo que mandó la API de decisión (cortex.js), como una regla más. Según
-// BACKEND.authority entra en uno de dos sitios de REGLAS.
+// What the decision API (cortex.js) ordered, as one more rule. Depending on
+// BACKEND.authority it goes into one of two places in RULES.
 
 import { BACKEND } from '../config.js';
 import { reasonOf, pressing, stillInWorld } from './common.js';
 
-// Lo que mandó la API de decisión, mientras siga vigente y su objetivo (si
-// tenía uno) siga existiendo. No decide NADA por su cuenta: solo traduce
-// fagi.directive a una intención, igual que cualquier otra regla.
+// What the decision API ordered, while it's still valid and its target (if
+// it had one) still exists. It decides NOTHING on its own: it only translates
+// fagi.directive into an intention, like any other rule.
 function directive(fagi, world, ctx) {
   const d = fagi.directive;
   if (!d) return null;
@@ -26,8 +26,8 @@ function directive(fagi, world, ctx) {
   };
 }
 
-// Con autoridad plena la directiva va la primera de todas, salvo que la vida
-// dependa de algo que ella no atiende: entonces se aparta y manda el instinto.
+// With full authority the directive goes first of all, unless her life
+// depends on something it doesn't handle: then it steps aside and instinct takes over.
 export function earlyDirective(fagi, world, ctx) {
   if (BACKEND.authority !== 1) return null;
   const d = fagi.directive;
@@ -35,9 +35,9 @@ export function earlyDirective(fagi, world, ctx) {
   return directive(fagi, world, ctx);
 }
 
-// Con autoridad segura (la de fábrica) el instinto cubre primero lo que mata:
-// beber, comer, la urgencia y la despensa. La directiva solo entra después,
-// donde hoy entraban descansar/acarrear/perseguir.
+// With safe authority (the default) instinct covers what kills first:
+// drinking, eating, urgency and the pantry. The directive only comes in afterwards,
+// where resting/carrying/pursuing used to come in.
 export function safeDirective(fagi, world, ctx) {
   return BACKEND.authority === 0 ? directive(fagi, world, ctx) : null;
 }

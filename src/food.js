@@ -1,15 +1,15 @@
-// La fruta envejece. Pasado su tiempo se pudre: cambia de tipo a tóxico y desde
-// ese momento TODO lo suyo (efecto, recompensa, aroma, color) sale de la ficha
-// del tóxico. Fagi no lo sabe: solo aprende cuando lo prueba.
+// Fruit ages. Once its time is up it rots: its type changes to toxic and from
+// that moment on EVERYTHING about it (effect, reward, aroma, color) comes from the
+// toxic spec. Fagi doesn't know that: she only learns when she tries it.
 //
-// Lo podrido también tiene su reloj: cuando se le acaba la vida al tóxico se
-// deshace y se va del mapa, con su estela y todo.
+// Rot has its own clock too: when the toxic's life runs out it
+// falls apart and leaves the map, plume and all.
 
 import { POINT_TYPES, FRUIT } from './config.js';
 import { removePoint, record } from './world.js';
 
 export function updateFood(world, dt) {
-  // De atrás hacia delante: alguno se borra por el camino.
+  // Back to front: some get removed along the way.
   for (let i = world.points.length - 1; i >= 0; i--) {
     const p = world.points[i];
     p.age = (p.age ?? 0) + dt;
@@ -17,7 +17,7 @@ export function updateFood(world, dt) {
     const life = POINT_TYPES[p.type].life ?? 0;
     if (life <= 0 || p.age < life) continue;
 
-    // Lo podrido no se pudre otra vez: desaparece.
+    // Rot doesn't rot again: it disappears.
     if (p.type === FRUIT.rot) {
       removePoint(world, p, 'rotted');
       continue;
@@ -27,13 +27,13 @@ export function updateFood(world, dt) {
     p.age = 0;
     p.rotten = true;
     record(world, 'point_rot', { id: p.id, what: p.type });
-    // El rastro no se borra: sigue por donde iba, pero a partir de ahora
-    // huele y se ve como lo que es. De eso se encarga smell.js.
+    // The trail isn't erased: it carries on where it was going, but from now on
+    // it smells and looks like what it is. smell.js takes care of that.
   }
 }
 
-// 0 = recién caída, 1 = a punto de pudrirse (o de desaparecer, si ya está
-// podrida). Sirve para el dibujo.
+// 0 = just fallen, 1 = about to rot (or to disappear, if it's already
+// rotten). Used for drawing.
 export function ripeness(p) {
   const life = POINT_TYPES[p.type].life ?? 0;
   if (life <= 0) return 0;

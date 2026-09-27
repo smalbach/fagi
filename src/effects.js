@@ -1,5 +1,5 @@
-// Buffs temporales. Cada uno multiplica una característica durante unos segundos.
-// Volver a comer el mismo tipo refresca la duración, no la acumula.
+// Temporary buffs. Each one multiplies a stat for a few seconds.
+// Eating the same type again refreshes the duration, it doesn't stack it.
 
 import { POINT_TYPES } from './config.js';
 
@@ -27,7 +27,7 @@ export function updateEffects(fagi, dt) {
   }
 }
 
-// Factor actual de una característica: 1 si no hay buff activo.
+// Current factor of a stat: 1 if there's no active buff.
 export function statMult(fagi, stat) {
   return fagi.effects[stat] ? fagi.effects[stat].mult : 1;
 }

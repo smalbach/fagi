@@ -1,5 +1,5 @@
-// Genera el mapa: charcos y rocas repartidos al azar, sin pisarse entre sí
-// y dejando libre el sitio donde nace Fagi.
+// Generates the map: pools and rocks scattered at random, without overlapping each other
+// and leaving free the spot where Fagi spawns.
 
 import { WORLD, MAPGEN, OBJECT_TYPES } from './config.js';
 import { addObject } from './world.js';
@@ -7,32 +7,32 @@ import { radiusOf } from './obstacles.js';
 
 function fits(world, x, y, r) {
   for (const o of world.objects) {
-    // El radio REAL del que ya está puesto: hay rocas más gordas que su tipo.
+    // The REAL radius of the one already placed: some rocks are fatter than their type.
     const or = radiusOf(o);
     if (Math.hypot(o.x - x, o.y - y) < r + or + MAPGEN.minGap) return false;
   }
   return true;
 }
 
-// escala = [min, max] sobre el radio del tipo. Sin ella, todos del mismo tamaño.
+// scaleOf = [min, max] over the type's radius. Without it, all the same size.
 function place(world, type, count, scaleOf = null) {
   const base = OBJECT_TYPES[type].radius;
   const cx = WORLD.width / 2;
   const cy = WORLD.height / 2;
 
   for (let n = 0; n < count; n++) {
-    // Reintenta unas cuantas veces; si el mapa está lleno, se salta este.
+    // Retries a few times; if the map is full, this one is skipped.
     for (let attemptOf = 0; attemptOf < 40; attemptOf++) {
-      // El tamaño se sortea en cada intento: si no cabe la grande, entra otra.
-      // Al cuadrado, para que salgan muchas pequeñas y pocos pedruscos: si la
-      // mitad fueran enormes, taparían el mapa y Fagi no encontraría el agua.
+      // The size is drawn on each attempt: if the big one doesn't fit, another gets in.
+      // Squared, so there are many small ones and few boulders: if
+      // half were huge, they'd cover the map and Fagi wouldn't find the water.
       const t = Math.random() ** 2;
       const r = scaleOf
         ? Math.round(base * (scaleOf[0] + t * (scaleOf[1] - scaleOf[0])))
         : base;
       const x = MAPGEN.margin + r + Math.random() * (WORLD.width - 2 * (MAPGEN.margin + r));
       const y = MAPGEN.margin + r + Math.random() * (WORLD.height - 2 * (MAPGEN.margin + r));
-      if (Math.hypot(x - cx, y - cy) < MAPGEN.spawnClear + r) continue; // sitio de Fagi
+      if (Math.hypot(x - cx, y - cy) < MAPGEN.spawnClear + r) continue; // Fagi's spot
       if (!fits(world, x, y, r)) continue;
       addObject(world, x, y, type, r, 'map');
       break;
@@ -40,8 +40,8 @@ function place(world, type, count, scaleOf = null) {
   }
 }
 
-// Los recursos esenciales nacen en una corona alrededor de Fagi: no debajo de
-// ella, pero sí lo bastante cerca para poder descubrirlos antes de morir.
+// The essential resources spawn in a ring around Fagi: not underneath
+// her, but close enough that she can discover them before dying.
 function placeNearSpawn(world, type, count, minDistance, maxDistance) {
   const r = OBJECT_TYPES[type].radius;
   const cx = WORLD.width / 2;
@@ -67,8 +67,8 @@ function placeFarFrom(world, type, count, origin, minDistance, maxDistance, pref
   const cy = WORLD.height / 2;
   let placed = 0;
   for (let attempt = 0; attempt < count * 240 && placed < count; attempt++) {
-    // Prioriza el lado opuesto al nido respecto al lugar de nacimiento: coincide
-    // con la exploración que se aleja de casa, sin revelar la posición exacta.
+    // Favors the side opposite the nest relative to the spawn point: it matches
+    // exploration that moves away from home, without revealing the exact position.
     const angle = preferredAngle + (Math.random() - 0.5) * 1.2;
     const distance = minDistance + Math.random() * (maxDistance - minDistance);
     const x = origin.x + Math.cos(angle) * distance;
@@ -81,7 +81,7 @@ function placeFarFrom(world, type, count, origin, minDistance, maxDistance, pref
 }
 
 export function generateMap(world) {
-  // El nido va primero y cerca de donde nace Fagi: es su punto de partida.
+  // The nest goes first and close to where Fagi spawns: it's her starting point.
   const cx = WORLD.width / 2;
   const cy = WORLD.height / 2;
   const ang = Math.random() * Math.PI * 2;

@@ -1,14 +1,14 @@
-// Pistas de algo que ya percibió y perdió, de la más fresca a la más vieja.
+// Clues of something she already perceived and lost, from the freshest to the oldest.
 
 import { labelOf } from '../i18n.js';
 import { reasonOf, pantryDone, stillInWorld } from './common.js';
 
-// Perdió el olor que seguía: no lo abandona de golpe, lo busca barriendo.
+// She lost the scent she was following: she doesn't drop it at once, she searches for it by sweeping.
 export function persistOnScent(fagi, world, ctx, dt) {
   if (!fagi.trailKey || fagi.trailMemory <= 0) return null;
-  // El agua siempre merece el rastro; un olor a comida, no si no hay dónde
-  // ponerla: trackScent revive trailMemory dentro de la estela, así que sin
-  // esta salida se quedaría rastreando el mismo fruto para siempre.
+  // Water always deserves the trail; a food smell doesn't if there's nowhere to
+  // put it: trackScent revives trailMemory inside the plume, so without
+  // this way out she'd keep tracking the same fruit forever.
   if (fagi.trailKey !== 'water' && pantryDone(fagi, ctx)) return null;
   return {
     action: 'track',
@@ -21,7 +21,7 @@ export function persistOnScent(fagi, world, ctx, dt) {
   };
 }
 
-// Lo tenía fichado y lo perdió de vista (pasó de largo, quedó tras una roca).
+// She had it spotted and lost sight of it (walked past it, it ended up behind a rock).
 export function persistFromMemory(fagi, world, ctx, dt) {
   const stillThere = fagi.target && stillInWorld(world, fagi.target);
   if (!stillThere || fagi.memory <= 0) return null;

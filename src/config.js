@@ -1,128 +1,128 @@
-// Todos los números ajustables del juego viven aquí.
+// Every tunable number in the game lives here.
 
-// Escala y relojes. 1 px = 0,5 mm: Fagi mide ~9 mm, como una obrera de
-// Formica, y el mapa es un trozo de suelo de 64 x 43 cm. Moverse, ver, oler y
-// la feromona van a tiempo real. Solo la biología (sed, hambre, olvido, lo que
-// se pudre) va comprimida: 1 s de juego = ~8 min de hormiga, con las
-// proporciones reales entre unas cosas y otras.
+// Scale and clocks. 1 px = 0.5 mm: Fagi is ~9 mm long, like a Formica
+// worker, and the map is a 64 x 43 cm patch of ground. Moving, seeing, smelling
+// and pheromone run in real time. Only biology (thirst, hunger, forgetting, what
+// rots) is compressed: 1 s of game = ~8 min of ant, keeping the real
+// proportions between one thing and another.
 export const WORLD = {
   width: 1280,
   height: 860,
   bgColor: '#222630',
 };
 
-// El suelo. Se pinta una sola vez al empezar, así que estos números NO están en
-// el panel de ajustes: cambiarlos en caliente no repintaría nada. Se tocan aquí.
+// The ground. It's painted only once at startup, so these numbers are NOT in
+// the settings panel: changing them live wouldn't repaint anything. Edit them here.
 //
-// escala* = tamaño de las manchas de cada campo de ruido, en px. Grande = lomas
-// anchas y pocas; pequeño = terreno picado.
+// *Scale = size of the blotches of each noise field, in px. Large = few, broad
+// hills; small = choppy terrain.
 export const TERRAIN = {
-  heightScale: 300,   // lomas del relieve
-  moistureScale: 230,  // dónde agarra el verde
-  gravelScale: 150,    // dónde asoma el pedregal
-  lightCell: 4,         // px por celda del cálculo de color y luz
-  relief: 4.4,        // cuánto marca la pendiente. Alto = terreno abrupto
-  deep: 0.22,         // cuánto se apaga lo hondo por recibir menos cielo
-  mossFrom: 0.5,     // humedad a partir de la cual sale verde
-  gravelFrom: 0.7,     // piedra a partir de la cual sale pedregal
-  grain: 0.08,         // opacidad del terrón fino
-  patches: 0.05,       // opacidad de las manchas grandes de tierra
-  photo: 0.62,          // presencia de la base fotográfica
-  photoScale: 0.38,    // escala del material: menor = hojas y grava más pequeñas
-  clearings: 42,          // manchas suaves de luz filtrada por el dosel
-  specks: 5200,         // granos de arena suelta
-  pebbles: 1400,     // intentos de piedrecita (salen los del pedregal)
-  bushes: 3200,         // intentos de mata de hierba (salen los húmedos)
-  litter: 700,      // intentos de ramita seca
-  leaves: 900,          // intentos de hoja caída (salen donde hay verde)
-  moss: 700,          // intentos de mata de musgo (solo en lo húmedo y hondo)
-  roots: 90,          // intentos de raíz asomada (salen donde hay verde)
-  cracks: 260,        // intentos de grieta (salen los secos y altos)
-  shore: 1.45,        // hasta dónde llega la tierra mojada, en radios del charco
-  vignette: 0.08,        // cuánto se apagan los bordes del mundo
-  veil: 0.015,         // velo del color de fondo por encima de todo
+  heightScale: 300,   // relief hills
+  moistureScale: 230,  // where green takes hold
+  gravelScale: 150,    // where gravel shows through
+  lightCell: 4,         // px per cell of the color and light computation
+  relief: 4.4,        // how much slope shows. High = rugged terrain
+  deep: 0.22,         // how much low ground darkens from getting less sky
+  mossFrom: 0.5,     // moisture above which green appears
+  gravelFrom: 0.7,     // stoniness above which gravel appears
+  grain: 0.08,         // opacity of the fine clods
+  patches: 0.05,       // opacity of the large earth patches
+  photo: 0.62,          // presence of the photographic base
+  photoScale: 0.38,    // material scale: smaller = smaller leaves and gravel
+  clearings: 42,          // soft patches of light filtered through the canopy
+  specks: 5200,         // grains of loose sand
+  pebbles: 1400,     // pebble attempts (the gravelly ones make it)
+  bushes: 3200,         // grass tuft attempts (the moist ones make it)
+  litter: 700,      // dry twig attempts
+  leaves: 900,          // fallen leaf attempts (they appear where there's green)
+  moss: 700,          // moss tuft attempts (only in moist, low ground)
+  roots: 90,          // exposed root attempts (they appear where there's green)
+  cracks: 260,        // crack attempts (the dry, high ones make it)
+  shore: 1.45,        // how far the wet earth reaches, in pond radii
+  vignette: 0.08,        // how much the edges of the world darken
+  veil: 0.015,         // veil of the background color over everything
 };
 
-// La cámara. El mapa se ve entero con zoom 1; a partir de ahí se acerca.
+// The camera. The whole map is visible at zoom 1; from there it zooms in.
 //
-// detalleMax es cuánto se puede repintar un sprite por encima de su tamaño de
-// mundo. Subirlo da bordes más limpios muy de cerca y cuesta memoria y un
-// repintado por escalón, así que tres es el trato razonable.
+// maxDetail is how far above its world size a sprite can be repainted.
+// Raising it gives cleaner edges up close and costs memory and a
+// repaint per step, so three is the reasonable deal.
 export const CAMERA = {
   min: 1,
   max: 4,
-  step: 1.18,        // cuánto acerca cada muesca de la rueda
+  step: 1.18,        // how much each wheel notch zooms in
   maxDetail: 3,
-  keysDown: 520,       // px por segundo al mover con las flechas
+  keysDown: 520,       // px per second when moving with the arrow keys
 };
 
-// El lago. El círculo que decide dónde se bebe es el radio del objeto; estos
-// números son solo aspecto, y se miden en radios del lago.
+// The lake. The circle that decides where she drinks is the object's radius; these
+// numbers are only looks, and are measured in lake radii.
 export const LAKE = {
-  shoreWidth: 0.34,  // barro y guijarros por fuera del agua
-  deepFrom: 0.62,   // dónde empieza el hondo, más oscuro
-  waveEdge: 0.055,   // cuánto serpentea la orilla
-  sparkles: 9,       // reflejos que tiritan en la superficie
-  ripples: 3,           // círculos de onda que salen y se apagan
-  reeds: 16,         // matas de junco en la orilla
-  stones: 18,        // piedras del fondo, junto a la orilla
-  specks: 22,          // polen y hoja suelta flotando, que el viento arrastra
-  ripplets: 40,          // crestas de rizo que el viento empuja por la superficie
-  caustics: 34,      // red de luz en el fondo del vado
+  shoreWidth: 0.34,  // mud and pebbles outside the water
+  deepFrom: 0.62,   // where the deep water starts, darker
+  waveEdge: 0.055,   // how much the shoreline meanders
+  sparkles: 9,       // reflections that shimmer on the surface
+  ripples: 3,           // wave circles that spread out and fade
+  reeds: 16,         // reed tufts on the shore
+  stones: 18,        // bottom stones, near the shore
+  specks: 22,          // pollen and loose leaves floating, pushed by the wind
+  ripplets: 40,          // ripple crests the wind pushes across the surface
+  caustics: 34,      // web of light on the bottom of the shallows
 };
 
 export const FAGI = {
   radius: 9,
-  speed: 70,          // px por segundo
-  turnSpeed: 6.0,     // radianes por segundo. Radio de giro = speed/turnSpeed = 11.6px.
-                      // Debe quedar POR DEBAJO de eatRadius o Fagi orbita la comida sin tocarla.
-  fovDeg: 280,        // ángulo total del cono de visión: los ojos compuestos
-                      // ven casi todo alrededor, menos justo detrás
-  viewRange: 120,     // px. Poca resolución: una gota de 3 mm deja de verse a ~6 cm
-  eatRadius: 14,      // distancia de contacto para comer
-  memorySec: 2.0,     // segundos que recuerda un objetivo tras perderlo de vista
-  smell: 1.0,         // sensibilidad del olfato. Multiplica el aroma de cada cosa.
-  probe: 26,          // separación de las dos "fosas nasales" con las que compara
-  castTurn: 1.15,     // cuánto se abre el barrido cuando pierde el rastro
-  castEvery: 0.9,     // cada cuántos segundos cambia de lado al barrer
-  trailMemory: 7.0,   // segundos que sigue buscando un rastro que ha perdido
+  speed: 70,          // px per second
+  turnSpeed: 6.0,     // radians per second. Turning radius = speed/turnSpeed = 11.6px.
+                      // Must stay BELOW eatRadius or Fagi orbits the food without touching it.
+  fovDeg: 280,        // total angle of the vision cone: compound eyes
+                      // see almost all around, except right behind
+  viewRange: 120,     // px. Low resolution: a 3 mm drop stops being visible at ~6 cm
+  eatRadius: 14,      // contact distance for eating
+  memorySec: 2.0,     // seconds she remembers a target after losing sight of it
+  smell: 1.0,         // sense of smell sensitivity. Multiplies each thing's aroma.
+  probe: 26,          // spacing of the two "nostrils" she compares
+  castTurn: 1.15,     // how wide the sweep opens when she loses the trail
+  castEvery: 0.9,     // every how many seconds she switches sides while sweeping
+  trailMemory: 7.0,   // seconds she keeps searching for a trail she has lost
 };
 
 export const HUNGER = {
-  rate: 0.08,         // puntos de hambre por segundo (~1250s = ~1 semana sin comer,
-                      // con agua: 5-7 veces más de lo que aguanta sin beber)
+  rate: 0.08,         // hunger points per second (~1250s = ~1 week without food,
+                      // with water: 5-7 times longer than she lasts without drinking)
   max: 100,
 };
 
-// La sed es la segunda necesidad: sube más rápido que el hambre, pero el agua
-// del mapa no se gasta. Fagi tiene que repartir su tiempo entre comer y beber.
+// Thirst is the second need: it rises faster than hunger, but the map's water
+// never runs out. Fagi has to split her time between eating and drinking.
 export const THIRST = {
-  rate: 0.55,         // puntos de sed por segundo (~180s = ~1 día hasta desecarse)
+  rate: 0.55,         // thirst points per second (~180s = ~1 day until drying out)
   max: 100,
-  drinkRate: 5,       // cuánta sed quita por segundo dentro del agua (~20s para llenar el buche)
-  ignoreBelow: 0.10,  // con menos sed que esto, el agua ni se plantea
+  drinkRate: 5,       // how much thirst is removed per second in the water (~20s to fill the crop)
+  ignoreBelow: 0.10,  // with less thirst than this, water isn't even considered
 };
 
-// El agua por dentro. Una hormiga no nada: pesa tan poco que la tensión
-// superficial la atrapa y patalea casi sin avanzar. Bebe desde la orilla, en el
-// vado, donde las patas aún tocan fondo. Todo esto es física, no se aprende. Lo
-// que SÍ aprende, a base de hundirse, es a no meterse en el hondo: la creencia
-// 'hondo', igual que aprende qué fruto le sienta mal.
+// Water from the inside. An ant doesn't swim: she weighs so little that surface
+// tension traps her and she flails almost without moving. She drinks from the shore, in the
+// shallows, where her legs still touch bottom. All of this is physics, not learned. What
+// she DOES learn, by sinking, is to stay out of deep water: the belief
+// 'deep', just as she learns which fruit disagrees with her.
 //
-//   vado       : px de agua por dentro de la orilla donde aún hace pie y bebe
-//   wadeSpeed  : velocidad en el vado (barro, patas mojadas)
-//   swimSpeed  : velocidad en el hondo, pataleando
-//   swimEffort : cuánta más energía gasta pataleando que andando
-//   shock      : parte del susto que da perder pie, aunque salga enseguida
-//   sample     : segundos en el hondo que valen el susto entero
-//   lesson     : lo que resta ese susto entero a la creencia 'hondo'
+//   shallows   : px of water inside the shore where she can still stand and drink
+//   wadeSpeed  : speed in the shallows (mud, wet legs)
+//   swimSpeed  : speed in deep water, flailing
+//   swimEffort : how much more energy flailing costs than walking
+//   shock      : share of the scare that losing her footing gives, even if she gets out at once
+//   sample     : seconds in deep water worth the whole scare
+//   lesson     : what that whole scare subtracts from the belief 'deep'
 //
-// Al salir del hondo va empapada: el agua pesa y se le pega a las patas hasta
-// que se seca (wetSpeed al salir, que vuelve a 1 en dryTime segundos).
+// Coming out of deep water she's soaked: the water weighs and clings to her legs until
+// she dries (wetSpeed on leaving, which returns to 1 over dryTime seconds).
 //
-// Nota el agua antes de pisarla: las antenas (probeReach px por delante del
-// cuerpo) captan la humedad y el tacto del agua, y avanza tanteando
-// (probeSpeed) mientras las tenga sobre el hondo.
+// She notices water before stepping in it: her antennae (probeReach px ahead of her
+// body) pick up the moisture and feel of the water, and she moves forward probing
+// (probeSpeed) while they're over deep water.
 export const WATER = {
   shallows: 10,
   wadeSpeed: 0.6,
@@ -135,34 +135,34 @@ export const WATER = {
   dryTime: 8,
   probeReach: 7,
   probeSpeed: 0.45,
-  edgeGiveUp: 1,      // segundos topando con el borde del hondo antes de darse la vuelta
+  edgeGiveUp: 1,      // seconds bumping into the edge of deep water before turning around
 };
 
-// Lluvia (rain.js). Chaparrones cortos cada cierto tiempo que dejan charcos
-// poco hondos; el sol los va encogiendo hasta secarlos. Mientras llueve la
-// feromona y los olores se lavan y Fagi, fuera del nido, se empapa (WATER.wetSpeed).
-//   every        : segundos entre chaparrones (min, max). ~1-2 días de hormiga
-//   duration     : cuánto dura cada uno
-//   puddles      : charcos que deja cada chaparrón
-//   puddleRadius : tamaño de un charco al nacer (px)
-//   grow         : px de radio que gana un charco por segundo mientras llueve
-//   evaporate    : px de radio que pierde por segundo con el sol (~4 min = ~1,5 días)
-//   minRadius    : por debajo de esto ya está seco
-//   washPhero    : cuántas veces más rápido se borra la feromona bajo la lluvia
-//                  (100: una marca fresca desaparece en ~6 s de chaparrón)
-//   washScent    : segundos que tarda la lluvia en lavar un hilo de olor entero.
-//                  Mientras llueve no crece; al escampar vuelve a salir de la fuente
-//   front        : segundos que la presión lleva bajando antes de que caiga
-//                  (el frente llega antes que el agua)
-//   recover      : segundos que tarda la presión en volver tras escampar
-//   effort       : energía que gasta bajo la lluvia, fuera del nido (× andar):
-//                  cada gota pesa como ella
-//   sample       : segundos a la intemperie que forman una experiencia de lluvia
-//   lesson       : cuánto enseña esa experiencia (lo mala que le parece)
-//   puddleLesson : cuánto enseña un charco: encontrarlo seco resta, beber de
-//                  él suma. Con eso aprende si fiarse de los charcos
-//   puddleLifeRate: cuánto corrige, con cada charco que encuentra seco, lo que
-//                  cree que dura un charco
+// Rain (rain.js). Short showers every so often that leave shallow
+// puddles; the sun shrinks them until they dry up. While it rains the
+// pheromone and smells wash away and Fagi, outside the nest, gets soaked (WATER.wetSpeed).
+//   every        : seconds between showers (min, max). ~1-2 ant days
+//   duration     : how long each one lasts
+//   puddles      : puddles each shower leaves
+//   puddleRadius : size of a puddle when it forms (px)
+//   grow         : px of radius a puddle gains per second while it rains
+//   evaporate    : px of radius it loses per second in the sun (~4 min = ~1.5 days)
+//   minRadius    : below this it's dry
+//   washPhero    : how many times faster pheromone fades in the rain
+//                  (100: a fresh mark disappears in ~6 s of shower)
+//   washScent    : seconds it takes the rain to wash away a whole scent thread.
+//                  While it rains it doesn't grow; when it clears it comes out of the source again
+//   front        : seconds the pressure has been dropping before it falls
+//                  (the front arrives before the water)
+//   recover      : seconds it takes the pressure to recover after it clears
+//   effort       : energy she spends in the rain, outside the nest (× walking):
+//                  each drop weighs as much as she does
+//   sample       : seconds out in the open that make up one rain experience
+//   lesson       : how much that experience teaches (how bad it seems to her)
+//   puddleLesson : how much a puddle teaches: finding it dry subtracts, drinking from
+//                  it adds. That's how she learns whether to trust puddles
+//   puddleLifeRate: how much she corrects, with each puddle she finds dry, what
+//                  she believes a puddle lasts
 export const RAIN = {
   every: { min: 240, max: 420 },
   duration: { min: 18, max: 35 },
@@ -182,25 +182,25 @@ export const RAIN = {
   puddleLifeRate: 0.3,
 };
 
-// Instintos: lo que trae de nacimiento, sin haberlo aprendido. Todo lo demás
-// (qué es bueno, qué evitar, qué anuncia qué) sale de la experiencia. Poner
-// uno a 0 lo apaga y deja la conducta entera en manos del aprendizaje.
+// Instincts: what she's born with, without having learned it. Everything else
+// (what's good, what to avoid, what announces what) comes from experience. Setting
+// one to 0 turns it off and leaves the behavior entirely up to learning.
 //
-// Siempre activos (física y reflejos, sin número que tocar): patalear hacia la
-// orilla en el hondo, frenar tanteando cuando las antenas tocan agua, sentir
-// el cuerpo (interoception.js) y la curiosidad por lo desconocido (BRAIN).
+// Always on (physics and reflexes, no number to tweak): flailing towards the
+// shore in deep water, slowing down to probe when the antennae touch water, feeling
+// the body (interoception.js) and curiosity about the unknown (BRAIN).
 //
-//   rainShelter   : ganas innatas de ponerse a cubierto cuando le cae lluvia
-//                   (0-1). Lo aprendido de mojarse ('lluvia') se les suma; se
-//                   refugia si superan lo que le tiran el hambre y la sed.
-//   pressureSense : sensibilidad a la presión del aire (0 = no la nota). Las
-//                   hormigas notan su caída (Sujimoto et al. 2020, Ethology).
-//   pressureMin   : caída mínima (0-1) que llega a notar.
-//   pressureHaste : se apresura al notar que baja (× velocidad extra). Es lo
-//                   que se ha medido en cortadoras: salen antes y acarrean más.
-//   pressureShelter: ganas innatas de volver al nido al notar que baja. De
-//                   fábrica 0: que la bajada anuncia lluvia lo APRENDE
-//                   (creencia 'presion'), no lo sabe de nacimiento.
+//   rainShelter   : innate urge to take cover when rain falls on her
+//                   (0-1). What she learns from getting wet ('rain') adds to it; she
+//                   shelters if they exceed the pull of hunger and thirst.
+//   pressureSense : sensitivity to air pressure (0 = she doesn't notice it). Ants
+//                   notice its drop (Sujimoto et al. 2020, Ethology).
+//   pressureMin   : smallest drop (0-1) she can notice.
+//   pressureHaste : she hurries when she notices it dropping (× extra speed). It's
+//                   what has been measured in leafcutters: they go out earlier and carry more.
+//   pressureShelter: innate urge to go back to the nest when she notices it dropping. From
+//                   the factory 0: that the drop announces rain is something she LEARNS
+//                   (belief 'pressure'), she doesn't know it from birth.
 export const INSTINCT = {
   rainShelter: 0.2,
   pressureSense: 1,
@@ -209,21 +209,21 @@ export const INSTINCT = {
   pressureShelter: 0,
 };
 
-// El cuerpo. Lo único que Fagi sabe de nacimiento es sentirse: si el hambre
-// baja se siente bien, si la velocidad cae se siente torpe. Qué COSA del mundo
-// le produce cada sensación no lo sabe: eso lo aprende probando.
+// The body. The only thing Fagi knows from birth is how to feel herself: if hunger
+// drops she feels good, if her speed falls she feels clumsy. Which THING in the world
+// produces each sensation she doesn't know: she learns that by trying.
 //
-//   hungerScale : puntos de hambre que valen una sensación de ±1 (35 = un néctar)
-//   effectWeight: cuánto pesa un cambio de stat frente al hambre
-//   statSense   : cómo siente el cuerpo cada stat. +1 = subir es bueno; -1 =
-//                 subir es malo. Un stat nuevo necesita su signo aquí (sin
-//                 entrada, se asume +1).
-//   window      : segundos que sigue vigilando tras comer, por si le sienta mal
-//                 después (cruzar el umbral crítico de la necesidad que atendía)
-//   perilWeight : lo que resta ese mal desenlace diferido
-//   deathPenalty: lo que resta morir con un bocado reciente en el cuerpo
-//   drinkSample : segundos bebiendo antes de juzgar cuánto le quitó la sed
-//   energyScale : puntos de energía perdidos que valen una sensación de -1
+//   hungerScale : hunger points worth a sensation of ±1 (35 = one nectar)
+//   effectWeight: how much a stat change weighs against hunger
+//   statSense   : how the body feels each stat. +1 = going up is good; -1 =
+//                 going up is bad. A new stat needs its sign here (with no
+//                 entry, +1 is assumed).
+//   window      : seconds she keeps watching after eating, in case it disagrees with her
+//                 later (crossing the critical threshold of the need she was tending)
+//   perilWeight : what that delayed bad outcome subtracts
+//   deathPenalty: what dying with a recent bite in her body subtracts
+//   drinkSample : seconds drinking before judging how much thirst it removed
+//   energyScale : lost energy points worth a sensation of -1
 export const FEEL = {
   hungerScale: 35,
   thirstScale: 60,
@@ -232,65 +232,65 @@ export const FEEL = {
   window: 10,
   perilWeight: 0.5,
   deathPenalty: 1,
-  drinkSample: 9,     // con drinkRate 5 son ~45 puntos de sed: la misma señal que antes
-  energyScale: 20,    // puntos de energía que valen una sensación de ±1
+  drinkSample: 9,     // with drinkRate 5 that's ~45 thirst points: the same signal as before
+  energyScale: 20,    // energy points worth a sensation of ±1
 };
 
-// Aprendizaje simbólico: cuándo una creencia se convierte en una regla escrita
-// y cuándo esa regla se retira. Con histéresis, para que no parpadee.
+// Symbolic learning: when a belief becomes a written rule
+// and when that rule is retired. With hysteresis, so it doesn't flicker.
 export const LEARN = {
-  avoidFrom: 0.2,     // peso (negativo) a partir del cual escribe "evitar X"
-  avoidUntil: 0.1,    // y por debajo del cual la retira
-  preferFrom: 0.5,    // peso a partir del cual escribe "preferir X"
+  avoidFrom: 0.2,     // (negative) weight above which she writes "avoid X"
+  avoidUntil: 0.1,    // and below which she retires it
+  preferFrom: 0.5,    // weight above which she writes "prefer X"
   preferUntil: 0.3,
-  autosave: 1,        // guardar una copia recuperable en el navegador (1 = sí)
-  autosaveEvery: 10,  // cada cuántos segundos
-  maxRetired: 20,     // reglas retiradas que conserva como historial
+  autosave: 1,        // keep a recoverable copy in the browser (1 = yes)
+  autosaveEvery: 10,  // every how many seconds
+  maxRetired: 20,     // retired rules kept as history
 };
 
-// Decisión externa: una API que recibe lo que Fagi percibe y devuelve qué
-// hacer. El instinto sigue mandando cuando la API calla, tarda o se equivoca.
+// External decision: an API that receives what Fagi perceives and returns what
+// to do. Instinct stays in charge when the API is silent, slow or wrong.
 //
-//   authority: 0 = segura (el instinto atiende las emergencias antes);
-//              1 = plena (la API va primero, salvo emergencia que no atienda)
+//   authority: 0 = safe (instinct handles emergencies first);
+//              1 = full (the API goes first, except for an emergency it doesn't handle)
 export const BACKEND = {
   enabled: 0,
   authority: 0,
-  minInterval: 2,     // segundos mínimos entre consultas
-  timeout: 2,         // segundos de espera antes de rendirse
-  ttl: 6,             // segundos que vale una directiva si la API no dice otra cosa
+  minInterval: 2,     // minimum seconds between queries
+  timeout: 2,         // seconds to wait before giving up
+  ttl: 6,             // seconds a directive is valid if the API doesn't say otherwise
   maxTtl: 20,
-  idleAfter: 8,       // segundos explorando sin más antes de preguntar
+  idleAfter: 8,       // seconds of just exploring before asking
 };
 
 export const BRAIN = {
-  learnRate: 0.45,    // qué tan rápido actualiza su creencia
-  curiosityTries: 2,  // pruebas por tipo antes de dejar de ser curioso
+  learnRate: 0.45,    // how fast she updates her belief
+  curiosityTries: 2,  // tries per type before she stops being curious
   curiosityBonus: 1.2,
   distanceWeight: 0.6,
-  stickiness: 0.2,    // ventaja que necesita un rival para robarle el objetivo actual
-  smellPenalty: 0.15,  // lo que resta perseguir algo que huele pero no ve: sabe
-                      // que está cerca, no exactamente dónde.
-  minScore: 0.12,     // por debajo de esto no merece la pena moverse
-  baseInterest: 0.25, // cuánto tira de él algo que sabe bueno cuando NO lo necesita.
-                      // Sin esto iría al agua con la sed a cero, solo porque le gusta.
+  stickiness: 0.2,    // advantage a rival needs to steal the current target
+  smellPenalty: 0.15,  // what chasing something she smells but can't see subtracts: she knows
+                      // it's close, not exactly where.
+  minScore: 0.12,     // below this it's not worth moving
+  baseInterest: 0.25, // how much something she knows is good pulls her when she does NOT need it.
+                      // Without this she'd go to the water with zero thirst, just because she likes it.
 };
 
-// Los cinco puntos que el jugador puede colocar.
+// The five points the player can place.
 //
-//   hunger  : cuánto suma (+) o resta (-) al hambre al comerlo.
-//   effects : buffs temporales. stat = qué multiplica, mult = factor, sec = duración.
+//   hunger  : how much it adds (+) to or subtracts (-) from hunger when eaten.
+//   effects : temporary buffs. stat = what it multiplies, mult = factor, sec = duration.
 //
-// Aquí solo hay FÍSICA: lo que el bocado le hace al cuerpo. Si es bueno o malo
-// no está escrito en ningún sitio: Fagi lo siente al comerlo (FEEL) y lo
-// aprende. Un alimento nuevo, o un peligro nuevo, se añade con su física y nada
-// más.
+// There's only PHYSICS here: what the bite does to the body. Whether it's good or bad
+// isn't written anywhere: Fagi feels it when she eats it (FEEL) and
+// learns it. A new food, or a new danger, is added with its physics and nothing
+// else.
 export const POINT_TYPES = {
   nectar: {
     color: '#5bd97e',
     radius: 6,
-    aroma: 175,       // huele fuerte: se detecta de lejos aunque no se vea
-    life: 180,        // segundos hasta pudrirse y volverse tóxico (0 = nunca). ~1 día
+    aroma: 175,       // smells strong: detected from afar even when not seen
+    life: 180,        // seconds until it rots and turns toxic (0 = never). ~1 day
     hunger: -35,
     effects: [],
   },
@@ -324,8 +324,8 @@ export const POINT_TYPES = {
   toxic: {
     color: '#d95b7e',
     radius: 6,
-    aroma: 130,       // el veneno también huele, y huele parecido
-    life: 180,        // lo podrido no se pudre más: al cumplir su tiempo desaparece
+    aroma: 130,       // poison smells too, and it smells similar
+    life: 180,        // rot doesn't rot further: when its time is up it disappears
     hunger: 25,
     effects: [{ stat: 'speed', mult: 0.6, sec: 5 }],
   },
@@ -333,14 +333,14 @@ export const POINT_TYPES = {
 
 export const TYPE_KEYS = Object.keys(POINT_TYPES);
 
-// Objetos del mapa. No se comen: se quedan puestos.
+// Map objects. They aren't eaten: they stay put.
 //
-//   water : Fagi bebe en el vado, por dentro del borde (WATER). El hondo la atrapa.
-//           Un charco (shallow) no tiene hondo: todo él es vado.
-//   block : roca. Corta el paso y también la línea de visión.
+//   water : Fagi drinks in the shallows, inside the edge (WATER). Deep water traps her.
+//           A puddle (shallow) has no deep water: all of it is shallows.
+//   block : rock. Blocks the way and also the line of sight.
 export const OBJECT_TYPES = {
   water: { color: '#3d8fd9', radius: 44, kind: 'water', aroma: 150 },
-  // Charco de lluvia (rain.js): agua poco honda que se seca. Apenas huele.
+  // Rain puddle (rain.js): shallow water that dries up. It barely smells.
   puddle: { color: '#6f9fbf', radius: 16, kind: 'water', aroma: 0, shallow: true },
   nest: { color: '#c9a227', radius: 42, kind: 'nest', aroma: 60 },
   tree: { color: '#4f9552', radius: 44, kind: 'spawner', aroma: 70 },
@@ -349,183 +349,183 @@ export const OBJECT_TYPES = {
 
 export const OBJECT_KEYS = Object.keys(OBJECT_TYPES);
 
-// De qué cosas tiene una creencia aprendida: los alimentos y el agua.
-// El agua se aprende igual que la comida: empieza en 0 y hay que probarla.
-// El olor no se expande en círculo: el viento lo arrastra y forma una estela.
-// Fagi solo huele algo si está DENTRO de esa estela, es decir, a sotavento.
+// What things she has a learned belief about: the foods and the water.
+// Water is learned the same as food: it starts at 0 and has to be tried.
+// Smell doesn't spread in a circle: the wind carries it and forms a plume.
+// Fagi only smells something if she's INSIDE that plume, that is, downwind.
 export const WIND = {
-  turnRate: 0.09,     // radianes por segundo: gira despacio, se nota en pantalla
-  changeEvery: { min: 8, max: 18 }, // cada cuánto se plantea una dirección nueva
-  swing: 1.5,         // cuánto puede desviarse al elegir la nueva dirección
+  turnRate: 0.09,     // radians per second: turns slowly, visible on screen
+  changeEvery: { min: 8, max: 18 }, // how often it considers a new direction
+  swing: 1.5,         // how far it can deviate when picking the new direction
 };
 
-// El olor de cada fuente es UN hilo que va creciendo por el mapa. Sale a favor
-// del viento, pero serpentea por su cuenta, así que toma direcciones distintas
-// según avanza. Cuanto más viejo el punto, más lejos ha llegado su rastro.
+// Each source's smell is ONE thread that keeps growing across the map. It heads
+// downwind, but meanders on its own, so it takes different directions
+// as it advances. The older the point, the farther its trail has reached.
 export const PLUME = {
-  step: 18,           // px de cada tramo nuevo
-  every: 0.10,        // segundos entre tramo y tramo (velocidad de crecimiento)
-  drift: 0.45,        // cuánto puede torcerse cada tramo (radianes)
-  windPull: 0.22,     // cuánto lo endereza el viento hacia su dirección
-  radius: 34,         // a qué distancia del hilo se percibe el olor
-  nodesPerAroma: 0.7, // tramos máximos del hilo = aroma × esto
-  faint: 0.85,        // cuánto se diluye de la fuente a la punta
+  step: 18,           // px of each new segment
+  every: 0.10,        // seconds between segments (growth speed)
+  drift: 0.45,        // how much each segment can bend (radians)
+  windPull: 0.22,     // how much the wind straightens it towards its direction
+  radius: 34,         // how far from the thread the smell is perceived
+  nodesPerAroma: 0.7, // max segments of the thread = aroma × this
+  faint: 0.85,        // how much it dilutes from the source to the tip
 };
 
-// Memoria. Un recuerdo no es un número: es un valor MÁS la confianza que le
-// tiene. La confianza sube al confirmarse, baja sola con el tiempo, y solo
-// aguanta si las confirmaciones vienen espaciadas, como en los insectos reales.
-// Sinapsis (synapses.js): la huella del aprendizaje como red de conexiones.
+// Memory. A memory isn't a number: it's a value PLUS the confidence she has
+// in it. Confidence rises when confirmed, drops on its own over time, and only
+// holds if the confirmations come spaced out, as in real insects.
+// Synapses (synapses.js): the trace of learning as a network of connections.
 export const SYNAPSE = {
-  hebbRate: 0.6,      // cuánto se refuerza por segundo sentido→concepto al percibirlo
-  hebbDecay: 0.01,    // lo que pierde por segundo sin usarse (~1.5 min de fuerte a podada)
-  learnRate: 0.45,    // cuánto se acerca concepto→sensación a lo que sintió cada vez
-  feelDecay: 0.0008,  // lo aprendido por consecuencias se olvida mucho más despacio
-  prune: 0.03,        // por debajo de esto la conexión se poda
+  hebbRate: 0.6,      // how much sense→concept strengthens per second while perceiving it
+  hebbDecay: 0.01,    // what it loses per second unused (~1.5 min from strong to pruned)
+  learnRate: 0.45,    // how close concept→sensation gets to what she felt each time
+  feelDecay: 0.0008,  // what's learned through consequences is forgotten much more slowly
+  prune: 0.03,        // below this the connection is pruned
 };
 
 export const MEMORY = {
-  spacing: 12,         // segundos mínimos entre confirmaciones para que "cuenten"
-  massedGain: 0.4,     // lo que vale una confirmación seguida frente a una espaciada
-  gain: 0.45,          // cuánta confianza da una confirmación espaciada
-  first: 0.5,          // confianza que deja la primera experiencia
-  floor: 0.45,         // cuánto de lo aprendido sigue pesando aunque no se fíe:
-                       // dudar rebaja un recuerdo, no lo anula
-  contradiction: 0.45, // con qué se multiplica la confianza al llevarse un chasco
-  toMedium: 2,         // confirmaciones espaciadas para pasar a memoria media
-  toLong: 4,           // y para consolidarla como memoria larga
-  // El olvido es biología: va al reloj comprimido, como la sed y el hambre.
-  decayShort: 0.003,   // confianza perdida por segundo en cada etapa (~3 min = ~1 día)
-  decayMedium: 0.0008, // ~10 min = unos días
-  decayLong: 0.0003,   // ~1 h = semanas: casi permanente
-  minConfidence: 0.18, // por debajo vuelve la curiosidad: ya no se fía
-  placeDrift: 0.2,     // px de imprecisión que gana un sitio por segundo sin verlo.
-                       // Poca: la integración de caminos falla al andar, no al esperar
-  placeErrorMax: 260,  // tope de esa imprecisión
-  travelRange: 700,    // hasta dónde le parece razonable viajar a un sitio que
-                       // recuerda. Sin esto, todo lo que no ve queda "lejísimos"
-  save: true,          // guardar la memoria larga entre partidas
+  spacing: 12,         // minimum seconds between confirmations for them to "count"
+  massedGain: 0.4,     // what a back-to-back confirmation is worth vs. a spaced one
+  gain: 0.45,          // how much confidence a spaced confirmation gives
+  first: 0.5,          // confidence left by the first experience
+  floor: 0.45,         // how much of what's learned still weighs even if she doesn't trust it:
+                       // doubting lowers a memory, it doesn't erase it
+  contradiction: 0.45, // what confidence is multiplied by on a letdown
+  toMedium: 2,         // spaced confirmations to move to medium memory
+  toLong: 4,           // and to consolidate it as long memory
+  // Forgetting is biology: it runs on the compressed clock, like thirst and hunger.
+  decayShort: 0.003,   // confidence lost per second at each stage (~3 min = ~1 day)
+  decayMedium: 0.0008, // ~10 min = a few days
+  decayLong: 0.0003,   // ~1 h = weeks: almost permanent
+  minConfidence: 0.18, // below this curiosity returns: she no longer trusts it
+  placeDrift: 0.2,     // px of imprecision a place gains per second without seeing it.
+                       // Little: path integration fails while walking, not while waiting
+  placeErrorMax: 260,  // cap on that imprecision
+  travelRange: 700,    // how far she finds it reasonable to travel to a place she
+                       // remembers. Without this, everything she can't see is "miles away"
+  save: true,          // keep long memory between games
 };
 
 export const BELIEF_KEYS = [...TYPE_KEYS, 'water'];
 
-// Ficha de cualquier cosa perseguible, sea comida u objeto de mapa.
+// Spec of anything chaseable, whether food or map object.
 export function specOf(key) {
   return POINT_TYPES[key] ?? OBJECT_TYPES[key];
 }
 
-// Mapa aleatorio al empezar y al reiniciar.
-// Energía: el tercer medidor. Bajarla no mata, pero deja a Fagi sin fuerzas
-// hasta que para a descansar. El nido es donde mejor se recupera.
+// Random map at startup and on reset.
+// Energy: the third gauge. Running low doesn't kill, but it leaves Fagi without strength
+// until she stops to rest. The nest is where she recovers best.
 export const ENERGY = {
   max: 100,
-  drain: 1.6,         // por segundo andando (escala con la velocidad real)
-  restOutside: 6,     // recuperación por segundo parada en el campo
-  restNest: 16,       // recuperación por segundo dentro del nido
-  tired: 22,          // por debajo de esto busca descansar
-  rested: 85,         // deja de descansar al llegar aquí
-  weakSpeed: 0.55,    // si se queda a cero, se arrastra a esta fracción de velocidad
+  drain: 1.6,         // per second walking (scales with actual speed)
+  restOutside: 6,     // recovery per second stopped in the field
+  restNest: 16,       // recovery per second inside the nest
+  tired: 22,          // below this she looks for rest
+  rested: 85,         // she stops resting when she gets here
+  weakSpeed: 0.55,    // if she hits zero, she drags herself at this fraction of speed
 };
 
-// A partir de esta fracción, una necesidad es urgente: comer o beber pasa por
-// delante de descansar y de acarrear. Nadie se echa la siesta muriéndose de sed.
-// critical     : a partir de aquí la necesidad manda sobre todo lo demás
-// shelterMargin: segundos de colchón que deja al salir del refugio para que la
-//                sed no se le haga crítica por el camino al agua
+// From this fraction on, a need is urgent: eating or drinking goes ahead of
+// resting and carrying. Nobody naps while dying of thirst.
+// critical     : from here on the need overrides everything else
+// shelterMargin: seconds of cushion she leaves when coming out of shelter so that
+//                thirst doesn't turn critical on the way to the water
 export const NEEDS = { critical: 0.55, shelterMargin: 10 };
 
-// Acarreo: puede llevar UN punto a la vez hasta el nido.
+// Carrying: she can take ONE point at a time to the nest.
 export const CARRY = {
-  eatBelow: 45,       // con más hambre que esto se lo come en el sitio
-  nestFeed: 30,       // hambre que le quita comer de las reservas del nido
+  eatBelow: 45,       // with more hunger than this she eats it on the spot
+  nestFeed: 30,       // hunger removed by eating from the nest's stores
 };
 
-// La despensa tiene tope. Guardar es tener reservas para después, no amontonar:
-// con el nido así de lleno deja de recoger y se dedica a explorar.
+// The pantry has a cap. Storing is having reserves for later, not hoarding:
+// with the nest this full she stops gathering and turns to exploring.
 //
-// Dentro del nido el tiempo pasa keepFactor veces más despacio: una ración
-// aguanta eso más que tirada al sol. Pero aguantar no es durar para siempre —
-// cumplida esa vida larga se echa a perder y desaparece de las reservas. Guardar
-// aplaza el problema del hambre, no lo elimina.
+// Inside the nest time passes keepFactor times slower: a ration
+// lasts that much longer than lying in the sun. But lasting isn't lasting forever —
+// once that long life is up it spoils and disappears from the stores. Storing
+// postpones the hunger problem, it doesn't remove it.
 //
-// forageDrive: cuánto tira de una obrera la despensa vacía. Sale a por comida
-// por lo que le falta a la colonia, no solo por su propia hambre.
-//   restHunger / restThirst: cuánto hambre y sed le dan durmiendo dentro del
-//   nido, frente a estar fuera (×). Quieta gasta mucho menos (el metabolismo
-//   en reposo de una hormiga es una fracción del de ir andando) y el aire del
-//   nido va casi saturado de humedad, así que apenas pierde agua.
+// forageDrive: how much the empty pantry pulls a worker. She goes out for food
+// because of what the colony lacks, not just because of her own hunger.
+//   restHunger / restThirst: how much hunger and thirst she gets sleeping inside the
+//   nest, compared to being outside (×). Lying still she spends much less (an ant's resting
+//   metabolism is a fraction of its walking one) and the nest air
+//   is almost saturated with moisture, so she barely loses water.
 export const NEST = { full: 12, keepFactor: 10, forageDrive: 0.5, restHunger: 0.35, restThirst: 0.1 };
 
-// Explorar. No es deambular: Fagi lleva una rejilla basta de por dónde ha
-// pasado y tira hacia la casilla que menos conoce.
+// Exploring. It isn't wandering: Fagi keeps a coarse grid of where she has
+// been and heads for the cell she knows least.
 export const EXPLORE = {
-  cell: 90,           // px de lado de cada casilla del mapa mental
-  visitGain: 1.0,     // cuánto se conoce una casilla por segundo estando en ella
-  visitMax: 3,        // tope de conocimiento de una casilla
-  fade: 0.001,        // cuánto se olvida por segundo: una casilla vuelve a ser
-                      // terreno nuevo a los ~15 min (días de hormiga) de no pisarla
-  distanceWeight: 1.4, // cuánto pesa lo lejos que queda una casilla al elegirla
-  homeBias: 0,        // cuánto prefiere las casillas lejos del nido. 0: las obreras
-                      // no nacen con prisa por alejarse, amplían el radio con la experiencia
-  reach: 55,          // a qué distancia da por pisada la casilla a la que iba
-  giveUp: 12,         // segundos insistiendo en una casilla antes de elegir otra
-  // Explorar por tramos: cada tramo va a un punto que VE, dentro de su cono.
-  // Al llegar mira otra vez y elige el siguiente con lo que tenga delante.
-  rays: 9,            // direcciones que tantea dentro del cono
-  depths: [0.45, 0.7, 0.92],  // a qué fracción de la vista pone cada punto
-  compassWeight: 1.2, // cuánto tira el rumbo hacia la zona menos conocida del mapa
-  farWeight: 0.3,     // preferencia por llegar hasta el fondo de lo que ve
-  turnWeight: 0.4,    // lo que cuesta un tramo que obliga a darse la vuelta entera
-  waypointReach: 18,  // a qué distancia da por alcanzado el punto del tramo
+  cell: 90,           // px per side of each cell of the mental map
+  visitGain: 1.0,     // how much a cell becomes known per second while in it
+  visitMax: 3,        // cap on how well a cell is known
+  fade: 0.001,        // how much is forgotten per second: a cell becomes new
+                      // ground again after ~15 min (ant days) without stepping on it
+  distanceWeight: 1.4, // how much a cell's distance weighs when choosing it
+  homeBias: 0,        // how much she prefers cells far from the nest. 0: workers
+                      // aren't born in a hurry to get away, they widen their range with experience
+  reach: 55,          // at what distance she counts the cell she was heading to as visited
+  giveUp: 12,         // seconds insisting on a cell before choosing another
+  // Exploring in legs: each leg goes to a point she SEES, inside her cone.
+  // On arriving she looks again and picks the next one from what's in front of her.
+  rays: 9,            // directions she tries within the cone
+  depths: [0.45, 0.7, 0.92],  // at what fraction of her view each point is placed
+  compassWeight: 1.2, // how much the heading pulls towards the least known area of the map
+  farWeight: 0.3,     // preference for reaching the far end of what she sees
+  turnWeight: 0.4,    // cost of a leg that forces her to turn all the way around
+  waypointReach: 18,  // at what distance she counts the leg's point as reached
 };
 
-// Atención: lo que acaba de entrar en lo que percibe. Algo que no percibía
-// desde hace `forget` segundos cuenta como nuevo y le hace replantearse el plan.
+// Attention: what has just entered what she perceives. Something she hasn't perceived
+// for `forget` seconds counts as new and makes her rethink the plan.
 export const ATTENTION = {
   forget: 3,
-  opportunisticThirst: 0.35,  // con esta sed, ver agua cerca le desvía aunque vaya cargada
+  opportunisticThirst: 0.35,  // with this much thirst, seeing water nearby diverts her even when loaded
 };
 
-// Feromona propia: el camino que marca al volver cargada al nido.
+// Her own pheromone: the path she marks when returning loaded to the nest.
 export const PHERO = {
-  life: 600,          // segundos que tarda en evaporarse una marca (Lasius niger: ~47 min de vida media)
-  every: 0.1,         // cada cuánto deja una marca mientras acarrea: ~7 px, un rastro continuo
-  sense: 12,          // a qué distancia detecta una marca: lo que alcanzan las antenas (~6 mm)
-  // Seguir el rastro se aprende como cualquier otra cosa: si en learnWindow
-  // segundos la lleva a comida, la creencia sobre la feromona sube (found); si
-  // no, baja (miss). Nace sin saber que el rastro sirve para algo.
+  life: 600,          // seconds for a mark to evaporate (Lasius niger: ~47 min half-life)
+  every: 0.1,         // how often she leaves a mark while carrying: ~7 px, a continuous trail
+  sense: 12,          // at what distance she detects a mark: what the antennae reach (~6 mm)
+  // Following the trail is learned like anything else: if within learnWindow
+  // seconds it leads her to food, the belief about the pheromone rises (found); if
+  // not, it drops (miss). She's born not knowing the trail is good for anything.
   learnWindow: 20,
   found: 0.8,
   miss: -0.5,
 };
 
-// Árbol: suelta fruta cada cierto tiempo a su alrededor. El intervalo se
-// ajusta desde el panel y vale para todos los árboles del mapa.
+// Tree: drops fruit around itself every so often. The interval is
+// set from the panel and applies to every tree on the map.
 export const TREE = {
-  interval: 8,        // segundos entre frutos
-  fruit: 'nectar',    // qué suelta
-  dropRadius: 1.9,    // dónde cae: radio del árbol × esto
-  maxNear: 5,         // si ya hay tanta fruta suya sin recoger, deja de soltar
-  life: 0,            // segundos que vive un árbol (0 = para siempre)
+  interval: 8,        // seconds between fruits
+  fruit: 'nectar',    // what it drops
+  dropRadius: 1.9,    // where it falls: tree radius × this
+  maxNear: 5,         // if this much of its fruit is already lying uncollected, it stops dropping
+  life: 0,            // seconds a tree lives (0 = forever)
 };
 
-// Qué le pasa a la fruta que nadie recoge.
-// Lo podrido tampoco se queda para siempre: cuando se le acaba SU vida
-// (POINT_TYPES.toxico.life) se deshace y desaparece del mapa, estela incluida.
+// What happens to fruit nobody collects.
+// Rot doesn't stay forever either: when ITS life runs out
+// (POINT_TYPES.toxic.life) it falls apart and disappears from the map, plume included.
 export const FRUIT = {
-  rot: 'toxic',      // en qué se convierte al pudrirse
-  warnFrom: 0.6,      // desde qué fracción de su vida empieza a verse pasada
+  rot: 'toxic',      // what it turns into when it rots
+  warnFrom: 0.6,      // from what fraction of its life it starts to look overripe
 };
 
 export const MAPGEN = {
-  pools: 1,           // una sola fuente de agua en todo el mapa
-  nests: 1,           // un nido
-  trees: 1,           // una sola fuente renovable obliga a localizar su rastro
-  treeMinNestDistance: 430, // el árbol nace lejos del nido
-  treeMaxNestDistance: 460, // corona lejana pero alcanzable antes de pasar hambre
-  rocks: 9,           // rocas
-  rockScale: [0.45, 1.85], // y no todas del mismo tamaño: factor sobre su radio
-  margin: 40,         // no pegar nada al borde
-  minGap: 34,         // hueco mínimo entre objetos (Fagi tiene que poder pasar)
-  spawnClear: 130,    // radio libre alrededor del punto donde nace Fagi
+  pools: 1,           // a single water source on the whole map
+  nests: 1,           // one nest
+  trees: 1,           // a single renewable source forces her to locate its trail
+  treeMinNestDistance: 430, // the tree spawns far from the nest
+  treeMaxNestDistance: 460, // a distant crown but reachable before going hungry
+  rocks: 9,           // rocks
+  rockScale: [0.45, 1.85], // and not all the same size: factor on their radius
+  margin: 40,         // don't stick anything to the edge
+  minGap: 34,         // minimum gap between objects (Fagi has to be able to get through)
+  spawnClear: 130,    // clear radius around the point where Fagi spawns
 };

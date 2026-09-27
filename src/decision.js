@@ -1,22 +1,22 @@
-// Qué hace Fagi con lo que percibe.
+// What Fagi does with what she perceives.
 //
-// Hay UNA directiva: sobrevivir. De ella salen las demás, en este orden:
+// There is ONE directive: survive. The rest come from it, in this order:
 //
-//   1. sobrevivir ahora      calmar el hambre y la sed, que son lo que mata
-//   2. aguantar              sin fuerzas no se sobrevive luego: descansar
-//   3. proveer               lo que no necesita ahora, al nido para después
-//   4. explorar              sin necesidad y con la despensa hecha, conocer el
-//                            mapa es lo único que prepara las tres anteriores
+//   1. survive now           ease hunger and thirst, which are what kill
+//   2. endure                without strength there's no surviving later: rest
+//   3. provide               what she doesn't need now, to the nest for later
+//   4. explore               with no need and the pantry stocked, knowing the
+//                            map is the only thing that prepares the three above
 //
-// La lista de reglas de abajo es esa jerarquía escrita en orden. Cada una mira
-// la situación y devuelve una intención, o null si no le toca; manda la primera
-// que conteste. Añadir una conducta nueva es añadir una función a la lista, en
-// el escalón que le corresponda.
+// The list of rules below is that hierarchy written in order. Each one looks at
+// the situation and returns an intention, or null if it's not its turn; the first
+// one that answers wins. Adding a new behavior means adding a function to the list, in
+// the tier it belongs to.
 //
-// Una intención es: { action, reason, target, targetKind, trailKey }
+// An intention is: { action, reason, target, targetKind, trailKey }
 //
-// Las reglas viven en decision/, un archivo por escalón (más la directiva de
-// la API y lo que comparten todas); aquí solo está el orden y quien lo recorre.
+// The rules live in decision/, one file per tier (plus the API
+// directive and what they all share); here there's only the order and whoever walks it.
 
 import { notice, rethink } from './attention.js';
 import { leaveWater, drink, eatCarriedFood, urgency, goToPantry } from './decision/survive.js';
@@ -26,40 +26,40 @@ import { persistOnScent, persistFromMemory } from './decision/clues.js';
 import { earlyDirective, safeDirective } from './decision/directive.js';
 import { exploreRule } from './decision/explore.js';
 
-// Exportada: el córtex la usa para saber si una directiva externa puede
-// permitirse ignorar la emergencia, o si el instinto tiene que tomar el mando.
+// Exported: the cortex uses it to know whether an external directive can
+// afford to ignore the emergency, or whether instinct has to take over.
 export { pressing } from './decision/common.js';
 
-// Cada regla con su escalón y un nombre: el mapa del cerebro enseña cuál
-// contestó (el nombre de la función no sirve, se pierde al minificar).
+// Each rule with its tier and a name: the brain map shows which one
+// answered (the function name is no good, it gets lost when minifying).
 const RULES = [
-  // 1. sobrevivir ahora
+  // 1. survive now
   ['survive', 'swimOut', leaveWater],
   ['survive', 'drink', drink],
   ['survive', 'eatCarried', eatCarriedFood],
-  ['survive', 'directiveEarly', earlyDirective],   // solo contesta con BACKEND.authority === 1, y nunca si apremia sin atenderlo
+  ['survive', 'directiveEarly', earlyDirective],   // only answers with BACKEND.authority === 1, and never if something presses that it doesn't handle
   ['survive', 'urgency', urgency],
   ['survive', 'pantry', goToPantry],
-  // 2. aguantar
+  // 2. endure
   ['endure', 'rest', rest],
   ['endure', 'shelter', seekShelter],
   ['endure', 'anticipate', anticipate],
-  // 3. proveer
-  ['provide', 'directive', safeDirective],     // solo contesta con BACKEND.authority === 0 (de fábrica)
+  // 3. provide
+  ['provide', 'directive', safeDirective],     // only answers with BACKEND.authority === 0 (the default)
   ['provide', 'carry', carry],
   ['provide', 'pursue', pursue],
-  // pistas de algo que ya percibió y perdió, de la más fresca a la más vieja
+  // clues of something she already perceived and lost, from the freshest to the oldest
   ['clues', 'scent', persistOnScent],
   ['clues', 'memory', persistFromMemory],
 ];
 
-// Los escalones en orden, para quien quiera dibujar la jerarquía.
+// The tiers in order, for whoever wants to draw the hierarchy.
 export const TIERS = ['survive', 'endure', 'provide', 'clues', 'explore'];
 
 export function decide(fagi, world, ctx, dt) {
-  // Lo que acaba de entrar en lo que percibe (fagi.js lo mira antes, para que
-  // el córtex también se entere). Las reglas deciden igual en cada frame; lo
-  // nuevo hace que se anote si ese frame cambió el plan o no.
+  // What has just entered what she perceives (fagi.js checks it first, so that
+  // the cortex hears about it too). The rules decide the same way every frame;
+  // what's new gets noted as to whether that frame changed the plan or not.
   const newOnes = ctx.newOnes ?? notice(fagi, ctx);
   const before = { action: fagi.thought?.action ?? null, target: fagi.target };
   const { intent, who } = firstToAnswer(fagi, world, ctx, dt);
@@ -68,8 +68,8 @@ export function decide(fagi, world, ctx, dt) {
   fagi.thought = thought(fagi, ctx, intent, who, newOnes);
 }
 
-// Recorre REGLAS en orden; manda la primera que conteste. Si no contesta
-// ninguna, explorar.
+// Walks RULES in order; the first one that answers wins. If none
+// answers, explore.
 function firstToAnswer(fagi, world, ctx, dt) {
   for (const [tier, name, rule] of RULES) {
     const intent = rule(fagi, world, ctx, dt);
@@ -79,19 +79,19 @@ function firstToAnswer(fagi, world, ctx, dt) {
 }
 
 function applySets(fagi, intent, before) {
-  // Las claves que la intención no menciona se quedan como estaban: así una
-  // regla solo tiene que hablar de lo que le importa.
+  // Keys the intention doesn't mention stay as they were: that way a
+  // rule only has to talk about what it cares about.
   if ('target' in intent) fagi.target = intent.target;
   if ('targetKind' in intent) fagi.targetKind = intent.targetKind;
   if ('trailKey' in intent) fagi.trailKey = intent.trailKey;
   if (intent.action === 'explore') fagi.memory = 0;
-  // Vuelve a explorar después de otra cosa: el tramo que dejó a medias no se
-  // retoma ni se tira por norma. Al moverse (movement.js/explore) decide entre
-  // él y lo que vea ahora, con la misma cuenta.
+  // Back to exploring after something else: the leg she left half done is neither
+  // resumed nor dropped as a rule. While moving (movement.js/explore) she chooses between
+  // it and whatever she sees now, with the same calculation.
   if (intent.action === 'explore' && before.action !== 'explore') fagi.exploreResume = true;
 }
 
-// Lo que el resto (consola, mapa del cerebro, grabación) lee de esta decisión.
+// What the rest (console, brain map, recording) reads from this decision.
 function thought(fagi, ctx, intent, who, newOnes) {
   return {
     ...ctx,

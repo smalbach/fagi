@@ -1,4 +1,4 @@
-// Los tres medidores que mantienen viva (o no) a Fagi: hambre, sed y energía.
+// The three gauges that keep Fagi alive (or not): hunger, thirst and energy.
 
 import { HUNGER, THIRST, ENERGY, WATER, RAIN, NEST } from './config.js';
 import { statMult } from './effects.js';
@@ -9,13 +9,13 @@ import { snapshotBody } from './interoception.js';
 import { openEpisode, closeOnDeath } from './episodes.js';
 import { learn } from './brain.js';
 
-// El turno primero permite beber, comer o usar la despensa y solo después
-// resuelve si una necesidad llegó al límite. Así tocar el recurso en el último
-// instante salva a Fagi en vez de matarla antes de poder usarlo.
-// Durmiendo en el nido gasta poco y, con el aire húmedo de dentro, apenas se
-// seca: el hambre y la sed suben mucho más despacio (NEST.restHunger/Thirst).
-// Por eso puede esperar a que escampe; si la lluvia se alarga y le entra
-// hambre, come de la despensa (nest.js).
+// The turn first allows drinking, eating or using the pantry and only afterwards
+// settles whether a need reached its limit. That way touching the resource at the last
+// instant saves Fagi instead of killing her before she can use it.
+// Sleeping in the nest she spends little and, with the humid air inside, she barely
+// dries out: hunger and thirst rise much more slowly (NEST.restHunger/Thirst).
+// That's why she can wait for it to clear; if the rain drags on and she gets
+// hungry, she eats from the pantry (nest.js).
 export function increaseNeeds(fagi, world, dt) {
   const sleeping = fagi.thought?.action === 'rest' && !fagi.swimming && Boolean(nestUnder(fagi, world));
   fagi.hunger += HUNGER.rate * statMult(fagi, 'hungerRate') * (sleeping ? NEST.restHunger : 1) * dt;
@@ -23,8 +23,8 @@ export function increaseNeeds(fagi, world, dt) {
 }
 
 export function resolveVitalFailure(fagi) {
-  // Si ambas llegan al límite en el mismo turno, informa de la que se pasó más
-  // en proporción a su máximo. Evita que el orden del código decida la causa.
+  // If both reach the limit on the same turn, report the one that overshot more
+  // in proportion to its maximum. Keeps the order of the code from deciding the cause.
   const hungerOverflow = fagi.hunger / HUNGER.max;
   const thirstOverflow = fagi.thirst / THIRST.max;
   if (hungerOverflow < 1 && thirstOverflow < 1) return false;
@@ -33,48 +33,48 @@ export function resolveVitalFailure(fagi) {
   fagi.cause = thirstOverflow > hungerOverflow ? 'thirst' : 'hunger';
   fagi.hunger = Math.min(fagi.hunger, HUNGER.max);
   fagi.thirst = Math.min(fagi.thirst, THIRST.max);
-  // Si murió con un bocado reciente en el cuerpo, ese bocado carga con la culpa.
+  // If she died with a recent bite in her body, that bite takes the blame.
   closeOnDeath(fagi);
   return true;
 }
 
-// Bebe en el vado, donde hace pie. En el hondo no bebe: patalea. El agua no se gasta.
+// She drinks in the shallows, where she can stand. In deep water she doesn't drink: she flails. Water never runs out.
 export function drink(fagi, world, dt) {
   const zone = waterZone(world, fagi.x, fagi.y);
   const pool = zone && !zone.deep ? zone.pool : null;
   const starts = Boolean(pool) && !fagi.drinking;
   fagi.drinking = Boolean(pool);
   if (!pool) return;
-  fagi.homeSearched = false;   // encontró agua: la próxima búsqueda vuelve a empezar en casa
+  fagi.homeSearched = false;   // she found water: the next search starts at home again
 
-  // Empezar a beber abre una experiencia: se juzga tras un rato bebiendo, por
-  // lo que le quitó la sed de verdad. Beber sin sed no enseña nada, porque no
-  // siente nada.
+  // Starting to drink opens an experience: it's judged after drinking for a while, by
+  // how much thirst it really removed. Drinking without thirst teaches nothing, because she
+  // feels nothing.
   if (starts) {
     const ep = openEpisode(fagi, { action: 'drink', key: 'water', before: snapshotBody(fagi) });
     ep.thirstAtStart = fagi.thirst;
-    // Llegar con sed a un charco y que haya agua: los charcos sirven.
+    // Arriving thirsty at a puddle and finding water: puddles are useful.
     if (waterPlaceKind(pool) === 'puddle' && fagi.thirst / THIRST.max > THIRST.ignoreBelow) {
       learn(fagi.brain, 'puddle', RAIN.puddleLesson, fagi.age);
     }
   }
 
-  // Beber aquí confirma el sitio: vuelve a saber exactamente dónde está.
+  // Drinking here confirms the place: she knows exactly where it is again.
   rememberPlace(fagi.brain, waterPlaceKind(pool), pool, fagi.age);
 
   fagi.thirst = Math.max(0, fagi.thirst - THIRST.drinkRate * dt);
   fagi.drunk += dt;
 }
 
-// Gasta energía andando y la recupera parada. En el nido descansa mejor.
-// En el hondo patalea: gasta el triple y no hay forma de descansar.
+// She spends energy walking and recovers it standing still. In the nest she rests better.
+// In deep water she flails: she spends three times as much and there's no way to rest.
 export function spendEnergy(fagi, world, dt, isMoving) {
   const inNest = Boolean(nestUnder(fagi, world));
 
   if (fagi.swimming) {
     fagi.energy -= ENERGY.drain * WATER.swimEffort * dt;
   } else if (isMoving) {
-    // Bajo la lluvia, fuera del nido, cada gota la zarandea: cuesta más.
+    // In the rain, outside the nest, every drop shakes her about: it costs more.
     const drops = fagi.raining && !inNest ? RAIN.effort : 1;
     fagi.energy -= ENERGY.drain * statMult(fagi, 'speed') * drops * dt;
   } else {

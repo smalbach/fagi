@@ -1,4 +1,4 @@
-// Escalón 1, sobrevivir ahora: calmar el hambre y la sed, que son lo que mata.
+// Tier 1, survive now: ease hunger and thirst, which are what kill.
 
 import { FAGI, BRAIN, CARRY, NEEDS, HUNGER, THIRST } from '../config.js';
 import { statMult } from '../effects.js';
@@ -6,8 +6,8 @@ import { waterZone, shorePoint, radiusOf } from '../obstacles.js';
 import { pct, reasonOf, pantryIntent } from './common.js';
 import { pursue } from './provide.js';
 
-// Atrapada en el hondo: lo primero es salir, por la orilla más cercana. Es
-// instinto, no aprendido; lo aprendido es no volver a meterse (swim.js).
+// Trapped in deep water: the first thing is to get out, by the nearest shore. It's
+// instinct, not learned; what's learned is not to go in again (swim.js).
 export function leaveWater(fagi, world) {
   const zone = waterZone(world, fagi.x, fagi.y);
   if (!zone?.deep) return null;
@@ -21,7 +21,7 @@ export function leaveWater(fagi, world) {
   };
 }
 
-// Ya está en el agua y le queda sed: no se mueve de ahí.
+// She's already in the water and still thirsty: she doesn't move from there.
 export function drink(fagi, world, ctx) {
   if (!fagi.drinking || fagi.thirst <= 0) return null;
   return { action: 'drink', reason: reasonOf('reason.drinking', { thirst: pct(ctx.thirstU) }) };
@@ -39,7 +39,7 @@ function needAtRisk(fagi, ctx) {
   return risks.sort((a, b) => a.seconds - b.seconds)[0] ?? null;
 }
 
-// Una ración ya transportada es el recurso más cercano posible.
+// A ration she's already carrying is the closest resource possible.
 export function eatCarriedFood(fagi) {
   if (!fagi.carrying || fagi.hunger < CARRY.eatBelow) return null;
   return {
@@ -51,13 +51,13 @@ export function eatCarriedFood(fagi) {
   };
 }
 
-// Con hambre o sed de verdad, atender eso va antes que descansar o trabajar.
+// With real hunger or thirst, tending to that comes before resting or working.
 export function urgency(fagi, world, ctx, dt) {
   const risk = needAtRisk(fagi, ctx);
   if (!risk) return null;
 
-  // Las reservas existen precisamente para no apostar la vida persiguiendo una
-  // fuente incierta cuando el hambre ya es crítica.
+  // The stores exist precisely so she doesn't bet her life chasing an
+  // uncertain source when hunger is already critical.
   if (risk.kind === 'food') {
     const pantry = pantryIntent(fagi, ctx);
     if (pantry) return pantry;
@@ -66,15 +66,15 @@ export function urgency(fagi, world, ctx, dt) {
   if (resource) return resource;
 
   if (risk.kind === 'water') return seekWaterNear(fagi, ctx);
-  // Para hambre dejamos continuar: la siguiente regla puede usar la despensa.
+  // For hunger we let it carry on: the next rule can use the pantry.
   return null;
 }
 
-// Si no sabe dónde hay agua, cualquier objetivo de comida es una distracción
-// fatal: limpia el objetivo y busca terreno nuevo hasta encontrarla.
-// Primero vuelve a casa y desde allí explora. Una vez en el nido, esa vuelta
-// ya está hecha hasta que beba: si no, al dar un paso fuera la volvía a
-// mandar al nido, y se quedaba en la puerta yendo y viniendo hasta morir.
+// If she doesn't know where there's water, any food target is a fatal
+// distraction: clear the target and search new ground until she finds it.
+// First she goes back home and explores from there. Once in the nest, that trip back
+// is done until she drinks: otherwise, stepping outside would send her back
+// to the nest again, and she'd stay at the door coming and going until she died.
 function seekWaterNear(fagi, ctx) {
   if (ctx.inNest) fagi.homeSearched = true;
   if (ctx.nest && !ctx.inNest && !fagi.homeSearched) {
@@ -95,9 +95,9 @@ function seekWaterNear(fagi, ctx) {
   };
 }
 
-// Con hambre, sin nada a la vista y con reservas en casa: a comer de ellas.
-// Va justo detrás de perseguir lo que percibe, porque es la otra forma de
-// calmar el hambre: para eso se almacenó.
+// Hungry, with nothing in sight and with stores at home: go eat from them.
+// It comes right after pursuing what she perceives, because it's the other way to
+// ease hunger: that's what it was stored for.
 export function goToPantry(fagi, world, ctx) {
   const reachableFood = ctx.ranked.some(
     (candidate) => candidate.kind === 'food' && candidate.score > BRAIN.minScore

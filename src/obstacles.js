@@ -1,5 +1,5 @@
-// Objetos del mapa: agua donde beber y rocas que estorban.
-// Geometría pura, sin estado propio.
+// Map objects: water to drink from and rocks that get in the way.
+// Pure geometry, with no state of its own.
 
 import { OBJECT_TYPES, FAGI, WATER } from './config.js';
 
@@ -23,18 +23,18 @@ export function radiusOf(obj) {
   return obj.r ?? OBJECT_TYPES[obj.type].radius;
 }
 
-// ¿Fagi está dentro de algún charco? Devuelve el charco o null.
+// Is Fagi inside some pool? Returns the pool or null.
 export function waterUnder(world, fagi) {
   return waterZone(world, fagi.x, fagi.y)?.pool ?? null;
 }
 
-// Radio del hondo de un charco: todo menos la franja del vado.
+// Radius of a pool's deep water: everything except the band of shallows.
 export function deepRadius(o) {
   if (OBJECT_TYPES[o.type].shallow) return 0;
   return Math.max(0, radiusOf(o) - WATER.shallows);
 }
 
-// Qué hay bajo (x, y): { pool, deep } si es agua (deep = no hace pie), o null.
+// What's under (x, y): { pool, deep } if it's water (deep = she can't stand), or null.
 export function waterZone(world, x, y) {
   for (const o of world.objects) {
     if (!isWater(o)) continue;
@@ -44,15 +44,15 @@ export function waterZone(world, x, y) {
   return null;
 }
 
-// El charco detrás de un objetivo: el propio charco o el sitio que recuerda de
-// él (memory.js guarda el objeto real en `ref`). null si no es agua.
+// The pool behind a target: the pool itself or the place she remembers of
+// it (memory.js keeps the real object in `ref`). null if it isn't water.
 export function poolOf(target) {
   const o = target?.ref ?? target;
   return OBJECT_TYPES[o?.type]?.kind === 'water' ? o : null;
 }
 
-// El punto de la orilla más cercano a `from`, `inset` px por dentro del borde.
-// `center` es dónde cree que está el charco (el de verdad, o el recordado).
+// The point on the shore closest to `from`, `inset` px inside the edge.
+// `center` is where she believes the pool is (the real one, or the remembered one).
 export function shorePoint(center, r, from, inset) {
   let dx = from.x - center.x;
   let dy = from.y - center.y;
@@ -62,26 +62,26 @@ export function shorePoint(center, r, from, inset) {
   return { x: center.x + dx * (r - inset), y: center.y + dy * (r - inset) };
 }
 
-// ¿El segmento A-B se mete en el hondo de algún charco? No corta la vista: solo
-// lo usa para andar quien ya aprendió a temerlo. Un hondo que ya contiene A no
-// cuenta: si está dentro, lo que le toca es salir, no quedarse sin rumbo. Y si
-// A ya pisa el margen, el margen se olvida: si no, todo rumbo saldría cerrado.
+// Does segment A-B go into some pool's deep water? It doesn't block sight: it's only
+// used for walking by whoever has already learned to fear it. Deep water that already contains A doesn't
+// count: if she's inside, what she has to do is get out, not be left with no heading. And if
+// A is already on the margin, the margin is ignored: otherwise, every heading would come out blocked.
 export function deepBlocked(world, ax, ay, bx, by, margin = 0) {
   for (const o of world.objects) {
     if (!isWater(o)) continue;
     const deep = deepRadius(o);
     if (deep <= 0) continue;
     const d = Math.hypot(o.x - ax, o.y - ay);
-    if (d < deep) continue;   // el mismo límite que waterZone: dentro es hondo
+    if (d < deep) continue;   // the same limit as waterZone: inside is deep
     const r = d < deep + margin ? deep : deep + margin;
     if (segmentEntersCircle(ax, ay, bx, by, o.x, o.y, r)) return true;
   }
   return false;
 }
 
-// Como segmentHitsCircle, pero solo cuenta si el tramo se METE en el círculo.
-// Desde el mismo borde, un tramo que se aleja o lo roza no está cerrado: si lo
-// estuviera, pegada a la orilla todo rumbo saldría cerrado y se quedaría clavada.
+// Like segmentHitsCircle, but it only counts if the segment goes INTO the circle.
+// From the edge itself, a segment that moves away or grazes it isn't blocked: if it
+// were, right by the shore every heading would come out blocked and she'd get stuck.
 function segmentEntersCircle(ax, ay, bx, by, cx, cy, r) {
   const dx = bx - ax;
   const dy = by - ay;
@@ -92,8 +92,8 @@ function segmentEntersCircle(ax, ay, bx, by, cx, cy, r) {
   return Math.hypot(cx - (ax + dx * t), cy - (ay + dy * t)) < r;
 }
 
-// ¿El segmento A-B cruza alguna roca? Sirve para cortar la visión.
-// `margin` engorda cada roca: para saber si cabe el cuerpo de Fagi, no solo un rayo.
+// Does segment A-B cross any rock? Used to block vision.
+// `margin` fattens each rock: to know whether Fagi's body fits, not just a ray.
 export function segmentBlocked(world, ax, ay, bx, by, margin = 0) {
   for (const o of world.objects) {
     if (!isBlock(o)) continue;
@@ -106,7 +106,7 @@ function segmentHitsCircle(ax, ay, bx, by, cx, cy, r) {
   const dx = bx - ax;
   const dy = by - ay;
   const len2 = dx * dx + dy * dy;
-  // Punto del segmento más cercano al centro del círculo.
+  // Point of the segment closest to the center of the circle.
   let t = len2 === 0 ? 0 : ((cx - ax) * dx + (cy - ay) * dy) / len2;
   t = Math.max(0, Math.min(1, t));
   const px = ax + dx * t;
@@ -114,8 +114,8 @@ function segmentHitsCircle(ax, ay, bx, by, cx, cy, r) {
   return Math.hypot(cx - px, cy - py) <= r;
 }
 
-// Si Fagi se metió en una roca, lo empuja fuera por el camino más corto.
-// Devuelve true si hubo choque, para que pueda cambiar de rumbo.
+// If Fagi got into a rock, pushes her out by the shortest way.
+// Returns true if there was a collision, so she can change heading.
 export function pushOutOfBlocks(fagi, world) {
   let hit = false;
   for (const o of world.objects) {
@@ -125,7 +125,7 @@ export function pushOutOfBlocks(fagi, world) {
     let dy = fagi.y - o.y;
     let dist = Math.hypot(dx, dy);
     if (dist >= min) continue;
-    if (dist === 0) { dx = 1; dy = 0; dist = 1; } // justo en el centro
+    if (dist === 0) { dx = 1; dy = 0; dist = 1; } // right at the center
     fagi.x = o.x + (dx / dist) * min;
     fagi.y = o.y + (dy / dist) * min;
     hit = true;
@@ -133,9 +133,9 @@ export function pushOutOfBlocks(fagi, world) {
   return hit;
 }
 
-// Mira un poco por delante: si hay roca, devuelve hacia qué lado esquivarla.
-// Con `fearDeep` también esquiva el hondo del agua, como si fuera roca.
-// 0 = camino libre.
+// Looks a little ahead: if there's a rock, returns which side to dodge it on.
+// With `fearDeep` it also dodges deep water, as if it were rock.
+// 0 = clear path.
 export function avoidanceTurn(fagi, world, fearDeep = false) {
   const look = FAGI.radius + 34;
   const ahead = {
@@ -149,16 +149,16 @@ export function avoidanceTurn(fagi, world, fearDeep = false) {
     if (r === null) continue;
     const dist = Math.hypot(o.x - ahead.x, o.y - ahead.y);
     if (dist > r) continue;
-    // Producto cruzado: dice si la roca queda a la izquierda o a la derecha.
+    // Cross product: tells whether the rock is on the left or the right.
     const side = Math.sign(
       Math.cos(fagi.angle) * (o.y - fagi.y) - Math.sin(fagi.angle) * (o.x - fagi.x)
     ) || 1;
-    return -side; // gira hacia el lado contrario
+    return -side; // turn towards the opposite side
   }
   return 0;
 }
 
-// Objeto del mapa bajo un punto (para borrar con clic derecho).
+// Map object under a point (for deleting with right click).
 export function objectAt(world, x, y) {
   for (let i = world.objects.length - 1; i >= 0; i--) {
     const o = world.objects[i];

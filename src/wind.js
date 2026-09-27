@@ -1,5 +1,5 @@
-// El viento: una sola dirección para todo el mapa que cambia muy despacio.
-// Es lo que decide hacia dónde se arrastra el olor de cada cosa.
+// The wind: a single direction for the whole map that changes very slowly.
+// It's what decides which way the smell of each thing is carried.
 
 import { WIND } from './config.js';
 import { normalizeAngle } from './vision.js';
@@ -12,8 +12,8 @@ export function createWind() {
 export function updateWind(wind, dt) {
   wind.t += dt;
 
-  // Cada cierto tiempo se propone otra dirección, pero llega a ella girando
-  // poco a poco: nunca da un salto.
+  // Every so often it picks another direction, but reaches it by turning
+  // little by little: it never jumps.
   wind.timer -= dt;
   if (wind.timer <= 0) {
     wind.target = normalizeAngle(wind.angle + (Math.random() - 0.5) * WIND.swing);

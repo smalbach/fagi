@@ -1,21 +1,21 @@
-// El agua honda. Una hormiga no nada: la tensión superficial la atrapa y
-// patalea casi sin avanzar, gastando fuerzas. Eso es física y le pasa siempre
-// (movement.js la frena, needs.js le cobra la energía, decision.js la saca a
-// la orilla más cercana). Lo que no sabe de nacimiento es que el hondo es
-// mala idea: lo aprende hundiéndose, como aprende qué fruto le sienta mal.
+// Deep water. An ant doesn't swim: surface tension traps her and she
+// flails almost without moving, wearing herself out. That's physics and it always happens to her
+// (movement.js slows her down, needs.js charges her the energy, decision.js takes her to
+// the nearest shore). What she doesn't know from birth is that deep water is a
+// bad idea: she learns it by sinking, just as she learns which fruit disagrees with her.
 //
-// Cada rato en el hondo es una experiencia: al salir (o tras WATER.sample
-// segundos dentro, si sigue atrapada) siente lo que le costó —ir a paso de
-// pataleo y la energía que se le fue— y eso baja la creencia 'hondo'. Cuando
-// pesa lo bastante, synth.js escribe la regla "evitar hondo" y desde entonces
-// lo rodea como a una roca (fearsDeep). Beber en el vado no cuenta: ahí hace pie.
+// Each stretch in deep water is an experience: on getting out (or after WATER.sample
+// seconds inside, if she's still trapped) she feels what it cost her —moving at a
+// flailing pace and the energy she lost— and that lowers the belief 'deep'. When
+// it weighs enough, synth.js writes the rule "avoid deep" and from then on
+// she goes around it like a rock (fearsDeep). Drinking in the shallows doesn't count: she can stand there.
 //
-// Y tres cosas más del cuerpo, que tampoco se aprenden:
-//   · empapada: al salir del hondo, o bajo la lluvia fuera del nido, el agua
-//     se le pega y va más lenta hasta secarse (fagi.wet, segundos que le quedan).
-//   · antenas: notan el agua un poco antes de pisarla, y avanza tanteando
-//     mientras las tenga sobre el hondo (fagi.probing). Es la señal con la que
-//     luego reconoce el hondo: percibirla conecta antenas→hondo (Hebb).
+// And three more things about the body, which aren't learned either:
+//   · soaked: on leaving deep water, or in the rain outside the nest, the water
+//     clings to her and she's slower until she dries (fagi.wet, seconds she has left).
+//   · antennae: they notice the water a little before she steps in it, and she moves forward probing
+//     while they're over deep water (fagi.probing). It's the signal by which she
+//     later recognizes deep water: perceiving it connects antennae→deep (Hebb).
 
 import { WATER, FAGI } from './config.js';
 import { learn } from './brain.js';
@@ -26,13 +26,13 @@ import { nestUnder } from './nest.js';
 
 export const DEEP = 'deep';
 
-// ¿Ya aprendió a no meterse? Lo dice la regla escrita, no un instinto.
+// Has she learned not to go in yet? The written rule says so, not an instinct.
 export function fearsDeep(fagi) {
   return verdict(fagi, 'pursue', DEEP) === 'avoid';
 }
 
 function learnFrom(fagi, dunk) {
-  // Perder pie asusta ya de por sí; lo que dure el pataleo lo empeora.
+  // Losing her footing is scary in itself; however long the flailing lasts makes it worse.
   const part = WATER.shock + (1 - WATER.shock) * Math.min(1, dunk.secs / WATER.sample);
   const lost = Math.max(0, dunk.energy - fagi.energy);
   const change = learn(fagi.brain, DEEP, -WATER.lesson * part, fagi.age, [
@@ -46,9 +46,9 @@ function learnFrom(fagi, dunk) {
   };
 }
 
-// Se llama una vez por frame, antes de decidir: deja fagi.swimming al día y
-// cierra la experiencia cuando toca.
-// ¿Tiene alguna antena sobre el hondo? Las dos puntas, un poco por delante.
+// Called once per frame, before deciding: keeps fagi.swimming up to date and
+// closes the experience when it's time.
+// Does she have an antenna over deep water? The two tips, a little ahead.
 function antennaeInWater(fagi, world) {
   const far = FAGI.radius + WATER.probeReach;
   for (const sideOf of [-0.35, 0.35]) {
@@ -62,7 +62,7 @@ export function swim(fagi, world, dt) {
   const zone = waterZone(world, fagi.x, fagi.y);
   const deep = Boolean(zone?.deep);
   fagi.swimming = deep;
-  // Bajo la lluvia, fuera del nido, se empapa igual que en el hondo.
+  // In the rain, outside the nest, she gets soaked just as in deep water.
   fagi.raining = Boolean(world.rain?.on);
   const sheltered = Boolean(nestUnder(fagi, world));
   fagi.wet = deep || (fagi.raining && !sheltered) ? WATER.dryTime : Math.max(0, (fagi.wet ?? 0) - dt);

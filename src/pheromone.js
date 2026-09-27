@@ -1,8 +1,8 @@
-// Feromona: el rastro que deja la propia Fagi cuando vuelve al nido cargada.
+// Pheromone: the trail Fagi herself leaves when she returns loaded to the nest.
 //
-// Cada marca sabe a qué distancia del nido se dejó. Para volver a la comida
-// basta seguir marcas con distancia MAYOR que la suya; para volver al nido,
-// menor. Se evaporan solas, así que un camino que ya no se usa desaparece.
+// Each mark knows how far from the nest it was left. To get back to the food
+// it's enough to follow marks with a GREATER distance than her own; to get back to the nest,
+// a smaller one. They evaporate on their own, so a path no longer used disappears.
 
 import { PHERO, RAIN } from './config.js';
 import { record } from './world.js';
@@ -17,10 +17,10 @@ export function dropPheromone(world, x, y, dNest) {
   record(world, 'phero_drop', { x, y, dNest });
 }
 
-// Evapora. Se llama una vez por frame.
+// Evaporates. Called once per frame.
 export function updatePheromone(world, dt) {
   const marksOf = world.pheromone;
-  // La lluvia lava el rastro: se borra RAIN.washPhero veces más rápido.
+  // Rain washes the trail away: it fades RAIN.washPhero times faster.
   const step = dt * (world.rain?.on ? RAIN.washPhero : 1);
   for (let i = marksOf.length - 1; i >= 0; i--) {
     marksOf[i].life -= step;
@@ -28,9 +28,9 @@ export function updatePheromone(world, dt) {
   }
 }
 
-// La marca a seguir desde donde está Fagi.
-//   alejandose = true  -> hacia la comida (marcas más lejos del nido)
-//   alejandose = false -> hacia el nido (marcas más cerca)
+// The mark to follow from where Fagi is.
+//   movingAway = true  -> towards the food (marks farther from the nest)
+//   movingAway = false -> towards the nest (closer marks)
 export function followPheromone(world, fagi, dNestNow, movingAway) {
   let best = null;
   let bestD = movingAway ? dNestNow : Infinity;
@@ -39,7 +39,7 @@ export function followPheromone(world, fagi, dNestNow, movingAway) {
     const d = Math.hypot(m.x - fagi.x, m.y - fagi.y);
     if (d > PHERO.sense || d < 4) continue;
     if (movingAway ? m.dNest > bestD : m.dNest < bestD) {
-      // Las antenas tocan el suelo: una marca al otro lado de una roca no llega.
+      // The antennae touch the ground: a mark on the other side of a rock is out of reach.
       if (segmentBlocked(world, fagi.x, fagi.y, m.x, m.y)) continue;
       bestD = m.dNest;
       best = m;
@@ -48,7 +48,7 @@ export function followPheromone(world, fagi, dNestNow, movingAway) {
   return best;
 }
 
-// Fuerza de la feromona bajo los pies, para el HUD y la consola.
+// Strength of the pheromone underfoot, for the HUD and the console.
 export function pheromoneAt(world, x, y) {
   let max = 0;
   for (const m of world.pheromone) {

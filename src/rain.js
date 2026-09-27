@@ -1,16 +1,16 @@
-// La lluvia. Cada cierto tiempo cae un chaparrón que dura poco y deja charcos
-// en el suelo. Los charcos son agua de verdad (se puede beber de ellos) pero
-// poco honda —ahí siempre hace pie— y no duran: el sol los va encogiendo hasta
-// secarlos. Quien recuerda un charco tiene que volver a buscar agua cuando
-// llega y ya no está (perception.js).
+// The rain. Every so often a short shower falls and leaves puddles
+// on the ground. Puddles are real water (you can drink from them) but
+// shallow —she can always stand there— and they don't last: the sun shrinks them until
+// they dry up. Whoever remembers a puddle has to go looking for water again when
+// she gets there and it's gone (perception.js).
 //
-// Mientras llueve, además, el agua borra la feromona (pheromone.js) y moja a
-// quien esté a la intemperie (swim.js).
+// While it rains, moreover, the water erases the pheromone (pheromone.js) and soaks
+// whoever is out in the open (swim.js).
 //
-// Antes de cada chaparrón llega el frente: la presión del aire baja durante
-// RAIN.front segundos, se queda baja mientras llueve y se recupera al escampar
-// (lluvia.drop: 0 = normal, 1 = lo más baja). Es la señal que Fagi puede
-// notar (weather.js); que anuncia agua lo tiene que aprender.
+// Before each shower the front arrives: the air pressure drops for
+// RAIN.front seconds, stays low while it rains and recovers when it clears
+// (rain.drop: 0 = normal, 1 = lowest). It's the signal Fagi can
+// notice (weather.js); that it announces water she has to learn.
 
 import { RAIN, WORLD, MAPGEN } from './config.js';
 import { addObject, removeObject, record } from './world.js';
@@ -18,15 +18,15 @@ import { radiusOf } from './obstacles.js';
 
 const between = ({ min, max }) => min + Math.random() * (max - min);
 
-// El primer chaparrón se sortea al primer paso, no al crear el mundo: así crear
-// el mundo no gasta azar y el mapa sale igual con la misma semilla.
+// The first shower is drawn on the first step, not when creating the world: that way creating
+// the world doesn't use up randomness and the map comes out the same with the same seed.
 export function createRain() {
   return { on: false, timer: null, front: 0, drop: 0, left: 0, pending: 0, spawnIn: 0, n: 0 };
 }
 
 export const isPuddle = (o) => o.type === 'puddle';
 
-// Un sitio libre para un charco: dentro del mapa y sin pisar otra cosa.
+// A free spot for a puddle: inside the map and not overlapping anything else.
 function freeSpot(world, r) {
   for (let attempt = 0; attempt < 30; attempt++) {
     const x = MAPGEN.margin + r + Math.random() * (WORLD.width - 2 * (MAPGEN.margin + r));
@@ -44,20 +44,20 @@ function newPuddle(world) {
   if (place) addObject(world, place.x, place.y, 'puddle', r, 'rain');
 }
 
-// Sortea el próximo chaparrón y cuánto se le adelanta el frente.
+// Draws the next shower and how far ahead of it the front comes.
 function next(rain) {
   rain.timer = between(RAIN.every);
   rain.front = Math.min(rain.timer, between(RAIN.front));
 }
 
-// Empieza a llover ya (el reloj normal, o el botón de ajustes).
+// Starts raining now (the normal clock, or the settings button).
 export function startRain(world) {
   const rain = (world.rain ??= createRain());
   if (rain.on) return;
   rain.on = true;
   rain.n += 1;
   rain.left = between(RAIN.duration);
-  // Los charcos no salen de golpe: se van formando mientras cae.
+  // Puddles don't appear all at once: they form while it falls.
   rain.pending = Math.round(between(RAIN.puddles));
   rain.spawnIn = rain.left / (rain.pending + 1);
   record(world, 'rain', { on: true });
@@ -69,7 +69,7 @@ export function updateRain(world, dt) {
   if (!rain.on) {
     if (rain.timer == null) next(rain);
     rain.timer -= dt;
-    // Tras escampar la presión sube poco a poco; al acercarse el frente, baja.
+    // After it clears the pressure rises little by little; as the front approaches, it drops.
     const front = rain.front > 0 ? Math.max(0, 1 - rain.timer / rain.front) : 0;
     const returns = Math.max(0, rain.drop - dt / Math.max(1e-6, RAIN.recover));
     rain.drop = Math.min(1, Math.max(front, returns));
@@ -90,9 +90,9 @@ export function updateRain(world, dt) {
     }
   }
 
-  // Lloviendo, los charcos crecen; con el sol, menguan hasta secarse.
+  // While raining, puddles grow; in the sun, they shrink until they dry up.
   const max = RAIN.puddleRadius[1] * 1.3;
-  // `size` lleva la cuenta fina; `r`, lo que se ve y se graba, va en px enteros.
+  // `size` keeps the fine count; `r`, what's seen and recorded, is in whole px.
   for (const o of [...world.objects]) {
     if (!isPuddle(o)) continue;
     o.size = (o.size ?? o.r) + (rain.on ? RAIN.grow : -RAIN.evaporate) * dt;

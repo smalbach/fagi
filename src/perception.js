@@ -1,7 +1,7 @@
-// Qué percibe Fagi en este instante y cómo lo puntúa.
+// What Fagi perceives at this instant and how she scores it.
 //
-// Junta en UNA lista todo lo perseguible: comida vista, comida olida y el agua.
-// Cada candidato lleva por qué sentido entró, para que quien decida lo sepa.
+// Gathers into ONE list everything chaseable: food seen, food smelled and the water.
+// Each candidate carries which sense it came in through, so whoever decides knows it.
 
 import { FAGI, BRAIN, THIRST, HUNGER, ENERGY, MEMORY, TREE, NEST, RAIN } from './config.js';
 import { seenPoints, seesObject, viewRangeOf, distanceTo } from './vision.js';
@@ -14,7 +14,7 @@ import { followPheromone } from './pheromone.js';
 import { nestUnder } from './nest.js';
 import { rememberPlace, recallPlace, forgetPlace, waterPlaceKind, peekWeight } from './memory.js';
 
-// El charco visible más cercano. El agua no se aprende: es instinto.
+// The nearest visible pool. Water isn't learned: it's instinct.
 function nearestWater(fagi, world) {
   let best = null;
   let bestDist = Infinity;
@@ -38,15 +38,15 @@ function nearestVisible(fagi, world, predicate) {
   return best;
 }
 
-// Ver agua la memoriza y confirma dónde está. Si no la ve, se queda con lo que
-// recuerda, que es cada vez más impreciso (memory.js lo va difuminando).
+// Seeing water memorizes it and confirms where it is. If she doesn't see it, she keeps what
+// she remembers, which gets less and less precise (memory.js keeps blurring it).
 //
-// Recuerda dos sitios aparte: el lago ('agua'), que no se seca, y el último
-// charco de lluvia que vio ('charco'), que sí. Que un charco se haya secado no
-// lo sabe hasta que va, mira donde lo recordaba y no lo ve: entonces lo olvida,
-// le toca buscar agua otra vez y aprende que de un charco no hay que fiarse
-// tanto (creencia 'charco'; beber de uno la sube, needs.js) y cuánto tardan en
-// secarse (brain.puddleLife).
+// She remembers two places separately: the lake ('water'), which doesn't dry up, and the last
+// rain puddle she saw ('puddle'), which does. That a puddle has dried up she doesn't
+// know until she goes, looks where she remembered it and doesn't see it: then she forgets it,
+// has to look for water again and learns that a puddle shouldn't be trusted
+// that much (belief 'puddle'; drinking from one raises it, needs.js) and how long they take to
+// dry up (brain.puddleLife).
 function rememberWater(fagi, world, visible, range) {
   if (visible) {
     const kind = waterPlaceKind(visible);
@@ -56,12 +56,12 @@ function rememberWater(fagi, world, visible, range) {
   }
 
   const lake = recallPlace(fagi.brain, 'water');
-  if (lake && !world.objects.includes(lake.ref)) forgetPlace(fagi.brain, 'water');   // lo quitaron del mapa
+  if (lake && !world.objects.includes(lake.ref)) forgetPlace(fagi.brain, 'water');   // it was removed from the map
 
   const puddle = recallPlace(fagi.brain, 'puddle');
   const near = puddle && Math.hypot(puddle.x - fagi.x, puddle.y - fagi.y) < range * 0.6;
   if (puddle && near && !world.objects.includes(puddle.ref)) {
-    // Cuánto hacía que lo vio: con eso aprende cuánto suele durar un charco.
+    // How long since she saw it: from that she learns how long a puddle usually lasts.
     const age = fagi.age - puddle.lastAt;
     const life = fagi.brain.puddleLife;
     fagi.brain.puddleLife = life == null ? age : life + RAIN.puddleLifeRate * (age - life);
@@ -70,12 +70,12 @@ function rememberWater(fagi, world, visible, range) {
     learn(fagi.brain, 'puddle', -RAIN.puddleLesson, fagi.age);
   }
 
-  // De lo que recuerda, lo que quede más cerca. Un sitio con poca confianza no
-  // se descarta: entra en la lista y que decida la puntuación. Si aprendió que
-  // los charcos se secan, uno recordado le parece tanto más lejos.
+  // Of what she remembers, whatever is closest. A place with little confidence isn't
+  // discarded: it goes on the list and the score decides. If she learned that
+  // puddles dry up, a remembered one seems that much farther away.
   //
-  // Y si ya ha encontrado charcos secos, sabe más o menos cuánto duran: uno
-  // visto hace más de eso lo da por seco mientras tenga otra agua que recordar.
+  // And if she has already found dry puddles, she knows roughly how long they last: one
+  // seen longer ago than that she takes as dry as long as she has other water to remember.
   let places = ['water', 'puddle'].map((k) => recallPlace(fagi.brain, k)).filter(Boolean);
   const life = fagi.brain.puddleLife;
   const expired = (p) => p.ref?.type === 'puddle' && life != null && fagi.age - p.lastAt > life;
@@ -104,8 +104,8 @@ function rememberFoodSource(fagi, world) {
   return { visible, source: visible ?? place, smelled, strength };
 }
 
-// Lo que empuja a una obrera a salir a por comida: su hambre o lo que le falta
-// a la despensa según la recuerda (fagi.pantry), lo que sea mayor.
+// What pushes a worker to go out for food: her hunger or what the pantry
+// is missing as she remembers it (fagi.pantry), whichever is greater.
 function forageNeed(fagi, hungerU) {
   const missing = 1 - Math.min(1, stockCount(fagi.pantry) / NEST.full);
   return Math.max(hungerU, NEST.forageDrive * missing);
@@ -116,9 +116,9 @@ function buildCandidates(fagi, world, {
 }) {
   const nestObj = nestOf(world);
   const forage = forageNeed(fagi, hungerU);
-  // Si algo entra por los dos sentidos, manda la vista (es más precisa).
+  // If something comes in through both senses, sight wins (it's more precise).
   const byRef = new Map();
-  // Lo que flota en el hondo no se persigue si ya sabe lo que es meterse ahí.
+  // What floats in deep water isn't chased if she already knows what going in there means.
   const fears = fearsDeep(fagi);
   const add = (c) => {
     if (fears && c.kind === 'food' && waterZone(world, c.ref.x, c.ref.y)?.deep) return;
@@ -133,7 +133,7 @@ function buildCandidates(fagi, world, {
 
   const smelledOnes = smelledPoints(fagi, world);
   for (const { point, force } of smelledOnes) {
-    // Por el olfato no sabe a qué distancia está: solo si huele fuerte o flojo.
+    // By smell she doesn't know how far away it is: only whether it smells strong or faint.
     const aroma = aromaOf(fagi, point.type);
     add({ key: point.type, kind: 'food', ref: point, dist: (1 - force) * aroma, range: aroma,
           urgency: hungerU, via: 'smell', penalty: BRAIN.smellPenalty, force });
@@ -150,9 +150,9 @@ function buildCandidates(fagi, world, {
   }
 
 
-  // Un árbol visto se recuerda como fuente renovable. Se persigue su zona solo
-  // cuando no estamos ya bajo su copa; allí mandan los frutos concretos. Tira
-  // de ella el hambre propia o la de la colonia, la que sea mayor.
+  // A tree she has seen is remembered as a renewable source. Its area is chased only
+  // when we're not already under its crown; there the actual fruits take over. What
+  // pulls her there is her own hunger or the colony's, whichever is greater.
   if (source && forage > 0.15 && (!smelledSource || visibleSource)) {
     const realOne = visibleSource ?? source.ref;
     const dist = Math.max(0, distanceTo(fagi, source) - radiusOf(realOne));
@@ -168,9 +168,9 @@ function buildCandidates(fagi, world, {
     }
   }
 
-  // Su propio rastro bajo las antenas, en el sentido que se aleja del nido.
-  // Es un candidato más: si seguirlo merece la pena lo dice lo aprendido
-  // (la creencia 'feromona'), no una regla. Está justo debajo: distancia 0.
+  // Her own trail under the antennae, in the direction leading away from the nest.
+  // It's one more candidate: whether following it is worth it is said by what she has learned
+  // (the belief 'pheromone'), not by a rule. It's right underneath: distance 0.
   if (nestObj && forage > 0) {
     const mark = followPheromone(world, fagi, Math.hypot(nestObj.x - fagi.x, nestObj.y - fagi.y), true);
     if (mark) {
@@ -179,30 +179,30 @@ function buildCandidates(fagi, world, {
     }
   }
 
-  // Sin sed apenas, el agua ni entra en la lista: no da vueltas al charco por gusto.
+  // With barely any thirst, water doesn't even make the list: she doesn't circle the pool for fun.
   if (pool && !fagi.drinking && thirstU > THIRST.ignoreBelow) {
     const realOne = visible ?? pool.ref;
-    // Al agua se le mide la distancia al borde: un charco grande se alcanza antes.
+    // For water the distance is measured to the edge: a big pool is reached sooner.
     const d = Math.max(0, distanceTo(fagi, pool) - radiusOf(realOne));
-    // Sin verla, si recuerda bien dónde está va de memoria, derecha; solo si el
-    // recuerdo ya está difuminado se fía más de la nariz y sigue la estela.
+    // Without seeing it, if she remembers well where it is she goes from memory, straight there; only if the
+    // memory is already blurred does she trust her nose more and follow the plume.
     const fuzzy = (pool.error ?? 0) > range / 2;
     const via = visible ? 'sight' : (fuzzy && smellsObject(fagi, realOne, world) ? 'smell' : 'memory');
-    // Ir de memoria penaliza el doble: no lo percibe Y puede estar equivocada
-    // sobre dónde estaba, tanto más cuanto más tiempo lleve sin verlo.
+    // Going from memory is penalized double: she doesn't perceive it AND she may be wrong
+    // about where it was, all the more the longer she's gone without seeing it.
     const placeDoubt = via === 'memory' ? (pool.error ?? 0) / MEMORY.placeErrorMax : 0;
-    // La distancia se mide contra lo que toque: lo que ve, contra su vista; lo
-    // que huele, contra el alcance del olor; lo que recuerda, contra lo que le
-    // parece razonable caminar.
+    // The distance is measured against whatever applies: what she sees, against her sight; what
+    // she smells, against the reach of the smell; what she remembers, against what she
+    // finds reasonable to walk.
     //
-    // Aunque la siga por el olor, sigue recordando más o menos dónde está:
-    // olerla no puede alejarla. Sin esto, al entrar en la estela el agua
-    // recordada puntuaba de golpe mucho peor, la soltaba, salía de la estela y
-    // volvía a por ella, en bucle, hasta morir de sed a 250 px del lago.
+    // Even if she follows it by smell, she still remembers roughly where it is:
+    // smelling it can't push it farther away. Without this, on entering the plume the remembered
+    // water suddenly scored much worse, she dropped it, left the plume and
+    // came back for it, in a loop, until she died of thirst 250 px from the lake.
     //
-    // Y lo mismo con la vista: un charco pequeño se ve de cerca, y si verlo lo
-    // midiese contra la vista puntuaba peor que recordarlo. Lo soltaba al
-    // verlo, se daba la vuelta, lo recordaba y volvía, sin llegar nunca.
+    // And the same with sight: a small pool is seen from close up, and if seeing it
+    // measured it against sight it scored worse than remembering it. She dropped it on
+    // seeing it, turned around, remembered it and came back, never getting there.
     const scaleOf = via === 'smell' ? (placeOf ? MEMORY.travelRange : aromaOf(fagi, 'water'))
       : via === 'memory' ? MEMORY.travelRange
       : placeOf ? Math.max(range, MEMORY.travelRange) : range;
@@ -214,7 +214,7 @@ function buildCandidates(fagi, world, {
   return { candidates: [...byRef.values()], seen, smelledOnes };
 }
 
-// Foto completa de la situación, lista para que las reglas decidan sobre ella.
+// Full snapshot of the situation, ready for the rules to decide on.
 export function perceive(fagi, world) {
   const thirstU = fagi.thirst / THIRST.max;
   const hungerU = fagi.hunger / HUNGER.max;

@@ -1,5 +1,5 @@
-// Cómo se mueve Fagi: girar, avanzar, esquivar, explorar y rastrear un olor.
-// Nada de esto decide A DÓNDE ir; solo ejecuta el movimiento.
+// How Fagi moves: turning, advancing, dodging, exploring and tracking a smell.
+// None of this decides WHERE to go; it only carries out the movement.
 
 import { FAGI, ENERGY, EXPLORE, WORLD, WATER, INSTINCT } from './config.js';
 import { angleTo, normalizeAngle } from './vision.js';
@@ -12,37 +12,37 @@ import { fearsDeep } from './swim.js';
 
 export function turnTowards(fagi, targetAngle, dt) {
   const diff = normalizeAngle(targetAngle - fagi.angle);
-  // El giro acompaña a la velocidad: así el radio de giro no crece con los buffs.
+  // Turning keeps pace with speed: that way the turning radius doesn't grow with buffs.
   const turnSpeed = FAGI.turnSpeed * statMult(fagi, 'speed');
   const step = Math.min(Math.abs(diff), turnSpeed * dt);
   fagi.angle = normalizeAngle(fagi.angle + Math.sign(diff) * step);
 }
 
-// Lo que frena el suelo que pisa: nada en seco, el barro del vado, y el hondo,
-// donde la tensión superficial la atrapa y apenas avanza pataleando.
-// Con las antenas sobre el hondo avanza tanteando, y empapada va lastrada
-// hasta secarse. Al notar que se acerca un frente, se apresura.
+// How much the ground she's on slows her down: nothing when dry, the mud of the shallows, and deep water,
+// where surface tension traps her and she barely moves forward flailing.
+// With her antennae over deep water she moves forward probing, and soaked she's weighed down
+// until she dries. When she senses a front coming, she hurries.
 function drag(world, fagi) {
   const zone = waterZone(world, fagi.x, fagi.y);
   let f = !zone ? 1 : zone.deep ? WATER.swimSpeed : WATER.wadeSpeed;
   if (zone?.deep) return f;
   if (fagi.probing) f *= WATER.probeSpeed;
   if (fagi.wet > 0) f *= 1 - (1 - WATER.wetSpeed) * (fagi.wet / WATER.dryTime);
-  // Nota que baja la presión: instinto de darse prisa (INSTINCT.pressureHaste).
+  // She notices the pressure dropping: instinct to hurry (INSTINCT.pressureHaste).
   if (fagi.pressureFalling) f *= 1 + INSTINCT.pressureHaste * fagi.pressure;
   return f;
 }
 
-// Quien ya aprendió lo que es el hondo no pone la pata en él: las antenas tocan
-// el agua y se frena en el borde. Planear el rodeo (rumbo, más abajo) evita la
-// mayoría de las veces llegar hasta aquí; esto cubre lo que el plan no ve, como
-// el radio de giro al rozar la orilla.
+// Whoever has already learned what deep water is doesn't set a foot in it: the antennae touch
+// the water and she stops at the edge. Planning the detour (headingOf, below) avoids
+// getting this far most of the time; this covers what the plan doesn't see, like
+// the turning radius when brushing the shore.
 //
-// Solo la frena: el rumbo lo sigue decidiendo quien lo decidía. Si el reflejo
-// también girase, podría llevarle la contraria al plan (el plan gira por dentro
-// para dar media vuelta, el reflejo la devuelve de cara al otro lado) y
-// quedarse clavada en la orilla. Si aun así lleva un rato topando, se da la
-// vuelta hacia fuera: nunca se queda ahí para siempre.
+// It only stops her: the heading is still decided by whoever was deciding it. If the reflex
+// turned too, it could contradict the plan (the plan turns inwards
+// to go back, the reflex turns her to face the other way again) and
+// she'd get stuck on the shore. If she still keeps bumping for a while, she turns
+// around outwards: she never stays there forever.
 function brakeAtEdge(fagi, world, before, dt) {
   if (!fearsDeep(fagi)) return;
   const now = waterZone(world, fagi.x, fagi.y);
@@ -60,7 +60,7 @@ function brakeAtEdge(fagi, world, before, dt) {
 }
 
 export function advance(fagi, world, dt) {
-  // Sin energía se arrastra: no muere, pero le cuesta todo el doble.
+  // Without energy she drags herself: she doesn't die, but everything costs her double.
   const weakness = fagi.energy <= 0 ? ENERGY.weakSpeed : 1;
   const speed = FAGI.speed * statMult(fagi, 'speed') * weakness * drag(world, fagi);
   const before = { x: fagi.x, y: fagi.y };
@@ -69,7 +69,7 @@ export function advance(fagi, world, dt) {
   fagi.y += Math.sin(fagi.angle) * speed * dt;
   brakeAtEdge(fagi, world, before, dt);
 
-  // Rebota en los bordes del mundo.
+  // Bounces off the edges of the world.
   if (fagi.x < FAGI.radius || fagi.x > WORLD.width - FAGI.radius) {
     fagi.x = Math.min(WORLD.width - FAGI.radius, Math.max(FAGI.radius, fagi.x));
     fagi.angle = normalizeAngle(Math.PI - fagi.angle);
@@ -79,26 +79,26 @@ export function advance(fagi, world, dt) {
     fagi.angle = normalizeAngle(-fagi.angle);
   }
 
-  // Si acabó dentro de una roca, sale de ella y se desvía.
+  // If she ended up inside a rock, she gets out of it and veers off.
   if (pushOutOfBlocks(fagi, world)) {
     fagi.angle = normalizeAngle(fagi.angle + (Math.random() > 0.5 ? 1 : -1) * 0.9);
   }
 }
 
-// ¿Hay paso de A a B? Las rocas cortan siempre; el hondo, solo a quien ya
-// aprendió a temerlo. `margin` es el cuerpo: ¿cabe, no solo un rayo?
+// Is there a way from A to B? Rocks always block; deep water, only for whoever has already
+// learned to fear it. `margin` is the body: does it fit, not just a ray?
 function closed(fagi, world, bx, by, margin) {
   return segmentBlocked(world, fagi.x, fagi.y, bx, by, margin)
     || (fearsDeep(fagi) && deepBlocked(world, fagi.x, fagi.y, bx, by, margin && WATER.shallows / 2));
 }
 
-// ¿Cabe el cuerpo por ahí? Mira un trecho corto en esa dirección.
+// Does the body fit through there? Looks a short stretch in that direction.
 function gap(fagi, world, a) {
   const look = FAGI.radius + 34;
   return !closed(fagi, world, fagi.x + Math.cos(a) * look, fagi.y + Math.sin(a) * look, FAGI.radius);
 }
 
-// El primer rumbo libre girando desde `base` hacia `side`, a pasos de 15°.
+// The first free heading turning from `base` towards `side`, in 15° steps.
 function firstGap(fagi, world, base, side) {
   for (let k = 0; k <= 12; k++) {
     const a = base + side * k * (Math.PI / 12);
@@ -107,12 +107,12 @@ function firstGap(fagi, world, base, side) {
   return null;
 }
 
-// Rodear. Si la recta al objetivo cruza una roca, elige un lado al toparse
-// (el que antes deja paso) y lo MANTIENE hasta volver a tener el objetivo a la
-// vista. Decidir el lado en cada frame la hacía ir y venir a lo largo de un
-// muro sin llegar nunca a su final. Así bordean las hormigas un obstáculo.
+// Going around. If the straight line to the target crosses a rock, she picks a side on bumping into it
+// (the one that clears the way sooner) and KEEPS it until she has the target in
+// sight again. Deciding the side every frame made her go back and forth along a
+// wall without ever reaching its end. That's how ants skirt an obstacle.
 function headingOf(fagi, world, target) {
-  // Al agua se va a la orilla más cercana, no al centro: se bebe desde el vado.
+  // To water she goes to the nearest shore, not the center: drinking happens from the shallows.
   const pool = poolOf(target);
   const meta = pool ? shorePoint(target, radiusOf(pool), fagi, WATER.shallows * 0.3) : target;
   const direct = angleTo(fagi, meta);
@@ -130,29 +130,29 @@ function headingOf(fagi, world, target) {
 }
 
 export function moveToward(fagi, world, target, dt) {
-  // Rodear la roca manda sobre ir en línea recta. Si ni así hay hueco, el
-  // esquive de siempre, que al menos la saca de ahí.
+  // Going around the rock wins over going straight. If there's still no gap, the
+  // usual dodge, which at least gets her out of there.
   const goal = headingOf(fagi, world, target);
   const dodge = goal == null ? avoidanceTurn(fagi, world, fearsDeep(fagi)) || 1 : 0;
   turnTowards(fagi, goal ?? fagi.angle + dodge * 0.9, dt);
-  // Ya está encima del punto que perseguía: el radio de giro es menor que
-  // eatRadius, así que seguir avanzando sería orbitarlo sin llegar a tocarlo.
-  // Se para. Al agua y al nido no se les frena: entrar en ellos ya resuelve lo
-  // que iba a hacer. Y si hay roca que esquivar, tampoco: primero salir de ella.
+  // She's already on top of the point she was chasing: the turning radius is smaller than
+  // eatRadius, so moving on would mean orbiting it without ever touching it.
+  // She stops. For water and the nest there's no braking: entering them already settles what
+  // she was going to do. Nor if there's a rock to dodge: first get out of it.
   const above = fagi.targetKind === 'food' && world.points.includes(target)
     && Math.hypot(target.x - fagi.x, target.y - fagi.y) <= FAGI.eatRadius;
   if (dodge === 0 && above) return;
   advance(fagi, world, dt);
 }
 
-// Explorar por tramos: va a un punto que ve (explore.js/waypointInView) y, al
-// llegar, elige el siguiente con lo que tenga delante entonces. El tramo se
-// replantea antes si una roca se cruza en medio o si lleva demasiado.
+// Exploring in legs: she goes to a point she sees (explore.js/waypointInView) and, on
+// arriving, picks the next one from whatever is in front of her then. The leg is
+// reconsidered earlier if a rock gets in the way or if it's taking too long.
 //
-// Si vuelve a explorar después de que algo la apartara (fagi.exploreResume),
-// el tramo que dejó a medias entra en la decisión como una opción más, contra
-// los puntos que ve ahora. Si ya no vale (lo alcanzó, se tapó o lo abandonó
-// por tiempo), no entra.
+// If she goes back to exploring after something pulled her away (fagi.exploreResume),
+// the leg she left half done enters the decision as one more option, against
+// the points she sees now. If it's no longer valid (she reached it, it got blocked or she gave it up
+// after too long), it doesn't enter.
 export function explore(fagi, world, dt) {
   const destination = fagi.exploreTarget;
   fagi.exploreTimer -= dt;
@@ -175,15 +175,15 @@ export function explore(fagi, world, dt) {
   moveToward(fagi, world, fagi.exploreTarget, dt);
 }
 
-// Rastrear un olor (anemotaxis, como un insecto de verdad):
-//   1. avanza CONTRA el viento, que es de donde viene lo que huele;
-//   2. compara la concentración a un lado y otro y se corrige hacia la más fuerte,
-//      así se pega al hilo de olor en vez de cruzarlo;
-//   3. si lo pierde, barre en zigzag perpendicular al viento hasta recuperarlo.
+// Tracking a smell (anemotaxis, like a real insect):
+//   1. she moves AGAINST the wind, which is where what she smells comes from;
+//   2. she compares the concentration on one side and the other and corrects towards the stronger one,
+//      so she sticks to the scent thread instead of crossing it;
+//   3. if she loses it, she sweeps in a zigzag perpendicular to the wind until she gets it back.
 export function trackScent(fagi, world, key, dt) {
   const wind = world.wind;
   const upwind = normalizeAngle(wind.angle + Math.PI);
-  const nx = -Math.sin(wind.angle);   // perpendicular al viento
+  const nx = -Math.sin(wind.angle);   // perpendicular to the wind
   const ny = Math.cos(wind.angle);
   const d = FAGI.probe;
 
@@ -191,7 +191,7 @@ export function trackScent(fagi, world, key, dt) {
   const left = scentAt(fagi, world, key, fagi.x + nx * d, fagi.y + ny * d);
   const right = scentAt(fagi, world, key, fagi.x - nx * d, fagi.y - ny * d);
 
-  // Mira también hacia delante: el hilo serpentea, así que no basta el viento.
+  // She also looks ahead: the thread meanders, so the wind isn't enough.
   const front = scentAt(fagi, world, key,
     fagi.x + Math.cos(fagi.angle) * d, fagi.y + Math.sin(fagi.angle) * d);
   const frontLeft = scentAt(fagi, world, key,
@@ -201,8 +201,8 @@ export function trackScent(fagi, world, key, dt) {
 
   let goal;
   if (here > 0 || left > 0 || right > 0 || front > 0 || frontLeft > 0 || frontRight > 0) {
-    // Dentro del rastro: hacia donde el olor sube. Si empata, contra el viento,
-    // que es de donde viene lo que huele.
+    // Inside the trail: towards where the smell gets stronger. On a tie, against the wind,
+    // which is where what she smells comes from.
     const options = [
       { a: fagi.angle, v: front },
       { a: fagi.angle - 0.7, v: frontLeft },
@@ -215,8 +215,8 @@ export function trackScent(fagi, world, key, dt) {
     goal = normalizeAngle((best.v > here ? best.a : upwind) + correctionEp);
     fagi.trailMemory = FAGI.trailMemory;
     if (sideOf !== 0) fagi.castSide = Math.sign(sideOf);
-    fagi.lastScent = { x: fagi.x, y: fagi.y };  // aquí olía: punto al que volver
-    fagi.tracking = 'en el rastro';
+    fagi.lastScent = { x: fagi.x, y: fagi.y };  // it smelled here: a point to come back to
+    fagi.tracking = 'on the trail';
   } else {
     fagi.trailMemory -= dt;
     const turnBack = fagi.lastScent
@@ -224,19 +224,19 @@ export function trackScent(fagi, world, key, dt) {
       : 0;
 
     if (fagi.lastScent && turnBack > 45) {
-      // Se ha salido del hilo: vuelve al último sitio donde olía algo.
+      // She has left the thread: she goes back to the last place where she smelled something.
       goal = Math.atan2(fagi.lastScent.y - fagi.y, fagi.lastScent.x - fagi.x);
-      fagi.tracking = 'vuelve a donde olía';
+      fagi.tracking = 'going back to where it smelled';
     } else {
-      // Ya está en la zona: barre de lado a lado cruzando el viento, como una
-      // polilla que ha perdido el rastro.
+      // She's already in the area: she sweeps from side to side across the wind, like a
+      // moth that has lost the trail.
       fagi.castTimer -= dt;
       if (fagi.castTimer <= 0) {
         fagi.castSide *= -1;
         fagi.castTimer = FAGI.castEvery;
       }
       goal = normalizeAngle(upwind + fagi.castSide * FAGI.castTurn);
-      fagi.tracking = 'barriendo, lo perdió';
+      fagi.tracking = 'sweeping, lost it';
     }
   }
 

@@ -1,16 +1,16 @@
-// Olfato y rastros de olor.
+// Sense of smell and scent trails.
 //
-// Cada fuente suelta UN hilo de olor que va creciendo con el tiempo: sale a
-// favor del viento, pero serpentea, así que acaba recorriendo el mapa tomando
-// direcciones distintas. Fagi huele si está cerca de algún tramo del hilo, y
-// huele más fuerte cuanto más cerca de la fuente esté ese tramo.
+// Each source gives off ONE scent thread that keeps growing over time: it heads
+// downwind, but meanders, so it ends up crossing the map in
+// different directions. Fagi smells it if she's near some segment of the thread, and
+// smells it stronger the closer that segment is to the source.
 
 import { specOf, FAGI, PLUME, WORLD, TREE, RAIN } from './config.js';
 import { statMult } from './effects.js';
 import { distanceTo, normalizeAngle } from './vision.js';
 import { radiusOf, isTree, isWater } from './obstacles.js';
 
-// Sensibilidad total de Fagi aplicada al aroma de algo.
+// Fagi's total sensitivity applied to something's aroma.
 export function aromaOf(fagi, key) {
   const aroma = specOf(key)?.aroma ?? 0;
   return aroma * FAGI.smell * statMult(fagi, 'smell');
@@ -21,12 +21,12 @@ function maxNodes(key) {
 }
 
 function ensureTrail(src, wind) {
-  // Si la fuente se ha movido, su rastro viejo ya no vale: el olor sale de
-  // donde está ahora, así que el hilo se rehace desde cero.
+  // If the source has moved, its old trail is no longer valid: the smell comes from
+  // where it is now, so the thread is rebuilt from scratch.
   const t = src.trail;
   if (t && t.originX === src.x && t.originY === src.y) {
-    // Si la fuente cambió de tipo (una fruta que se pudrió), el rastro sigue
-    // ahí pero ya es otro olor: se queda con el largo que permita el nuevo.
+    // If the source changed type (a fruit that rotted), the trail is still
+    // there but it's a different smell now: it keeps the length the new one allows.
     if (t.type !== src.type) {
       t.type = src.type;
       const cap = maxNodes(src.type);
@@ -46,8 +46,8 @@ function ensureTrail(src, wind) {
   return src.trail;
 }
 
-// Alarga un hilo: cada tramo se tuerce un poco por su cuenta y el viento
-// lo va enderezando. Rebota en los bordes del mapa.
+// Lengthens a thread: each segment bends a bit on its own and the wind
+// keeps straightening it. It bounces off the edges of the map.
 function grow(src, key, wind, dt) {
   const trail = ensureTrail(src, wind);
   const cap = maxNodes(key);
@@ -72,21 +72,21 @@ function grow(src, key, wind, dt) {
   }
 }
 
-// Todas las fuentes que huelen: puntos de comida y charcos.
+// All the sources that smell: food points and pools.
 export function scentSources(world) {
   const out = world.points.map((p) => ({ src: p, key: p.type, extra: 0 }));
   for (const o of world.objects) {
     if (isWater(o)) out.push({ src: o, key: o.type, extra: radiusOf(o) });
-    // El árbol anuncia la clase de fruto que produce; la dirección concreta se
-    // sigue por gradiente, sin revelar mágicamente dónde está.
+    // The tree announces the kind of fruit it produces; the exact direction is
+    // followed by gradient, without magically revealing where it is.
     else if (isTree(o)) out.push({ src: o, key: TREE.fruit, extra: radiusOf(o) });
   }
   return out.filter(({ key }) => (specOf(key)?.aroma ?? 0) > 0);
 }
 
-// La lluvia arrastra el olor: el hilo se acorta desde la punta hasta quedarse
-// en la fuente, en RAIN.washScent segundos si estaba entero. Mientras cae no
-// crece; al escampar grow() lo vuelve a tender desde la fuente.
+// Rain carries the smell away: the thread shortens from the tip until only the
+// source is left, in RAIN.washScent seconds if it was whole. While it falls it doesn't
+// grow; when it clears grow() lays it out again from the source.
 function wash(src, key, dt) {
   const trail = src.trail;
   if (!trail || trail.nodes.length <= 1) return;
@@ -97,7 +97,7 @@ function wash(src, key, dt) {
   trail.timer = Math.max(trail.timer, 0);
 }
 
-// Hace crecer (o lava, si llueve) todos los hilos del mapa. Una vez por frame.
+// Grows (or washes, if it's raining) every thread on the map. Once per frame.
 export function updateTrails(world, dt) {
   const rains = world.rain?.on;
   for (const { src, key } of scentSources(world)) {
@@ -106,8 +106,8 @@ export function updateTrails(world, dt) {
   }
 }
 
-// Intensidad que llega desde UNA fuente concreta. Mantener este cálculo separado
-// evita atribuir a todos los frutos del mismo tipo la estela de uno solo.
+// Intensity arriving from ONE specific source. Keeping this calculation separate
+// avoids attributing the plume of a single fruit to all fruits of the same type.
 export function scentFromSourceAt(fagi, source, x, y) {
   const sens = FAGI.smell * statMult(fagi, 'smell');
   const r = PLUME.radius * sens;
@@ -115,7 +115,7 @@ export function scentFromSourceAt(fagi, source, x, y) {
   const { src, extra = 0 } = source;
   if (!src.trail) return 0;
 
-  // Junto a la propia fuente huele sin más, venga de donde venga.
+  // Right next to the source itself she just smells it, wherever she comes from.
   if (distanceTo({ x, y }, src) - extra <= r) return 1;
 
   let max = 0;
@@ -124,15 +124,15 @@ export function scentFromSourceAt(fagi, source, x, y) {
     const dx = nodes[i].x - x;
     const dy = nodes[i].y - y;
     if (dx * dx + dy * dy > r2) continue;
-    // Cuanto más lejos de la fuente está el tramo, más diluido va el olor.
+    // The farther the segment is from the source, the more diluted the smell.
     const force = 1 - (i / nodes.length) * PLUME.faint;
     if (force > max) max = force;
   }
   return max;
 }
 
-// Intensidad agregada de un TIPO. El rastreo usa el gradiente combinado porque
-// Fagi reconoce el olor, pero no conoce la identidad de su fuente a distancia.
+// Aggregate intensity of a TYPE. Tracking uses the combined gradient because
+// Fagi recognizes the smell, but doesn't know the identity of its source from a distance.
 export function scentAt(fagi, world, key, x, y) {
   let max = 0;
   for (const source of scentSources(world)) {
@@ -142,7 +142,7 @@ export function scentAt(fagi, world, key, x, y) {
   return max;
 }
 
-// Qué puntos de comida le llegan por el olfato ahora mismo.
+// Which food points reach her through smell right now.
 export function smelledPoints(fagi, world) {
   const out = [];
   for (const p of world.points) {
@@ -152,7 +152,7 @@ export function smelledPoints(fagi, world) {
   return out;
 }
 
-// ¿Le llega el olor de este charco?
+// Does the smell of this pool reach her?
 export function smellsObject(fagi, obj, world) {
   return scentStrengthOfObject(fagi, obj, world) > 0;
 }
