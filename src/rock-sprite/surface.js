@@ -1,12 +1,12 @@
-// Lo que le pasa a la piedra por encima de su color: lo propio de cada material
-// (estratos, lajas, huecos, líquen, guijarros), las motas y las grietas. Todo se
-// pinta dentro del recorte de la silueta y gasta el azar de la roca en orden.
+// What goes on the stone over its color: each material's own features (strata,
+// slabs, pits, lichen, pebbles), the specks and the cracks. Everything is
+// painted inside the silhouette clip and uses up the rock's randomness in order.
 
 import { toRGB } from '../colors.js';
 import { mix } from '../sprite-kit.js';
 import { LIGHT, LX, LY } from './common.js';
 
-// Estratos de la arenisca: capas paralelas, algo torcidas, de distinto grosor.
+// Sandstone strata: parallel layers, a bit skewed, of varying thickness.
 export function strata(ctx, S, cx, cy, r, rnd) {
   ctx.save();
   ctx.translate(cx, cy);
@@ -24,8 +24,8 @@ export function strata(ctx, S, cx, cy, r, rnd) {
   ctx.restore();
 }
 
-// Lajas de la pizarra: planos rectos que cruzan la piedra de lado a lado, todos
-// casi en la misma dirección, como se parte de verdad.
+// Slate slabs: straight planes crossing the stone from side to side, all in
+// nearly the same direction, the way it really splits.
 export function slabs(ctx, S, cx, cy, r, rnd) {
   const dir = rnd() * Math.PI;
   const n = 2 + ((rnd() * 3) | 0);
@@ -51,8 +51,8 @@ export function slabs(ctx, S, cx, cy, r, rnd) {
   }
 }
 
-// Huecos de la caliza: la disuelve el agua y queda picada. Cada hueco es sombra
-// arriba y un filo claro abajo, al revés que un bulto.
+// Limestone pits: water dissolves it and leaves it pitted. Each pit is shadow
+// on top and a light rim below, the reverse of a bump.
 export function gaps(ctx, cx, cy, r, rnd) {
   const n = 5 + ((rnd() * 7) | 0);
   for (let i = 0; i < n; i++) {
@@ -73,8 +73,8 @@ export function gaps(ctx, cx, cy, r, rnd) {
   }
 }
 
-// Líquen: manchas verdosas pegadas al lado de sombra, que es donde aguanta la
-// humedad. Cada mancha son varios círculos sueltos, nunca un borde limpio.
+// Lichen: greenish patches stuck to the shaded side, which is where the damp
+// lingers. Each patch is several loose circles, never a clean edge.
 export function lichen(ctx, cx, cy, r, rnd) {
   const tone = ['#6f7f4a', '#7d8f5c', '#8a9a63', '#5f7350'][(rnd() * 4) | 0];
   const patches = 1 + ((rnd() * 3) | 0);
@@ -96,8 +96,8 @@ export function lichen(ctx, cx, cy, r, rnd) {
   }
 }
 
-// Guijarros del conglomerado: cantos redondeados de otra piedra metidos en la
-// pasta. Cada uno lleva su propia luz y su sombra, como los de verdad.
+// Conglomerate pebbles: rounded bits of other stone set into the matrix. Each
+// has its own light and shadow, like real ones.
 export function pebbles(ctx, cx, cy, r, rnd) {
   const tones = ['#8d8375', '#6e6a62', '#9c8f78', '#5d6470', '#a49a86'];
   const n = 5 + ((rnd() * 6) | 0);
@@ -111,7 +111,7 @@ export function pebbles(ctx, cx, cy, r, rnd) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(rnd() * Math.PI);
-    ctx.scale(1, 0.62 + rnd() * 0.3);   // cantos aplastados, no bolas
+    ctx.scale(1, 0.62 + rnd() * 0.3);   // flattened pebbles, not balls
     const g = ctx.createRadialGradient(LX * rad * 0.4, LY * rad * 0.4, rad * 0.1, 0, 0, rad);
     g.addColorStop(0, mix(tone, '#efeade', 0.35));
     g.addColorStop(1, mix(tone, '#15171c', 0.5));
@@ -119,7 +119,7 @@ export function pebbles(ctx, cx, cy, r, rnd) {
     ctx.beginPath();
     ctx.arc(0, 0, rad, 0, Math.PI * 2);
     ctx.fill();
-    // Surco donde el canto se hunde en la pasta.
+    // Groove where the pebble sinks into the matrix.
     ctx.strokeStyle = 'rgba(12,13,17,0.35)';
     ctx.lineWidth = 1;
     ctx.stroke();
@@ -127,7 +127,7 @@ export function pebbles(ctx, cx, cy, r, rnd) {
   }
 }
 
-// Motas: unas brillan (cuarzo) y otras son huecos oscuros.
+// Specks: some shine (quartz) and others are dark pits.
 export function specks(ctx, cx, cy, r, rnd, mat) {
   const [nSpecks, shine] = mat.specks;
   const howMany = (nSpecks * (0.6 + rnd() * 0.8)) | 0;
@@ -144,8 +144,8 @@ export function specks(ctx, cx, cy, r, rnd, mat) {
   }
 }
 
-// Grietas: una línea quebrada con su reflejo claro al lado, que es lo que
-// hace que se lea como hendidura y no como raya pintada.
+// Cracks: a jagged line with its light reflection beside it, which is what
+// makes it read as a crevice and not a painted line.
 export function cracks(ctx, cx, cy, r, rnd, mat) {
   const [gmin, gmax] = mat.cracks;
   const howMany = gmin + ((rnd() * (gmax - gmin + 1)) | 0);

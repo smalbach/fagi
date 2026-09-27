@@ -1,8 +1,8 @@
-// Las siluetas de las tres piezas del cuerpo. Solo trazan la ruta: quien las
-// usa decide si recorta, rellena o perfila con ellas.
+// The silhouettes of the three body parts. They only trace the path: whoever
+// uses them decides whether to clip, fill or outline with them.
 
-// El gáster: un huevo con la punta atrás, no un círculo. La punta es lo que da
-// el sentido de la marcha cuando se la ve de lejos.
+// The gaster: an egg with the tip at the back, not a circle. The tip is what
+// shows which way she is heading when seen from afar.
 export function gasterPath(ctx) {
   ctx.beginPath();
   ctx.moveTo(-3.4, 0);
@@ -13,8 +13,8 @@ export function gasterPath(ctx) {
   ctx.closePath();
 }
 
-// El mesosoma: el bloque del que salen las patas. Jorobado por delante
-// —el pronoto— y caído por detrás, donde arranca la cintura.
+// The mesosoma: the block the legs come out of. Humped at the front
+// —the pronotum— and sloping at the back, where the waist starts.
 export function mesosomaPath(ctx) {
   ctx.beginPath();
   ctx.moveTo(-1.4, 0);
@@ -26,8 +26,8 @@ export function mesosomaPath(ctx) {
   ctx.closePath();
 }
 
-// La cabeza: ancha por detrás y estrechada hacia la boca. Vista desde arriba es
-// lo que distingue a una hormiga de un escarabajo.
+// The head: wide at the back and narrowing toward the mouth. Seen from above,
+// it is what tells an ant from a beetle.
 export function headPath(ctx) {
   ctx.beginPath();
   ctx.moveTo(5.8, -2.1);

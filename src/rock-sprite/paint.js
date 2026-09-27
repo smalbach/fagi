@@ -1,5 +1,5 @@
-// La roca procedural, pintada UNA vez en su lienzo: sombra, cuerpo tallado,
-// grano del material, lo que le pasa por encima, filo y lascas al pie.
+// The procedural rock, painted ONCE on its canvas: shadow, carved body,
+// material grain, what goes on top, rim and flakes at the foot.
 
 import { toRGB } from '../colors.js';
 import { canvasOf, mix, seededRng, noise } from '../sprite-kit.js';
@@ -18,18 +18,18 @@ export function paintRock(seedOf, r, color) {
   const c = canvasOf(S, S);
   const ctx = c.getContext('2d');
 
-  // El color del material, más un empujón al azar: dos granitos tampoco son
-  // del mismo gris.
+  // The material's color, plus a random nudge: two granites are not the
+  // same gray either.
   const base = mix(mix(color, mat.tint, mat.weight[0] + rnd() * mat.weight[1]),
                    rnd() < 0.5 ? '#c8c2b4' : '#20242c', rnd() * 0.12);
   const clear = mix(base, '#d8d3c8', mat.lightT);
   const dark = mix(base, '#111318', mat.shadowT);
 
-  // La silueta se calcula antes que nada: la necesitan la oclusión de contacto,
-  // el recorte, las caras y el filo, y las cuatro tienen que cuadrar.
+  // The silhouette is computed before anything else: contact occlusion, the
+  // clip, the faces and the rim all need it, and the four have to match.
   const pts = shape(r, rnd, mat);
 
-  // Sombra en el suelo, hacia el lado opuesto a la luz.
+  // Shadow on the ground, toward the side opposite the light.
   ctx.save();
   ctx.translate(cx - LX * r * 0.18, cy - LY * r * 0.18 + r * 0.16);
   ctx.scale(1, 0.42);
@@ -42,10 +42,10 @@ export function paintRock(seedOf, r, color) {
   ctx.fill();
   ctx.restore();
 
-  // Oclusión de contacto: la raya de sombra dura pegada al pie de la piedra,
-  // donde no entra luz de ningún lado. Va DEBAJO del cuerpo, así que la piedra
-  // se come la mitad de dentro y solo queda el reborde. Es lo que hace que la
-  // roca se apoye en el suelo en vez de estar posada encima.
+  // Contact occlusion: the hard line of shadow hugging the stone's foot, where
+  // no light gets in from anywhere. It goes UNDER the body, so the stone
+  // covers the inner half and only the rim remains. It is what makes the rock
+  // rest on the ground instead of sitting on top of it.
   ctx.save();
   ctx.filter = `blur(${Math.max(1, r * 0.07)}px)`;
   ctx.strokeStyle = 'rgba(7,8,11,0.55)';
@@ -58,7 +58,7 @@ export function paintRock(seedOf, r, color) {
   trace(ctx, pts, cx, cy);
   ctx.clip();
 
-  // Volumen: claro donde entra la luz, oscuro en el lado contrario.
+  // Volume: light where the light comes in, dark on the opposite side.
   const flight = ctx.createRadialGradient(
     cx + LX * r * 0.45, cy + LY * r * 0.45, r * 0.12,
     cx, cy, r * 1.25
@@ -71,7 +71,7 @@ export function paintRock(seedOf, r, color) {
 
   faces(ctx, pts, cx, cy, clear, dark, rnd, 0.2 + rnd() * 0.2);
 
-  // Grano del material y manchas grandes de mineral, una encima de otra.
+  // Material grain and big mineral patches, one over the other.
   const [cellOf, octaves, alpha] = mat.grain;
   ctx.globalAlpha = alpha;
   ctx.globalCompositeOperation = 'overlay';
@@ -92,14 +92,14 @@ export function paintRock(seedOf, r, color) {
 
   if (mat.lichen && rnd() < mat.lichen) lichen(ctx, cx, cy, r, rnd);
 
-  // Oscurecido del borde: la piedra se apaga contra su propio canto.
+  // Edge darkening: the stone fades out against its own edge.
   const edge = ctx.createRadialGradient(cx, cy, r * 0.55, cx, cy, r);
   edge.addColorStop(0, 'rgba(0,0,0,0)');
   edge.addColorStop(1, 'rgba(0,0,0,0.38)');
   ctx.fillStyle = edge;
   ctx.fillRect(0, 0, S, S);
 
-  // Brillo del filo, solo en el arco que da a la luz.
+  // Rim shine, only on the arc facing the light.
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(cx, cy);
@@ -114,9 +114,9 @@ export function paintRock(seedOf, r, color) {
 
   ctx.restore();
 
-  // Lascas al pie: los trozos que la piedra ha ido soltando. Van FUERA de la
-  // silueta, así que difuminan el canto contra la tierra y de paso cuentan que
-  // esa roca lleva ahí mucho tiempo.
+  // Flakes at the foot: the bits the stone has been shedding. They go OUTSIDE
+  // the silhouette, so they soften the edge against the soil and, on the way,
+  // tell that the rock has been there a long time.
   const flakes = 5 + ((rnd() * 7) | 0);
   for (let i = 0; i < flakes; i++) {
     const a = rnd() * Math.PI * 2;

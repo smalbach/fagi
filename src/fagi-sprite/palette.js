@@ -1,8 +1,8 @@
-// Los colores de Fagi, viva y muerta.
+// Fagi's colors, alive and dead.
 //
-// Quitina: no es un color, es un material. De cada tono salen el claro del
-// lomo, el oscuro del canto y el brillo especular, que es lo que hace que se
-// lea como caparazón duro y no como goma pintada.
+// Chitin: it is not a color, it is a material. Each tone yields the light of
+// the back, the dark of the edge and the specular shine, which is what makes
+// it read as a hard shell and not as painted rubber.
 export const SKIN = {
   gaster: '#c9752f', thorax: '#d4833c', head: '#dd9146',
   legs: '#8d5327', tip: '#f6d39b', shine: '#ffe9c4',

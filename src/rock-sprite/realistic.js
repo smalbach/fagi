@@ -1,11 +1,11 @@
-// Rocas fotográficas. La semilla del objeto fija geología y acabado para toda
-// su vida; la foto se estampa girada, estirada y teñida a partir de ella.
+// Photographic rocks. The object's seed fixes geology and finish for its whole
+// life; the photo is stamped rotated, stretched and tinted from it.
 
 import { LX, LY } from './common.js';
 
-// Cuatro geologías y siluetas realmente distintas. La semilla del objeto elige
-// una familia y luego altera proporción, orientación, tamaño y tono, así que
-// incluso dos rocas del mismo material no son copias exactas.
+// Four truly different geologies and silhouettes. The object's seed picks a
+// family and then alters proportion, orientation, size and tone, so even two
+// rocks of the same material are not exact copies.
 const ROCK_SOURCES = [
   '/assets/rock-boulder.webp',
   '/assets/rock-granite.webp',
@@ -22,8 +22,8 @@ const realisticRocks = ROCK_SOURCES.map((src) => {
   return img;
 });
 
-// Ocho geologías × tres estados de intemperie = 24 tipos visuales. No son una
-// elección por fotograma: la semilla fija el tipo para toda la vida del objeto.
+// Eight geologies × three weathering states = 24 visual types. Not a
+// per-frame choice: the seed fixes the type for the object's whole life.
 const FINISHES = [
   { name: 'natural', hue: 0, sat: 1, light: 1, contrast: 1.02, x: 1, y: 1 },
   { name: 'humeda', hue: -5, sat: 1.08, light: 0.82, contrast: 1.14, x: 0.93, y: 1.08 },
@@ -33,8 +33,8 @@ const ROCK_TYPES = ROCK_SOURCES.flatMap((_, base) =>
   FINISHES.map((finish) => ({ base, ...finish }))
 );
 
-// El tipo que le toca a la semilla y su foto. Devuelve null mientras la foto no
-// haya cargado: entonces se pinta la roca procedural.
+// The type the seed gets and its photo. Returns null while the photo has not
+// loaded: the procedural rock is painted then.
 export function realisticRockOf(seedOf) {
   const typeIndex = ((seedOf ^ (seedOf >>> 16)) >>> 0) % ROCK_TYPES.length;
   const type = ROCK_TYPES[typeIndex];

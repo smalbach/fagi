@@ -1,27 +1,27 @@
-// La forma de la roca: la silueta, cómo se traza y las caras que la tallan.
+// The rock's shape: the silhouette, how it is traced and the faces that carve it.
 
 import { LX, LY } from './common.js';
 import { SILHOUETTE_MAX } from './materials.js';
 
-// Contorno: pocos vértices de radio muy distinto, unidos por tramos rectos.
-// Una piedra tiene caras y aristas; una curva suave parece huevo. Además se
-// achata por un eje y se gira, así que ni dos siluetas coinciden.
-// Se calcula una vez y se reutiliza, para que recorte, caras y filo cuadren.
+// Outline: a few vertices of very different radius, joined by straight runs.
+// A stone has faces and edges; a smooth curve looks like an egg. It is also
+// squashed along one axis and rotated, so no two silhouettes match.
+// Computed once and reused, so clip, faces and rim line up.
 export function shape(r, rnd, mat) {
   const [lmin, lmax] = mat.sides;
   const n = lmin + ((rnd() * (lmax - lmin + 1)) | 0);
   const phase = rnd() * Math.PI * 2;
   const giro = rnd() * Math.PI * 2;
-  const ex = 1 - rnd() * mat.flattened;   // achatada por el eje X antes de girar
+  const ex = 1 - rnd() * mat.flattened;   // squashed along the X axis before rotating
   const cg = Math.cos(giro);
   const sg = Math.sin(giro);
   const pts = [];
   for (let i = 0; i < n; i++) {
-    // El ángulo también se mueve: vértices desigualmente repartidos, caras de
-    // distinto ancho.
+    // The angle moves too: unevenly spread vertices, faces of different
+    // widths.
     const a = ((i + (rnd() - 0.5) * 0.45) / n) * Math.PI * 2;
     const lobe = Math.sin(a * 2 + phase) * 0.07 + Math.sin(a * 3 - phase) * 0.05;
-    // Con picos, un vértice sí y otro no se queda corto: arista viva en medio.
+    // With peaks, every other vertex falls short: a sharp edge in between.
     const tooth = mat.picos && i % 2 ? 0.8 : 1;
     const f = (mat.min + rnd() * (SILHOUETTE_MAX - mat.min) + lobe) * tooth;
     const rr = r * Math.max(mat.min, Math.min(SILHOUETTE_MAX, f));
@@ -39,12 +39,12 @@ export function trace(ctx, pts, cx, cy) {
   ctx.closePath();
 }
 
-// Caras: triángulos del centro a cada arista. Cada uno se aclara u oscurece
-// según hacia dónde mira respecto a la luz. Es lo que da el aspecto de bloque
-// tallado en vez de mancha redonda.
+// Faces: triangles from the center to each edge. Each one lightens or darkens
+// depending on where it faces relative to the light. That is what gives the
+// look of a carved block instead of a round blot.
 export function faces(ctx, pts, cx, cy, clear, dark, rnd, force) {
   const n = pts.length;
-  const hx = cx + (rnd() - 0.5) * 5;   // el vértice interior no está en el centro
+  const hx = cx + (rnd() - 0.5) * 5;   // the inner vertex is not at the center
   const hy = cy + (rnd() - 0.5) * 5;
   for (let i = 0; i < n; i++) {
     const a = pts[i];
@@ -52,7 +52,7 @@ export function faces(ctx, pts, cx, cy, clear, dark, rnd, force) {
     const mx = (a.x + b.x) / 2;
     const my = (a.y + b.y) / 2;
     const d = Math.hypot(mx, my) || 1;
-    const toward = (mx / d) * LX + (my / d) * LY;   // 1 = cara de cara a la luz
+    const toward = (mx / d) * LX + (my / d) * LY;   // 1 = face facing the light
     ctx.fillStyle = toward > 0 ? clear : dark;
     ctx.globalAlpha = Math.abs(toward) * force * (0.7 + rnd() * 0.6);
     ctx.beginPath();
@@ -64,8 +64,8 @@ export function faces(ctx, pts, cx, cy, clear, dark, rnd, force) {
   }
   ctx.globalAlpha = 1;
 
-  // Solo algunas aristas se marcan: si se dibujan todas se ve la porción de
-  // tarta. Sueltas, pasan por planos de fractura.
+  // Only some edges are marked: if all are drawn you see a pie slice.
+  // Scattered, they pass for fracture planes.
   ctx.lineWidth = 1;
   ctx.strokeStyle = 'rgba(10,11,14,0.14)';
   for (let i = 0; i < n; i++) {

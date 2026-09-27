@@ -1,15 +1,15 @@
-// El pie del árbol: donde el tronco se encuentra con la tierra. Va en el mismo
-// lienzo que el tronco, pintado justo después del fuste y con el mismo azar.
+// The tree's foot: where the trunk meets the soil. It goes on the same canvas
+// as the trunk, painted right after the bole and with the same randomness.
 
 import { mix } from '../sprite-kit.js';
 import { LIGHT, LX, LY, LICHEN } from './common.js';
 
 export function paintFoot(ctx, rnd, cx, baseY, w0, R, base, dry) {
-  // Raíces: contrafuertes que agarran el suelo. Cierran el encuentro del tronco
-  // con la tierra, que es lo que más delata a un árbol plantado de mentira. Cada
-  // una es una cuña de dos curvas —sube pegada al fuste y baja tendida hasta la
-  // tierra—, con su filo claro por donde entra la luz: una punta recta parecería
-  // una aleta pegada al tronco, no madera que sale de él.
+  // Roots: buttresses gripping the ground. They close off where the trunk meets
+  // the soil, which is what most gives away a fake planted tree. Each one is a
+  // two-curve wedge —it rises hugging the bole and slopes down to the soil—,
+  // with its light rim where the light comes in: a straight point would look
+  // like a fin stuck on the trunk, not wood growing out of it.
   const roots = 4 + ((rnd() * 3) | 0);
   for (let i = 0; i < roots; i++) {
     const sideOf = i % 2 ? 1 : -1;
@@ -26,7 +26,7 @@ export function paintFoot(ctx, rnd, cx, baseY, w0, R, base, dry) {
     ctx.closePath();
     ctx.fill();
 
-    // El lomo de la raíz, por donde le da la luz.
+    // The root's back, where the light hits it.
     ctx.strokeStyle = `rgba(226,200,158,${0.1 + rnd() * 0.12})`;
     ctx.lineWidth = Math.max(0.7, R * 0.02);
     ctx.beginPath();
@@ -36,9 +36,9 @@ export function paintFoot(ctx, rnd, cx, baseY, w0, R, base, dry) {
     ctx.lineWidth = 1;
   }
 
-  // Hojarasca del propio árbol: lo que ha ido soltando cae a sus pies y se
-  // amontona ahí. Un tronco que sale de la tierra limpia se lee como plantado
-  // ayer; con su alfombra de hoja parece llevar años.
+  // The tree's own leaf litter: what it has been shedding falls at its foot and
+  // piles up there. A trunk coming out of clean soil reads as planted
+  // yesterday; with its carpet of leaves it looks like it has been there years.
   const falls = 10 + ((rnd() * 10) | 0);
   for (let i = 0; i < falls; i++) {
     const a = rnd() * Math.PI * 2;
@@ -71,7 +71,7 @@ export function paintFoot(ctx, rnd, cx, baseY, w0, R, base, dry) {
     ctx.restore();
   }
 
-  // Musgo al pie, por el lado que no ve el sol: ahí es donde aguanta la humedad.
+  // Moss at the foot, on the side that does not see the sun: that is where the damp lingers.
   for (let i = 0, n = 5 + ((rnd() * 6) | 0); i < n; i++) {
     const a = LIGHT + Math.PI + (rnd() - 0.5) * 1.8;
     const d = R * (0.1 + rnd() * 0.3);
@@ -84,7 +84,7 @@ export function paintFoot(ctx, rnd, cx, baseY, w0, R, base, dry) {
   }
   ctx.globalAlpha = 1;
 
-  // Y la tierra removida alrededor del pie.
+  // And the churned soil around the foot.
   const foot = ctx.createRadialGradient(cx, baseY, 0, cx, baseY, R * 0.55);
   foot.addColorStop(0, 'rgba(38,28,18,0.38)');
   foot.addColorStop(1, 'rgba(38,28,18,0)');

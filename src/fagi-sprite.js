@@ -1,21 +1,22 @@
-// El dibujo de Fagi. Solo pinta: no sabe nada de reglas ni de decisiones.
+// Fagi's drawing. It only paints: it knows nothing about rules or decisions.
 //
-// Fagi es una hormiga, y se dibuja como tal: tres partes de verdad —gáster,
-// mesosoma y cabeza— unidas por el peciolo, que es la cintura que solo tienen
-// las hormigas y lo que más las delata desde arriba. Seis patas de tres tramos
-// que caminan en trípode, antenas acodadas —escapo y funículo, como las de
-// verdad— y una hoja verde a la espalda, que es lo que le da carácter y sirve
-// igual de logo.
+// Fagi is an ant, and she is drawn as one: three real parts —gaster,
+// mesosoma and head— joined by the petiole, the waist only ants have and
+// what gives them away most from above. Six three-segment legs that walk
+// in a tripod gait, elbowed antennae —scape and funiculus, like real ones—
+// and a green leaf on her back, which gives her character and doubles as
+// the logo.
 //
-// Se pinta con trazo, no con imagen guardada: la cámara la agranda hasta cuatro
-// veces y una hormiga estirada se vería antes que cualquier otra cosa.
+// She is painted with strokes, not a stored image: the camera zooms her up to
+// four times and a stretched ant would show before anything else.
 //
-// La luz es la MISMA que la del suelo, la roca y el árbol: arriba a la
-// izquierda del mundo. Como el cuerpo gira, dentro del dibujo la luz tiene que
-// girar al revés (`luzLocal`), o al darse la vuelta el brillo la seguiría y se
-// leería como plástico.
+// The light is the SAME as the ground's, the rock's and the tree's: top left
+// of the world. Since the body turns, inside the drawing the light has to
+// turn the opposite way (`localLight`), or when she turned around the shine
+// would follow her and read as plastic.
 //
-// Cada parte vive en su módulo de `fagi-sprite/`; aquí solo se montan en orden.
+// Each part lives in its own module under `fagi-sprite/`; here they are just
+// assembled in order.
 
 import { SKIN, DEAD, LEAF, DEAD_LEAF } from './fagi-sprite/palette.js';
 import { localLight, shadow } from './fagi-sprite/light.js';
@@ -34,15 +35,15 @@ export function drawFagi(ctx, fagi) {
 
   ctx.save();
   ctx.translate(fagi.x, fagi.y);
-  ctx.rotate(fagi.angle);              // +x es hacia delante
+  ctx.rotate(fagi.angle);              // +x is forward
 
-  // La luz del mundo, vista desde dentro del cuerpo.
+  // The world's light, seen from inside the body.
   const L = localLight(fagi.angle);
 
   shadow(ctx, L, alive);
 
-  // Andar no es solo mover las patas: el cuerpo cabecea a cada trípode. Muy
-  // poco —medio grado— pero es lo que separa caminar de deslizarse.
+  // Walking is not just moving the legs: the body pitches with each tripod. Very
+  // little —half a degree— but it is what separates walking from sliding.
   const wobble = alive ? Math.sin(step) * 0.035 : 0;
   ctx.rotate(wobble);
 

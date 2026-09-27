@@ -1,9 +1,9 @@
-// La hoja que Fagi lleva a la espalda: su carácter y su logo.
+// The leaf Fagi carries on her back: her character and her logo.
 
 import { mix } from '../sprite-kit.js';
 import { ellipse } from './stroke.js';
 
-// Hoja de dos curvas: con punta y con rabo, no un óvalo.
+// A two-curve leaf: with a tip and a stalk, not an oval.
 function shape(ctx) {
   ctx.beginPath();
   ctx.moveTo(-4.9, 0);
@@ -12,8 +12,8 @@ function shape(ctx) {
   ctx.closePath();
 }
 
-// La hoja que carga a la espalda. Va apoyada en el gáster, así que echa su
-// propia sombra encima: sin ella parecería pintada en el caparazón.
+// The leaf she carries on her back. It rests on the gaster, so it casts its
+// own shadow on it: without it the leaf would look painted on the shell.
 export function drawLeaf(ctx, leaf, L) {
   ctx.save();
   ctx.translate(-10.4, -0.5);
@@ -29,9 +29,9 @@ export function drawLeaf(ctx, leaf, L) {
   ctx.fillStyle = g;
   ctx.fill();
 
-  // Nervio central y secundarios: es lo que la hace hoja y no pegatina.
-  // Doblada por el nervio: media hoja mira a la luz y la otra media se queda a
-  // la sombra. Es lo que la separa del caparazón en el que se apoya.
+  // Midrib and secondary veins: they make it a leaf and not a sticker.
+  // Folded along the midrib: half the leaf faces the light and the other half
+  // stays in shade. That is what separates it from the shell it rests on.
   halfInShade(ctx);
 
   ctx.strokeStyle = leaf.vein;
@@ -41,7 +41,7 @@ export function drawLeaf(ctx, leaf, L) {
   ctx.quadraticCurveTo(0, -0.4, 4.9, 0);
   ctx.stroke();
 
-  // Y su canto, para que no se funda con la hormiga.
+  // And its edge, so it does not melt into the ant.
   shape(ctx);
   ctx.strokeStyle = 'rgba(18,34,22,0.45)';
   ctx.lineWidth = 0.5;
@@ -67,7 +67,7 @@ function halfInShade(ctx) {
   ctx.restore();
 }
 
-// Con el color del canto aún puesto: salen del nervio central hacia los bordes.
+// With the edge color still set: they run from the midrib toward the edges.
 function secondaryVeins(ctx) {
   ctx.lineWidth = 0.4;
   ctx.globalAlpha = 0.7;

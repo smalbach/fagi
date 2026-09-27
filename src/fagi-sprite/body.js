@@ -1,5 +1,5 @@
-// El cuerpo de Fagi: gáster, hoja, peciolo, mesosoma y cabeza, en ese orden,
-// que es el de atrás hacia delante y el de abajo hacia arriba.
+// Fagi's body: gaster, leaf, petiole, mesosoma and head, in that order, which
+// is back to front and bottom to top.
 
 import { mix, seededRng } from '../sprite-kit.js';
 import { shell, edgeLine, outline } from './light.js';
@@ -8,8 +8,8 @@ import { ellipse, point, line, arc } from './stroke.js';
 import { drawLeaf } from './leaf.js';
 import { head } from './head.js';
 
-// Azar fijo: el moteado y los pelos tienen que salir IGUALES en cada fotograma,
-// o la hormiga herviría.
+// Fixed randomness: the speckles and hairs must come out the SAME every frame,
+// or the ant would shimmer.
 const GRAIN = 0x5f3a1c7b;
 
 export function drawBody(ctx, c, leaf, L, alive) {
@@ -22,8 +22,8 @@ export function drawBody(ctx, c, leaf, L, alive) {
   head(ctx, c, L, alive, rnd);
 }
 
-// El gáster: la pieza grande, y la que más luz recoge. Lleva los terguitos
-// —los anillos del abdomen— porque un huevo liso se lee como una gota.
+// The gaster: the big piece, and the one that catches the most light. It has
+// the tergites —the abdomen's rings— because a smooth egg reads as a drop.
 function gaster(ctx, c, L, alive, rnd) {
   ctx.save();
   gasterPath(ctx);
@@ -43,9 +43,9 @@ function gaster(ctx, c, L, alive, rnd) {
   if (alive) gasterHairs(ctx);
 }
 
-// Terguitos: los anillos del abdomen. Cada uno monta sobre el de detrás, así
-// que la costura se comba hacia la cola y lleva su labio claro delante. Van
-// tenues a propósito: marcados se leen como las rayas de una pelota.
+// Tergites: the abdomen's rings. Each one overlaps the one behind, so the
+// seam bows toward the tail and has its light lip in front. They are faint
+// on purpose: strongly marked they read as the stripes of a ball.
 function tergites(ctx) {
   ctx.lineCap = 'butt';
   for (const [x, ry] of [[-7.6, 5.7], [-10.8, 5.2], [-13.6, 3.9]]) {
@@ -55,7 +55,7 @@ function tergites(ctx) {
   ctx.lineCap = 'round';
 }
 
-// Grano de la quitina: picadura fina, ni dos puntos iguales.
+// Chitin grain: fine pitting, no two dots alike.
 function gasterGrain(ctx, rnd) {
   for (let i = 0; i < 46; i++) {
     const a = rnd() * Math.PI * 2;
@@ -67,8 +67,8 @@ function gasterGrain(ctx, rnd) {
   }
 }
 
-// El brillo especular: una mancha pequeña, alargada y muy clara por donde
-// entra la luz. Es lo único que dice "esto es duro y pulido".
+// The specular shine: a small, elongated, very light spot where the light
+// comes in. It is the only thing that says "this is hard and polished".
 function gasterShine(ctx, L) {
   ctx.save();
   ctx.translate(-9.8 + L.x * 3.4, L.y * 3.0);
@@ -80,8 +80,8 @@ function gasterShine(ctx, L) {
   ctx.restore();
 }
 
-// Pelos del gáster: cortos, tiesos y solo por el canto. Se ven contra el
-// suelo y son la diferencia entre un bicho y una pieza de plástico.
+// Gaster hairs: short, stiff and only along the edge. They show against the
+// ground and are the difference between a critter and a piece of plastic.
 function gasterHairs(ctx) {
   ctx.strokeStyle = 'rgba(70,38,16,0.5)';
   ctx.lineWidth = 0.55;
@@ -94,11 +94,11 @@ function gasterHairs(ctx) {
   ctx.lineWidth = 1;
 }
 
-// El peciolo: los dos nuditos de la cintura. Es el rasgo que solo tienen las
-// hormigas, y desde arriba es lo que separa el gáster del tórax en vez de que
-// se toquen dos óvalos.
+// The petiole: the two little knots of the waist. It is the trait only ants
+// have, and from above it is what separates the gaster from the thorax
+// instead of two ovals touching.
 function petiole(ctx, c, L) {
-  // La sombra que el gáster y el tórax echan sobre el hueco.
+  // The shadow the gaster and thorax cast over the gap.
   ellipse(ctx, -2.5, 0, 2.4, 2.6, 'rgba(24,12,5,0.45)');
 
   for (const [x, r] of [[-3.0, 1.55], [-1.5, 1.35]]) {
@@ -106,8 +106,8 @@ function petiole(ctx, c, L) {
   }
 }
 
-// El mesosoma, con su joroba y su cuello. El surco que lo cruza es la sutura
-// que separa el pronoto del resto.
+// The mesosoma, with its hump and its neck. The groove across it is the
+// suture separating the pronotum from the rest.
 function mesosoma(ctx, c, L) {
   ctx.save();
   mesosomaPath(ctx);
@@ -124,6 +124,6 @@ function mesosoma(ctx, c, L) {
   outline(ctx, mesosomaPath, 0.6);
   edgeLine(ctx, mesosomaPath, 2.0, 0, 4.4, mix(c.thorax, '#ffeccb', 0.7), 0.45, 1, L);
 
-  // El cuello: el hueco oscuro por donde la cabeza se mete en el tórax.
+  // The neck: the dark gap where the head fits into the thorax.
   ellipse(ctx, 5.7, 0, 1.3, 2.2, 'rgba(28,14,6,0.5)');
 }

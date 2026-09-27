@@ -1,11 +1,11 @@
-// El pintor de la resina.
+// The resin painter.
 
 import { mix } from '../sprite-kit.js';
 import { LIGHT, shadow, volume, lustre, patches, circle, cover } from './common.js';
 
-// Resina: espesa y translúcida. Gota con punta arriba, burbujas dentro y un
-// hilo que cuelga. Lo que hace es estirar el tiempo, y se ve en que es lo único
-// que parece que se mueve despacio.
+// Resin: thick and translucent. A drop with the tip up, bubbles inside and a
+// hanging thread. What it does is stretch time, and it shows in being the only
+// thing that seems to move slowly.
 export function resin(ctx, cx, cy, r, base, rnd, past) {
   shadow(ctx, cx, cy, r, 0.35);
   const y = cy + r * 0.12;
@@ -17,7 +17,7 @@ export function resin(ctx, cx, cy, r, base, rnd, past) {
 
   bubbles(ctx, cx, y, r, rnd);
 
-  // Poso oscuro al fondo: lo espeso se va abajo.
+  // Dark sediment at the bottom: the thick stuff sinks.
   const residue = ctx.createLinearGradient(0, y, 0, y + r);
   residue.addColorStop(0, 'rgba(70,36,8,0)');
   residue.addColorStop(1, `rgba(70,36,8,${0.3 + past * 0.3})`);
@@ -26,7 +26,7 @@ export function resin(ctx, cx, cy, r, base, rnd, past) {
   patches(ctx, cx, y, r, past * 0.6, rnd);
   ctx.restore();
 
-  // El hilo que gotea, más largo cuanto más vieja: lleva tiempo escurriendo.
+  // The dripping thread, longer the older it is: it has been oozing a while.
   ctx.strokeStyle = mix(base, '#5a2e08', 0.35);
   ctx.lineWidth = Math.max(1, r * 0.13);
   ctx.lineCap = 'round';
@@ -40,7 +40,7 @@ export function resin(ctx, cx, cy, r, base, rnd, past) {
   lustre(ctx, cx, y - r * 0.15, r, 0.5 - past * 0.3);
 }
 
-// La silueta de la gota: punta arriba y panza redonda abajo, en `y`.
+// The drop's silhouette: tip up and round belly below, at `y`.
 function gota(ctx, cx, cy, y, r) {
   ctx.beginPath();
   ctx.moveTo(cx, cy - r * 1.35);
@@ -50,8 +50,8 @@ function gota(ctx, cx, cy, y, r) {
   ctx.closePath();
 }
 
-// Lo que lleva dentro: burbujas atrapadas y alguna hebra. El ámbar guarda
-// cosas, igual que guarda el hambre para más tarde.
+// What it holds inside: trapped bubbles and the odd strand. Amber keeps
+// things, just as it keeps hunger for later.
 function bubbles(ctx, cx, y, r, rnd) {
   for (let i = 0; i < 4; i++) {
     const a = rnd() * Math.PI * 2;

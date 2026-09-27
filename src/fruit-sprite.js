@@ -1,21 +1,21 @@
-// Los frutos pintados. La forma de cada punto no es adorno: es su ficha
-// dibujada, para que se lea de un vistazo qué hace al comerlo.
+// The painted fruits. The shape of each point is not decoration: it is its
+// card drawn out, so you can read at a glance what eating it does.
 //
-//   nectar : baya carnosa con rabo y hoja. Es alimento de verdad, el que llena.
-//   chispa : esquirla de cristal, aristas y destellos. Da velocidad.
-//   ojo    : un ojo que mira. Da vista.
-//   resina : gota de ámbar espesa, con su goteo. Estira lo comido.
-//   toxico : masa deshecha, moho y vaho. Es lo podrido.
+//   nectar : fleshy berry with stalk and leaf. Real food, the filling kind.
+//   spark  : glass shard, edges and glints. Gives speed.
+//   eye    : an eye that looks. Gives sight.
+//   resin  : thick drop of amber, dripping. Stretches what was eaten.
+//   toxic  : mushy mass, mold and fumes. The rotten one.
 //
-// Y la madurez va en el dibujo, no solo en el color: antes de pudrirse la fruta
-// se mancha, se vence y pierde el brillo. Quien mira el mapa puede ver que a esa
-// pieza le queda poco sin tener que acordarse de cuándo cayó.
+// And ripeness shows in the drawing, not only in the color: before rotting the
+// fruit gets spotted, sags and loses its shine. Whoever looks at the map can
+// see that piece has little time left without remembering when it fell.
 //
-// Cada combinación de tipo, radio, variante y escalón de madurez se pinta UNA
-// vez en su propio lienzo y luego solo se estampa.
+// Each combination of type, radius, variant and ripeness step is painted ONCE
+// on its own canvas and then just stamped.
 //
-// Cada pintor vive en su módulo de `fruit-sprite/`, y lo que comparten (luz,
-// sombra, volumen, lustre, manchas, rabo) en `fruit-sprite/comunes.js`.
+// Each painter lives in its own module under `fruit-sprite/`, and what they
+// share (light, shadow, volume, lustre, patches, stalk) in `fruit-sprite/common.js`.
 
 import { POINT_TYPES, FRUIT } from './config.js';
 import { ripeness } from './food.js';
@@ -27,10 +27,10 @@ import { eye } from './fruit-sprite/eye.js';
 import { resin } from './fruit-sprite/resin.js';
 import { rotten } from './fruit-sprite/rotten.js';
 
-const sprites = new Map();     // clave: tipo|radio|variante|escalón de madurez
+const sprites = new Map();     // key: type|radius|variant|ripeness step
 
-const STEPS = 12;              // en cuántos escalones se redondea la madurez
-const VARIANTS = 4;           // piezas distintas por tipo: ni dos iguales juntas
+const STEPS = 12;              // how many steps ripeness is rounded to
+const VARIANTS = 4;           // distinct pieces per type: no two alike side by side
 
 const PAINTERS = { nectar: berry, spark, eye, resin, toxic: rotten };
 
@@ -51,8 +51,8 @@ function paint(type, r, variant, ripenessOf) {
   const seedOf = [...type].reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7);
   const rnd = seededRng((seedOf ^ (variant * 7919)) >>> 0);
   const base = colorByRipeness(type, ripenessOf);
-  // Lo pasado: 0 = todavía buena, 1 = a punto de pudrirse (o de deshacerse, si
-  // ya es lo podrido).
+  // How far gone: 0 = still good, 1 = about to rot (or to fall apart, if it is
+  // already the rotten one).
   const past = Math.max(0, (ripenessOf - FRUIT.warnFrom) / (1 - FRUIT.warnFrom));
 
   const pad = Math.ceil(r * 1.4) + 5;

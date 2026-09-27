@@ -1,18 +1,18 @@
-// --- el esqueleto ---------------------------------------------------------
+// --- the skeleton ---------------------------------------------------------
 
 import { mix, seededRng } from '../sprite-kit.js';
 import { LX, LY, trunkCanvas } from './common.js';
 
-// El ramaje, en coordenadas relativas al centro del árbol. Se calcula aparte de
-// quien lo pinta porque lo pintan DOS lienzos —el del tronco, por detrás de la
-// hoja, y el de las puntas, por delante— y tienen que salir idénticos. Un mismo
-// esqueleto pintado dos veces se lee como una rama que entra en la copa y sale
-// por el otro lado; dos esqueletos parecidos se leen como un enredo.
+// The branches, in coordinates relative to the tree's center. Computed apart
+// from whoever paints them because TWO canvases paint them —the trunk's, behind
+// the leaves, and the tips', in front— and they must come out identical. One
+// skeleton painted twice reads as a branch going into the crown and coming out
+// the other side; two similar skeletons read as a tangle.
 export function branchesOf(seedOf, R) {
   const rnd = seededRng((seedOf ^ 0x7f4a7c15) >>> 0);
   const tilts = (rnd() - 0.5) * 0.22;
   const x0 = tilts * R;
-  const y0 = -R * 0.3;                  // la cruz: donde el fuste se abre
+  const y0 = -R * 0.3;                  // the crotch: where the bole splits
   const secsOf = [];
 
   const growBy = (x, y, a, length, thickness, level) => {
@@ -30,17 +30,17 @@ export function branchesOf(seedOf, R) {
 
   const n = 4 + ((rnd() * 2) | 0);
   for (let i = 0; i < n; i++) {
-    // Se abren en abanico hacia arriba, ninguna colgando hacia el suelo.
+    // They fan out upward, none hanging toward the ground.
     const a = -Math.PI / 2 + ((i + 0.5) / n - 0.5) * 2.4 + (rnd() - 0.5) * 0.26;
-    // Cortas a propósito: el ramaje vive DENTRO de la copa. Una rama que asoma
-    // por encima de la hoja no se lee como rama, se lee como árbol muerto.
+    // Short on purpose: the branches live INSIDE the crown. A branch sticking out
+    // above the leaves does not read as a branch, it reads as a dead tree.
     growBy(x0, y0, a, R * (0.26 + rnd() * 0.12), Math.max(1.6, R * 0.13), 0);
   }
   return { tilts, secsOf, cross: { x: x0, y: y0 } };
 }
 
-// Traza los tramos que pase el filtro. Cada uno lleva su reflejo por el lado de
-// la luz: es lo que separa una rama de una raya pintada.
+// Traces the segments that pass the filter. Each carries its highlight on the
+// lit side: that is what separates a branch from a painted line.
 export function traceBranches(ctx, cx, cy, secsOf, clear, dark, filterFn, alpha = 1) {
   ctx.lineCap = 'round';
   ctx.globalAlpha = alpha;
@@ -68,10 +68,10 @@ export function traceBranches(ctx, cx, cy, secsOf, clear, dark, filterFn, alpha 
   ctx.lineWidth = 1;
 }
 
-// Las puntas del ramaje, para ir POR ENCIMA de la hoja. Solo los tramos más
-// finos, y apagados: se trata de que entre hoja y hoja asome madera, no de
-// dibujar un esqueleto encima de la copa. Cuanto más seco el árbol, más se ven,
-// que es justo lo que delata al viejo.
+// The branch tips, to go ON TOP of the leaves. Only the thinnest segments,
+// and muted: the point is for wood to peek out between leaves, not to draw a
+// skeleton over the crown. The drier the tree, the more they show, which is
+// exactly what gives away an old one.
 export function paintBranches(seedOf, R, dry) {
   const { S, c, ctx, base } = trunkCanvas(seedOf, R);
   const { secsOf } = branchesOf(seedOf, R);

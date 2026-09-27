@@ -1,15 +1,15 @@
-// Las patas de Fagi y su andar en trípode.
+// Fagi's legs and her tripod gait.
 
 import { mix } from '../sprite-kit.js';
 import { SKIN } from './palette.js';
 import { ellipse, line } from './stroke.js';
 
-// Tres pares, y cada pata tres tramos: fémur, tibia y tarso. El tarso es el que
-// toca el suelo, y por eso lleva su pisada debajo.
+// Three pairs, and each leg three segments: femur, tibia and tarsus. The tarsus
+// is the one that touches the ground, so it carries its footprint underneath.
 const LEGS = [
-  { x: 4.0, base: 0.78, femur: 5.6, tibia: 6.2, tarsus: 3.2 },   // delanteras
-  { x: 1.2, base: 1.52, femur: 5.8, tibia: 6.6, tarsus: 3.4 },   // medias
-  { x: -1.4, base: 2.22, femur: 6.0, tibia: 6.8, tarsus: 3.6 },  // traseras
+  { x: 4.0, base: 0.78, femur: 5.6, tibia: 6.2, tarsus: 3.2 },   // front
+  { x: 1.2, base: 1.52, femur: 5.8, tibia: 6.6, tarsus: 3.4 },   // middle
+  { x: -1.4, base: 2.22, femur: 6.0, tibia: 6.8, tarsus: 3.6 },  // hind
 ];
 
 export function drawLegs(ctx, step, c, L, alive) {
@@ -28,7 +28,7 @@ export function drawLegs(ctx, step, c, L, alive) {
       legSegment(ctx, leg.x, 0, p.kneeX, p.kneeY, 2.4, dark, clear, L);
       legSegment(ctx, p.kneeX, p.kneeY, p.ankleX, p.ankleY, 1.7, dark, clear, L);
 
-      // El tarso es fino y sin reflejo: casi un pelo.
+      // The tarsus is thin and has no highlight: almost a hair.
       ctx.strokeStyle = dark;
       ctx.lineWidth = 1.1;
       ctx.beginPath();
@@ -40,8 +40,8 @@ export function drawLegs(ctx, step, c, L, alive) {
       );
       ctx.stroke();
 
-      // La coxa: el muñón grueso donde la pata se enchufa al cuerpo. Sin él las
-      // patas parecen clavadas con alfileres.
+      // The coxa: the thick stump where the leg plugs into the body. Without it
+      // the legs look stuck on with pins.
       ellipse(ctx, leg.x + Math.cos(p.ang) * 1.6, Math.sin(p.ang) * 1.6, 1.7, 1.2,
         mix(c.legs, '#ffe2b4', 0.18), p.ang);
 
@@ -51,16 +51,16 @@ export function drawLegs(ctx, step, c, L, alive) {
   ctx.lineWidth = 1;
 }
 
-// Dónde cae cada articulación de una pata en este momento del paso.
+// Where each joint of a leg falls at this moment of the step.
 function joint(leg, i, sideOf, step, alive) {
-  // Trípode: (delantera izq, media der, trasera izq) van en la misma fase.
+  // Tripod: (front left, middle right, hind left) move in the same phase.
   const phaseShift = ((i + (sideOf > 0 ? 1 : 0)) % 2) * Math.PI;
   const cycle = Math.sin(step + phaseShift);
   const sway = alive ? cycle * 0.26 : -0.5;
   const ang = (leg.base + sway) * sideOf;
 
-  // La pata que va en el aire se estira un poco menos y se despega: es lo
-  // que hace que se vea caminar y no patalear.
+  // The leg in the air stretches a little less and lifts off: that is what
+  // makes it look like walking and not kicking.
   const flies = alive ? Math.max(0, cycle) : 0;
   const kneeX = leg.x + Math.cos(ang) * leg.femur;
   const kneeY = Math.sin(ang) * leg.femur;
@@ -73,7 +73,7 @@ function joint(leg, i, sideOf, step, alive) {
   return { ang, angT, angP, flies, kneeX, kneeY, ankleX, ankleY, footX, footY };
 }
 
-// La pisada: solo la que apoya deja sombra, y se le pega al suelo.
+// The footprint: only the planted foot casts a shadow, stuck to the ground.
 function footprint(ctx, p, L) {
   if (p.flies < 0.35) {
     ellipse(ctx, p.footX - L.x * 0.8, p.footY - L.y * 0.8, 1.5, 1.0,
@@ -81,8 +81,8 @@ function footprint(ctx, p, L) {
   }
 }
 
-// Cada tramo más fino que el anterior, y el de arriba con su reflejo: una
-// pata de grosor único se lee como alambre.
+// Each segment thinner than the one before, and the upper one with its
+// highlight: a leg of uniform thickness reads as wire.
 function legSegment(ctx, x0, y0, x1, y1, w, dark, clear, L) {
   ctx.strokeStyle = dark;
   ctx.lineWidth = w;
@@ -96,8 +96,8 @@ function legSegment(ctx, x0, y0, x1, y1, w, dark, clear, L) {
   ctx.globalAlpha = 1;
 }
 
-// Espinas de la tibia: dos pelos tiesos por tramo. Son diminutos y hacen
-// más por el bicho que cualquier otro detalle.
+// Tibial spines: two stiff hairs per segment. They are tiny and do more for
+// the critter than any other detail.
 function spines(ctx, p, sideOf, c) {
   ctx.strokeStyle = `rgba(${c === SKIN ? '60,34,16' : '40,44,52'},0.55)`;
   ctx.lineWidth = 0.6;

@@ -1,10 +1,10 @@
-// El pintor de lo podrido.
+// The rotten painter.
 
 import { LIGHT, LX, LY, shadow, volume, circle } from './common.js';
 
-// Podrido: ya no tiene forma propia. Bulto irregular, moho agarrado al lado de
-// sombra, pozos hundidos y vaho. Y según se le acaba el tiempo se deshincha,
-// hasta que desaparece del mapa.
+// Rotten: it no longer has a shape of its own. An irregular lump, mold clinging
+// to the shaded side, sunken pits and fumes. And as its time runs out it
+// deflates, until it disappears from the map.
 export function rotten(ctx, cx, cy, r, base, rnd, past) {
   const k = 1 - past * 0.28;
   const rr = r * k;
@@ -16,7 +16,7 @@ export function rotten(ctx, cx, cy, r, base, rnd, past) {
   ctx.save();
   lump(ctx, pts);
   ctx.clip();
-  volume(ctx, cx, cy, rr, base, 0.2, 0.68);   // mate: lo podrido no brilla
+  volume(ctx, cx, cy, rr, base, 0.2, 0.68);   // matte: rot does not shine
   mold(ctx, cx, cy, rr, rnd);
   wells(ctx, cx, cy, rr, rnd);
   ctx.restore();
@@ -24,7 +24,7 @@ export function rotten(ctx, cx, cy, r, base, rnd, past) {
   mist(ctx, cx, cy, r, rr, rnd);
 }
 
-// Jugo: lo que ha soltado al deshacerse, en el suelo y a su alrededor.
+// Juice: what it has let out while falling apart, on the ground around it.
 function puddle(ctx, cx, cy, r, rr, past) {
   const g = ctx.createRadialGradient(cx, cy + rr * 0.5, 0, cx, cy + rr * 0.5, r * 1.5);
   g.addColorStop(0, `rgba(46,26,32,${0.3 * (0.4 + past)})`);
@@ -35,7 +35,7 @@ function puddle(ctx, cx, cy, r, rr, past) {
   ctx.fill();
 }
 
-// El contorno vencido: nueve puntos a distancias desiguales del centro.
+// The sagging outline: nine points at uneven distances from the center.
 function deform(cx, cy, rr, rnd) {
   const n = 9;
   const pts = [];
@@ -47,7 +47,7 @@ function deform(cx, cy, rr, rnd) {
   return pts;
 }
 
-// La ruta blanda que pasa por esos puntos, sin una sola esquina.
+// The soft path through those points, without a single corner.
 function lump(ctx, pts) {
   const n = pts.length;
   ctx.beginPath();
@@ -59,8 +59,8 @@ function lump(ctx, pts) {
   ctx.closePath();
 }
 
-// Moho: grumos verdosos pegados al lado que no ve el sol, que es donde
-// aguanta la humedad.
+// Mold: greenish clumps stuck to the side that does not see the sun, which is
+// where the damp lingers.
 function mold(ctx, cx, cy, rr, rnd) {
   for (let m = 0; m < 3; m++) {
     const a = LIGHT + Math.PI + (rnd() - 0.5) * 2;
@@ -76,7 +76,7 @@ function mold(ctx, cx, cy, rr, rnd) {
   }
 }
 
-// Pozos: donde se ha hundido la carne. Sombra arriba, filo claro abajo.
+// Pits: where the flesh has sunk. Shadow on top, light rim below.
 function wells(ctx, cx, cy, rr, rnd) {
   for (let i = 0; i < 4; i++) {
     const a = rnd() * Math.PI * 2;
@@ -92,7 +92,7 @@ function wells(ctx, cx, cy, rr, rnd) {
   }
 }
 
-// Vaho: dos hilillos subiendo. Es lo que se huele desde lejos.
+// Fumes: two thin wisps rising. It is what can be smelled from afar.
 function mist(ctx, cx, cy, r, rr, rnd) {
   for (let i = 0; i < 2; i++) {
     const x = cx + (i ? rr * 0.45 : -rr * 0.35);

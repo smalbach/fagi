@@ -1,30 +1,30 @@
-// --- copa -----------------------------------------------------------------
+// --- crown ----------------------------------------------------------------
 //
-// La copa procedural, que es hoja. Es la que se ve mientras carga la copa
-// fotográfica, y la que queda si no llega a cargar.
+// The procedural crown, which is leaf. It is the one shown while the
+// photographic crown loads, and the one that stays if it never loads.
 
 import { canvasOf, mix, seededRng, noise } from '../sprite-kit.js';
 import { CROWN_RISE, LX, LY } from './common.js';
 
-const SAP = '#8a6b3a';       // hacia donde va la hoja al secarse
+const SAP = '#8a6b3a';       // what the leaves turn toward as they dry
 
 export function paintCrown(seedOf, R, color, dry) {
   const rnd = seededRng((seedOf ^ 0x51ed270b) >>> 0);
   const pad = Math.ceil(R * 0.36) + 5;
   const S = (R + pad) * 2;
   const cx = S / 2;
-  const cy = S / 2 - R * CROWN_RISE;   // la hoja se sienta arriba: abajo va el fuste
+  const cy = S / 2 - R * CROWN_RISE;   // the leaves sit on top: the bole goes below
   const c = canvasOf(S, S);
   const ctx = c.getContext('2d');
 
-  // Al secarse la hoja no se vuelve marrón de golpe: pierde verde y gana pardo.
+  // When drying the leaves do not turn brown all at once: they lose green and gain brown.
   const leaf = mix(color, SAP, dry);
   const background = mix(leaf, '#0e1c12', 0.6);
   const middle = mix(leaf, '#0d1a12', 0.22);
   const clear = mix(leaf, '#eef7cd', 0.34);
 
-  // Racimos: la copa no es un círculo, es un montón de masas de hoja que se
-  // solapan. Todas caben dentro del radio.
+  // Clusters: the crown is not a circle, it is a heap of overlapping leaf
+  // masses. All of them fit inside the radius.
   const scope = R * 0.72;
   const n = 7 + ((rnd() * 4) | 0);
   const clusters = [];
@@ -36,7 +36,7 @@ export function paintCrown(seedOf, R, color, dry) {
   }
   clusters.push({ x: cx + (rnd() - 0.5) * R * 0.1, y: cy - R * 0.06, r: scope * 0.62 });
 
-  // La silueta de la copa, para que el grano y la sombra no se salgan de ella.
+  // The crown's silhouette, so the grain and the shadow do not spill outside it.
   const crop = () => {
     ctx.beginPath();
     for (const m of clusters) {
@@ -45,8 +45,8 @@ export function paintCrown(seedOf, R, color, dry) {
     }
   };
 
-  // Tres pasadas: la masa oscura, el tono medio corrido hacia la luz y los
-  // claros solo en lo alto de cada racimo.
+  // Three passes: the dark mass, the mid tone shifted toward the light and the
+  // highlights only on top of each cluster.
   const pass = (col, scaleOf, toward, alpha) => {
     ctx.globalAlpha = alpha;
     ctx.fillStyle = col;
@@ -61,7 +61,7 @@ export function paintCrown(seedOf, R, color, dry) {
   pass(middle, 0.82, 0.16, 0.95);
   pass(clear, 0.5, 0.36, 0.5);
 
-  // Grano de hoja, para que las manchas no queden planas.
+  // Leaf grain, so the patches do not look flat.
   ctx.save();
   crop();
   ctx.clip();
@@ -72,8 +72,8 @@ export function paintCrown(seedOf, R, color, dry) {
   ctx.globalAlpha = 1;
   ctx.restore();
 
-  // Ramillas dentro de la hoja: los palitos de los que cuelgan las hojas. Van
-  // antes que ellas, para que la hoja se vea colgada de algo.
+  // Twigs inside the foliage: the little sticks the leaves hang from. They go
+  // before the leaves, so the leaves look like they hang from something.
   const twigs = Math.round(R * 0.5);
   ctx.lineCap = 'round';
   for (let i = 0; i < twigs; i++) {
@@ -92,10 +92,10 @@ export function paintCrown(seedOf, R, color, dry) {
   }
   ctx.lineWidth = 1;
 
-  // Hojas. Son lo que hace que la copa deje de leerse como un montón de
-  // círculos: cada una es una hoja, con su lado a la luz, su punta y su nervio
-  // si es de las grandes. Salen por todo el canto de los racimos, y unas pocas
-  // se despegan y quedan sueltas contra el cielo.
+  // Leaves. They are what stops the crown reading as a heap of circles: each
+  // one is a leaf, with its lit side, its tip and its midrib if it is one of
+  // the big ones. They come out all along the edge of the clusters, and a few
+  // break away and stay loose against the sky.
   const leaves = Math.round(R * 7 * (1 - dry * 0.55));
   for (let i = 0; i < leaves; i++) {
     const m = clusters[(rnd() * clusters.length) | 0];
@@ -105,7 +105,7 @@ export function paintCrown(seedOf, R, color, dry) {
     const y = m.y + Math.sin(a) * d;
     if (Math.hypot(x - cx, y - cy + R * CROWN_RISE) > R + pad * 0.5) continue;
 
-    const light = (Math.cos(a) * LX + Math.sin(a) * LY + 1) / 2;   // 1 = da a la luz
+    const light = (Math.cos(a) * LX + Math.sin(a) * LY + 1) / 2;   // 1 = faces the light
     const length = R * (0.06 + rnd() * 0.07);
     const width = length * (0.36 + rnd() * 0.22);
     const giro = a + (rnd() - 0.5) * 1.1;
@@ -115,7 +115,7 @@ export function paintCrown(seedOf, R, color, dry) {
     ctx.rotate(giro);
     const tone = mix(background, clear, light * (0.45 + rnd() * 0.55));
 
-    // Hoja de dos curvas: se estrecha en punta. Un óvalo no se lee como hoja.
+    // A two-curve leaf: it narrows to a point. An oval does not read as a leaf.
     ctx.fillStyle = tone;
     ctx.beginPath();
     ctx.moveTo(-length * 0.5, 0);
@@ -135,8 +135,8 @@ export function paintCrown(seedOf, R, color, dry) {
   }
   ctx.lineWidth = 1;
 
-  // Claros entre la hoja: por ahí se ve el ramaje que va pintado encima.
-  // Cuanto más seco, más huecos y más grandes.
+  // Gaps in the foliage: through them you see the branches painted on top.
+  // The drier, the more and bigger the gaps.
   const gaps = Math.round(4 + dry * 8);
   ctx.globalCompositeOperation = 'destination-out';
   for (let i = 0; i < gaps; i++) {
@@ -155,7 +155,7 @@ export function paintCrown(seedOf, R, color, dry) {
   }
   ctx.globalCompositeOperation = 'source-over';
 
-  // La copa se hace sombra a sí misma por abajo, al lado contrario de la luz.
+  // The crown shades itself underneath, on the side opposite the light.
   ctx.save();
   crop();
   ctx.clip();

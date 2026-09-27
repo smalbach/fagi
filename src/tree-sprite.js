@@ -1,32 +1,33 @@
-// El árbol pintado. Tres lienzos, cada uno pintado UNA vez:
+// The painted tree. Three canvases, each one painted ONCE:
 //
-//   · el tronco, con sus raíces, su corteza y el ramaje que le nace;
-//   · la copa, que es hoja;
-//   · y las puntas de las ramas otra vez, para pintarlas ENCIMA de la copa.
+//   · the trunk, with its roots, its bark and the branches growing from it;
+//   · the crown, which is leaf;
+//   · and the branch tips again, to paint them ON TOP of the crown.
 //
-// Ese tercer lienzo es lo que hace que el árbol se lea como madera con hoja y no
-// como una mancha verde: el ramaje asoma entre las hojas, con el mismo trazo y
-// en el mismo sitio que el de abajo, porque los dos salen del mismo esqueleto
-// (ramasDe). Van separados porque hacen cosas distintas al dibujar: el tronco
-// está clavado en el suelo, y la copa y sus ramas se mueven con el viento.
+// That third canvas is what makes the tree read as wood with leaves and not as
+// a green blot: the branches peek out between the leaves, with the same stroke
+// and in the same place as the ones below, because both come from the same
+// skeleton (branchesOf). They are kept apart because they do different things
+// when drawn: the trunk is fixed in the ground, and the crown and its branches
+// move with the wind.
 //
-// Todo lo que se ve cuenta lo que el árbol hace:
+// Everything you see tells what the tree does:
 //
-//   · La copa se inclina a favor del viento. El viento es lo que arrastra los
-//     olores, así que mirando cualquier árbol se sabe hacia dónde va el rastro
-//     del fruto sin abrir ningún panel.
-//   · El fruto que viene se ve madurar colgado de la copa: crece y toma color
-//     según se agota la cuenta atrás. Cuando está entero, cae.
-//   · Al secarse pierde hoja, se apaga hacia el pardo y se le ve el ramaje: un
-//     árbol viejo se reconoce antes de que caiga.
+//   · The crown leans downwind. The wind is what carries the scents, so
+//     looking at any tree tells you which way the fruit's trail goes without
+//     opening any panel.
+//   · The coming fruit is seen ripening as it hangs from the crown: it grows
+//     and takes on color as the countdown runs out. When it is whole, it falls.
+//   · As it dries it loses leaves, fades toward brown and its branches show: an
+//     old tree can be recognized before it falls.
 //
-// La copa se sienta en la mitad de arriba: por debajo queda el fuste a la vista,
-// que es lo que da a entender que hay un árbol y no un arbusto. Todo cabe dentro
-// del radio del objeto: lo que se ve es el árbol que hay.
+// The crown sits on the upper half: below it the bole stays in view, which is
+// what tells you it is a tree and not a bush. Everything fits inside the
+// object's radius: what you see is the tree that is there.
 
-// Las piezas viven en tree-sprite/: el esqueleto del ramaje, el tronco y su
-// pie, la copa (procedural y fotográfica), el viento y la fruta. Aquí solo se
-// guardan los lienzos ya pintados y se decide qué se estampa y dónde.
+// The pieces live in tree-sprite/: the branch skeleton, the trunk and its
+// foot, the crown (procedural and photographic), the wind and the fruit. Here
+// we only keep the already painted canvases and decide what is stamped where.
 
 import { treeAge } from './trees.js';
 import { cacheSprite, detail, stamp, seedFor } from './sprite-kit.js';
@@ -37,15 +38,15 @@ import { realisticCrownLoaded, stampRealisticCrown } from './tree-sprite/realist
 import { swayOf } from './tree-sprite/wind.js';
 import { fruitsOf } from './tree-sprite/fruits.js';
 
-const trunks = new Map();     // clave: semilla|radio|escalón de sequía
-const crowns = new Map();       // clave: semilla|radio|color|escalón de sequía
-const branchings = new Map();     // las puntas que van por encima de la hoja
+const trunks = new Map();     // key: seed|radius|dryness step
+const crowns = new Map();       // key: seed|radius|color|dryness step
+const branchings = new Map();     // the tips that go over the leaves
 
-const STEPS = 8;               // escalones en que se redondea la sequía
+const STEPS = 8;               // steps dryness is rounded to
 
 export function drawTree(ctx, o, spec, r, wind, now) {
-  // Con la cámara cerca se pinta el árbol con más píxeles en vez de estirar el
-  // que ya estaba: el radio va multiplicado por la escala de detalle.
+  // With the camera close the tree is painted with more pixels instead of
+  // stretching the old one: the radius is multiplied by the detail scale.
   const z = detail();
   const seedOf = seedFor(o);
   const R = Math.round(r * z);
@@ -56,8 +57,8 @@ export function drawTree(ctx, o, spec, r, wind, now) {
     () => paintTrunk(seedOf, R, dry), 120);
   stamp(ctx, trunk, o.x, o.y, z);
 
-  // La copa va suelta del tronco: se tumba a favor del viento y respira con él.
-  // Las ramas que asoman entre la hoja se mueven con ella, que es lo suyo.
+  // The crown is loose from the trunk: it leans downwind and breathes with it.
+  // The branches peeking through the leaves move with it, as they should.
   const v = swayOf(wind, now, r, seedOf, dry);
   if (realisticCrownLoaded()) {
     stampRealisticCrown(ctx, o, r, v, dry, seedOf);

@@ -1,14 +1,14 @@
-// El pintor de la chispa.
+// The spark painter.
 
 import { toRGB } from '../colors.js';
 import { LX, LY, volume, cover, polygon } from './common.js';
 
-// Chispa: no es carne, es mineral. Un prisma de aristas vivas que suelta
-// destellos. Lo que da es velocidad, así que va picuda y no redonda.
+// Spark: it is not flesh, it is mineral. A sharp-edged prism that gives off
+// glints. What it gives is speed, so it is pointy and not round.
 export function spark(ctx, cx, cy, r, base, rnd, past) {
   const [cr, cg, cb] = toRGB(base);
 
-  // Resplandor: se ve venir de lejos aunque la pieza sea pequeña.
+  // Glow: you see it coming from afar even though the piece is small.
   const halo = ctx.createRadialGradient(cx, cy, r * 0.3, cx, cy, r * 2.1);
   halo.addColorStop(0, `rgba(${cr},${cg},${cb},${0.3 - past * 0.2})`);
   halo.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
@@ -22,14 +22,14 @@ export function spark(ctx, cx, cy, r, base, rnd, past) {
   volume(ctx, cx, cy, r, base, 0.6 - past * 0.3, 0.66);
   faces(ctx, cx, cy, pts, rnd);
 
-  // Núcleo encendido.
+  // Glowing core.
   const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 0.75);
   core.addColorStop(0, `rgba(255,255,255,${0.5 - past * 0.35})`);
   core.addColorStop(1, 'rgba(255,255,255,0)');
   cover(ctx, core);
   ctx.restore();
 
-  // Filo del canto y destellos sueltos alrededor.
+  // Rim along the edge and loose glints around it.
   ctx.strokeStyle = `rgba(${cr},${cg},${cb},0.75)`;
   ctx.lineWidth = Math.max(1, r * 0.12);
   polygon(ctx, pts);
@@ -39,7 +39,7 @@ export function spark(ctx, cx, cy, r, base, rnd, past) {
   sparkles(ctx, cx, cy, r, rnd, past);
 }
 
-// El perfil del prisma, algo torcido y con cada arista un poco a su aire.
+// The prism's profile, a bit skewed and with each edge doing its own thing.
 function carve(cx, cy, r, rnd) {
   const giro = (rnd() - 0.5) * 0.5;
   const profile = [[0, -1.45], [0.62, -0.5], [0.44, 0.7], [0, 1.3], [-0.44, 0.7], [-0.62, -0.5]];
@@ -53,8 +53,8 @@ function carve(cx, cy, r, rnd) {
   });
 }
 
-// Caras: del centro a cada arista, una clara y la siguiente oscura. Es lo que
-// lo hace cristal tallado y no un rombo pintado.
+// Faces: from the center to each edge, one light and the next dark. That is
+// what makes it cut crystal and not a painted rhombus.
 function faces(ctx, cx, cy, pts, rnd) {
   for (let i = 0; i < pts.length; i++) {
     const a = pts[i];

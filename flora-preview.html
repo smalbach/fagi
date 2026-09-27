@@ -6,7 +6,7 @@ import { drawTree } from '/src/tree-sprite.js';
 import { drawFruit } from '/src/fruit-sprite.js';
 import { OBJECT_TYPES, POINT_TYPES, TREE, TYPE_KEYS } from '/src/config.js';
 
-TREE.life = 100;                       // para poder ver un árbol secándose
+TREE.life = 100;                       // so we can see a tree drying out
 const spec = OBJECT_TYPES.tree;
 const ctx = document.getElementById('c').getContext('2d');
 const wind = { angle: 0.4 };
@@ -14,11 +14,11 @@ const wind = { angle: 0.4 };
 function frame(t){
   ctx.fillStyle = '#222630'; ctx.fillRect(0,0,1180,820);
 
-  // un árbol grande (x4) para mirar el detalle
+  // one big tree (x4) to look at the detail
   const big = { x: 190, y: 190, type:'tree', seed: 4242, timer: (Math.sin(t/2200)*0.5+0.5)*TREE.interval, lastDrop: 0, age: 0 };
   drawTree(ctx, big, spec, 150, wind, t);
 
-  // seis árboles a tamaño real, y los de abajo cada vez más secos
+  // six trees at real size, the bottom ones drier and drier
   let i = 0;
   for (const seed of [1,2,3,4,5,6]) {
     const o = { x: 460 + (i%3)*110, y: 90 + ((i/3)|0)*130, type:'tree', seed,
@@ -27,7 +27,7 @@ function frame(t){
     i++;
   }
 
-  // cada fruto, a tamaño real y x4, y en tres estados de madurez
+  // each fruit, at real size and x4, and in three stages of ripeness
   ctx.font = '12px system-ui'; ctx.fillStyle = '#aab';
   let y = 420;
   for (const key of TYPE_KEYS) {
@@ -38,7 +38,7 @@ function frame(t){
       const age = mad * POINT_TYPES[key].life;
       POINT_TYPES[key].radius = r0;
       drawFruit(ctx, { x, y, type: key, age, seed: 11 });
-      POINT_TYPES[key].radius = r0 * 5;       // el mismo, en grande
+      POINT_TYPES[key].radius = r0 * 5;       // the same one, big
       drawFruit(ctx, { x: x + 90, y, type: key, age, seed: 11 });
       POINT_TYPES[key].radius = r0;
       x += 220;

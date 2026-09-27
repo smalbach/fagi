@@ -1,20 +1,20 @@
-// El nido: un hormiguero de tierra excavada. Igual que la roca, el montículo se
-// pinta UNA vez en su propio lienzo y luego solo se estampa; lo único que se
-// repinta cada fotograma es la boca, que respira cuando Fagi duerme dentro.
+// The nest: an anthill of dug-out soil. Like the rock, the mound is painted
+// ONCE on its own canvas and then just stamped; the only thing repainted every
+// frame is the mouth, which breathes when Fagi sleeps inside.
 //
-// Un hormiguero no tiene canto: es tierra suelta amontonada, así que el borde
-// no se dibuja, se desvanece. Todo el volumen se construye con manchas blandas
-// y una máscara irregular, para que no se lea como un disco.
+// An anthill has no edge: it is loose soil piled up, so the border is not
+// drawn, it fades away. All the volume is built with soft blots and an
+// irregular mask, so it does not read as a disc.
 //
-// El montículo llena el radio de uso del nido: lo que se ve es exactamente la
-// zona donde Fagi está "en casa".
+// The mound fills the nest's use radius: what you see is exactly the area
+// where Fagi is "at home".
 
 import { canvasOf, mix, seededRng, seedFor, noise, detail, stamp } from './sprite-kit.js';
 
-const sprites = new Map();   // clave: semilla|radio|color
+const sprites = new Map();   // key: seed|radius|color
 
-const MOUTH = 0.17;           // la boca, en fracción del radio
-const LIGHT = -Math.PI * 0.72; // misma luz que las rocas: arriba a la izquierda
+const MOUTH = 0.17;           // the mouth, as a fraction of the radius
+const LIGHT = -Math.PI * 0.72; // same light as the rocks: top left
 const LX = Math.cos(LIGHT);
 const LY = Math.sin(LIGHT);
 
@@ -24,13 +24,13 @@ export function drawNest(ctx, o, spec, r) {
   stamp(ctx, img, o.x, o.y, z);
 }
 
-// La boca por dentro. Se pinta aparte del montículo porque late: con Fagi
-// dentro se le enciende un rescoldo tenue que sube y baja como una respiración.
+// The inside of the mouth. Painted apart from the mound because it pulses: with
+// Fagi inside a faint ember lights up in it, rising and falling like breathing.
 export function drawNestMouth(ctx, o, r, busy, now) {
   const rb = r * MOUTH;
 
-  // El agujero: negro en el centro y con la pared del túnel algo menos negra
-  // por el lado que le entra la luz.
+  // The hole: black in the center, with the tunnel wall a bit less black on
+  // the side where the light gets in.
   const tunnel = ctx.createRadialGradient(
     o.x - LX * rb * 0.45, o.y - LY * rb * 0.45, rb * 0.15,
     o.x, o.y, rb * 1.05
@@ -64,7 +64,7 @@ function spriteOf(seedOf, r, color) {
   return img;
 }
 
-// Una mancha blanda: se usan a montones, para el bulto y para la máscara.
+// A soft blot: used by the dozen, for the bulk and for the mask.
 function patch(ctx, x, y, rad, alpha, color = '255,255,255') {
   const g = ctx.createRadialGradient(x, y, 0, x, y, rad);
   g.addColorStop(0, `rgba(${color},${alpha})`);
@@ -75,9 +75,9 @@ function patch(ctx, x, y, rad, alpha, color = '255,255,255') {
   ctx.fill();
 }
 
-// La silueta: un montón de tierra, no un círculo. Se hace con manchas sueltas
-// repartidas por el borde, así que el contorno queda roto y deshilachado, y
-// además se difumina hacia fuera. Nunca pasa del radio.
+// The silhouette: a heap of soil, not a circle. It is made of loose blots
+// spread along the border, so the outline ends up broken and frayed, and it
+// also fades outward. It never goes past the radius.
 function mask(S, r, rnd) {
   const c = canvasOf(S, S);
   const ctx = c.getContext('2d');
@@ -91,15 +91,15 @@ function mask(S, r, rnd) {
   ctx.fillStyle = body;
   ctx.fillRect(0, 0, S, S);
 
-  // Lengüetas de tierra: el montón no acaba a la misma distancia por todos
-  // lados. Unas comen hacia dentro y otras asoman, siempre dentro del radio.
+  // Tongues of soil: the heap does not end at the same distance on every
+  // side. Some bite inward and others stick out, always within the radius.
   for (let i = 0; i < 26; i++) {
     const a = (i / 26) * Math.PI * 2 + rnd() * 0.2;
     const d = r * (0.6 + rnd() * 0.22);
     patch(ctx, cx + Math.cos(a) * d, cy + Math.sin(a) * d, r * (0.13 + rnd() * 0.16), 0.5 + rnd() * 0.4);
   }
 
-  // Y se le comen mordiscos al borde para que no quede una orla regular.
+  // And bites are taken out of the border so it is not a regular rim.
   ctx.globalCompositeOperation = 'destination-out';
   for (let i = 0; i < 14; i++) {
     const a = rnd() * Math.PI * 2;
@@ -118,21 +118,21 @@ function paintNest(seedOf, r, color) {
   const cy = S / 2;
   const rb = r * MOUTH;
 
-  // Tierra removida: parda y apagada, con una pizca del ocre del nido para que
-  // se lea como suya y no como otra piedra más.
+  // Churned soil: brown and dull, with a pinch of the nest's ochre so it reads
+  // as its own and not as just another stone.
   const soil = mix('#5b452e', color, 0.12);
   const clear = mix(soil, '#d8bd90', 0.55);
   const dark = mix(soil, '#171109', 0.62);
 
-  // --- El montículo, en su propio lienzo, para poder recortarlo con la máscara.
+  // --- The mound, on its own canvas, so it can be clipped with the mask.
   const m = canvasOf(S, S);
   const mc = m.getContext('2d');
 
   mc.fillStyle = soil;
   mc.fillRect(0, 0, S, S);
 
-  // Volumen del cono. La parte alta es el aro de alrededor de la boca: hacia
-  // fuera baja al suelo, y hacia dentro cae al agujero.
+  // Cone volume. The high part is the ring around the mouth: outward it slopes
+  // down to the ground, and inward it drops into the hole.
   const cone = mc.createRadialGradient(cx, cy, rb * 1.1, cx, cy, r);
   cone.addColorStop(0, mix(soil, '#cdae7d', 0.3));
   cone.addColorStop(0.35, mix(soil, '#8a6c46', 0.25));
@@ -141,7 +141,7 @@ function paintNest(seedOf, r, color) {
   mc.fillStyle = cone;
   mc.fillRect(0, 0, S, S);
 
-  // La luz de un lado: bulto, no diana.
+  // Light from one side: a mound, not a bullseye.
   const sideOf = mc.createLinearGradient(cx + LX * r, cy + LY * r, cx - LX * r, cy - LY * r);
   sideOf.addColorStop(0, 'rgba(255,240,210,0.34)');
   sideOf.addColorStop(0.42, 'rgba(0,0,0,0)');
@@ -149,8 +149,8 @@ function paintNest(seedOf, r, color) {
   mc.fillStyle = sideOf;
   mc.fillRect(0, 0, S, S);
 
-  // Terrones: manchas blandas, unas a la luz y otras a la sombra. Son las que
-  // rompen el tono liso y hacen que parezca tierra echada a paladas.
+  // Clods: soft blots, some in the light and others in shadow. They break up
+  // the flat tone and make it look like soil thrown by the shovelful.
   for (let i = 0; i < 34; i++) {
     const a = rnd() * Math.PI * 2;
     const d = rb * 1.2 + Math.sqrt(rnd()) * (r * 0.95 - rb * 1.2);
@@ -162,7 +162,7 @@ function paintNest(seedOf, r, color) {
       clodLight ? '236,214,175' : '22,17,11');
   }
 
-  // Grano: arena fina encima de terrón gordo.
+  // Grain: fine sand over coarse clods.
   mc.globalAlpha = 0.5;
   mc.globalCompositeOperation = 'overlay';
   mc.drawImage(noise(S, S, rnd, 3, 3), 0, 0);
@@ -172,7 +172,7 @@ function paintNest(seedOf, r, color) {
   mc.globalCompositeOperation = 'source-over';
   mc.globalAlpha = 1;
 
-  // Chinas sueltas: un punto de luz con su sombra pegada debajo.
+  // Loose pebbles: a point of light with its shadow stuck underneath.
   for (let i = 0; i < 18 + ((rnd() * 10) | 0); i++) {
     const a = rnd() * Math.PI * 2;
     const d = rb * 1.4 + Math.sqrt(rnd()) * (r * 0.9 - rb * 1.4);
@@ -189,8 +189,8 @@ function paintNest(seedOf, r, color) {
     mc.fill();
   }
 
-  // La luz se repasa DESPUÉS del grano: si no, la arena aplana el bulto y el
-  // montón se queda en una mancha lisa.
+  // The light is gone over AFTER the grain: otherwise the sand flattens the
+  // bulk and the heap ends up as a flat blot.
   const relief = mc.createRadialGradient(
     cx + LX * r * 0.5, cy + LY * r * 0.5, r * 0.08,
     cx, cy, r * 1.05
@@ -201,15 +201,15 @@ function paintNest(seedOf, r, color) {
   mc.fillStyle = relief;
   mc.fillRect(0, 0, S, S);
 
-  // Dos o tres sombras anchas en la ladera oscura: el montón no es liso.
+  // Two or three wide shadows on the dark slope: the heap is not smooth.
   for (let i = 0; i < 3; i++) {
     const a = LIGHT + Math.PI + (rnd() - 0.5) * 1.6;
     const d = r * (0.35 + rnd() * 0.4);
     patch(mc, cx + Math.cos(a) * d, cy + Math.sin(a) * d, r * (0.25 + rnd() * 0.2), 0.16, '14,10,6');
   }
 
-  // Caminos gastados que bajan de la boca: la tierra pisada se aclara y se
-  // alisa. Se dibujan borrosos porque son huella, no surco.
+  // Worn paths running down from the mouth: trodden soil gets lighter and
+  // smoother. They are drawn blurred because they are tracks, not grooves.
   mc.save();
   mc.filter = `blur(${Math.max(1, r * 0.05)}px)`;
   mc.lineCap = 'round';
@@ -231,8 +231,8 @@ function paintNest(seedOf, r, color) {
   }
   mc.restore();
 
-  // El cráter: el labio levantado alrededor del agujero, iluminado por un lado
-  // y en sombra por el otro, y el embudo cayendo hacia dentro.
+  // The crater: the raised lip around the hole, lit on one side and shaded on
+  // the other, and the funnel dropping inward.
   mc.save();
   mc.filter = `blur(${Math.max(1, r * 0.04)}px)`;
   mc.lineWidth = rb * 0.7;
@@ -255,12 +255,12 @@ function paintNest(seedOf, r, color) {
   mc.arc(cx, cy, rb * 1.9, 0, Math.PI * 2);
   mc.fill();
 
-  // Recorte: la tierra solo existe donde dice la máscara.
+  // Clip: the soil only exists where the mask says so.
   mc.globalCompositeOperation = 'destination-in';
   mc.drawImage(mask(S, r, rnd), 0, 0);
   mc.globalCompositeOperation = 'source-over';
 
-  // --- Y ahora se monta todo: sombra en el suelo, montículo, tierra esparcida.
+  // --- And now it all comes together: ground shadow, mound, scattered soil.
   const c = canvasOf(S, S);
   const ctx = c.getContext('2d');
 
@@ -272,8 +272,8 @@ function paintNest(seedOf, r, color) {
 
   ctx.drawImage(m, 0, 0);
 
-  // Granos sueltos fuera del montón: lo que salta al cavar. Van encima, y
-  // difuminan el final del montículo contra el suelo.
+  // Loose grains outside the heap: what flies out when digging. They go on
+  // top, and blur the end of the mound against the ground.
   for (let i = 0; i < 46; i++) {
     const a = rnd() * Math.PI * 2;
     const d = r * (0.88 + Math.sqrt(rnd()) * 0.34);
@@ -285,7 +285,7 @@ function paintNest(seedOf, r, color) {
     ctx.fill();
   }
 
-  // Alguna ramita o aguja seca caída sobre el montón.
+  // A twig or dry needle or two fallen on the heap.
   ctx.lineCap = 'round';
   for (let i = 0, n = 2 + ((rnd() * 2) | 0); i < n; i++) {
     const a = rnd() * Math.PI * 2;

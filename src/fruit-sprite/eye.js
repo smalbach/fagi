@@ -1,10 +1,10 @@
-// El pintor del ojo.
+// The eye painter.
 
 import { mix } from '../sprite-kit.js';
 import { shadow, volume, lustre, patches, circle } from './common.js';
 
-// Ojo: lo que da es vista, así que es un ojo y mira a algún sitio. Cada variante
-// mira hacia otro lado.
+// Eye: what it gives is sight, so it is an eye and it looks somewhere. Each
+// variant looks a different way.
 export function eye(ctx, cx, cy, r, base, rnd, past) {
   shadow(ctx, cx, cy, r);
   const white = mix(base, '#f6f2ff', 0.82 - past * 0.3);
@@ -17,7 +17,7 @@ export function eye(ctx, cx, cy, r, base, rnd, past) {
 
   veinlets(ctx, cx, cy, r, rnd, past);
 
-  // Hacia dónde mira. Nublado y torcido cuando se pasa: deja de ver.
+  // Where it looks. Clouded and skewed when it goes off: it stops seeing.
   const looks = rnd() * Math.PI * 2;
   const ix = cx + Math.cos(looks) * r * 0.2;
   const iy = cy + Math.sin(looks) * r * 0.2;
@@ -30,7 +30,7 @@ export function eye(ctx, cx, cy, r, base, rnd, past) {
   lustre(ctx, cx, cy, r, 0.5 - past * 0.4);
 }
 
-// Venillas: pocas y finas, siempre desde el borde hacia dentro.
+// Veinlets: few and thin, always from the edge inward.
 function veinlets(ctx, cx, cy, r, rnd, past) {
   for (let i = 0; i < 4; i++) {
     const a = rnd() * Math.PI * 2;
@@ -46,11 +46,11 @@ function veinlets(ctx, cx, cy, r, rnd, past) {
   }
 }
 
-// El iris con sus fibras, la pupila y, si se pasa, el velo encima.
+// The iris with its fibers, the pupil and, if it goes off, the veil on top.
 function iris(ctx, ix, iy, r, rIris, base, rnd, past) {
   circle(ctx, ix, iy, rIris, mix(base, '#0b0a16', 0.15 + past * 0.2));
 
-  // Fibras del iris.
+  // Iris fibers.
   ctx.lineWidth = Math.max(0.5, r * 0.04);
   for (let i = 0; i < 12; i++) {
     const a = (i / 12) * Math.PI * 2 + rnd() * 0.2;
@@ -64,6 +64,6 @@ function iris(ctx, ix, iy, r, rIris, base, rnd, past) {
 
   circle(ctx, ix, iy, rIris * (0.46 + past * 0.2), '#0c0b14');
 
-  // Catarata: al pasarse se le pone un velo lechoso encima.
+  // Cataract: when it goes off a milky veil covers it.
   if (past > 0) circle(ctx, ix, iy, rIris, `rgba(226,222,208,${past * 0.45})`);
 }

@@ -1,6 +1,6 @@
-// Trazos sueltos que el dibujo de Fagi repite pieza a pieza: una elipse
-// rellena, una raya recta y un arco de elipse. Cada uno pone su color y su
-// grosor y pinta; nada más.
+// Loose strokes Fagi's drawing repeats piece by piece: a filled ellipse, a
+// straight line and an elliptical arc. Each one sets its color and its width
+// and paints; nothing else.
 
 export function ellipse(ctx, x, y, rx, ry, fill, rot = 0) {
   ctx.fillStyle = fill;
@@ -9,7 +9,7 @@ export function ellipse(ctx, x, y, rx, ry, fill, rot = 0) {
   ctx.fill();
 }
 
-// Un punto redondo: el grano de la quitina se hace a base de ellos.
+// A round dot: the chitin's grain is built out of them.
 export function point(ctx, x, y, r, fill) {
   ctx.fillStyle = fill;
   ctx.beginPath();
@@ -17,7 +17,7 @@ export function point(ctx, x, y, r, fill) {
   ctx.fill();
 }
 
-// Una raya de un punto a otro con el trazo que ya esté puesto.
+// A line from one point to another with whatever stroke is already set.
 export function line(ctx, x0, y0, x1, y1) {
   ctx.beginPath();
   ctx.moveTo(x0, y0);
@@ -25,7 +25,7 @@ export function line(ctx, x0, y0, x1, y1) {
   ctx.stroke();
 }
 
-// Un tramo de elipse sin rellenar: costuras, suturas y surcos.
+// An unfilled stretch of ellipse: seams, sutures and grooves.
 export function arc(ctx, x, y, rx, ry, since, until, color, width) {
   ctx.strokeStyle = color;
   ctx.lineWidth = width;

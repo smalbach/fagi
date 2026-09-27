@@ -1,11 +1,12 @@
-// Las antenas de Fagi.
+// Fagi's antennae.
 
 import { mix } from '../sprite-kit.js';
 import { ellipse, line } from './stroke.js';
 
-// Las antenas son su olfato: al rastrear un olor se abren y se inclinan hacia
-// el lado por el que le llega más fuerte. Van acodadas —escapo recto, codo y
-// funículo curvo— porque así son las de las hormigas y no las de un caracol.
+// The antennae are her sense of smell: when tracking a scent they spread and
+// lean toward the side where it reaches her strongest. They are elbowed
+// —straight scape, elbow and curved funiculus— because that is how an ant's
+// look, not a snail's.
 export function drawAntennas(ctx, fagi, step, c, L, alive) {
   const tracking = fagi.targetKind === 'scent';
   const opens = tracking ? 0.85 : 0.6;
@@ -20,10 +21,10 @@ export function drawAntennas(ctx, fagi, step, c, L, alive) {
     const a = (opens + tremble) * sideOf + bias;
     const bx = 10.0;
     const by = 1.6 * sideOf;
-    // Escapo: el primer tramo, recto y grueso, desde el hueco de la antena.
+    // Scape: the first segment, straight and thick, from the antennal socket.
     const elbowX = bx + Math.cos(a) * 5.4;
     const elbowY = by + Math.sin(a) * 5.4;
-    // Funículo: el segundo, más fino, que se dobla hacia delante.
+    // Funiculus: the second, thinner, bending forward.
     const b = a + 0.5 * sideOf - 0.35;
     const tipX = elbowX + Math.cos(b) * 6.2;
     const tipY = elbowY + Math.sin(b) * 6.2;
@@ -49,8 +50,8 @@ export function drawAntennas(ctx, fagi, step, c, L, alive) {
     );
     ctx.stroke();
 
-    // La maza: el funículo no acaba en bola, se va engordando en los últimos
-    // artejos. Una punta redonda y clara se lee como cerilla.
+    // The club: the funiculus does not end in a ball, it thickens over the last
+    // segments. A round, light tip reads as a matchstick.
     const club = mix(c.tip, c.legs, 0.45);
     ctx.strokeStyle = club;
     ctx.lineWidth = 1.45;

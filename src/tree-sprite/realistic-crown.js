@@ -1,5 +1,5 @@
-// Copa fotográfica de alta resolución. La versión procedural queda como
-// respaldo durante la carga y también conserva el árbol funcional sin red.
+// High-resolution photographic crown. The procedural version stays as a
+// fallback while loading and also keeps the tree working without network.
 
 import { LX, LY } from './common.js';
 
@@ -13,13 +13,13 @@ export function realisticCrownLoaded() {
 }
 
 export function stampRealisticCrown(ctx, o, r, v, dry, seedOf) {
-  // Rotación y tamaño nacen de la semilla: incluso compartiendo fotografía no
-  // aparecen dos siluetas idénticas. La copa envejece perdiendo saturación y
-  // ganando sepia, mientras la transparencia deja ver más ramaje.
+  // Rotation and size come from the seed: even sharing a photo, no two
+  // identical silhouettes appear. The crown ages by losing saturation and
+  // gaining sepia, while transparency lets more branches show through.
   const giro = ((seedOf >>> 4) % 6283) / 1000;
   const variation = 0.92 + ((seedOf >>> 13) & 255) / 255 * 0.16;
-  // Una copa adulta excede claramente el diámetro del tronco y su zona de
-  // colisión. El tamaño anterior se perdía en la vista general del mapa.
+  // A mature crown clearly exceeds the trunk's diameter and its collision
+  // zone. The previous size got lost in the map's overview.
   const width = r * 2.85 * variation;
   const tall = width * (realisticCrown.naturalHeight / realisticCrown.naturalWidth);
 

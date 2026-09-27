@@ -1,4 +1,4 @@
-// --- tronco ---------------------------------------------------------------
+// --- trunk ----------------------------------------------------------------
 
 import { mix, noise } from '../sprite-kit.js';
 import { LIGHT, LX, LY, LICHEN, trunkCanvas } from './common.js';
@@ -12,7 +12,7 @@ export function paintTrunk(seedOf, R, dry) {
   const clear = mix(base, '#d8bc90', 0.5);
   const dark = mix(base, '#120c07', 0.62);
 
-  // La sombra del árbol entero: la proyecta la copa, no el tronco.
+  // The whole tree's shadow: the crown casts it, not the trunk.
   ctx.save();
   ctx.translate(cx - LX * R * 0.3, cy - LY * R * 0.3 + R * 0.5);
   ctx.scale(1, 0.4);
@@ -25,17 +25,17 @@ export function paintTrunk(seedOf, R, dry) {
   ctx.fill();
   ctx.restore();
 
-  // Ramaje entero, por detrás del fuste: así las ramas nacen de dentro del
-  // tronco y no pisan la corteza.
+  // All the branches, behind the bole: that way the branches grow from inside
+  // the trunk and do not cover the bark.
   const { tilts, secsOf, cross } = branchesOf(seedOf, R);
   traceBranches(ctx, cx, cy, secsOf, clear, dark);
 
-  // Fuste: grueso abajo, algo menos en la cruz, y abierto en raíces al pisar el
-  // suelo. Es la pieza que dice de qué tamaño es el árbol.
+  // Bole: thick at the bottom, a bit less at the crotch, and flaring into roots
+  // where it meets the ground. It is the piece that tells how big the tree is.
   //
-  // Y no es un tubo. Un tronco engorda y adelgaza a tramos, tiene nudos y una
-  // cara distinta de la otra, así que cada lado se traza por puntos con su
-  // propio bulto. Dos curvas limpias y simétricas se leen como cartón.
+  // And it is not a tube. A trunk swells and thins in stretches, has knots and
+  // one side unlike the other, so each side is traced point by point with its
+  // own bulge. Two clean, symmetric curves read as cardboard.
   const baseY = cy + R * 0.92;
   const tallY = cy + cross.y;
   const w0 = R * 0.27;
@@ -48,7 +48,7 @@ export function paintTrunk(seedOf, R, dry) {
     const pts = [];
     for (let i = 0; i <= N; i++) {
       const t = i / N;
-      // El pie no se estrecha: ahí es donde arrancan los contrafuertes.
+      // The foot does not narrow: that is where the buttresses start.
       const thick = (w0 + (w1 - w0) * t) * (1 + lumps[k][i]) * shrinks;
       pts.push({
         x: cx + tilts * R * t + signo * thick,
@@ -58,8 +58,8 @@ export function paintTrunk(seedOf, R, dry) {
     return pts;
   };
 
-  // Curva suave que pasa por los puntos: cada tramo tira hacia el punto medio
-  // del siguiente, así no se ven las esquinas.
+  // A smooth curve through the points: each segment pulls toward the midpoint
+  // of the next, so the corners do not show.
   const follow = (pts) => {
     for (let i = 1; i < pts.length - 1; i++) {
       ctx.quadraticCurveTo(pts[i].x, pts[i].y,
@@ -87,10 +87,10 @@ export function paintTrunk(seedOf, R, dry) {
   ctx.fillStyle = flight;
   ctx.fillRect(0, 0, S, S);
 
-  // Corteza. Tres cosas distintas, y las tres hacen falta: los surcos verticales
-  // que la recorren de arriba abajo, las escamas cortas que los cruzan —lo que
-  // convierte los surcos en placas de corteza en vez de rayas— y el filo claro
-  // del canto por donde entra la luz, que redondea el fuste.
+  // Bark. Three different things, and all three are needed: the vertical
+  // furrows running top to bottom, the short scales crossing them —what turns
+  // the furrows into bark plates instead of stripes— and the light rim along
+  // the edge where the light comes in, which rounds the bole.
   ctx.lineCap = 'round';
   const furrows = 16 + ((rnd() * 10) | 0);
   for (let i = 0; i < furrows; i++) {
@@ -120,8 +120,8 @@ export function paintTrunk(seedOf, R, dry) {
     ctx.stroke();
   }
 
-  // El canto iluminado del fuste: sigue el mismo perfil que la silueta, un poco
-  // metido hacia dentro. Si fuera una curva aparte no cuadraría con los bultos.
+  // The bole's lit edge: it follows the same profile as the silhouette, tucked
+  // slightly inward. If it were a separate curve it would not match the bulges.
   const edge = LX < 0 ? sideOfThe(-1, 0, 0.9) : sideOfThe(1, 1, 0.9);
   ctx.strokeStyle = `rgba(236,212,170,0.22)`;
   ctx.lineWidth = Math.max(1, R * 0.035);
@@ -131,8 +131,8 @@ export function paintTrunk(seedOf, R, dry) {
   ctx.stroke();
   ctx.lineWidth = 1;
 
-  // Nudos: la cicatriz que deja una rama que se cayó. Un anillo hundido con su
-  // corazón oscuro, y el brillo por donde entra la luz.
+  // Knots: the scar a fallen branch leaves. A sunken ring with its dark heart,
+  // and the shine where the light comes in.
   for (let i = 0, n = 1 + ((rnd() * 3) | 0); i < n; i++) {
     const x = cx + (rnd() - 0.5) * w0 * 1.3;
     const y = tallY + rnd() * (baseY - tallY) * 0.85;
@@ -153,7 +153,7 @@ export function paintTrunk(seedOf, R, dry) {
     ctx.lineWidth = 1;
   }
 
-  // Liquen: manchas pálidas pegadas al lado de sombra, que es donde agarra.
+  // Lichen: pale patches stuck to the shaded side, which is where it takes hold.
   for (let i = 0; i < 3 + ((rnd() * 4) | 0); i++) {
     const x = cx - LX * w0 * (0.2 + rnd() * 0.7);
     const y = tallY + rnd() * (baseY - tallY);
@@ -165,7 +165,7 @@ export function paintTrunk(seedOf, R, dry) {
   }
   ctx.globalAlpha = 1;
 
-  // Grano de la madera.
+  // Wood grain.
   ctx.globalAlpha = 0.24;
   ctx.globalCompositeOperation = 'overlay';
   ctx.drawImage(noise(S, S, rnd, 3, 3), 0, 0);

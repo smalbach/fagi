@@ -1,11 +1,11 @@
-// Lo que Fagi lleva entre las mandíbulas.
+// What Fagi carries between her mandibles.
 
 import { POINT_TYPES } from '../config.js';
 import { mix } from '../sprite-kit.js';
 import { ellipse, point } from './stroke.js';
 
-// Lo que lleva a cuestas: agarrado por las mandíbulas, con su volumen y su
-// sombra sobre la cabeza.
+// What she is carrying: gripped by the mandibles, with its volume and its
+// shadow over the head.
 export function drawCarried(ctx, type, L) {
   const spec = POINT_TYPES[type];
   const r = spec.radius + 1;
