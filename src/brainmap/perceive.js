@@ -10,14 +10,14 @@
 import { specOf, BRAIN, LEARN } from '../config.js';
 import { labelOf, t } from '../i18n.js';
 import { GREEN, RED, YELLOW, PURPLE, TEXT, DIM, ROW_BG, SENSE } from './palette.js';
-import { intentionKey, ruleOf, weightOf, signo } from './reading.js';
+import { intentionKey, ruleOf, weightOf, sign } from './reading.js';
 
 const PART_COLOR = {
   belief: PURPLE, curiosity: YELLOW, need: RED, distance: '#7f869a', smell: '#e8a33d',
 };
 const PART_KEY = { belief: 'belief', curiosity: 'curiosity', need: 'need', distance: 'distance', smell: 'smell' };
 const STAGE_NAMES = ['short', 'medium', 'long'];
-const MAX_CANDIDATOS = 6;
+const MAX_CANDIDATES = 6;
 
 export function paintPerceive(brushes, fagi, y) {
   const { s, text, header } = brushes;
@@ -35,7 +35,7 @@ export function paintPerceive(brushes, fagi, y) {
   if (twoCols) text(t('brainmap.sec.memory').toUpperCase(), colR, y, { size: 9, color: DIM, bold: true, maxW: colW });
   y += 12 * s;
 
-  const ranked = (th.ranked ?? []).slice(0, MAX_CANDIDATOS);
+  const ranked = (th.ranked ?? []).slice(0, MAX_CANDIDATES);
   const keysOf = Object.keys(fagi.brain.facts);
   const rowH = 46 * s;
   const rowsL = Math.max(ranked.length, 1);
@@ -113,7 +113,7 @@ function paintCandidates(brushes, fagi, th, ranked, { colL, colW, rowH, y0, winn
     text(`${sense} · ${Math.round(c.dist ?? 0)}px`, bx, yy + 36 * s, { size: 9, color: DIM, maxW: bw * 0.5 });
     const parts = Object.entries(c.parts ?? {}).filter(([, v]) => Math.abs(v) >= 0.05)
       .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 2)
-      .map(([part, v]) => `${t(`score.${PART_KEY[part] ?? part}`)} ${signo(v, 1)}`).join(' ');
+      .map(([part, v]) => `${t(`score.${PART_KEY[part] ?? part}`)} ${sign(v, 1)}`).join(' ');
     text(parts, bx + bw, yy + 36 * s, { size: 9, color: DIM, align: 'right', maxW: bw * 0.55 });
 
     candPos.push({ key: c.key, x: colL + colW, y: yy + rowH / 2, wins, color });
@@ -149,7 +149,7 @@ function paintBeliefs(brushes, fagi, keysOf, { twoCols, colR, colW, rowH, y0R, w
       const w = width(str, 8, true) + 10 * s;
       chip(str, colR + colW - 5 * s - w, yy + 12 * s, rule.verdict === 'avoid' ? RED : GREEN, { filled: true, size: 8, bold: true });
     } else {
-      text(signo(r.value), colR + colW - 6 * s, yy + 12 * s, { size: 9.5, align: 'right', color: DIM });
+      text(sign(r.value), colR + colW - 6 * s, yy + 12 * s, { size: 9.5, align: 'right', color: DIM });
     }
 
     // line 2: the weight (what she believes × how much she trusts it) between the two thresholds

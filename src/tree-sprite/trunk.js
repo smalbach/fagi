@@ -44,14 +44,14 @@ export function paintTrunk(seedOf, R, dry) {
   const lumps = [[], []];
   for (const b of lumps) for (let i = 0; i <= N; i++) b.push((rnd() - 0.5) * 0.3);
 
-  const sideOfThe = (signo, k, shrinks = 1) => {
+  const sideOfThe = (sign, k, shrinks = 1) => {
     const pts = [];
     for (let i = 0; i <= N; i++) {
       const t = i / N;
       // The foot does not narrow: that is where the buttresses start.
       const thick = (w0 + (w1 - w0) * t) * (1 + lumps[k][i]) * shrinks;
       pts.push({
-        x: cx + tilts * R * t + signo * thick,
+        x: cx + tilts * R * t + sign * thick,
         y: baseY + (tallY - baseY) * t,
       });
     }

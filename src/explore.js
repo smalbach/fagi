@@ -85,11 +85,11 @@ function scoreLeg(fagi, map, x, y, compassRose) {
   const headingOf = Math.atan2(compassRose.y - fagi.y, compassRose.x - fagi.x);
   const far = Math.hypot(compassRose.x - fagi.x, compassRose.y - fagi.y) > 1;
   const advanceBy = Math.min(1, dist / viewRangeOf(fagi));
-  const giro = Math.abs(normalizeAngle(toward - fagi.angle)) / Math.PI;
+  const turn = Math.abs(normalizeAngle(toward - fagi.angle)) / Math.PI;
   return -map[cellOf(x, y)]
     + (far ? EXPLORE.compassWeight * Math.cos(normalizeAngle(toward - headingOf)) : 0)
     + EXPLORE.farWeight * advanceBy
-    - EXPLORE.turnWeight * giro;
+    - EXPLORE.turnWeight * turn;
 }
 
 // The next leg, decided with what she has: the points she sees (with no rock

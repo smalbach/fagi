@@ -11,23 +11,23 @@ export function pebble(ctx, x, y, r, rnd) {
   // Half buried: barely lighter than the earth. If it stands out, it stops being
   // a stone in the ground and looks like something dropped on top.
   const gray = 52 + ((rnd() * 34) | 0);
-  const giro = rnd() * Math.PI;
+  const turn = rnd() * Math.PI;
   const flat = 0.5 + rnd() * 0.45;
 
   ctx.fillStyle = 'rgba(10,12,15,0.34)';
   ctx.beginPath();
-  ctx.ellipse(x - LX * r * 0.45, y - LY * r * 0.45, r * 1.05, r * flat * 1.05, giro, 0, Math.PI * 2);
+  ctx.ellipse(x - LX * r * 0.45, y - LY * r * 0.45, r * 1.05, r * flat * 1.05, turn, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.fillStyle = `rgb(${gray},${gray - 2},${(gray * 0.92) | 0})`;
   ctx.beginPath();
-  ctx.ellipse(x, y, r, r * flat, giro, 0, Math.PI * 2);
+  ctx.ellipse(x, y, r, r * flat, turn, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.strokeStyle = `rgba(${gray + 46},${gray + 44},${gray + 36},0.34)`;
   ctx.lineWidth = Math.max(0.5, r * 0.26);
   ctx.beginPath();
-  ctx.ellipse(x, y, r * 0.85, r * flat * 0.85, giro, LIGHT - 1.1, LIGHT + 1.1);
+  ctx.ellipse(x, y, r * 0.85, r * flat * 0.85, turn, LIGHT - 1.1, LIGHT + 1.1);
   ctx.stroke();
 }
 
@@ -83,12 +83,12 @@ export function litter(ctx, x, y, length, rnd) {
 // underneath— even if it's four pixels long.
 export function leaf(ctx, x, y, length, rnd) {
   const width = length * (0.3 + rnd() * 0.2);
-  const giro = rnd() * Math.PI;
+  const turn = rnd() * Math.PI;
   const tone = DRY[(rnd() * DRY.length) | 0];
 
   ctx.save();
   ctx.translate(x, y);
-  ctx.rotate(giro);
+  ctx.rotate(turn);
 
   const shape = (dx, dy) => {
     ctx.beginPath();

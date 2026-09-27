@@ -4,7 +4,7 @@ export const round = (x, d = 1) => Math.round(x * 10 ** d) / 10 ** d;
 export const mean = (xs) => xs.reduce((a, b) => a + b, 0) / (xs.length || 1);
 export const stdev = (xs) => { const m = mean(xs); return Math.sqrt(mean(xs.map((x) => (x - m) ** 2))); };
 
-export function coseno(a, b) {
+export function cosine(a, b) {
   let ab = 0, aa = 0, bb = 0;
   for (let i = 0; i < a.length; i++) { ab += a[i] * b[i]; aa += a[i] ** 2; bb += b[i] ** 2; }
   return aa && bb ? ab / Math.sqrt(aa * bb) : 0;

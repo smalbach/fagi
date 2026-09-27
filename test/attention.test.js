@@ -13,7 +13,7 @@ import { waypointInView } from '../src/explore.js';
 import { EXPLORE, WORLD } from '../src/config.js';
 
 // An empty world with Fagi in the middle, facing right, with no needs.
-function tranquila() {
+function calm() {
   const world = createWorld();
   const fagi = createFagi();
   fagi.angle = 0;
@@ -31,7 +31,7 @@ function alongside(fagi, degrees, dist) {
 }
 
 test('exploring goes leg by leg to a point it can see', () => {
-  const { world, fagi } = tranquila();
+  const { world, fagi } = calm();
   step(world, fagi, 0.05);
   assert.equal(fagi.thought.action, 'explore');
   const w = fagi.exploreTarget;
@@ -48,7 +48,7 @@ test('exploring goes leg by leg to a point it can see', () => {
 });
 
 test('something new at its side mid-leg makes it reconsider and go for it', () => {
-  const { world, fagi } = tranquila();
+  const { world, fagi } = calm();
   fagi.hunger = 40;                  // peckish, without getting pressed
   runOnce(world, fagi, 0.5);
   assert.equal(fagi.thought.action, 'explore');
@@ -68,7 +68,7 @@ test('something new at its side mid-leg makes it reconsider and go for it', () =
 });
 
 test('something new that is no use now is weighed and the leg goes on', () => {
-  const { world, fagi } = tranquila();
+  const { world, fagi } = calm();
   addObject(world, fagi.x - 300, fagi.y, 'nest');
   fagi.pantry = { nectar: NEST.full };   // believes the pantry is full
   runOnce(world, fagi, 0.5);
@@ -91,7 +91,7 @@ test('something new that is no use now is weighed and the leg goes on', () => {
 });
 
 test('carrying home, water in sight with some thirst is worth a detour', () => {
-  const { world, fagi } = tranquila();
+  const { world, fagi } = calm();
   addObject(world, fagi.x - 350, fagi.y, 'nest');
   fagi.carrying = { type: 'nectar', age: 0 };
   fagi.thirst = 40;
@@ -110,7 +110,7 @@ test('with a directive in force, something new makes it ask the API again', () =
   const before = BACKEND.enabled;
   BACKEND.enabled = 1;
   try {
-    const { world, fagi } = tranquila();
+    const { world, fagi } = calm();
     let callCount = 0;
     const cortex = createCortex({ name: 'stub', decide: () => { callCount++; return new Promise(() => {}); } });
     cortex.inflight = false;
@@ -144,7 +144,7 @@ function onlyUnknown(fagi, x, y) {
 }
 
 test('back to exploring, the unfinished leg competes with new ones on the same terms', () => {
-  const { world, fagi } = tranquila();
+  const { world, fagi } = calm();
 
   // The old leg ends out of her sight, in the only place she does not know: she
   // resumes it even if she has to turn, because what she sees she already knows.
@@ -167,7 +167,7 @@ test('back to exploring, the unfinished leg competes with new ones on the same t
 });
 
 test('after a detour it decides whether to resume the leg, and says so', () => {
-  const { world, fagi } = tranquila();
+  const { world, fagi } = calm();
   fagi.hunger = 40;
   runOnce(world, fagi, 0.5);
   assert.equal(fagi.thought.action, 'explore');

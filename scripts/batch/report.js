@@ -1,6 +1,6 @@
 // The text report: each run, how alike they are and a verdict.
 
-import { round, mean, stdev, coseno, similarSplit, divergence, pairs } from './stats.js';
+import { round, mean, stdev, cosine, similarSplit, divergence, pairs } from './stats.js';
 
 function pad(s, n) { s = String(s); return s.length >= n ? s : s + ' '.repeat(n - s.length); }
 
@@ -114,7 +114,7 @@ function reportPhases(opts, runs) {
 function reportSimilarity(runs) {
   const L = [];
   const split = pairs(runs, (a, b) => similarSplit(a.actions, b.actions));
-  const warmth = pairs(runs, (a, b) => coseno(a.heat, b.heat));
+  const warmth = pairs(runs, (a, b) => cosine(a.heat, b.heat));
   const div = pairs(runs, (a, b) => divergence(a.path, b.path)).filter((x) => x != null);
   L.push('similarity between pairs of runs (1 = identical)');
   L.push(`  action split          mean ${round(mean(split), 3)}  min ${round(Math.min(...split), 3)}`);

@@ -11,7 +11,7 @@ export function resin(ctx, cx, cy, r, base, rnd, past) {
   const y = cy + r * 0.12;
 
   ctx.save();
-  gota(ctx, cx, cy, y, r);
+  drop(ctx, cx, cy, y, r);
   ctx.clip();
   volume(ctx, cx, y, r, base, 0.55 - past * 0.3, 0.5);
 
@@ -41,7 +41,7 @@ export function resin(ctx, cx, cy, r, base, rnd, past) {
 }
 
 // The drop's silhouette: tip up and round belly below, at `y`.
-function gota(ctx, cx, cy, y, r) {
+function drop(ctx, cx, cy, y, r) {
   ctx.beginPath();
   ctx.moveTo(cx, cy - r * 1.35);
   ctx.bezierCurveTo(cx + r * 0.45, cy - r * 0.55, cx + r, y - r * 0.35, cx + r, y);

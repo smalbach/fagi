@@ -5,7 +5,7 @@ import { requireApproved } from '../guards.js';
 import { invalidEvent, EVENT_VERSION } from '../../src/recorder/events.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const MAX_LOTE = 5000;
+const MAX_BATCH = 5000;
 
 function row(s) {
   return {
@@ -43,7 +43,7 @@ async function insertEvents(db, sessionId, eventList) {
 
 function validateBatch(eventList) {
   if (!Array.isArray(eventList)) return 'events_not_array';
-  if (eventList.length > MAX_LOTE) return 'too_many_events';
+  if (eventList.length > MAX_BATCH) return 'too_many_events';
   for (const ev of eventList) {
     const motive = invalidEvent(ev);
     if (motive) return `invalid_event:${motive}`;
@@ -150,8 +150,8 @@ export default async function sessionRoutes(app) {
           Number.isFinite(origin.ageFinal) ? origin.ageFinal : null,
           JSON.stringify({ ...(origin.summary ?? {}), importedFrom: typeof origin.id === 'string' ? origin.id : null })],
       );
-      for (let i = 0; i < eventList.length; i += MAX_LOTE) {
-        await insertEvents(client, rows[0].id, eventList.slice(i, i + MAX_LOTE));
+      for (let i = 0; i < eventList.length; i += MAX_BATCH) {
+        await insertEvents(client, rows[0].id, eventList.slice(i, i + MAX_BATCH));
       }
       await client.query('COMMIT');
       return reply.code(201).send({ session: row(rows[0]) });

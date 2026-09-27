@@ -174,18 +174,18 @@ export function paintNetwork(brushes, fagi, y) {
       g.fillStyle = ring;
       g.fill();
     }
-    const lx = sideOf === 'izq' ? p.x - 11 * s : p.x + 11 * s;
-    const maxW = sideOf === 'izq' ? p.x - pad - 11 * s : sideOf === 'der' ? W - pad - lx : (x3 - x2) / 2 - 14 * s;
-    text(label, lx, sideOf === 'centro' ? p.y - 11 * s : p.y,
-      { size: 9, color: activeOne ? TEXT : DIM, align: sideOf === 'izq' ? 'right' : 'left', bold: activeOne, maxW });
+    const lx = sideOf === 'left' ? p.x - 11 * s : p.x + 11 * s;
+    const maxW = sideOf === 'left' ? p.x - pad - 11 * s : sideOf === 'right' ? W - pad - lx : (x3 - x2) / 2 - 14 * s;
+    text(label, lx, sideOf === 'center' ? p.y - 11 * s : p.y,
+      { size: 9, color: activeOne ? TEXT : DIM, align: sideOf === 'left' ? 'right' : 'left', bold: activeOne, maxW });
   };
-  for (const k of senses) neuron(`sense:${k}`, '#6fa8dc', t(`word.${SENSE[k]}`), 'izq');
+  for (const k of senses) neuron(`sense:${k}`, '#6fa8dc', t(`word.${SENSE[k]}`), 'left');
   for (const k of listC) {
     const r = fagi.brain.facts[k];
     const value = r ? (weightOf(r) > 0.05 ? GREEN : weightOf(r) < -0.05 ? RED : null) : null;
-    neuron(`key:${k}`, specOf(k)?.color ?? DIM, labelOf(k), 'centro', value);
+    neuron(`key:${k}`, specOf(k)?.color ?? DIM, labelOf(k), 'center', value);
   }
-  for (const d of right) neuron(d.id, d.kind === 'feel' ? '#c7cbd6' : d.color, d.label, 'der');
+  for (const d of right) neuron(d.id, d.kind === 'feel' ? '#c7cbd6' : d.color, d.label, 'right');
 
   if (newOne) {
     const [px, py] = point(newOne.c, 0.5);

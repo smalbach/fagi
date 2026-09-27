@@ -14,7 +14,7 @@ export function rng(seed) {
 
 // The simulation uses Math.random: while `fn` runs, it comes from `random`.
 const original = Math.random;
-export function con(random, fn) {
+export function withRng(random, fn) {
   Math.random = random;
   try { return fn(); } finally { Math.random = original; }
 }

@@ -220,13 +220,13 @@ function drawPheromone(ctx, world) {
     ctx.fill();
 
     // The droplet's body.
-    const gota = ctx.createRadialGradient(
+    const drop = ctx.createRadialGradient(
       m.x + LX * 1.2, m.y + LY * 1.2, 0.25, m.x, m.y, 4.1
     );
-    gota.addColorStop(0, `rgba(226,192,84,${a * 0.55})`);
-    gota.addColorStop(0.6, `rgba(201,162,39,${a * 0.42})`);
-    gota.addColorStop(1, `rgba(150,116,26,${a * 0.18})`);
-    ctx.fillStyle = gota;
+    drop.addColorStop(0, `rgba(226,192,84,${a * 0.55})`);
+    drop.addColorStop(0.6, `rgba(201,162,39,${a * 0.42})`);
+    drop.addColorStop(1, `rgba(150,116,26,${a * 0.18})`);
+    ctx.fillStyle = drop;
     ctx.beginPath();
     ctx.ellipse(m.x, m.y, 3.9, 3.2, 0, 0, Math.PI * 2);
     ctx.fill();

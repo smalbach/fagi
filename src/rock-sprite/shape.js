@@ -11,10 +11,10 @@ export function shape(r, rnd, mat) {
   const [lmin, lmax] = mat.sides;
   const n = lmin + ((rnd() * (lmax - lmin + 1)) | 0);
   const phase = rnd() * Math.PI * 2;
-  const giro = rnd() * Math.PI * 2;
+  const turn = rnd() * Math.PI * 2;
   const ex = 1 - rnd() * mat.flattened;   // squashed along the X axis before rotating
-  const cg = Math.cos(giro);
-  const sg = Math.sin(giro);
+  const cg = Math.cos(turn);
+  const sg = Math.sin(turn);
   const pts = [];
   for (let i = 0; i < n; i++) {
     // The angle moves too: unevenly spread vertices, faces of different
@@ -22,7 +22,7 @@ export function shape(r, rnd, mat) {
     const a = ((i + (rnd() - 0.5) * 0.45) / n) * Math.PI * 2;
     const lobe = Math.sin(a * 2 + phase) * 0.07 + Math.sin(a * 3 - phase) * 0.05;
     // With peaks, every other vertex falls short: a sharp edge in between.
-    const tooth = mat.picos && i % 2 ? 0.8 : 1;
+    const tooth = mat.peaks && i % 2 ? 0.8 : 1;
     const f = (mat.min + rnd() * (SILHOUETTE_MAX - mat.min) + lobe) * tooth;
     const rr = r * Math.max(mat.min, Math.min(SILHOUETTE_MAX, f));
     const x = Math.cos(a) * rr * ex;

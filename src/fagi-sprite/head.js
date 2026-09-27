@@ -49,11 +49,11 @@ function eyes(ctx, L, alive) {
   for (const sideOf of [-1, 1]) {
     const x = 7.9;
     const y = 3.5 * sideOf;
-    const giro = 0.4 * sideOf;
+    const turn = 0.4 * sideOf;
 
     ctx.save();
     ctx.translate(x, y);
-    ctx.rotate(giro);
+    ctx.rotate(turn);
 
     // The rim: the eye is set into the head, not stuck on top.
     ellipse(ctx, 0, 0, 1.55, 1.2, 'rgba(46,24,10,0.5)');

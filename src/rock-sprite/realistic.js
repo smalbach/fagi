@@ -3,7 +3,7 @@
 
 import { LX, LY } from './common.js';
 
-// Four truly different geologies and silhouettes. The object's seed picks a
+// Eight truly different geologies and silhouettes. The object's seed picks a
 // family and then alters proportion, orientation, size and tone, so even two
 // rocks of the same material are not exact copies.
 const ROCK_SOURCES = [
@@ -26,8 +26,8 @@ const realisticRocks = ROCK_SOURCES.map((src) => {
 // per-frame choice: the seed fixes the type for the object's whole life.
 const FINISHES = [
   { name: 'natural', hue: 0, sat: 1, light: 1, contrast: 1.02, x: 1, y: 1 },
-  { name: 'humeda', hue: -5, sat: 1.08, light: 0.82, contrast: 1.14, x: 0.93, y: 1.08 },
-  { name: 'seca', hue: 7, sat: 0.78, light: 1.08, contrast: 0.94, x: 1.1, y: 0.88 },
+  { name: 'wet', hue: -5, sat: 1.08, light: 0.82, contrast: 1.14, x: 0.93, y: 1.08 },
+  { name: 'dry', hue: 7, sat: 0.78, light: 1.08, contrast: 0.94, x: 1.1, y: 0.88 },
 ];
 const ROCK_TYPES = ROCK_SOURCES.flatMap((_, base) =>
   FINISHES.map((finish) => ({ base, ...finish }))
@@ -44,7 +44,7 @@ export function realisticRockOf(seedOf) {
 }
 
 export function drawRealisticRock(ctx, o, r, rock, type, seedOf) {
-  const giro = (((seedOf >>> 5) & 255) / 255 - 0.5) * 1.05;
+  const turn = (((seedOf >>> 5) & 255) / 255 - 0.5) * 1.05;
   const width = r * (1.86 + ((seedOf >>> 13) & 63) / 280) * type.x;
   const ratio = rock.naturalHeight / rock.naturalWidth;
   const tall = width * ratio * (0.78 + ((seedOf >>> 19) & 63) / 175) * type.y;
@@ -56,7 +56,7 @@ export function drawRealisticRock(ctx, o, r, rock, type, seedOf) {
 
   ctx.save();
   ctx.translate(o.x, o.y);
-  ctx.rotate(giro);
+  ctx.rotate(turn);
   ctx.shadowColor = 'rgba(5,7,6,0.72)';
   ctx.shadowBlur = Math.max(2, r * 0.13);
   ctx.shadowOffsetX = -LX * r * 0.16;

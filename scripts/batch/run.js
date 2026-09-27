@@ -7,7 +7,7 @@ import { generateMap } from '../../src/mapgen.js';
 import { createFagi, updateFagi } from '../../src/fagi.js';
 import { stepWorld } from '../../src/simulation.js';
 import * as CONFIG from '../../src/config.js';
-import { rng, con } from './random.js';
+import { rng, withRng } from './random.js';
 import { round, mean } from './stats.js';
 
 const { WORLD } = CONFIG;
@@ -41,15 +41,15 @@ export function runOnce(opts, fagiSeed) {
   const worldRng = rng(opts.worldVaries ? fagiSeed * 7919 : opts.mapSeed + 1);
   const fagiRng = rng(fagiSeed);
 
-  const world = con(mapRng, () => { const w = createWorld(); generateMap(w); return w; });
-  const fagi = con(fagiRng, () => createFagi());
+  const world = withRng(mapRng, () => { const w = createWorld(); generateMap(w); return w; });
+  const fagi = withRng(fagiRng, () => createFagi());
   const s = newFollow(opts, fagi);
 
   const steps = Math.ceil(opts.duration / opts.dt);
   for (let i = 0; i < steps && fagi.alive; i++) {
     if (opts.block != null && s.rocks === 0 && world.time >= opts.block) s.rocks = block(world, opts.rock) || -1;
-    con(worldRng, () => stepWorld(world, opts.dt));
-    con(fagiRng, () => updateFagi(fagi, world, opts.dt));
+    withRng(worldRng, () => stepWorld(world, opts.dt));
+    withRng(fagiRng, () => updateFagi(fagi, world, opts.dt));
 
     const acc = fagi.thought?.action ?? '-';
     noteAction(s, fagi, acc, opts);
@@ -71,7 +71,7 @@ function newFollow(opts, fagi) {
     cols, rows,
     warmth: new Float64Array(cols * rows),
     actions: {},          // action -> seconds
-    secuencia: [],         // [t, action] each time it changes
+    sequence: [],         // [t, action] each time it changes
     path: [],            // position every second, to compare trajectories
     milestones: { firstDrink: null, firstMeal: null, firstPick: null, firstStore: null },
     visitedList: [],         // ids of map objects in the order she steps on them
@@ -97,7 +97,7 @@ function newFollow(opts, fagi) {
 
 function noteAction(s, fagi, acc, opts) {
   s.actions[acc] = (s.actions[acc] ?? 0) + opts.dt;
-  if (s.secuencia.at(-1)?.[1] !== acc) s.secuencia.push([round(fagi.age), acc]);
+  if (s.sequence.at(-1)?.[1] !== acc) s.sequence.push([round(fagi.age), acc]);
 }
 
 function notePosition(s, fagi, opts) {
@@ -173,7 +173,7 @@ function runSummary(fagiSeed, fagi, world, s) {
     phases: Object.fromEntries(Object.entries(s.phaseList).map(([k, f]) => [k, phaseSummary(f)])),
     visited: s.visitedList.map((id) => `${world.objects.find((o) => o.id === id)?.type ?? '?'}#${id}`),
     actions: Object.fromEntries(Object.entries(s.actions).map(([k, v]) => [k, round(v)])),
-    sequence: s.secuencia,
+    sequence: s.sequence,
     heat: Array.from(s.warmth),
     path: s.path,
     fingerprint: fingerprintOf(fagi, world),

@@ -92,8 +92,8 @@ test('the exported file carries what the body felt (feel synapses), and importin
   const text = store.exportText(fagi);
   const another = createFagi();
   store.importText(another, text);
-  const importadas = Object.values(another.brain.synapses).filter((s) => s.kind === 'feel');
-  assert.equal(importadas.length, syn.length);
+  const imported = Object.values(another.brain.synapses).filter((s) => s.kind === 'feel');
+  assert.equal(imported.length, syn.length);
   for (const s of syn) {
     const x = another.brain.synapses[`${s.a}>${s.b}`];
     assert.ok(x, `${s.a}>${s.b}`);

@@ -18,7 +18,7 @@ export function createCortex(backend) {
     seenKeys: new Set(),
     lastEpisodeN: 0,
     idleFor: 0,
-    wasApremiando: false,
+    wasPressing: false,
     calls: 0,          // how many times it has asked, for the HUD and the tests
   };
 }
@@ -31,7 +31,7 @@ export function resetCortex(cortex) {
   cortex.seenKeys = new Set();
   cortex.lastEpisodeN = 0;
   cortex.idleFor = 0;
-  cortex.wasApremiando = false;
+  cortex.wasPressing = false;
 }
 
 // Is there anything that justifies asking now? A key she hadn't seen, something
@@ -44,11 +44,11 @@ function shouldAsk(cortex, fagi, ctx) {
   }
   const newEpisode = Boolean(fagi.lastEpisode) && fagi.lastEpisode.n !== cortex.lastEpisodeN;
   const pressingNow = pressing(ctx);
-  const pressingRises = pressingNow && !cortex.wasApremiando;
+  const pressingRises = pressingNow && !cortex.wasPressing;
   const idleTooLong = fagi.thought?.action === 'explore' && cortex.idleFor >= BACKEND.idleAfter;
   const noDirective = !fagi.directive;
 
-  cortex.wasApremiando = pressingNow;
+  cortex.wasPressing = pressingNow;
   if (fagi.lastEpisode) cortex.lastEpisodeN = fagi.lastEpisode.n;
 
   // Something new in what she perceives (not just a new kind): the current directive

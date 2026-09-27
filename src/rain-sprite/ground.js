@@ -63,13 +63,13 @@ export function drawSplashes(ctx, world, now) {
 
   ctx.save();
   ctx.lineCap = 'round';
-  const strokes = { rings: new Path2D(), gotitas: new Path2D(), points: new Path2D() };
+  const strokes = { rings: new Path2D(), droplets: new Path2D(), points: new Path2D() };
   for (let i = 0; i < howMany; i++) splash(strokes, i, t, zone, k);
   ctx.strokeStyle = `rgba(205,222,238,${(0.42 * n).toFixed(3)})`;
   ctx.lineWidth = 0.7 * k;
   ctx.stroke(strokes.rings);
   ctx.fillStyle = `rgba(225,236,248,${(0.4 * n).toFixed(3)})`;
-  ctx.fill(strokes.gotitas);
+  ctx.fill(strokes.droplets);
   ctx.fillStyle = `rgba(240,246,255,${(0.85 * n).toFixed(3)})`;
   ctx.fill(strokes.points);
   ctx.restore();
@@ -77,7 +77,7 @@ export function drawSplashes(ctx, world, now) {
 
 // Splash `i` at this instant, added to the paths shared by all of them: they're
 // painted together, one path per kind, which is much cheaper.
-function splash({ rings, gotitas, points }, i, t, { ax, ay, bx, by }, k) {
+function splash({ rings, droplets, points }, i, t, { ax, ay, bx, by }, k) {
   const life = 0.32 + hash(i, 0, 5) * 0.22;
   const u = t / life + hash(i, 0, 6);
   const cycle = Math.floor(u);
@@ -107,8 +107,8 @@ function splash({ rings, gotitas, points }, i, t, { ax, ay, bx, by }, k) {
       const gx = x + Math.cos(a) * d;
       const gy = y + Math.sin(a) * d * 0.8 - Math.sin(q * Math.PI) * sz * 2.2;
       const gr = 0.4 * skipped * (1 - q * 0.6);
-      gotitas.moveTo(gx + gr, gy);
-      gotitas.arc(gx, gy, gr, 0, Math.PI * 2);
+      droplets.moveTo(gx + gr, gy);
+      droplets.arc(gx, gy, gr, 0, Math.PI * 2);
     }
   }
 }

@@ -4,13 +4,13 @@
 import { toRGB } from '../colors.js';
 import { canvasOf, mix, seededRng, noise } from '../sprite-kit.js';
 import { LIGHT, LX, LY } from './common.js';
-import { MATERIALES } from './materials.js';
+import { MATERIALS } from './materials.js';
 import { shape, trace, faces } from './shape.js';
 import { strata, slabs, gaps, lichen, pebbles, specks, cracks } from './surface.js';
 
 export function paintRock(seedOf, r, color) {
   const rnd = seededRng(seedOf);
-  const mat = MATERIALES[(rnd() * MATERIALES.length) | 0];
+  const mat = MATERIALS[(rnd() * MATERIALS.length) | 0];
   const pad = Math.ceil(r * 0.3) + 4;
   const S = (r + pad) * 2;
   const cx = S / 2;

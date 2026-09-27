@@ -4,7 +4,7 @@
 import { specOf, LEARN } from '../config.js';
 import { labelOf, t } from '../i18n.js';
 import { GREEN, RED, PURPLE, TEXT, DIM } from './palette.js';
-import { weightOf, changeOf, signo } from './reading.js';
+import { weightOf, changeOf, sign } from './reading.js';
 
 export function paintLearn(brushes, fagi, y) {
   const { s, text, chain, header } = brushes;
@@ -23,17 +23,17 @@ export function paintLearn(brushes, fagi, y) {
   const color = specOf(ep.key)?.color ?? DIM;
   items.push({ text: t(`brainmap.ep.${ep.action}`, { what: labelOf(ep.key) }), color, bold: true });
   const sens = (ep.sensations ?? []).filter((x) => x.sense !== 'peril' && x.sense !== 'contradiction')
-    .map((x) => t(`sense.${x.sense}`, { v: x.sense === 'hunger' || x.sense === 'thirst' ? signo(x.v, 0) : x.v }));
+    .map((x) => t(`sense.${x.sense}`, { v: x.sense === 'hunger' || x.sense === 'thirst' ? sign(x.v, 0) : x.v }));
   if (ep.pending && ep.action === 'drink' && !changeOf(ep)) {
     items.push({ text: t('brainmap.pending'), color: DIM });
   } else {
     items.push({ text: sens.length ? t('brainmap.felt', { list: sens.join(', ') }) : t('brainmap.feltNothing'), color: TEXT });
-    items.push({ text: t('brainmap.reward', { v: signo(ep.reward ?? 0) }), color: (ep.reward ?? 0) >= 0 ? GREEN : RED, filled: true, bold: true });
-    if (ep.correction) items.push({ text: t('brainmap.correction', { v: signo(ep.correction) }), color: RED, filled: true });
+    items.push({ text: t('brainmap.reward', { v: sign(ep.reward ?? 0) }), color: (ep.reward ?? 0) >= 0 ? GREEN : RED, filled: true, bold: true });
+    if (ep.correction) items.push({ text: t('brainmap.correction', { v: sign(ep.correction) }), color: RED, filled: true });
     const cb = changeOf(ep);
     if (cb?.before && cb?.after) {
       items.push({
-        text: `${t('brainmap.belief', { from: signo(cb.before.value), to: signo(cb.after.value) })} · ${t(`brainmap.kind.${cb.kind}`)} · ${t(`stage.${cb.after.stage}`)}`,
+        text: `${t('brainmap.belief', { from: sign(cb.before.value), to: sign(cb.after.value) })} · ${t(`brainmap.kind.${cb.kind}`)} · ${t(`stage.${cb.after.stage}`)}`,
         color: PURPLE,
       });
     }

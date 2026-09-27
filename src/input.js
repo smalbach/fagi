@@ -26,7 +26,7 @@ import { ripe, approach, move, fit } from './camera.js';
 const SIZE_LIMITS = { min: 18, max: 200 };
 
 // Keys that move the camera, and in which direction.
-const PANEO = {
+const PAN_KEYS = {
   ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1],
   a: [-1, 0], d: [1, 0], w: [0, -1], s: [0, 1],
 };
@@ -163,7 +163,7 @@ export function createInput(canvas, world, camera) {
     if (writing(e)) return;
     const center = { sx: canvas.width / 2, sy: canvas.height / 2 };
 
-    if (PANEO[e.key]) { pressed.add(e.key); e.preventDefault(); return; }
+    if (PAN_KEYS[e.key]) { pressed.add(e.key); e.preventDefault(); return; }
 
     if (e.key === '+' || e.key === '=') approach(camera, canvas, world, center.sx, center.sy, CAMERA.step);
     else if (e.key === '-' || e.key === '_') approach(camera, canvas, world, center.sx, center.sy, 1 / CAMERA.step);
@@ -180,7 +180,7 @@ export function createInput(canvas, world, camera) {
     let dx = 0;
     let dy = 0;
     for (const k of pressed) {
-      const v = PANEO[k];
+      const v = PAN_KEYS[k];
       if (v) { dx += v[0]; dy += v[1]; }
     }
     if (!dx && !dy) return;

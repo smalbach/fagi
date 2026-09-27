@@ -41,14 +41,14 @@ export function spark(ctx, cx, cy, r, base, rnd, past) {
 
 // The prism's profile, a bit skewed and with each edge doing its own thing.
 function carve(cx, cy, r, rnd) {
-  const giro = (rnd() - 0.5) * 0.5;
+  const turn = (rnd() - 0.5) * 0.5;
   const profile = [[0, -1.45], [0.62, -0.5], [0.44, 0.7], [0, 1.3], [-0.44, 0.7], [-0.62, -0.5]];
   return profile.map(([px, py]) => {
     const x = px * r * (0.9 + rnd() * 0.25);
     const y = py * r * (0.9 + rnd() * 0.2);
     return {
-      x: cx + x * Math.cos(giro) - y * Math.sin(giro),
-      y: cy + x * Math.sin(giro) + y * Math.cos(giro),
+      x: cx + x * Math.cos(turn) - y * Math.sin(turn),
+      y: cy + x * Math.sin(turn) + y * Math.cos(turn),
     };
   });
 }

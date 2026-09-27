@@ -27,15 +27,15 @@ function frame(t){
     i++;
   }
 
-  // each fruit, at real size and x4, and in three stages of ripeness
+  // each fruit, at real size and x4, and in five stages of ripeness
   ctx.font = '12px system-ui'; ctx.fillStyle = '#aab';
   let y = 420;
   for (const key of TYPE_KEYS) {
     const r0 = POINT_TYPES[key].radius;
     ctx.fillText(key, 20, y + 4);
     let x = 90;
-    for (const mad of [0, 0.5, 0.75, 0.9, 1]) {
-      const age = mad * POINT_TYPES[key].life;
+    for (const ripe of [0, 0.5, 0.75, 0.9, 1]) {
+      const age = ripe * POINT_TYPES[key].life;
       POINT_TYPES[key].radius = r0;
       drawFruit(ctx, { x, y, type: key, age, seed: 11 });
       POINT_TYPES[key].radius = r0 * 5;       // the same one, big

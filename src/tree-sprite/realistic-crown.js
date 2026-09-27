@@ -16,7 +16,7 @@ export function stampRealisticCrown(ctx, o, r, v, dry, seedOf) {
   // Rotation and size come from the seed: even sharing a photo, no two
   // identical silhouettes appear. The crown ages by losing saturation and
   // gaining sepia, while transparency lets more branches show through.
-  const giro = ((seedOf >>> 4) % 6283) / 1000;
+  const turn = ((seedOf >>> 4) % 6283) / 1000;
   const variation = 0.92 + ((seedOf >>> 13) & 255) / 255 * 0.16;
   // A mature crown clearly exceeds the trunk's diameter and its collision
   // zone. The previous size got lost in the map's overview.
@@ -25,7 +25,7 @@ export function stampRealisticCrown(ctx, o, r, v, dry, seedOf) {
 
   ctx.save();
   ctx.translate(o.x + v.x, o.y + v.y - r * 0.12);
-  ctx.rotate(giro);
+  ctx.rotate(turn);
   ctx.globalAlpha = 1 - dry * 0.28;
   ctx.shadowColor = 'rgba(4,8,5,0.72)';
   ctx.shadowBlur = r * 0.18;

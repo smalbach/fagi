@@ -19,12 +19,12 @@ export function drawRealisticLake(ctx, o, r, wind, now) {
 }
 
 function stampPhoto(ctx, o, r, seedOf) {
-  const giro = (((seedOf >>> 7) & 255) / 255 - 0.5) * 0.18;
+  const turn = (((seedOf >>> 7) & 255) / 255 - 0.5) * 0.18;
   const sideOf = r * (2.82 + ((seedOf >>> 16) & 31) / 240);
 
   ctx.save();
   ctx.translate(o.x, o.y);
-  ctx.rotate(giro);
+  ctx.rotate(turn);
   ctx.shadowColor = 'rgba(9,13,10,0.58)';
   ctx.shadowBlur = r * 0.15;
   ctx.filter = 'saturate(1.12) brightness(0.93) contrast(1.14)';

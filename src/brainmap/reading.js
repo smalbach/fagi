@@ -30,6 +30,6 @@ export function changeOf(ep) {
   return null;
 }
 
-export function signo(v, d = 2) {
+export function sign(v, d = 2) {
   return `${v >= 0 ? '+' : ''}${v.toFixed(d)}`;
 }

@@ -219,8 +219,8 @@ export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
     });
     // The wind turns toward its target at a fixed speed.
     const diff = normalizeAngle(w.wind.target - w.wind.angle);
-    const giro = Math.min(Math.abs(diff), WIND.turnRate * Math.max(0, time - state.windAt));
-    w.wind.angle = normalizeAngle(w.wind.angle + Math.sign(diff) * giro);
+    const turn = Math.min(Math.abs(diff), WIND.turnRate * Math.max(0, time - state.windAt));
+    w.wind.angle = normalizeAngle(w.wind.angle + Math.sign(diff) * turn);
     state.windAt = time;
     putFagi(fagi, track, route, time, state.dead, w);
     putMind(fagi, state, time);

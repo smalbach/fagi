@@ -47,12 +47,12 @@ export function paintFoot(ctx, rnd, cx, baseY, w0, R, base, dry) {
     const y = baseY + Math.sin(a) * d * 0.34;
     const length = R * (0.05 + rnd() * 0.06);
     const width = length * (0.3 + rnd() * 0.2);
-    const giro = rnd() * Math.PI;
+    const turn = rnd() * Math.PI;
     const tone = mix('#6d5227', dry > 0.5 ? '#54401f' : '#5c5c2e', rnd());
 
     ctx.save();
     ctx.translate(x, y);
-    ctx.rotate(giro);
+    ctx.rotate(turn);
     const shape = (dx, dy) => {
       ctx.beginPath();
       ctx.moveTo(-length / 2 + dx, dy);

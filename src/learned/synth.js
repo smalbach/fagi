@@ -13,12 +13,12 @@ const SCOPE = { avoid: ['eat', 'store', 'pursue'], prefer: ['eat', 'store'] };
 // What isn't eaten (deep water, rain, the pressure drop, water,
 // puddles) is only pursued or avoided: a rule about it says nothing about eating.
 const scope = (key, verdict) => (POINT_TYPES[key] ? SCOPE[verdict] : ['pursue']);
-const PREFIJO = { avoid: 'avoid', prefer: 'prefer' };
+const PREFIX = { avoid: 'avoid', prefer: 'prefer' };
 const OPPOSITE = { avoid: 'prefer', prefer: 'avoid' };
 
 function newRule(now, key, verdict, w, because) {
   return {
-    id: `${PREFIJO[verdict]}-${key}`,
+    id: `${PREFIX[verdict]}-${key}`,
     on: scope(key, verdict),
     when: { key },
     verdict,
@@ -70,10 +70,10 @@ export function synthAfterLearn(brain, key, change, sensations, now) {
   for (const verdict of ['avoid', 'prefer']) {
     const enters = verdict === 'avoid' ? LEARN.avoidFrom : LEARN.preferFrom;
     const exits = verdict === 'avoid' ? LEARN.avoidUntil : LEARN.preferUntil;
-    const signo = verdict === 'avoid' ? -1 : 1;
+    const sign = verdict === 'avoid' ? -1 : 1;
     const existing = activeRule(rules, key, verdict);
 
-    if (signo * w >= enters) {
+    if (sign * w >= enters) {
       // Retire the opposite one if any: she can't avoid and prefer the same thing.
       const opposite = activeRule(rules, key, OPPOSITE[verdict]);
       if (opposite) {
@@ -91,7 +91,7 @@ export function synthAfterLearn(brain, key, change, sensations, now) {
         });
         markRule(brain, r.id, 'revised', key, verdict, sensations);
       }
-    } else if (existing && signo * w <= exits) {
+    } else if (existing && sign * w <= exits) {
       retireRule(rules, existing, now);
       markRule(brain, existing.id, 'retired', key, verdict, sensations);
     }

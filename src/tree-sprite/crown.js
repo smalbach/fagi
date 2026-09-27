@@ -108,11 +108,11 @@ export function paintCrown(seedOf, R, color, dry) {
     const light = (Math.cos(a) * LX + Math.sin(a) * LY + 1) / 2;   // 1 = faces the light
     const length = R * (0.06 + rnd() * 0.07);
     const width = length * (0.36 + rnd() * 0.22);
-    const giro = a + (rnd() - 0.5) * 1.1;
+    const turn = a + (rnd() - 0.5) * 1.1;
 
     ctx.save();
     ctx.translate(x, y);
-    ctx.rotate(giro);
+    ctx.rotate(turn);
     const tone = mix(background, clear, light * (0.45 + rnd() * 0.55));
 
     // A two-curve leaf: it narrows to a point. An oval does not read as a leaf.

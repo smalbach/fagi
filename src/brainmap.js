@@ -41,10 +41,10 @@ export function createBrainMap(canvas, statusEl, expandBtn) {
 
   // Expand: the whole panel takes up almost the entire screen.
   const pane = canvas.closest('.pane');
-  function big(si) {
-    pane?.classList.toggle('brainmap-big', si);
+  function big(isBig) {
+    pane?.classList.toggle('brainmap-big', isBig);
     if (!expandBtn) return;
-    expandBtn.dataset.i18n = si ? 'brainmap.close' : 'brainmap.expand';   // bindDom re-translates it
+    expandBtn.dataset.i18n = isBig ? 'brainmap.close' : 'brainmap.expand';   // bindDom re-translates it
     expandBtn.textContent = t(expandBtn.dataset.i18n);
   }
   function closeBig() { if (pane?.classList.contains('brainmap-big')) big(false); }

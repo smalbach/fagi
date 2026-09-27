@@ -56,8 +56,8 @@ export function createGame({ onExit } = {}) {
   }
   {
     const savedKind = (() => { try { return localStorage.getItem('fagi.backend') ?? 'none'; } catch { return 'none'; } })();
-    const urlGuardada = (() => { try { return localStorage.getItem('fagi.backend.url') ?? ''; } catch { return ''; } })();
-    mountBackend(savedKind, urlGuardada);
+    const savedUrl = (() => { try { return localStorage.getItem('fagi.backend.url') ?? ''; } catch { return ''; } })();
+    mountBackend(savedKind, savedUrl);
   }
 
   // The camera belongs to the view, not the world: switching sessions leaves it alone.

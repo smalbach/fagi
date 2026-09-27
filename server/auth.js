@@ -33,10 +33,10 @@ export async function verifyPassword(password, stored) {
 
 // So an email that does not exist takes as long as a wrong password: without
 // this, the response time would reveal which emails are registered.
-let hashFalso = null;
+let fakeHash = null;
 export async function dummyVerify(password) {
-  hashFalso ??= await hashPassword('password-that-belongs-to-nobody');
-  await verifyPassword(password, hashFalso);
+  fakeHash ??= await hashPassword('password-that-belongs-to-nobody');
+  await verifyPassword(password, fakeHash);
   return false;
 }
 

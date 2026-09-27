@@ -31,7 +31,7 @@ function saveState(state) {
 
 function initTabs(root, state) {
   const tabs = [...root.querySelectorAll('#console-tabs > .tab')];
-  const paneles = [...root.querySelectorAll('.tab-panel')];
+  const panes = [...root.querySelectorAll('.tab-panel')];
   if (tabs.length === 0) return;
 
   function activate(name) {
@@ -40,7 +40,7 @@ function initTabs(root, state) {
       btn.classList.toggle('active', isActive);
       btn.setAttribute('aria-selected', String(isActive));
     }
-    for (const panel of paneles) panel.hidden = panel.dataset.panel !== name;
+    for (const panel of panes) panel.hidden = panel.dataset.panel !== name;
     state.tab = name;
     saveState(state);
   }
