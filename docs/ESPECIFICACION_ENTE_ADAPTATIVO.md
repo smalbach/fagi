@@ -1592,6 +1592,7 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] Replay intercalado de los rasgos (§11.4), con su ablación `SLEEP.replay = 0` y un banco de laboratorio pareado (`scripts/sleep-lab.js`).
 - [x] Las preguntas del informe dirigen el día siguiente: agenda y mordisco de prueba (§12.6).
 - [x] Apetito y sed apetitiva, corregidos a partir de autopsias (§25.5).
+- [x] Retención a varios días y bocados de prueba que llegan a reglas, medidos (§25.12).
 
 **Fase 4: IA nocturna acotada**
 - [x] Esquema de entrada (solo lo que sabe) y de salida (tres tipos de propuesta en una gramática declarativa).
@@ -1924,9 +1925,26 @@ Protocolo congelado en `acd96a4` antes de correr (`docs/research/concepts-protoc
 - **Supervivencia.** Las cosas apenas la cambian: muere sobre todo por el veneno de la fruta, y las diferencias de vida entre condiciones van en direcciones distintas según la familia. Aprender lo que permiten las cosas mejora el juicio y el uso, no la supervivencia, en este mundo.
 - **Del desarrollo:** sin clases que brotan tarde, examina todo el mapa en los primeros días y los conceptos apenas llegan a usarse. Eso motivó las clases tardías, que son la prueba real de generalizar.
 
+### 25.12 Retención a varios días
+
+`scripts/retention.js`: cada amanecer, para cada fruta que probó, mira cuántos días hace que la probó por última vez y si la sigue juzgando bien (la dañina no se la comería; el resto sí), y si una regla suya decide sobre ella. 48 vidas de 2400 s (13 días), semillas de desarrollo 5000–5047, exploratorio.
+
+| | Días desde el último bocado: 0 | 1 | 3 | 5 o más |
+|---|---|---|---|---|
+| dañina, bien juzgada | 1,00 | 1,00 | 1,00 | 1,00 |
+| dañina, con regla | 0,81 | 0,82 | 0,82 | 0,83 |
+| el resto, bien juzgada | 0,99 | 0,99 | 0,99 | 0,98 |
+| el resto, con regla | 0,23 | 0,23 | 0,17 | 0,05 |
+
+- **Lo que aprende de la fruta dura.** Días después de probar una dañina la sigue evitando, sin excepción. Es lo que se espera de la aversión al sabor, que en los animales reales dura semanas.
+- **Las preferencias sí se olvidan.** Las reglas de «prefiero» se retiran con los días sin probar. No lleva a error: sigue comiéndola, solo sin regla escrita.
+- **Dormir no cambia la retención.** Sin sueño, sin consolidar o sin replay, los números son los mismos. En 13 días no se pierde nada que haya que salvar, así que el sueño no tiene nada que proteger. Su aporte está en lo que hace probar al día siguiente (§12.6, §25.9), no en retener.
+- **Los bocados de prueba llegan a reglas** casi tanto como la fruta entera: el 40 % de las muestras con regla frente al 47 %, y bien juzgadas por igual.
+
+Las autopsias del organismo actual (48 vidas, 1800 s) no encuentran artefactos. Las 8 muertes son por veneno, y todas siguen el mismo patrón: muy hambrienta, come fruta podrida (`toxic`), y el veneno la termina de matar. El hambre desesperada vence a la aversión, como en los animales reales. Mueren por comida mala cuando no queda otra, no por no saber distinguirla.
+
 ### 25.3 Pendiente
 
-- Fase 3: medir la retención a varios días y si lo que se aprende con bocados de prueba llega a reglas; convertir lo que sabe de la fruta en supervivencia (hoy mueren de hambre y sed, no por la fruta).
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
 - Fase 5: densodependencia gradual en lugar del tope del nido, fertilidad que decae con la edad, `health` como variable propia, transmisión social de la aversión alimentaria (§25.8) y, en el juego, seguir a la descendencia cuando muere la Fagi seguida (hoy se cierra la grabación y la población sigue en pantalla).
 - Fase 6, lo que queda del §12.3:
@@ -1999,6 +2017,11 @@ node research/concepts/run.js --jobs 16
 node research/concepts/analyze.js research/results/concepts
 node scripts/concept-lab.js --lives 48                  # banco exploratorio
 node scripts/concept-lab.js --lives 48 --dims color --turn
+
+# §25.12 retención
+node scripts/retention.js
+node scripts/retention.js --set SLEEP.consolidate=0
+node scripts/retention.js --set SLEEP.enabled=0
 
 # §25.10 batería de sexos (--current: con el organismo de hoy)
 node scripts/sex-battery.js --lives 120 --jobs 16
