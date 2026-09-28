@@ -90,30 +90,57 @@ The main study can afford 200 lineages per cell (16 cells ≈ 3 minutes), so it
 is powered for effects well below the pilot's, including in the conjunctive
 chemistry, where they may be smaller.
 
-## Check in the game: the crossover does not show (yet)
+## Check in the game
 
-The same three formats in the game itself (`scripts/batch.js --generations 8
+### First try: culture there carried nothing about food
+
+The three formats in the game itself (`scripts/batch.js --generations 8
 --switch-at 4 --colony 4 --runs 8 --duration 900 --set MAPGEN.species=6
 --set GEN.genes=0 --set SOCIAL.format=F --set SOCIAL.budget=4 --set
-GEN.budget=4`): 8 lineages per format, 32 ants per generation.
+GEN.budget=4`), 8 lineages per format: no crossover, and no benefit of
+reasons before the change either (alive at the inversion: verdict 84%, rule
+97%, evidence 88%).
 
-| format | alive, gens 1–3 | harmful bites, gens 1–3 | alive at the inversion (gen 4) | harmful bites at the inversion | newborns taught to avoid the poison, gen 3 → avoid the food, gen 4 |
-|---|---|---|---|---|---|
-| verdict | 81–88% | 27–32% | 84% | 31% | 0% → 0% |
-| rule | 75–94% | 23–36% | **97%** | 22% | 0–16% → 13% |
-| evidence | 84–97% | 26–32% | 88% | 27% | 0–19% → 22% |
+The reason: newborns in the game were taught nothing better than chance
+about the fruit (balanced accuracy 0.50, against 0.65–0.78 in the lab). With
+a budget of 4, elders passed on their loudest rules: follow the pheromone,
+avoid the rain, avoid the pressure drop, and superstitions like "avoid round
+things". The rule about the poison smell was weak and rarely made the cut.
+In the lab there is nothing but food, so every item is about food.
 
-In the game, reasons are **not** a trap at the inversion, and they barely
-help before it. The likely reason is visible in the last column: in the game,
-culture carries very little. At most a fifth of newborns are taught to avoid
-the poison before the change, against a culture in the lab that teaches
-two-thirds of the catalogue right. With so little passed on there is little
-to be trapped by. The lab's own sensitivity analysis says the same: the trap
-grows with how much is passed on.
+`SOCIAL.topic = 'food'` restricts what is passed on to rules about eating.
+With it, what newborns are taught in the game rises to 0.52–0.59 accuracy.
 
-Eight lineages cannot settle it either way, and the two set-ups differ in
-more than space (lives of 900 s against 1800 s, 6 species against 12, one
-tree per species). Before the main study, this gap has to be understood:
-either the game is made to carry culture comparable to the lab (longer lives,
-more contact in the nest), or the claim is limited to cultures that carry
-this much. Until then, the lab's crossover is a result about the lab.
+### Second try: with food knowledge only
+
+The same command with `--set SOCIAL.topic=food --runs 16 --seed 3000`, plus
+a control where nothing is passed on (`GEN.culture=0 SOCIAL.share=0`). Every
+format lives the same 16 lineages of worlds, so they are compared in pairs
+(`research/embodied.js`). Mean per lineage [95% CI]:
+
+| format | harmful bites / ant, gens 1–3 | accuracy taught | alive at the inversion | myths / ant at the inversion |
+|---|---|---|---|---|
+| none | 1.28 [1.08, 1.47] | 0.50 | 0.78 [0.64, 0.91] | 0.03 |
+| verdict | 0.78 [0.65, 0.91] | 0.52 | 0.88 [0.75, 0.98] | 0.53 [0.25, 0.84] |
+| rule | **0.64** [0.53, 0.74] | **0.59** | 0.81 [0.67, 0.94] | **1.47** [1.09, 1.89] |
+| evidence | 0.73 [0.61, 0.86] | 0.58 | 0.75 [0.59, 0.89] | 1.05 [0.70, 1.41] |
+
+Paired differences (Holm-adjusted over the six pairs of each outcome):
+
+- **Reasons teach better in a steady world (H1): replicated.** verdict − rule,
+  harmful bites: +0.14 [0.06, 0.23], p = .02, dz 0.81. Smaller than in the
+  lab (+0.44) but the same direction.
+- **Reasons carry more myths into the inversion (H3): replicated.** rule −
+  verdict, myths per ant: +0.94 [0.48, 1.47], p = .004, dz 0.93. Evidence
+  sits in between (rule − evidence +0.42 [0.03, 0.83], p = .08).
+- **The myths do not kill (H2): not replicated.** Survivors at the inversion
+  do not differ between formats (every interval spans zero; verdict − rule
+  +0.06 [−0.13, 0.27]). In the game, an ant who refuses what is now food has
+  the pantry, other fruit and more time to find it; in the lab, a refused
+  meal is a meal lost.
+
+So the mechanism travels from the lab to the game: reasons teach better and
+carry more false beliefs through a change. Its lethal consequence does not,
+at least not with 16 lineages: it depends on how costly a refused meal is.
+That dependency is itself a prediction to test (the cost of a false "avoid"
+as a factor), not a detail to hide.

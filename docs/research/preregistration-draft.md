@@ -68,6 +68,11 @@ not made of myths and needs another explanation.
 
 ## Validation outside the lab
 
-The same contrasts (H1, H2) in the game itself (`scripts/batch.js
---generations`, with `SOCIAL.format` and budgets), on fewer lineages. Agreement
-in direction is required before any claim is made about the model as a whole.
+The same contrasts in the game itself (`scripts/batch.js --generations`,
+with `SOCIAL.format`, the budgets and `SOCIAL.topic=food`), on fewer
+lineages. The pilot's check in the game (`pilot.md`) replicated H1 and H3
+and not H2: false beliefs survive the change there too, but they do not
+kill. H2 is therefore stated for the lab only, and the main study adds the
+cost of a refused meal (how scarce food is) as a factor to explain when the
+trap turns lethal. Agreement in direction is required before any claim is
+made about the model as a whole.
