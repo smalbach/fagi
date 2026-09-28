@@ -111,6 +111,7 @@ export function runThingLife({ fagiSeed, mapSeed, seconds, turn = false, dt = 0.
     retired: concepts?.list.filter((c) => c.retired && c.why === 'fails').length ?? 0,
     revised: concepts?.list.filter((c) => c.retired && c.why === 'revised').length ?? 0,
     surprises: concepts?.surprises ?? 0,
+    regrow: concepts?.regrow ?? null,
     kindsKnown: Object.values(concepts?.kinds ?? {}).filter((k) => k.possible.length === 1).length,
     stings, sips, novelSips,
     lateSeen: judged.size,
@@ -154,7 +155,7 @@ if (isMain) {
     return v.length > 1 ? Math.sqrt(v.reduce((a, b) => a + (b - m) ** 2, 0) / (v.length - 1) / v.length) : NaN;
   };
   console.log(`${LIVES} lives, dims ${CONFIG.CONCEPT.dims.join(',')}, generalize ${CONFIG.CONCEPT.generalize}, surprise ${CONFIG.CONCEPT.surprise}${turn ? ', turns over' : ''}`);
-  for (const k of ['classify', 'precision', 'coverage', 'hits', 'misses', 'concepts', 'retired', 'revised', 'surprises', 'kindsKnown', 'stings', 'sips', 'novelSips', 'lateSeen', 'lateRight', 'lateBelieved', 'lateStings', 'lateSapUsed', 'lifetime', 'alive']) {
+  for (const k of ['classify', 'precision', 'coverage', 'hits', 'misses', 'concepts', 'retired', 'revised', 'surprises', 'kindsKnown', 'stings', 'sips', 'novelSips', 'regrow', 'lateSeen', 'lateRight', 'lateBelieved', 'lateStings', 'lateSapUsed', 'lifetime', 'alive']) {
     console.log(`  ${k.padEnd(11)} ${mean(k).toFixed(3)} ± ${se(k).toFixed(3)}`);
   }
   const causes = {};

@@ -15,7 +15,7 @@
 
 import { CONCEPT, THIRST, ENERGY } from '../config.js';
 import { habit } from '../habits.js';
-import { believe, experience, conceptsOf } from '../concepts.js';
+import { believe, experience, conceptsOf, drained } from '../concepts.js';
 import { touching, contact, isThing } from '../things.js';
 import { record } from '../world.js';
 import { reasonOf, pressing } from './common.js';
@@ -25,7 +25,8 @@ const dist = (fagi, p) => Math.hypot(p.x - fagi.x, p.y - fagi.y);
 const via = (b) => (b.via === 'self' || b.via === 'saw' ? b.via : 'concept');
 
 // The things she believes afford `aff`: those in sight (not dry) and those she
-// remembers, where she last saw them not dry. Nearest first.
+// remembers, where she last saw them not dry, or dry but, by now, worth looking
+// at again (CONCEPT.lookAgain). Nearest first.
 function believed(fagi, world, ctx, aff) {
   const concepts = conceptsOf(fagi);
   const out = [];
@@ -36,7 +37,8 @@ function believed(fagi, world, ctx, aff) {
     if (!t.dry && trusted(b, aff)) out.push({ ref: t.ref, d: t.dist, b });
   }
   for (const [id, place] of Object.entries(concepts.places)) {
-    if (inSight.has(Number(id)) || place.dry) continue;
+    if (inSight.has(Number(id))) continue;
+    if (place.dry && !(CONCEPT.lookAgain && place.lookAt != null && concepts.now >= place.lookAt)) continue;
     const b = believe(concepts, concepts.kinds[place.key].look);
     if (!trusted(b, aff)) continue;
     // She goes where she remembers it; the thing itself, if it is still there.
@@ -128,6 +130,7 @@ export function useThing(fagi, world) {
   if (!act) return;
   const felt = contact(fagi, world, obj, act);
   const change = experience(conceptsOf(fagi), world, obj, act, felt, fagi.age);
+  if (felt === 'sap') drained(conceptsOf(fagi), obj, fagi.age);
   record(world, 'thing_contact', { id: obj.id, act, felt, ...(felt === 'sap' ? { dry: CONCEPT.sapRegrow } : {}) });
   fagi.lastThing = { n: (fagi.lastThing?.n ?? 0) + 1, id: obj.id, key: obj.key, act, felt, change, via: action };
   // What she was going for is done: she decides afresh next step.

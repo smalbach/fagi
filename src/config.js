@@ -868,6 +868,9 @@ export const LIFE = {
 //   surprise   : how much a belief about things that fails makes the world seem changeable
 //                (0-1); 0 = she never doubts nor looks again (the ablation)
 //   calm       : seconds for that to fade to half
+//   lookAgain  : seconds she waits, before she has learned how long sap takes to come
+//                back, to go and look again at a sap thing she left dry; 0 = she never
+//                goes back on purpose (as measured up to §25.14)
 //   social     : 1 = seeing a sister stung by a thing, or drinking its sap, teaches that
 //                kind without touching it (social.js); watched, not lived: trusted `seen`
 //   seen       : confidence (0-1) of what she only saw happen to a sister
@@ -894,6 +897,7 @@ export const CONCEPT = {
   sipAt: 0.25,
   surprise: 0.6,
   calm: 240,
+  lookAgain: 60,
   social: 1,
   seen: 0.6,
   generalize: 1,

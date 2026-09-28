@@ -25,6 +25,7 @@ if (argv[0] === '--piece') {
   CONFIG.THERMAL.voluntary = 0;   // came after this protocol was frozen
   CONFIG.SLEEP.askAlways = 0;     // so did this
   CONFIG.SLEEP.replay = 4;        // and replay was on
+  CONFIG.CONCEPT.lookAgain = 0;   // she did not go back to look at drained sap
   CONFIG.MAPGEN.species = SPECIES;
   CONFIG.CONCEPT.dims = FAMILIES[family];
   for (const [path, value] of Object.entries(CONDITIONS[condition])) {

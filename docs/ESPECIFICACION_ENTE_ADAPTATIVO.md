@@ -813,6 +813,8 @@ Se conserva si agrupa al menos `CONCEPT.minKinds` clases, tiene más casos a fav
 
 En un mundo que no cambia nunca hay sorpresas y nada de esto ocurre. Con `CONCEPT.surprise = 0` (la ablación) nunca duda.
 
+**Esperar y volver a mirar** (`CONCEPT.lookAgain`). Una cosa con savia que vacía queda seca un rato (`CONCEPT.sapRegrow`, 45 s), y ella lo ve. Recuerda cuándo la dejó seca y aprende cuánto tarda en rellenarse: verla llena otra vez le dice «como mucho tanto», y encontrarla aún seca, «más que esto». Con esa estimación, o un minuto antes de tener ninguna, vuelve a mirar cuando tiene sed. En 48 vidas de desarrollo bebe algo más de savia (15,9 frente a 15,1 bocados), y su estimación acaba en 58 s de media frente a los 45 reales. Solo la corrige cuando vuelve y la encuentra llena, así que tiende a quedarse larga.
+
 **Aprender mirando** (`CONCEPT.social`). Si una hermana se pica con una cosa, o bebe su savia, quien la ve aprende esa clase sin tocarla, con confianza `CONCEPT.seen` (0,6). El frío o el calor al tacto no se ven desde fuera, así que eso no se transmite. Lo visto cuenta como evidencia para sus conceptos, y lo que después viva ella lo sustituye. En los animales reales basta ver el miedo de otro para temer lo que lo causó (los monos y las serpientes de Mineka y Cook). En colonias de 4, con 24 mapas de desarrollo, las picaduras por individuo bajan de 2,24 a 1,88: solo aprende quien está mirando en ese momento.
 
 **Cambia decisiones.**

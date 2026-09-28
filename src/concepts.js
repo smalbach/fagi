@@ -52,8 +52,51 @@ export const conceptsOf = (fagi) => (fagi.brain.concepts ??= createConcepts());
 export function noteSeen(concepts, obj, dry, now) {
   concepts.now = now;
   const kind = concepts.kinds[obj.key] ??= { look: { ...obj.look }, possible: [...AFFORDANCES], touch: null, mouth: null, seenAt: now };
-  concepts.places[obj.id] = { x: obj.x, y: obj.y, key: obj.key, dry, at: now };
+  const prev = concepts.places[obj.id];
+  const place = { x: obj.x, y: obj.y, key: obj.key, dry, at: now, drainedAt: prev?.drainedAt ?? null, lookAt: prev?.lookAt ?? null };
+  if (place.drainedAt != null) {
+    const since = now - place.drainedAt;
+    if (!dry) {
+      // Full again: sap takes at most this long to come back.
+      learnRegrow(concepts, since, 'atMost');
+      place.drainedAt = null;
+      place.lookAt = null;
+    } else if (!prev?.dry || now >= (prev.lookAt ?? Infinity)) {
+      // Still dry when she came to look: it takes longer than this.
+      learnRegrow(concepts, since, 'atLeast');
+      place.lookAt = now + Math.max(CONCEPT.lookAgain / 3, regrowOf(concepts) - since);
+    }
+  }
+  concepts.places[obj.id] = place;
   return kind;
+}
+
+// Waiting and looking again (§12.3): how long she believes sap takes to come
+// back to a thing she drained, from what she saw. Seeing it full again says
+// "at most this long"; finding it still dry, "longer than this".
+// She keeps the tightest of each bound; her guess is between them, or, with
+// only one, a little past the lower one or at the upper one.
+function learnRegrow(concepts, seconds, bound) {
+  const b = (concepts.regrowBounds ??= { atLeast: null, atMost: null });
+  if (bound === 'atMost') b.atMost = b.atMost == null ? seconds : Math.min(b.atMost, seconds);
+  else b.atLeast = b.atLeast == null ? seconds : Math.max(b.atLeast, seconds);
+  // Contradictory bounds (it changed, or she misjudged): the newest one wins.
+  if (b.atLeast != null && b.atMost != null && b.atLeast > b.atMost) {
+    if (bound === 'atMost') b.atLeast = null; else b.atMost = null;
+  }
+  concepts.regrow = b.atLeast != null && b.atMost != null ? (b.atLeast + b.atMost) / 2
+    : b.atMost != null ? b.atMost : b.atLeast * 1.5;
+}
+
+export const regrowOf = (concepts) => concepts.regrow ?? CONCEPT.lookAgain;
+
+// She drained it: it will be dry for a while. When to go and look again.
+export function drained(concepts, obj, now) {
+  const place = concepts.places[obj.id];
+  if (!place) return;
+  place.dry = true;
+  place.drainedAt = now;
+  place.lookAt = now + regrowOf(concepts);
 }
 
 export const settled = (kind) => (kind?.possible.length === 1 ? kind.possible[0] : null);

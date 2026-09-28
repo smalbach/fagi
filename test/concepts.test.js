@@ -277,3 +277,21 @@ test('seeing a sister stung by a thing teaches that kind without touching it; he
   assert.deepEqual(conceptsOf(b).kinds[spiny.key].possible, ['sap', 'inert']);
   CONCEPT.enabled = 0;
 });
+
+test('she learns how long sap takes to come back, and goes to look again when it should be there', async () => {
+  const { regrowOf, drained, noteSeen } = await import('../src/concepts.js');
+  const world = world0();
+  const c = createConcepts();
+  const o = stub(look('red', 'pod', 'soft'));
+  noteSeen(c, o, false, 0);
+  drained(c, o, 10);
+  assert.equal(c.places[o.id].lookAt, 10 + CONCEPT.lookAgain, 'before learning, her prior wait');
+  noteSeen(c, o, true, 20);                      // still dry, not yet time: nothing learned
+  assert.equal(c.regrow, undefined);
+  noteSeen(c, o, true, 10 + CONCEPT.lookAgain); // came to look, still dry: longer than that
+  assert.equal(regrowOf(c), CONCEPT.lookAgain * 1.5, 'only a lower bound: a little past it');
+  noteSeen(c, o, false, 10 + CONCEPT.lookAgain + 20);  // full again
+  assert.ok(regrowOf(c) <= CONCEPT.lookAgain + 20);
+  assert.equal(c.places[o.id].drainedAt, null);
+  void world;
+});
