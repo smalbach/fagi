@@ -24,6 +24,7 @@ import { peekWeight } from './memory.js';
 import { nestUnder } from './nest.js';
 import { isTree, radiusOf } from './obstacles.js';
 import { bodyOf } from './biology.js';
+import { thermalOfContact } from './things.js';
 
 export const COLD_KEY = 'cold';
 export const HEAT_KEY = 'heat';
@@ -47,6 +48,8 @@ export function targetTemperature(fagi, world, sky, inNest) {
   if (!inNest && fagi.moving) target += THERMAL.moveHeat;
   if (!inNest && sky.light > CYCLE.minLight && inShade(fagi, world)) target -= THERMAL.shade * sky.light;
   if (isWet(fagi, inNest)) target -= THERMAL.wetChill;
+  // Pressed against a cool or a warm thing (things.js, CONCEPT).
+  if (!inNest) target += thermalOfContact(fagi, world);
   return target;
 }
 

@@ -436,6 +436,9 @@ export const OBJECT_TYPES = {
   nest: { color: '#c9a227', radius: 42, kind: 'nest', aroma: 60 },
   tree: { color: '#4f9552', radius: 44, kind: 'spawner', aroma: 70 },
   rock: { color: '#565c6b', radius: 28, kind: 'block', aroma: 0 },
+  // A thing (things.js, CONCEPT): no inborn category, only how it looks.
+  // Only the map places them (never the palette).
+  thing: { color: '#9aa0a8', radius: 10, kind: 'thing', aroma: 0, palette: false },
 };
 
 export const OBJECT_KEYS = Object.keys(OBJECT_TYPES);
@@ -771,6 +774,7 @@ export const NIGHTAI = {
   backend: 'local',
   url: '',
   trust: 0.5,
+  sure: 0.75,
   minSupport: 2,
   maxProposals: 4,
   timeout: 4,
@@ -822,4 +826,56 @@ export const LIFE = {
   eggStarve: 180,
   kinLimit: 0.5,
   maxPopulation: 16,
+};
+
+// Things and concepts (things.js, concepts.js, decision/things.js; spec §12.8).
+// Small objects with no inborn category: she only sees how they look (color,
+// shape, texture). What each is good for hangs, per map, on one of those
+// traits; she finds out by touching and nibbling, groups what she found into
+// concepts and uses them. Off, no thing is ever placed.
+//   dims       : the traits the map may hang what things do on (one drawn per
+//                map); the evaluation adds 'color', never used while tuning
+//   kinds      : distinct looks on a map, spread over the deciding trait's
+//                values so each affordance has several kinds
+//   things     : things on the map (every kind at least once)
+//   lateAt     : seconds into the world when new kinds sprout: lateKinds looks never on
+//                the map before, lateThings things of them (0 kinds = none)
+//   reach      : px beyond both radii at which she is touching it
+//   sap        : thirst a nibble of sap takes away; then it is dry for sapRegrow s
+//   sting      : energy a sting costs; stingPain how bad it feels (0-1)
+//   thermal    : °C a cool or warm thing moves her body's target while pressed to it
+//   minKinds   : kinds behind a concept
+//   testMin    : new kinds a concept must have predicted before it can be retired
+//   keep       : share of those it must get right to stay
+//   trust      : confidence (0-1) a belief needs to change a decision
+//   sure       : a kind she predicts this surely she does not examine (§12.5: curiosity
+//                follows uncertainty); she finds out when she uses it. 1 = examine all
+//   sipAt      : thirst share from which a sap thing tempts her
+//   surprise   : how much a belief about things that fails makes the world seem changeable
+//                (0-1); 0 = she never doubts nor looks again (the ablation)
+//   calm       : seconds for that to fade to half
+//   generalize : 0 = every kind on its own, concepts never predict (the ablation)
+export const CONCEPT = {
+  enabled: 0,
+  dims: ['shape', 'texture'],
+  kinds: 12,
+  things: 18,
+  lateAt: 1200,
+  lateKinds: 8,
+  lateThings: 12,
+  reach: 6,
+  sap: 30,
+  sapRegrow: 45,
+  sting: 10,
+  stingPain: 0.7,
+  thermal: 9,
+  minKinds: 2,
+  testMin: 3,
+  keep: 0.5,
+  trust: 0.5,
+  sure: 0.75,
+  sipAt: 0.25,
+  surprise: 0.6,
+  calm: 240,
+  generalize: 1,
 };

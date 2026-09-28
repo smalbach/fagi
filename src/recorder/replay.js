@@ -71,6 +71,16 @@ export function applyEvent(state, ev) {
       if (o) o.fruit = ev.what;
       break;
     }
+    case 'obj_look': {
+      const o = w.objects.find((x) => x.id === ev.id);
+      if (o) { o.look = ev.look; o.dryUntil = 0; }
+      break;
+    }
+    case 'thing_contact': {
+      const o = w.objects.find((x) => x.id === ev.id);
+      if (o && ev.felt === 'sap') o.dryUntil = ev.t + (ev.dry ?? 0);
+      break;
+    }
     case 'obj_remove': {
       const i = byId(w.objects, ev.id);
       if (i !== -1) w.objects.splice(i, 1);

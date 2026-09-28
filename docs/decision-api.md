@@ -137,6 +137,29 @@ candidates, beliefs, rules and reasons. A fruit she only smells is
 `"smell:<smell>"`, with no `belief` and no `verdict`, since by smell alone she
 cannot tell which fruit it is.
 
+With `CONCEPT` on (part of the organism, `src/things.js`, `src/concepts.js`)
+a `things` block says what she sees of the things on the map and what she makes
+of them. What a thing really affords is never here, only what she felt and
+what she concluded:
+
+```json
+"things": {
+  "seen": [
+    { "id": 88, "look": { "color": "blue", "shape": "pod", "texture": "soft" },
+      "dist": 64, "dry": false, "belief": "sap", "confidence": 0.75, "via": "c3" }
+  ],
+  "concepts": [
+    { "id": "c3", "traits": ["texture:soft"], "affords": "sap", "kinds": 3,
+      "except": [], "hits": 1, "misses": 0, "confidence": 0.8 }
+  ]
+}
+```
+
+`belief` is one of `sap`, `cool`, `warm`, `sting`, `inert`, or null. These are
+names for what she feels (thirst easing, cold or warmth to the touch, pain,
+nothing), not for what the thing is. `via` is `"self"` when she has touched
+that kind, or the id of the concept behind the guess.
+
 ### Intention (what the API returns)
 
 ```json

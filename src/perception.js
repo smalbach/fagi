@@ -3,7 +3,7 @@
 // Gathers into ONE list everything chaseable: food seen, food smelled and the water.
 // Each candidate carries which sense it came in through, so whoever decides knows it.
 
-import { FAGI, BRAIN, THIRST, HUNGER, ENERGY, MEMORY, TREE, NEST, RAIN } from './config.js';
+import { FAGI, BRAIN, THIRST, HUNGER, ENERGY, MEMORY, TREE, NEST, RAIN, CONCEPT } from './config.js';
 import { seenPoints, seesObject, viewRangeOf, distanceTo } from './vision.js';
 import { smelledPoints, smellsObject, aromaOf, scentStrengthOfObject } from './smell.js';
 import { isWater, isTree, radiusOf, waterZone } from './obstacles.js';
@@ -17,6 +17,8 @@ import { followPheromone } from './pheromone.js';
 import { nestUnder } from './nest.js';
 import { rememberPlace, recallPlace, forgetPlace, waterPlaceKind, peekWeight } from './memory.js';
 import { energyMax } from './biology.js';
+import { isThing, isDry } from './things.js';
+import { conceptsOf, noteSeen } from './concepts.js';
 
 // The nearest visible pool. Water isn't learned: it's instinct.
 function nearestWater(fagi, world) {
@@ -225,6 +227,21 @@ function buildCandidates(fagi, world, {
   return { candidates: [...byRef.values()], seen, smelledOnes };
 }
 
+// The things she sees (things.js): only how they look, and whether they look
+// dry. Seeing one is enough for its kind to exist for her, and for her to
+// remember where it was.
+function seeThings(fagi, world) {
+  const concepts = conceptsOf(fagi);
+  const out = [];
+  for (const o of world.objects) {
+    if (!isThing(o) || !o.look || !seesObject(fagi, o, radiusOf(o), world)) continue;
+    const dry = isDry(world, o);
+    noteSeen(concepts, o, dry, fagi.age);
+    out.push({ ref: o, key: o.key, look: o.look, dist: distanceTo(fagi, o), dry });
+  }
+  return out.sort((a, b) => a.dist - b.dist);
+}
+
 // Full snapshot of the situation, ready for the rules to decide on.
 export function perceive(fagi, world) {
   const thirstU = fagi.thirst / THIRST.max;
@@ -249,5 +266,6 @@ export function perceive(fagi, world) {
     inNest: Boolean(nestUnder(fagi, world)),
     waterPlace: placeOf,
     smellsWater: Boolean(pool) && smellsObject(fagi, visible ?? pool.ref, world),
+    things: CONCEPT.enabled ? seeThings(fagi, world) : null,
   };
 }

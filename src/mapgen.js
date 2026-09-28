@@ -1,10 +1,11 @@
 // Generates the map: pools and rocks scattered at random, without overlapping each other
 // and leaving free the spot where Fagi spawns.
 
-import { WORLD, MAPGEN, OBJECT_TYPES } from './config.js';
+import { WORLD, MAPGEN, OBJECT_TYPES, CONCEPT } from './config.js';
 import { addObject, record } from './world.js';
 import { createChemistry, createSpecies, registerSpecies } from './chemistry.js';
 import { radiusOf } from './obstacles.js';
+import { placeThings } from './things.js';
 
 function fits(world, x, y, r) {
   for (const o of world.objects) {
@@ -125,4 +126,6 @@ export function generateMap(world, { chemistry = null } = {}) {
     );
   }
   place(world, 'rock', MAPGEN.rocks, MAPGEN.rockScale);
+  // Last, so that with CONCEPT on the rest of the map is the same one.
+  if (CONCEPT.enabled) placeThings(world);
 }

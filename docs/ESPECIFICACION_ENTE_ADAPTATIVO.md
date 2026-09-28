@@ -10,7 +10,7 @@
 
 El repositorio contiene estudios preregistrados y congelados (`docs/research/`) que ejecutan el mismo motor de simulación mediante `scripts/batch.js`. Todo lo que añade esta especificación debe respetar estas condiciones:
 
-1. **Cada bloque nuevo arranca apagado** en `src/config.js` (`CYCLE.enabled`, `THERMAL.enabled`, `SEX.enabled`, `SLEEP.enabled`, `EXPERIMENT.enabled`, `APPETITE.enabled`, `PERCEPT.enabled`, `NIGHTAI.enabled`, `LIFE.enabled`, `GEN.sexual`).
+1. **Cada bloque nuevo arranca apagado** en `src/config.js` (`CYCLE.enabled`, `THERMAL.enabled`, `SEX.enabled`, `SLEEP.enabled`, `EXPERIMENT.enabled`, `APPETITE.enabled`, `PERCEPT.enabled`, `NIGHTAI.enabled`, `LIFE.enabled`, `CONCEPT.enabled`, `GEN.sexual`).
 2. **Con todo apagado, la simulación es idéntica número a número**: no se consume ni un número aleatorio más ni en otro orden, y todo multiplicador corporal vale exactamente `1`. Se comprobó comparando byte a byte la salida JSON de `batch.js` antes y después (ejecución simple y por generaciones con especies).
 3. **El juego enciende el organismo** al arrancar (`src/app/organism-on.js`, que se importa antes que los ajustes). En batch se enciende con `--organism`, y `--set` puede apagar después cualquier pieza (`--set SLEEP.consolidate=0`).
 4. **Las sesiones grabadas guardan los flags** con el resto de ajustes. Al reproducir una sesión anterior al organismo, los flags ausentes se consideran `0` (`organismOffConfig`).
@@ -770,6 +770,62 @@ Con `SLEEP.consolidate = 0` la noche no pregunta nada, la agenda queda vacía y 
 Con el flag apagado, el sorteo de especies es el mismo que usaron los estudios preregistrados.
 
 Queda fuera de este paso: los objetos del mapa (agua, nido, árbol, roca) siguen siendo categorías que Fagi reconoce de nacimiento, y la traza de sinapsis (`synapses.js`, que no decide nada) sigue ligando olores a especies. Formar conceptos a partir de rasgos es el resto de la fase 6.
+
+### 12.8 Cosas y conceptos: diseño implementado
+
+`things.js`, `concepts.js` y `decision/things.js`, con el flag `CONCEPT.enabled`, que forma parte del organismo.
+
+**El problema que resuelve.** La fruta ya se aprende por rasgos, pero Fagi sabe de nacimiento que es comida: solo descubre si una fruta concreta alimenta o envenena. Para aprender un objeto realmente nuevo hace falta algo cuya utilidad no venga dada por su categoría.
+
+**Cosas.** Objetos pequeños del mapa, sin categoría innata. Fagi solo percibe su aspecto, con tres rasgos que no comparte con la fruta: color, forma (`stone`, `pod`, `tuft`, `shell`) y textura (`smooth`, `rough`, `spiny`, `soft`). Mismo aspecto, misma clase de cosa. Cada mapa tiene una química oculta de cosas: una dimensión (color, forma o textura) decide su *affordance*, igual que el olor decide qué hace una fruta.
+
+| Affordance | Lo que hace | Cómo lo nota Fagi |
+|---|---|---|
+| `sap` | mordisquearla quita sed | la sed baja (interocepción) |
+| `cool` | pegada a ella, el cuerpo se enfría | tacto frío |
+| `warm` | pegada a ella, el cuerpo se calienta | tacto tibio |
+| `sting` | tocarla o morderla duele | dolor |
+| `inert` | nada | nada |
+
+Lo que siente (frío o calor al tacto, dolor, alivio de la sed) son sentidos innatos, como el sabor o la temperatura del cuerpo. Lo que la cosa *permite* no viene dado: lo aprende.
+
+**Acciones experimentales** (§12.3). *Tocar*: se acerca y la toca; el tacto dice frío, tibio, dolor o nada. *Mordisquear*: un bocado pequeño; dice alivio de sed, dolor o nada. Una cosa que al tacto no dice nada todavía puede ser `sap` o `inert`: solo mordisquear lo decide. «Esperar y volver a mirar» y «combinar» quedan fuera, porque ninguna cosa cambia con el tiempo ni se combina todavía.
+
+**Conceptos** (§12.4). Un concepto agrupa clases de cosas con la misma affordance por los rasgos que comparten, de lo específico a lo general, como `learned/induce.js` con la fruta. Tiene:
+
+- rasgos (la descripción más específica común a sus miembros);
+- affordance;
+- miembros y episodios que lo respaldan;
+- excepciones (clases que encajan en la descripción pero hicieron otra cosa);
+- aciertos y fallos al predecir clases nuevas.
+
+Se conserva si agrupa al menos `CONCEPT.minKinds` clases, tiene más casos a favor que en contra y no repite la descripción de otro. **Se pone a prueba**: cuando Fagi se encuentra con una clase que nunca tocó, el concepto que la cubre predice su affordance, y al probarla se anota el acierto o el fallo. **Se retira** si, tras `CONCEPT.testMin` pruebas, acierta menos de la mitad. Uno retirado queda en el historial.
+
+**Clases que brotan después.** A los `CONCEPT.lateAt` segundos (1200) aparecen `CONCEPT.lateKinds` clases que nunca estuvieron en el mapa, sobre los mismos valores del rasgo que decide. Es como una estación nueva. Lo que Fagi cree de ellas antes de tocarlas es lo que valen sus conceptos. Sin esto, examina todo el mapa en los primeros días y los conceptos apenas llegan a usarse.
+
+**Curiosidad según la incertidumbre** (§12.5). No examina una clase que un concepto ya le predice con confianza ≥ `CONCEPT.sure`: la comprobará cuando la use.
+
+**Volatilidad** (Behrens et al., 2007). Si una clase conocida se siente distinta o un concepto falla con una clase nueva, es una sorpresa: el mundo puede haber cambiado. Tres efectos:
+
+- baja la confianza en todo lo que cree de las cosas (`CONCEPT.surprise`, que se desvanece con semivida `CONCEPT.calm`);
+- vuelve a mirar lo que aprendió antes de esa racha de cambio (no lo que ya comprobó después);
+- mientras duda, deja de fiarse de los conceptos, prueba más y los rehace.
+
+En un mundo que no cambia nunca hay sorpresas y nada de esto ocurre. Con `CONCEPT.surprise = 0` (la ablación) nunca duda.
+
+**Cambia decisiones.**
+
+- Con sed, una cosa que cree `sap` (por experiencia propia o por un concepto) y está más cerca que el agua la hace ir a mordisquearla.
+- Con calor o frío, una cosa que cree `cool` o `warm` y está más cerca que el nido la lleva a pegarse a ella.
+- Sin nada urgente, prueba las clases que no conoce, pero no toca las que un concepto le dice que pican.
+- Con `CONCEPT.generalize = 0` (la ablación) aprende cada clase por separado y nunca predice una clase nueva.
+
+**Criterio de salida** (§15, fase 6). Durante el ajuste, las affordances dependen solo de la forma o la textura. La evaluación usa además mapas donde las decide el **color**, una familia que no se vio nunca. Se mide:
+
+- si, ante una clase nueva, su concepto predice bien la affordance (frente al azar y a la ablación);
+- si usa bien esa predicción: bebe de una `sap` nueva antes de haberla probado y no toca una `sting` nueva.
+
+Ninguna parte recibe el identificador real: la API ve rasgos y la decisión, conceptos.
 
 ## 13. Memoria propuesta
 
@@ -1839,7 +1895,7 @@ El resultado del calor merece una explicación, porque se revisó por si era un 
 
 ### 25.4 Cómo reproducir
 
-Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas. `LIFE` solo afecta a quien pertenece a una población que se reproduce, así que no cambia las vidas individuales; en cualquier ejecución con colonia (`--colony`, `--generations`) sí la pone a criar.
+Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas. Todas las tablas anteriores al §25.11 se midieron sin cosas ni conceptos: a los comandos de `batch.js`, `sleep-lab.js`, `autopsy.js` y `population.js` hay que añadirles `--set CONCEPT.enabled=0` (la evaluación congelada y la batería de sexos ya lo apagan solas). `LIFE` solo afecta a quien pertenece a una población que se reproduce, así que no cambia las vidas individuales; en cualquier ejecución con colonia (`--colony`, `--generations`) sí la pone a criar.
 
 ```text
 npm test

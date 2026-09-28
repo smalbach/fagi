@@ -33,6 +33,7 @@ scent plumes → pheromone → Fagi.
 | `experiment.js` | the night's questions become the next day's agenda; she answers them with a trial bite (`decision/experiment.js`) |
 | `appetite.js` | what the body lets her eat and when: handling time, malaise after a bad bite, one-trial aversion to a smell, dying of poisoning; and thirst that sends her looking for water |
 | `percept.js` | what she perceives of a thing as opposed to what it is: by smell alone only the smell; the API reads traits, never names |
+| `things.js` + `concepts.js` | things with no inborn category: only a look (color, shape, texture), and a hidden per-map chemistry of what they afford (sap, cool, warm, sting, nothing). She touches and nibbles them (`decision/things.js`), groups what she felt into concepts that predict new kinds and are retired when they do not, and doubts everything for a while after a surprise |
 | `night/` | the night mind: a model (local, or a server over HTTP) proposes rules, doubts and questions while she sleeps; a gate checks each against the grammar and against her own memory, and keeps only what what she lived backs |
 | `learned/` | the code Fagi writes on her own from what she learns (see below) |
 | `observation.js` + `backend/` + `cortex.js` | the external decision API (see below) |

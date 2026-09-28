@@ -17,6 +17,7 @@ import { colorOf, toRGB } from './colors.js';
 import { drawFagi, drawFagiGlow, ellipse } from './fagi-sprite.js';
 import { scentSources } from './smell.js';
 import { drawRock } from './rock-sprite.js';
+import { drawThing } from './thing-sprite.js';
 import { drawNest, drawNestMouth } from './nest-sprite.js';
 import { drawTree } from './tree-sprite.js';
 import { drawFruit } from './fruit-sprite.js';
@@ -118,7 +119,7 @@ function drawNight(ctx, world) {
 function foreground(ctx, world, fagi, camera, inside) {
 
   drawPheromone(ctx, world);
-  for (const o of world.objects) drawObject(ctx, o, inside, world.wind, rainFalling());
+  for (const o of world.objects) drawObject(ctx, o, inside, world.wind, rainFalling(), world.time);
   for (const p of world.points) drawFruit(ctx, p);
   // Her sisters (colony.js), under her: the one you follow stays on top.
   for (const s of world.colony?.ants ?? []) {
@@ -290,7 +291,7 @@ function drawPheromone(ctx, world) {
 
 // Each thing on the map is painted by its own module: the lake, the rock, the nest and the tree.
 // `busy` is Fagi sleeping inside the nest.
-function drawObject(ctx, o, busy, wind, raining) {
+function drawObject(ctx, o, busy, wind, raining, time) {
   const spec = OBJECT_TYPES[o.type];
   const r = radiusOf(o);
   if (spec.shallow) {
@@ -303,6 +304,8 @@ function drawObject(ctx, o, busy, wind, raining) {
     drawNestMouth(ctx, o, r, busy, performance.now());
   } else if (isTree(o)) {
     drawTree(ctx, o, spec, r, wind, performance.now());
+  } else if (spec.kind === 'thing') {
+    drawThing(ctx, o, r, time);
   } else {
     drawRock(ctx, o, spec, r);
   }

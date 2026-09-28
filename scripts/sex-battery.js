@@ -49,6 +49,7 @@ const opt = (name, dflt) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] 
 if (argv[0] === '--piece') {
   const [, scenario, sex, from, to, file] = argv;
   enableOrganism();
+  CONFIG.CONCEPT.enabled = 0;   // measured before things and concepts existed
   CONFIG.MAPGEN.species = SPECIES;
   for (const [path, value] of Object.entries(SCENARIOS[scenario])) {
     const [block, key] = path.split('.');

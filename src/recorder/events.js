@@ -17,6 +17,7 @@ export const EVENT_TYPES = {
   obj_move: ['id', 'x', 'y'],
   obj_resize: ['id', 'r'],
   obj_fruit: ['id', 'what'],   // a tree of a wild species (chemistry.js)
+  obj_look: ['id', 'look'],    // how a thing looks (things.js): { color, shape, texture }
   point_add: ['id', 'what', 'x', 'y'],
   point_rot: ['id', 'what'],
   point_remove: ['id', 'reason'],
@@ -44,6 +45,10 @@ export const EVENT_TYPES = {
   day: ['day'],
   night_report: ['report'],
   night_mind: ['night', 'entries'],
+  // Things and concepts (things.js, concepts.js): a touch or a nibble and what
+  // she felt, and a concept formed, tested or retired.
+  thing_contact: ['id', 'act', 'felt'],
+  concept: ['id', 'change'],
   // Life (reproduction.js): an egg laid, one that hatched, one lost, and the end.
   egg: ['id', 'mother', 'father'],
   hatch: ['id', 'egg'],

@@ -9,11 +9,12 @@
 
 import { renderRule } from './learned/dsl.js';
 import { verdict } from './learned/rules.js';
-import { THERMAL } from './config.js';
+import { THERMAL, CONCEPT } from './config.js';
 import { organismOn } from './organism.js';
 import { energyMax } from './biology.js';
 import { nauseous } from './appetite.js';
 import { perceptOn, unnamed, smellOf } from './percept.js';
+import { believe, liveConcepts, confidence } from './concepts.js';
 
 // What the API reads with PERCEPT on (percept.js): a fruit it only smells is
 // its smell, and no classic fruit goes by the name this code gives it. A copy:
@@ -120,5 +121,24 @@ function organism(fagi) {
       } : null,
       nightMind: fagi.lastNightMind ? { night: fagi.lastNightMind.night, asked: fagi.lastNightMind.asked, kept: fagi.lastNightMind.kept } : null,
     },
+    ...(CONCEPT.enabled ? { things: thingsOf(fagi) } : {}),
+  };
+}
+
+// Things (things.js, concepts.js): the ones she sees, by their look and what
+// she believes of them, and her concepts. What a thing really affords is not
+// here: only what she felt and what she made of it.
+function thingsOf(fagi) {
+  const concepts = fagi.brain.concepts;
+  const seen = (fagi.perceived?.things ?? []).map((t) => {
+    const b = concepts ? believe(concepts, t.look) : { aff: null, confidence: 0, via: null };
+    return { id: t.ref.id, look: t.look, dist: Math.round(t.dist), dry: t.dry, belief: b.aff, confidence: r2(b.confidence), via: b.via };
+  });
+  return {
+    seen,
+    concepts: liveConcepts(concepts).map((c) => ({
+      id: c.id, traits: c.all, affords: c.aff, kinds: c.members.length, except: c.except,
+      hits: c.hits, misses: c.misses, confidence: r2(confidence(c)),
+    })),
   };
 }

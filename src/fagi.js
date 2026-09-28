@@ -41,6 +41,7 @@ import { assignSex, bodyFor, energyMax } from './biology.js';
 import { updateStage } from './lifecycle.js';
 import { senseBody } from './thermal.js';
 import { updateSleep } from './sleep.js';
+import { useThing } from './decision/things.js';
 
 // `born`: what the birth already decided (sex, genome), for reproduction.
 // Without it the sex is drawn here, only when SEX is on.
@@ -187,15 +188,16 @@ export function updateFagi(fagi, world, dt) {
   updateCortex(fagi.cortex, fagi, world, ctx, dt);   // asks the API if it's time; never waits
   decide(fagi, world, ctx, dt);
 
-  // She stays still drinking or resting; the rest of the time, on the move.
+  // She stays still drinking, resting or pressed against a thing; the rest of the time, on the move.
   const stop = !fagi.swimming
-    && ((fagi.drinking && fagi.thirst > 0) || fagi.thought.action === 'rest');
+    && ((fagi.drinking && fagi.thirst > 0) || fagi.thought.action === 'rest' || fagi.thought.action === 'huddle');
   if (!stop) act(fagi, world, dt);
   fagi.moving = !stop;           // walking warms her a little (thermal.js)
 
   spendEnergy(fagi, world, dt, !stop);
   markTrail(fagi, world, dt);
   tryPickOrEat(fagi, world);
+  useThing(fagi, world);         // a touch or a nibble, once she reaches it (CONCEPT)
   resolveTrail(fagi);            // did the trail she was following lead her to food?
   increaseNeeds(fagi, world, dt);
   updateSleep(fagi, world, dt);  // pressure, and the night's sorting once she has slept enough

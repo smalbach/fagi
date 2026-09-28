@@ -46,7 +46,7 @@ function buildTypeButtons(foodBox, objectBox, input) {
   };
 
   for (const key of TYPE_KEYS) make(key, POINT_TYPES[key], hintOfFood(POINT_TYPES[key]), foodBox);
-  for (const key of OBJECT_KEYS) make(key, OBJECT_TYPES[key], hintOfObject(OBJECT_TYPES[key]), objectBox);
+  for (const key of OBJECT_KEYS) if (OBJECT_TYPES[key].palette !== false) make(key, OBJECT_TYPES[key], hintOfObject(OBJECT_TYPES[key]), objectBox);
   make(ASK, { color: '#b57bff' }, t('why.askHint'), objectBox);
 
   function select(key) {

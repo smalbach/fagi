@@ -44,7 +44,12 @@ export const TAG_COLOR = {
   coolDown: '#e0c35a',
   toSleep: '#8f7fd0',
   taste: '#b57bff',
+  sip: '#6fc7d9',
+  huddle: '#d9a86f',
+  huddleTo: '#d9a86f',
+  probe: '#c9b8ff',
   life: '#e7a6c4',
+  concept: '#7fd0c1',
   shelter: '#6f9fbf',
   api: '#4cc9f0',
   rethink: '#f0c75e',
@@ -434,6 +439,24 @@ function narrateOrganism(narr, fagi, p) {
     push(narr, fagi, 'sleep', { key: 'log.nightMind', params: { asked: m.asked, kept: m.kept } },
       kept.length ? { key: 'log.nightMindSub', params: { what: kept.map(showProposal).join(' · ') } } : { key: 'log.nightMindNone' });
     p.nightMind = m.n;
+  }
+
+  // Things and concepts (things.js, concepts.js): what a contact taught her,
+  // and the concepts it made, tested or retired.
+  const touched = fagi.lastThing;
+  if (touched && touched.n !== p.thing) {
+    p.thing = touched.n;
+    const c = touched.change;
+    if (c.settled) push(narr, fagi, 'concept', { key: `log.thing.${c.settled}`, params: { what: touched.key } }, { key: `log.thingHow.${touched.act}` });
+    if (c.scored) {
+      push(narr, fagi, 'concept', { key: c.scored.hit ? 'log.conceptHit' : 'log.conceptMiss', params: { id: c.scored.id, what: touched.key } },
+        c.scored.retired ? { key: 'log.conceptFails', params: { id: c.scored.id } } : null);
+    }
+    for (const made of c.formed) {
+      push(narr, fagi, 'concept', { key: `log.conceptFormed.${made.aff}`, params: { id: made.id, traits: made.all.join(' + ') } },
+        { key: 'log.conceptFormedSub', params: { n: made.members.length } });
+    }
+    for (const gone of c.retired) push(narr, fagi, 'concept', { key: 'log.conceptRevised', params: { id: gone.id } }, null);
   }
 }
 

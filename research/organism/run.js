@@ -32,6 +32,9 @@ const opt = (name, dflt) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] 
 
 function configure(settings) {
   enableOrganism();
+  // Things and concepts came after this protocol was frozen: the organism it
+  // evaluated had none (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md §12.8).
+  CONFIG.CONCEPT.enabled = 0;
   CONFIG.MAPGEN.species = SPECIES;
   for (const [path, value] of Object.entries(settings)) {
     const [block, key] = path.split('.');

@@ -26,6 +26,7 @@ import { persistOnScent, persistFromMemory } from './decision/clues.js';
 import { earlyDirective, safeDirective } from './decision/directive.js';
 import { exploreRule } from './decision/explore.js';
 import { taste } from './decision/experiment.js';
+import { sip, huddle, probe } from './decision/things.js';
 import { BASELINE } from './config.js';
 
 // Exported: the cortex uses it to know whether an external directive can
@@ -38,6 +39,7 @@ const RULES = [
   // 1. survive now
   ['survive', 'swimOut', leaveWater],
   ['survive', 'drink', drink],
+  ['survive', 'sip', sip],                        // CONCEPT only: a thing she believes has sap, nearer than water
   ['survive', 'eatCarried', eatCarriedFood],
   ['survive', 'directiveEarly', earlyDirective],   // only answers with BACKEND.authority === 1, and never if something presses that it doesn't handle
   ['survive', 'thermalReflex', thermalReflex],     // THERMAL only: stress about to kill
@@ -46,6 +48,7 @@ const RULES = [
   // 2. endure
   ['endure', 'rest', rest],
   ['endure', 'sleep', sleep],                     // SLEEP only
+  ['endure', 'huddle', huddle],                   // CONCEPT only: a thing she believes warm or cool, nearer than the nest
   ['endure', 'thermal', thermoregulate],          // THERMAL only, once she knows the nest helps
   ['endure', 'shelter', seekShelter],
   ['endure', 'anticipate', anticipate],
@@ -60,6 +63,7 @@ const RULES = [
   ['clues', 'memory', persistFromMemory],
   // 4. explore: last night's questions come first (experiment.js)
   ['explore', 'taste', taste],
+  ['explore', 'probe', probe],                    // CONCEPT only: touch, then nibble, a kind she has not figured out
 ];
 
 // The tiers in order, for whoever wants to draw the hierarchy.

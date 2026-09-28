@@ -7,7 +7,7 @@
 import {
   FAGI, HUNGER, THIRST, ENERGY, BRAIN, CARRY, NEST, EXPLORE, WIND, PLUME, PHERO, TREE, FRUIT, MEMORY,
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
-  CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI,
+  CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI, CONCEPT,
 } from './config.js';
 import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
@@ -94,6 +94,10 @@ const GROUPS = [
   ]},
   { title: { en: 'Perception', es: 'Percepción' }, fieldsOf: [
     n(PERCEPT, 'enabled', 'By smell alone she knows only the smell (1 = yes)', 'Por el olor solo conoce el olor (1 = sí)', 0, 1, 1),
+  ]},
+  { title: { en: 'Things and concepts', es: 'Cosas y conceptos' }, fieldsOf: [
+    n(CONCEPT, 'enabled', 'Things with no inborn category on the map (1 = yes, new sessions)', 'Cosas sin categoría innata en el mapa (1 = sí, sesiones nuevas)', 0, 1, 1),
+    n(CONCEPT, 'generalize', 'Groups what she learns into concepts (1 = yes)', 'Agrupa lo que aprende en conceptos (1 = sí)', 0, 1, 1),
   ]},
   { title: { en: 'Appetite', es: 'Apetito' }, fieldsOf: [
     n(APPETITE, 'enabled', 'Bites take time and a bad one puts her off food (1 = yes)', 'Comer lleva tiempo y un mal bocado le quita el apetito (1 = sí)', 0, 1, 1),

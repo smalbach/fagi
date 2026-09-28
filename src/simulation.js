@@ -11,7 +11,8 @@ import { updateNest, record } from './world.js';
 import { updateRain } from './rain.js';
 import { updateFagi } from './fagi.js';
 import { updateSisters } from './colony.js';
-import { CYCLE } from './config.js';
+import { CYCLE, CONCEPT } from './config.js';
+import { sproutThings } from './things.js';
 import { dayAt } from './cycle.js';
 
 export function stepWorld(world, dt) {
@@ -28,6 +29,7 @@ export function stepWorld(world, dt) {
   updateNest(world, dt);
   updateTrails(world, dt);
   updatePheromone(world, dt);
+  if (CONCEPT.enabled) sproutThings(world);   // new kinds of things, later on
 }
 
 export function step(world, fagi, dt) {
