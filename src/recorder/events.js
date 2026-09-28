@@ -43,6 +43,7 @@ export const EVENT_TYPES = {
   // what she sorted out while asleep.
   day: ['day'],
   night_report: ['report'],
+  night_mind: ['night', 'entries'],   // what the night mind proposed and what was kept (night/)
 };
 
 // Columns of each point in a `track` block, in this order.

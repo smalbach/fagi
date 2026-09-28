@@ -8,12 +8,13 @@
 // Once per night, after SLEEP.minSleep seconds asleep in the nest, the day is
 // sorted (consolidation.js). Not awake, not the moment she walks in, not twice.
 
-import { SLEEP, CYCLE } from './config.js';
+import { SLEEP, CYCLE, NIGHTAI } from './config.js';
 import { cycleAt, nightOf } from './cycle.js';
 import { nestUnder } from './nest.js';
 import { consolidate } from './consolidation.js';
 import { record } from './world.js';
 import { agendaFrom } from './experiment.js';
+import { askTheNight, createNightMind } from './night/index.js';
 
 // Is she asleep right now (as opposed to awake, doing anything else)?
 export const isAsleep = (fagi) => fagi.alive && fagi.thought?.action === 'rest' && !fagi.swimming;
@@ -36,6 +37,13 @@ function sortTheDay(fagi, world) {
   if (fagi.nightReports.length > SLEEP.reports) fagi.nightReports.splice(0, fagi.nightReports.length - SLEEP.reports);
   // What the night asked becomes what she tries when she wakes up.
   fagi.agenda = agendaFrom(fagi, report);
+  // And, if there is one, the night mind proposes on top of it (night/).
+  if (NIGHTAI.enabled && report.sorted) {
+    fagi.nightMind ??= createNightMind(NIGHTAI.backend, { url: NIGHTAI.url });
+    askTheNight(fagi, report, fagi.nightMind, (entries) => {
+      if (!fagi.sister) record(world, 'night_mind', { night: report.night, entries });
+    });
+  }
   fagi.brain.version = (fagi.brain.version ?? 0) + 1;
   if (!fagi.sister) record(world, 'night_report', { report });
 }

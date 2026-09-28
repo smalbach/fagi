@@ -34,11 +34,12 @@ export const appetiteOn = () => Boolean(APPETITE.enabled);
 // Does the thought of eating `key` put her off? What she tasted and found bad
 // does; what she never tasted does if it smells like something that made her
 // sick, or if its traits together warn her. Always no without appetite.
-export function aversive(fagi, key) {
+// `asIf`: judge it by these traits (a fruit not on the map, research).
+export function aversive(fagi, key, asIf = null) {
   if (!APPETITE.enabled) return false;
   const r = fagi.brain.facts[key];
   if (r && r.tries > 0) return r.value < 0;
-  const traits = CUES.enabled ? cuesOf(key) : [];
+  const traits = CUES.enabled ? asIf ?? cuesOf(key) : [];
   if (!traits.length) return false;
   const smell = traits.find((c) => c.startsWith('smell:'));
   if (smell && (fagi.brain.cues[smell]?.w ?? 0) <= -APPETITE.smellAversion) return true;

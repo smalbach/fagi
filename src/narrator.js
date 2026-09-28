@@ -415,4 +415,21 @@ function narrateOrganism(narr, fagi, p) {
       } } : { key: 'log.nightReportEmpty' });
     p.night = r.n;
   }
+
+  // What the night mind proposed, and what the gate let through (night/).
+  const m = fagi.lastNightMind;
+  if (m && m.n !== p.nightMind) {
+    const kept = (fagi.nightLog ?? []).filter((e) => e.night === m.night && e.accepted && e.proposal);
+    push(narr, fagi, 'sleep', { key: 'log.nightMind', params: { asked: m.asked, kept: m.kept } },
+      kept.length ? { key: 'log.nightMindSub', params: { what: kept.map(showProposal).join(' · ') } } : { key: 'log.nightMindNone' });
+    p.nightMind = m.n;
+  }
+}
+
+// A kept proposal in a few words: 'avoid color:red + smell:sour', '✗ avoid-smell-sour'
+// (a rule doubted away), '? red-drop-sour' (a fruit to try).
+function showProposal(e) {
+  if (e.proposal.type === 'rule') return `${e.proposal.verdict} ${e.proposal.when.all.join(' + ')}`;
+  if (e.proposal.type === 'doubt') return `✗ ${e.proposal.rule}`;
+  return `? ${e.proposal.look}`;
 }

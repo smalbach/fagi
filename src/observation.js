@@ -118,6 +118,7 @@ function organism(fagi) {
         night: report.night, episodes: report.episodes, hypotheses: report.hypotheses,
         contradictions: report.contradictions, questions: report.questions,
       } : null,
+      nightMind: fagi.lastNightMind ? { night: fagi.lastNightMind.night, asked: fagi.lastNightMind.asked, kept: fagi.lastNightMind.kept } : null,
     },
   };
 }

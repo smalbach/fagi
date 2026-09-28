@@ -59,7 +59,8 @@ function validateWhen(when) {
 //   pro/con: how many species she has tasted back it and contradict it;
 //   cases: the species that back it; from: the rule it grew out of;
 //   source: where it came from if she did not live it herself:
-//           { kind: 'told' | 'saw', from: <sister id>, at, trust };
+//           { kind: 'told' | 'saw' | 'born' | 'night', from: <sister id, 0 for the
+//           night mind>, at, trust };
 //   origin: where a rule passed from sister to sister was first lived
 //           ('<ant id>/<rule id>@<age>'), for following a belief back.
 export function rule(id, spec) {
@@ -122,7 +123,7 @@ export function rule(id, spec) {
 // born (generations.js).
 function validateSource(source) {
   if (!source || typeof source !== 'object') fail('"source" must be an object');
-  if (!['told', 'saw', 'born'].includes(source.kind)) fail('"source.kind" must be told|saw|born');
+  if (!['told', 'saw', 'born', 'night'].includes(source.kind)) fail('"source.kind" must be told|saw|born|night');
   if (!isCount(source.from)) fail('"source.from" must be a sister id');
   if (!isNumber(source.at)) fail('"source.at" must be numeric');
   if (!isNumber(source.trust) || source.trust < 0 || source.trust > 1) fail('"source.trust" must be within 0..1');

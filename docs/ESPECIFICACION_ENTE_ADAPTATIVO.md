@@ -1,6 +1,6 @@
 # Especificación: Fagi como ente adaptativo autónomo
 
-**Estado:** en implementación: fase 1 hecha; 2, 3, 5 y 6, en parte (ver §25)  
+**Estado:** en implementación: fases 1, 3 y 4 hechas; 2, 5 y 6, en parte (ver §25)  
 **Proyecto:** First AGI / Fagi  
 **Objetivo de esta versión:** transformar la simulación actual, inspirada en una hormiga, en un entorno experimental para estudiar un organismo artificial limitado que percibe, aprende, descansa, consolida experiencias, se reproduce y se adapta durante varias generaciones.
 
@@ -10,7 +10,7 @@
 
 El repositorio contiene estudios preregistrados y congelados (`docs/research/`) que ejecutan el mismo motor de simulación mediante `scripts/batch.js`. Todo lo que añade esta especificación debe respetar estas condiciones:
 
-1. **Cada bloque nuevo arranca apagado** en `src/config.js` (`CYCLE.enabled`, `THERMAL.enabled`, `SEX.enabled`, `SLEEP.enabled`, `EXPERIMENT.enabled`, `APPETITE.enabled`, `PERCEPT.enabled`, `GEN.sexual`).
+1. **Cada bloque nuevo arranca apagado** en `src/config.js` (`CYCLE.enabled`, `THERMAL.enabled`, `SEX.enabled`, `SLEEP.enabled`, `EXPERIMENT.enabled`, `APPETITE.enabled`, `PERCEPT.enabled`, `NIGHTAI.enabled`, `GEN.sexual`).
 2. **Con todo apagado, la simulación es idéntica número a número**: no se consume ni un número aleatorio más ni en otro orden, y todo multiplicador corporal vale exactamente `1`. Se comprobó comparando byte a byte la salida JSON de `batch.js` antes y después (ejecución simple y por generaciones con especies).
 3. **El juego enciende el organismo** al arrancar (`src/app/organism-on.js`, que se importa antes que los ajustes). En batch se enciende con `--organism`, y `--set` puede apagar después cualquier pieza (`--set SLEEP.consolidate=0`).
 4. **Las sesiones grabadas guardan los flags** con el resto de ajustes. Al reproducir una sesión anterior al organismo, los flags ausentes se consideran `0` (`organismOffConfig`).
@@ -589,6 +589,8 @@ propuesta → validación de esquema → simulación aislada → comparación �
 ```
 
 Así se obtiene mejora nocturna sin convertir el sistema en autoedición insegura e imposible de auditar.
+
+**Implementado** en `src/night/` (§25.7). La «simulación aislada» es un contrafactual sobre su propia memoria, no una ejecución del mundo: ejecutar el mundo le diría qué son las cosas en realidad.
 
 ### 11.4 Consolidación local implementada
 
@@ -1514,6 +1516,13 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] Las preguntas del informe dirigen el día siguiente: agenda y mordisco de prueba (§12.6).
 - [x] Apetito y sed apetitiva, corregidos a partir de autopsias (§25.5).
 
+**Fase 4: IA nocturna acotada**
+- [x] Esquema de entrada (solo lo que sabe) y de salida (tres tipos de propuesta en una gramática declarativa).
+- [x] Validación de estructura y de referencias.
+- [x] Sandbox: contrafactual sobre su propia memoria.
+- [x] Se acepta solo lo que mejora o cambia algo con respaldo, y se registran todas las aceptaciones y rechazos.
+- [x] Mente local determinista como reserva; mente HTTP con tiempo límite.
+
 **Fase 6: parcial**
 - [x] Identidad real separada de lo percibido, en lo que Fagi decide y en lo que ve la API (§12.7).
 - [x] El mordisco de prueba como primera acción experimental (§12.6).
@@ -1552,25 +1561,27 @@ Dormir con replay generaliza mejor sin recibir información nueva. Con el replay
 
 *Con replay, en el juego* (`scripts/sleep-lab.js --game 32`). `--organism`, 6 especies, 32 vidas de 1800 s, un mapa por vida:
 
-| Condición | Vivas al final | Mordiscos dañinos | Primeros mordiscos dañinos | Especies probadas | Exactitud equilibrada (catálogo) |
+| Condición | Vivas al final | Mordiscos dañinos | Primeros mordiscos dañinos | Especies probadas | Exactitud de sus reglas (catálogo)¹ |
 |---|---|---|---|---|---|
-| `SLEEP.consolidate = 0` | 24/32 | 1,75 | 1,56 | 3,3 | 0,519 |
-| `consolidate = 1`, `replay = 0` | 24/32 | 1,69 | 1,47 | 3,2 | 0,520 |
-| `consolidate = 1`, `replay = 4` | 24/32 | 1,69 | 1,47 | 3,2 | 0,520 |
+| `SLEEP.consolidate = 0` | 24/32 | 1,75 | 1,56 | 3,3 | 0,604 |
+| `consolidate = 1`, `replay = 0` | 24/32 | 1,69 | 1,47 | 3,2 | 0,619 |
+| `consolidate = 1`, `replay = 4` | 24/32 | 1,69 | 1,47 | 3,2 | 0,613 |
 
 No hay diferencia. La causa es la exposición: en una vida Fagi prueba unas 3 especies, y el ajuste diurno ya reproduce esos pocos datos casi sin error (error cuadrático medio del repaso < 0,01). Las 8 muertes de cada condición son de hambre (5) y de sed (3), ninguna de frío, y son las mismas con y sin consolidación: lo que la noche cambia sobre la fruta no llega a decidir quién sobrevive. Para que la noche se note en el juego hacen falta más datos por vida (curiosidad dirigida por las preguntas del informe, §12.5, o vidas en colonia) antes que una consolidación más fuerte. Se deja constancia en lugar de ajustar parámetros hasta que aparezca un efecto.
 
 **Experimentos: las preguntas de la noche, al día siguiente** (`scripts/sleep-lab.js --game 48`). `--organism`, 6 especies, 48 vidas de 1800 s, un mapa por vida y las mismas semillas en cada condición:
 
-| Condición | Especies probadas | Especies buenas descubiertas | Frutas dañinas enteras | Bocados de prueba dañinos | Dosis dañina (en frutas enteras) | Exactitud de sus reglas | Vivas |
+| Condición | Especies probadas | Especies buenas descubiertas | Frutas dañinas enteras | Bocados de prueba dañinos | Dosis dañina (en frutas enteras) | Exactitud de sus reglas (catálogo)¹ | Vivas |
 |---|---|---|---|---|---|---|---|
-| sin experimentos (`EXPERIMENT.enabled = 0`) | 3,06 | 47 % | 1,54 | 0 | 1,54 | 0,516 | 36/48 |
-| con experimentos, sin consolidar (`SLEEP.consolidate = 0`) | 3,13 | 47 % | 1,58 | 0 | 1,58 | 0,516 | 36/48 |
-| con experimentos (por defecto) | **5,33** | **77 %** | **1,29** | 1,56 | 1,68 | 0,532 | 37/48 |
+| sin experimentos (`EXPERIMENT.enabled = 0`) | 3,06 | 47 % | 1,54 | 0 | 1,54 | 0,608 ± 0,025 | 36/48 |
+| con experimentos, sin consolidar (`SLEEP.consolidate = 0`) | 3,13 | 47 % | 1,58 | 0 | 1,58 | 0,601 ± 0,025 | 36/48 |
+| con experimentos (por defecto) | **5,33** | **77 %** | **1,29** | 1,56 | 1,68 | **0,780 ± 0,027** | 37/48 |
 
-Preguntar de noche y probar de día hace que Fagi conozca casi el doble de especies y encuentre muchas más de las que alimentan. Además come menos frutas dañinas enteras, porque la especie mala ya la conoció con un bocado. El coste es un 9 % más de dosis dañina en total: bocados pequeños de especies que antes nunca habría probado. La supervivencia no cambia (las muertes siguen siendo de hambre y sed, 12 frente a 11), y la exactitud de sus reglas apenas sube, porque la mayoría de lo aprendido queda en los pesos de los rasgos sin llegar a regla. Sin consolidar no hay agenda, y el efecto desaparece por completo.
+Preguntar de noche y probar de día hace que Fagi conozca casi el doble de especies y encuentre muchas más de las que alimentan. Además come menos frutas dañinas enteras, porque la especie mala ya la conoció con un bocado. El coste es un 9 % más de dosis dañina en total: bocados pequeños de especies que antes nunca habría probado. La supervivencia no cambia (las muertes siguen siendo de hambre y sed, 12 frente a 11). Lo que sí cambia es cómo juzga lo que nunca probó: la exactitud de sus reglas sobre el catálogo sube de 0,61 a **0,78**. Sin consolidar no hay agenda, y el efecto desaparece por completo (0,60).
 
-Esto no cumple por sí solo el criterio de salida de la fase 3 («dormir mejora transferencia o retención sin recibir información externa adicional»). La agenda mejora la **exploración**: cuántas especies prueba y encuentra. No mide transferencia ni retención. El criterio se cumple solo en el laboratorio, con el replay, y con un efecto pequeño (+0,006 de acierto en especies nunca probadas). En el juego sigue pendiente, y la retención a varios días no se ha medido. Ninguna de las dos vías cambia todavía la supervivencia.
+**Criterio de salida de la fase 3 («dormir mejora transferencia o retención sin recibir información externa adicional»): se cumple en el juego para la transferencia.** Las preguntas de la noche la llevan a probar más especies, y con eso juzga mejor las que nunca probó: la exactitud de sus reglas sobre las 96 combinaciones del catálogo pasa de 0,61 a 0,78. Sin sueño (sin consolidar), 0,60. El replay añade poco en el juego y algo en el laboratorio. La retención a varios días sigue sin medirse. Ninguna de las dos vías cambia todavía la supervivencia.
+
+¹ **Corrección de la métrica.** Una versión anterior de estas tablas usó `accuracy()` de `research/lab/truth.js` sobre el catálogo completo. Esa función lee los rasgos de las especies registradas en el mapa, así que para las ~90 combinaciones que no estaban en el mapa no veía rasgos y ninguna regla de rasgos se aplicaba. Medía casi solo 6 especies (daba 0,52 en todas las condiciones) y llevó a concluir, por error, que la agenda no mejoraba la transferencia. `scripts/sleep-lab.js` ahora juzga cada combinación por sus rasgos, y las cifras de arriba están rehechas con él. Los estudios preregistrados no estaban afectados: allí el catálogo son las especies registradas.
 
 **Sexos:** en 8 vidas de 1200 s sobrevivieron todas, tanto hembras (5) como machos (3); ningún sexo dominó en esa muestra. Hace falta una batería de mapas para afirmar equilibrio.
 
@@ -1618,10 +1629,11 @@ Al corregirlos aparecieron otros tres, y la autopsia también los mostró:
 | Vidas con algo que parece un artefacto | 9 | **0** |
 | Dosis de veneno recibida (en frutas enteras) | 1,68 | **1,20** |
 | Especies probadas / especies buenas descubiertas | 5,33 / 77 % | 4,63 / 72 % |
+| ¿Se la comería? Juicio (reglas y aversión) sobre el catálogo | 0,780 ± 0,027 | **0,870 ± 0,012** |
 
 Las 10 muertes que quedan son realistas y se dejan como están. Todas son de forrajeras ingenuas que prueban dos cosas desconocidas y venenosas con olores distintos, y en todas una de las dos es **fruta podrida** (`toxic`): la fruta que nadie recoge se pudre, y el olor a podrido todavía no le había hecho daño. Los machos mueren antes (hacia los 665 s, frente a los 800 s de las hembras) porque su metabolismo más rápido los lleva antes al umbral de hambre al que empiezan a comer lo desconocido. Que la aversión a lo podrido sea innata o aprendida es una pregunta abierta para la especie ficticia; por ahora es aprendida, como todo lo demás (§12).
 
-Todas las muertes por sed desaparecieron con la sed apetitiva. La aversión reduce el veneno recibido y a cambio prueba algo menos: es el intercambio real entre prudencia y exploración.
+Todas las muertes por sed desaparecieron con la sed apetitiva. La aversión reduce el veneno recibido y a cambio prueba algo menos: es el intercambio real entre prudencia y exploración. Y mejora cómo juzga lo que nunca probó (0,78 → 0,87), aunque escribe menos reglas: la cautela vive en el apetito (lo que le da aversión), no solo en las reglas. Por eso, desde aquí, las tablas miden también el juicio completo, «¿se la comería?», y no solo sus reglas.
 
 ### 25.6 Percepción: resultado
 
@@ -1631,16 +1643,65 @@ Organismo completo (48 vidas de 1800 s, 6 especies):
 |---|---|---|
 | Vivas | 38/48 | 40/48 |
 | Especies probadas / buenas descubiertas | 4,63 / 72 % | 4,69 / 74 % |
+| ¿Se la comería? Juicio sobre el catálogo | 0,870 ± 0,012 | 0,849 ± 0,017 |
 | Dosis de veneno (en frutas enteras) | 1,20 | 1,23 |
 | Muertes / con algo que parece un artefacto | 10 / 0 | 8 / 0 |
 
 La conducta apenas cambia, y era lo esperable. En la química por defecto el olor decide si una fruta alimenta o envenena, así que juzgar solo por el olor pierde poco. La diferencia importaría en químicas donde el veneno depende de color y olor a la vez (`family: 'conj'`). El valor de este paso no es un número: es que lo que Fagi aprende ya no puede apoyarse en información que no percibe, y eso lo comprueba un test (§20, novedad: «el agente no recibe el tipo verdadero»).
 
+### 25.7 Mente nocturna: diseño y resultado
+
+`src/night/` (`index.js`: contrato, puerta y sandbox; `local.js`; `http.js`), con el flag `NIGHTAI.enabled`, que forma parte del organismo.
+
+**Entrada** (`nightInput`). Solo lo que sabe, sin nombres del código ni química:
+
+- el informe de la noche;
+- las frutas que probó, por su aspecto, con lo que le hicieron de media;
+- las que solo vio;
+- los rasgos que conoce, con su peso;
+- sus reglas vivas.
+
+**Salida.** Una lista `proposals` de hasta `NIGHTAI.maxProposals`, cada una de uno de tres tipos:
+
+| Tipo | Forma | Se acepta si |
+|---|---|---|
+| `rule` | `{ when: { all: [1–3 rasgos que conoce] }, verdict: avoid\|prefer, replaces?: [ids] }` | la respaldan ≥ `minSupport` frutas que probó, ninguna la contradice, no empeora cómo juzgaría lo que vivió, no la tiene ya y cambia el juicio sobre alguna fruta que conoce. Con `replaces` se evalúa como una sola revisión (entra la nueva y salen las otras, o nada), y cada regla reemplazada debe tener algo vivido en contra |
+| `doubt` | `{ rule: id de una regla suya sobre rasgos }` | algo que vivió la contradice y, sin ella, juzgaría lo que vivió estrictamente mejor |
+| `explore` | `{ look: aspecto de una fruta vista y no probada }` | no está ya en su agenda |
+
+Todo lo demás se rechaza entero: código, reglas sobre una especie, rasgos que no conoce, campos desconocidos, listas largas. Una regla aceptada entra con `source: { kind: 'night' }` y confianza `NIGHTAI.trust`. Desde entonces responde ante lo que viva, como cualquier regla que no vivió: `checkTold` la retira cuando las frutas la contradicen. Cada propuesta queda en `fagi.nightLog` con el motivo, y en la grabación (`night_mind`). Una respuesta remota nunca bloquea el frame, y si llega tarde, con Fagi muerta o ya en otra noche, no cambia nada.
+
+**Qué encontró probarla.**
+
+1. **La primera puerta aceptaba duplicados.** Aceptó 27 reglas en 48 vidas sin cambiar ni un veredicto, porque solo comparaba identificadores. Ahora exige que la propuesta cambie algo.
+2. **Faltaba poder corregir.** El error frecuente de Fagi no es que le falte una regla, sino que le sobra una falsa: por ejemplo «evita lo ácido» después de haber vivido una fruta ácida buena. Por eso existen `doubt` y la revisión atómica con `replaces` (de «rojo» a «rojo y ácido»), que ninguna propuesta suelta alcanzaba.
+3. **Aprobar con lo vivido no garantiza generalizar.** Con 2–5 frutas probadas, algo puede mejorar el juicio sobre lo vivido y empeorar un poco el del resto.
+
+**Resultado.**
+
+| Banco | Química | Sin mente nocturna → con ella |
+|---|---|---|
+| Laboratorio (300 ensayos pareados, 6 especies probadas dos veces), exactitud de sus reglas en lo no probado | `smell` | 0,868 → 0,864 (−0,004 ± 0,006) |
+| Laboratorio | `conj` (veneno = color **y** olor) | 0,807 → **0,867 (+0,060 ± 0,004)** |
+| Juego, 48 vidas: juicio sobre el catálogo | `smell` | 0,849 ± 0,017 → 0,859 ± 0,016 |
+| Juego, 48 vidas: exactitud de sus reglas | `conj` | 0,689 → 0,687 |
+
+La mente nocturna local ayuda donde tiene algo que corregir: en la química `conj` las reglas de un solo rasgo son falsas, y en el laboratorio las retira o las sustituye por la conjunción (+6 puntos). En el juego no se nota. Cada vida prueba pocas especies, así que casi todo lo que propone no tiene respaldo suficiente (en 48 vidas se aceptan 0,8 cambios por vida de ~10 propuestos). La supervivencia no cambia.
+
+**Criterio de salida de la fase 4:**
+
+- «Ninguna respuesta del modelo puede ejecutar código arbitrario»: se cumple por construcción (la salida es datos en una gramática cerrada, sin `eval`) y lo comprueban los tests.
+- «Toda mejora aceptada tiene evidencia comparativa»: se cumple; cada aceptación guarda su respaldo, lo que la contradice y la ganancia.
+
+Queda pendiente probar un modelo de lenguaje real por `http`. La mente local es un piso, no un techo.
+
+**Pregunta abierta.** Con el organismo completo sin experimentos ni mente nocturna, consolidar da un juicio menor que no consolidar (0,710 ± 0,025 frente a 0,791 ± 0,030). La diferencia está en el límite del ruido; se deja anotada, sin explicación todavía.
+
 ### 25.3 Pendiente
 
 - Fase 2: probar con una batería de mapas que ningún sexo domina todos los escenarios (criterio de salida).
 - Fase 3: medir la retención a varios días y si lo que se aprende con bocados de prueba llega a reglas; convertir lo que sabe de la fruta en supervivencia (hoy mueren de hambre y sed, no por la fruta).
-- Fase 4: IA nocturna acotada (esquema, DSL, sandbox, aceptación por comparación). Aún no hay ninguna vía por la que un modelo externo modifique la memoria.
+- Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
 - Fase 5: reproducción dentro del mundo (selección de pareja, costes, huevo o gestación, juvenil y senescente, `fertility`, `health`) y población persistente sin runner; que los inmaduros no se reproduzcan.
 - Fase 6: formar conceptos a partir de rasgos, que los objetos del mapa dejen de ser categorías innatas y el resto de acciones experimentales del §12.3 (tocar, combinar, esperar y volver a mirar).
 - Fase 7: baselines (aleatorio, reglas fijas), batería de ablaciones del §18.2 y preregistro de las afirmaciones.
@@ -1652,37 +1713,48 @@ Cada tabla se midió con el organismo tal como estaba en ese momento. `--organis
 ```text
 npm test
 
-# §25.2 calibración térmica (medida con apetito, antes de PERCEPT)
-node scripts/batch.js --organism --runs 12 --duration 2400 --set PERCEPT.enabled=0
-node scripts/batch.js --organism --runs 12 --duration 2400 --set PERCEPT.enabled=0 --set THERMAL.behave=0
-node scripts/batch.js --organism --runs 12 --duration 2400 --set PERCEPT.enabled=0 --set CYCLE.swing=16
-node scripts/batch.js --organism --runs 12 --duration 2400 --set PERCEPT.enabled=0 --set CYCLE.swing=16 --set THERMAL.behave=0
+# §25.2 calibración térmica (medida con apetito, antes de PERCEPT y de la mente nocturna)
+T="--set PERCEPT.enabled=0 --set NIGHTAI.enabled=0"
+node scripts/batch.js --organism --runs 12 --duration 2400 $T
+node scripts/batch.js --organism --runs 12 --duration 2400 $T --set THERMAL.behave=0
+node scripts/batch.js --organism --runs 12 --duration 2400 $T --set CYCLE.swing=16
+node scripts/batch.js --organism --runs 12 --duration 2400 $T --set CYCLE.swing=16 --set THERMAL.behave=0
 
 # §25.2 replay en el laboratorio
 node scripts/sleep-lab.js --k 6 --trials 300
 node scripts/sleep-lab.js --k 6 --trials 300 --set SLEEP.downscale=0.1
 node scripts/sleep-lab.js --k 3 --trials 300 --set SLEEP.downscale=0.1
 
-# §25.2 replay en el juego (antes de los experimentos, el apetito y PERCEPT)
-OFF="--set EXPERIMENT.enabled=0 --set APPETITE.enabled=0 --set PERCEPT.enabled=0"
+# §25.2 replay en el juego (antes de los experimentos, el apetito, PERCEPT y la mente nocturna)
+OFF="--set EXPERIMENT.enabled=0 --set APPETITE.enabled=0 --set PERCEPT.enabled=0 --set NIGHTAI.enabled=0"
 node scripts/sleep-lab.js --game 32 $OFF
 node scripts/sleep-lab.js --game 32 $OFF --set SLEEP.replay=0
 node scripts/sleep-lab.js --game 32 $OFF --set SLEEP.consolidate=0
 
-# §25.2 experimentos (antes del apetito y PERCEPT)
-OFF="--set APPETITE.enabled=0 --set PERCEPT.enabled=0"
+# §25.2 experimentos (antes del apetito, PERCEPT y la mente nocturna)
+OFF="--set APPETITE.enabled=0 --set PERCEPT.enabled=0 --set NIGHTAI.enabled=0"
 node scripts/sleep-lab.js --game 48 $OFF --set EXPERIMENT.enabled=0
 node scripts/sleep-lab.js --game 48 $OFF
 node scripts/sleep-lab.js --game 48 $OFF --set SLEEP.consolidate=0
 
-# §25.5 autopsias y apetito (antes de PERCEPT)
-node scripts/autopsy.js --lives 48 --set PERCEPT.enabled=0 --set APPETITE.enabled=0
-node scripts/autopsy.js --lives 48 --set PERCEPT.enabled=0
-node scripts/sleep-lab.js --game 48 --set PERCEPT.enabled=0
+# §25.5 autopsias y apetito (antes de PERCEPT y la mente nocturna)
+OFF="--set PERCEPT.enabled=0 --set NIGHTAI.enabled=0"
+node scripts/autopsy.js --lives 48 $OFF --set APPETITE.enabled=0
+node scripts/autopsy.js --lives 48 $OFF
+node scripts/sleep-lab.js --game 48 $OFF
 
-# §25.6 percepción (el organismo completo)
+# §25.6 percepción (antes de la mente nocturna)
+node scripts/sleep-lab.js --game 48 --set NIGHTAI.enabled=0
+node scripts/autopsy.js --lives 48 --set NIGHTAI.enabled=0
+
+# §25.7 mente nocturna
+node scripts/sleep-lab.js --k 6 --night
+node scripts/sleep-lab.js --k 6 --night --family conj
 node scripts/sleep-lab.js --game 48
-node scripts/autopsy.js --lives 48
+node scripts/sleep-lab.js --game 48 --set MAPGEN.family=conj --set NIGHTAI.enabled=0
+node scripts/sleep-lab.js --game 48 --set MAPGEN.family=conj
+node scripts/sleep-lab.js --game 48 --set NIGHTAI.enabled=0 --set EXPERIMENT.enabled=0
+node scripts/sleep-lab.js --game 48 --set SLEEP.consolidate=0
 
 # generaciones con reproducción sexual
 node scripts/batch.js --organism --set GEN.sexual=1 --generations 6 --colony 6 --runs 4 --duration 600 --set MAPGEN.species=6

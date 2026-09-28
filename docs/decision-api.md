@@ -174,6 +174,33 @@ valid). An expired directive (`fagi.age >= until`) is forgotten on its own; an
 answer that arrives late, after Fagi died or the game was
 restarted, is discarded without being applied.
 
+## The night mind (`POST /night`)
+
+A second, separate contract, for a model that proposes hypotheses while she
+sleeps (`src/night/`, `NIGHTAI` in `config.js`, spec §11.3 and §25.7). It is
+asked once per night, after she has sorted the day, with
+`NIGHTAI.backend = 'http'` and `NIGHTAI.url`; it has `NIGHTAI.timeout` seconds.
+
+It receives only what she knows (`nightInput`): the night report, the fruit she
+tasted by how they look (`"red-drop-sour"`) with what they did to her on average
+(`felt`, −1..1), the ones she has only seen, the traits she has met with their
+weight, and her live rules. It answers:
+
+```json
+{ "proposals": [
+  { "type": "rule", "when": { "all": ["color:red", "smell:sour"] }, "verdict": "avoid",
+    "replaces": ["avoid-smell-sour"], "why": "two red sour fruit harmed her; a sour one fed her" },
+  { "type": "doubt", "rule": "avoid-color-red" },
+  { "type": "explore", "look": "red-crystal-sour" }
+] }
+```
+
+Nothing it says is applied as it comes. Each proposal is checked against the
+grammar and against what she knows, tried on her own memory, and kept only if
+what she lived backs it and it changes something; everything else is rejected
+and logged with the reason. A kept rule stays hers only while what she lives
+does not go against it.
+
 ## How to plug in a real LLM
 
 1. Stand up a server that serves `POST /decide` with the contract above.

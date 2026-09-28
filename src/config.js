@@ -606,6 +606,8 @@ export const MAPGEN = {
   margin: 40,         // don't stick anything to the edge
   minGap: 34,         // minimum gap between objects (Fagi has to be able to get through)
   spawnClear: 130,    // clear radius around the point where Fagi spawns
+  family: 'smell',    // how that chemistry is built (chemistry.js): 'smell' (the smell decides),
+                      // 'one' or 'conj' (poison needs a color AND a smell)
   species: 0,         // > 0: a map with its own hidden chemistry and this many
                       // wild species, one tree each (chemistry.js). 0 = classic
   speciesMinDistance: 200, // how far from the nest the species trees grow
@@ -695,6 +697,25 @@ export const SEX = {
 //   searchWater : thirst (fraction) from which, not knowing where water is, she
 //                 stops gathering and goes looking for it
 //   averse, desperate: below
+// The night mind (night/): a model that proposes hypotheses while she sleeps,
+// and the gate that decides which she keeps.
+//   backend     : 'local' (deterministic, no network) or 'http' (a server at `url`)
+//   trust       : what a kept proposal is trusted, as a share of what backs it
+//   minSupport  : fruit she tasted that must back a proposed rule
+//   maxProposals: proposals weighed per night
+//   timeout     : seconds a remote mind has to answer
+//   log         : entries kept in her night log
+export const NIGHTAI = {
+  enabled: 0,
+  backend: 'local',
+  url: '',
+  trust: 0.5,
+  minSupport: 2,
+  maxProposals: 4,
+  timeout: 4,
+  log: 40,
+};
+
 // Perception (percept.js): she tells things apart only by what she perceives.
 // By smell alone, only the smell.
 export const PERCEPT = {

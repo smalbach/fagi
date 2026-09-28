@@ -644,4 +644,9 @@ export default {
   'log.nightReport': 'Duerme y ordena el día (noche {night})',
   'log.nightReportSub': '{episodes} experiencias · {hypotheses} hipótesis · refuerza {strengthened} · olvida {forgotten} · recoloca {moved} rasgos',
   'log.nightReportEmpty': 'duerme, pero el día no dejó nada que ordenar',
+  'log.nightMind': 'La mente nocturna propuso {asked}; se quedó con {kept}',
+  'log.nightMindSub': '{what}',
+  'log.nightMindNone': 'nada de lo propuesto se sostuvo con lo que vivió',
+  'why.night': 'Me lo propuso la noche y lo respaldaba lo que viví (confianza {trust}%).',
+  'sense.night': 'propuesta nocturna respaldada por {v} frutas',
 };

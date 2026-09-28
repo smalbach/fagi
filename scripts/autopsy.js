@@ -36,7 +36,7 @@ for (let i = 0; i < args.length; i++) {
   if (args[i] !== '--set') continue;
   const [path, value] = args[i + 1].split('=');
   const [block, key] = path.split('.');
-  CONFIG[block][key] = Number(value);
+  CONFIG[block][key] = Number.isFinite(Number(value)) ? Number(value) : value;
 }
 const LIVES = opt('lives', 48);
 const DURATION = opt('duration', 1800);

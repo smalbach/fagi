@@ -74,7 +74,8 @@ export function refreshRules(brain) {
     if (r.retired) continue;
     // What a sister told her rests on what the sister lived: she has nothing
     // of her own to weigh it with.
-    if (r.source?.kind === 'told' || r.source?.kind === 'born') continue;
+    // Nor does what the night mind proposed (night/): it rests on what backed it.
+    if (r.source?.kind === 'told' || r.source?.kind === 'born' || r.source?.kind === 'night') continue;
     if (r.cases) {
       const w = r.cases.reduce((sum, k) => sum + (brain.facts[k] ? weight(brain, k) : 0), 0) / r.cases.length;
       r.weight = Number(w.toFixed(3));

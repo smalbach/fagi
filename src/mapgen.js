@@ -87,7 +87,7 @@ function placeFarFrom(world, type, count, origin, minDistance, maxDistance, pref
 // `chemistry`: impose one instead of drawing it (generations in batch keep the
 // same chemistry across maps, until it changes on purpose).
 function placeSpecies(world, nest, chemistry = null) {
-  const chem = chemistry ?? createChemistry();
+  const chem = chemistry ?? createChemistry(Math.random, { family: MAPGEN.family });
   const species = createSpecies(chem, MAPGEN.species);
   registerSpecies(species);
   world.chemistry = chem;

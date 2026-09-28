@@ -642,4 +642,9 @@ export default {
   'log.nightReport': 'She sleeps and sorts the day (night {night})',
   'log.nightReportSub': '{episodes} experiences · {hypotheses} hypotheses · strengthens {strengthened} · forgets {forgotten} · re-weighs {moved} traits',
   'log.nightReportEmpty': 'she sleeps, but the day left nothing to sort',
+  'log.nightMind': 'The night mind proposed {asked}; she kept {kept}',
+  'log.nightMindSub': '{what}',
+  'log.nightMindNone': 'nothing proposed held up against what she lived',
+  'why.night': 'The night proposed it and what I lived backed it (trust {trust}%).',
+  'sense.night': 'night proposal backed by {v} fruit',
 };
