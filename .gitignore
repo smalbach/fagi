@@ -34,3 +34,5 @@ yarn-error.log*
 research/results/*/rows.csv
 research/results/*/genealogy.jsonl
 research/results/*/summary.json
+research/results/game-confirm/*.json
+research/results/game-confirm/*.log

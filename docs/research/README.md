@@ -57,5 +57,6 @@ paired on those twins.
   information about the chemistry is still to do.
 - **A verdict only covers fruit the teller has met.** That is the point of a
   conclusion, and it is also why conclusions generalize less.
-- **The pilot shaped the hypotheses.** Confirmatory tests must use fresh seeds
-  and the analysis fixed in advance (`preregistration-draft.md`).
+- **The pilot shaped the hypotheses.** Confirmatory tests use fresh seeds and
+  the analysis fixed in advance ([`preregistration.md`](preregistration.md),
+  frozen before the runs). Results: [`results.md`](results.md).
