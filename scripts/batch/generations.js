@@ -14,9 +14,11 @@ import { createWorld } from '../../src/world.js';
 import { generateMap } from '../../src/mapgen.js';
 import { stepWorld } from '../../src/simulation.js';
 import { createColony, updateColony } from '../../src/colony.js';
-import { createChemistry, invertChemistry } from '../../src/chemistry.js';
+import { createChemistry, invertChemistry, speciesKeys } from '../../src/chemistry.js';
 import { createGenome, mutate, applyGenome, teach, pick, fitness } from '../../src/generations.js';
 import { rng, withRng } from './random.js';
+import { POINT_TYPES } from '../../src/config.js';
+import { accuracy } from '../../research/lab/truth.js';
 import { round, mean } from './stats.js';
 import { noteLearning, learningSummary, createMythLog, noteMyths, mythSummary, isFalse } from './run.js';
 
@@ -96,11 +98,20 @@ export function runLineage(opts, seed) {
 // At birth, on average: the innate bias toward the poison and the food smells
 // of this generation's chemistry, and how many newborns were taught to avoid
 // the poison smell, or to avoid the food smell (the old poison, after a switch).
+//
+// Also, measured as in the lab (research/lab/truth.js): how right what she was
+// taught is over the map's species (balanced accuracy), how many rules she
+// was born with, and how many of them are about traits.
 function birthView(colony, chem) {
   const poison = `smell:${poisonSmell(chem)}`;
   const food = `smell:${foodSmell(chem)}`;
   const avoids = (f, cue) => f.brain.rules.list.some((r) => !r.retired && r.verdict === 'avoid' && r.when.all?.includes(cue));
+  const species = speciesKeys().map((k) => POINT_TYPES[k].traits);
+  const live = (f) => f.brain.rules.list.filter((r) => !r.retired);
   return {
+    acc: round(mean(colony.ants.map((f) => accuracy(f, chem, species).balanced)), 3),
+    rules: round(mean(colony.ants.map((f) => live(f).length)), 2),
+    traitRules: round(mean(colony.ants.map((f) => live(f).filter((r) => r.when.all).length)), 2),
     innatePoison: round(mean(colony.ants.map((f) => f.brain.cues[poison]?.innate ? f.brain.cues[poison].w : 0)), 2),
     innateFood: round(mean(colony.ants.map((f) => f.brain.cues[food]?.innate ? f.brain.cues[food].w : 0)), 2),
     taughtAvoidPoison: colony.ants.filter((f) => avoids(f, poison)).length,
@@ -121,7 +132,7 @@ export function reportGenerations(opts, lineages) {
   const pct = (a, b) => (b ? `${Math.round((100 * a) / b)}%` : '-');
   const G = opts.generations;
   const L = [`generations: ${lineages.length} lineages × ${G} generations × ${opts.colony} ants × ${opts.duration}s; the chemistry turns over at generation ${opts.switchAt ?? Math.floor(G / 2)}`];
-  L.push('gen chem  alive   1st harmful/ant  harmful   born wary of poison · of food   taught avoid poison · food   false rules held (unlived · lived)');
+  L.push('gen chem  alive   1st harmful/ant  harmful   born wary of poison · of food   taught avoid poison · food   false rules held (unlived · lived)   taught: accuracy · rules · trait rules');
   for (let g = 0; g < G; g++) {
     const rows = lineages.map((l) => l[g]).filter(Boolean);
     const sum = (f) => rows.reduce((a, r) => a + f(r), 0);
@@ -134,6 +145,7 @@ export function reportGenerations(opts, lineages) {
       `${round(mean(rows.map((r) => r.born.innatePoison)), 2)} · ${round(mean(rows.map((r) => r.born.innateFood)), 2)}`.padStart(18),
       `${pct(sum((r) => r.born.taughtAvoidPoison), ants)} · ${pct(sum((r) => r.born.taughtAvoidFood), ants)}`.padStart(24),
       `${sum((r) => r.falseUnlived)} · ${sum((r) => r.falseLived)}`.padStart(22),
+      `${round(mean(rows.map((r) => r.born.acc)), 2)} · ${round(mean(rows.map((r) => r.born.rules)), 1)} · ${round(mean(rows.map((r) => r.born.traitRules)), 1)}`.padStart(26),
     ].join(''));
   }
   return L.join('\n');
