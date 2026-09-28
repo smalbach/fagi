@@ -1,6 +1,6 @@
 # Especificación: Fagi como ente adaptativo autónomo
 
-**Estado:** en implementación: fases 1 a 5 y 7 hechas; 6, en parte (ver §25)  
+**Estado:** en implementación: fases 1 a 7 hechas (ver §25)  
 **Proyecto:** First AGI / Fagi  
 **Objetivo de esta versión:** transformar la simulación actual, inspirada en una hormiga, en un entorno experimental para estudiar un organismo artificial limitado que percibe, aprende, descansa, consolida experiencias, se reproduce y se adapta durante varias generaciones.
 
@@ -1611,9 +1611,13 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] Protocolo congelado antes de correr (`docs/research/organism-protocol.md`, commit `c181469`), semillas nunca usadas, un solo comando.
 - [x] Resultados negativos publicados, datos brutos conservados (`research/results/organism/`) e informe automático (§25.9).
 
-**Fase 6: parcial**
+**Fase 6: novedad y conceptos emergentes**
 - [x] Identidad real separada de lo percibido, en lo que Fagi decide y en lo que ve la API (§12.7).
-- [x] El mordisco de prueba como primera acción experimental (§12.6).
+- [x] Acciones experimentales: el mordisco de prueba (§12.6); tocar y mordisquear cosas (§12.8).
+- [x] Incertidumbre estimada: confianza de cada concepto, y volatilidad tras una sorpresa.
+- [x] Agrupación de experiencias en conceptos provisionales, con miembros, excepciones, aciertos y fallos.
+- [x] Conceptos puestos a prueba con clases nuevas, y retirados cuando fallan o cuando la evidencia los rehace.
+- [x] Criterio de salida confirmado con protocolo congelado (§25.11).
 
 **Fase 5: en batch (generaciones por lotes)**
 - [x] Recombinación de dos progenitores, mutación posterior y límites.
@@ -1884,13 +1888,40 @@ En todos los escenarios la hembra pasa menos tiempo con estrés térmico (su ais
 
 El resultado del calor merece una explicación, porque se revisó por si era un artefacto. El aire llega a 43 °C la primera tarde. El reflejo que la lleva al nido salta con el 70 % del estrés letal, y dentro del nido el estrés sigue subiendo mientras el cuerpo esté por encima de 33 °C. Con ese margen, se salva quien se enfría deprisa. El aislamiento que protege a la hembra del frío es el que le impide soltar el calor. Es física coherente, no un error, pero el reflejo tardío sí es poco realista (§25.3). Se probó que buscar sombra por reflejo no cambia nada: el nido suele estar más cerca que los árboles, y a 43 °C la sombra no basta. Por eso se descartó.
 
+### 25.11 Cosas y conceptos: resultado
+
+Protocolo congelado en `acd96a4` antes de correr (`docs/research/concepts-protocol.md`): 120 vidas por condición, familia y mundo (semillas 16000–16119, mapas nunca usados), 2400 s, el organismo completo con cosas. Informe: `research/results/concepts/report.md`.
+
+**Hipótesis confirmatorias** (unilaterales, pareadas, Holm), todas en la familia de **color**, que nunca se usó al ajustar:
+
+| | Predicción | Resultado | ¿Se sostiene? |
+|---|---|---|---|
+| K1 | a primera vista, dice bien qué permite una clase nueva, mejor que el azar | acierta el **97 %** frente al 25 % (n = 83 vidas que vieron alguna) | sí |
+| K2 | los conceptos le ahorran picaduras de clases nuevas | 0,04 frente a 1,45 sin conceptos | sí |
+| K3 | bebe de clases nuevas con savia antes de examinarlas | 0,84 por vida frente a 0 | sí |
+| K4 | tras cambiar el mundo, dudar tras una sorpresa la deja clasificando mejor | 0,85 frente a 0,39 sin volatilidad | sí |
+
+**Criterio de salida de la fase 6** («clasifica y usa correctamente una familia de objetos no vista durante el ajuste, sin recibir el identificador semántico real»): **se cumple** (K1, K2 y K3). La familia nueva se aprende igual que las de ajuste: 0,93 frente a 0,97 de clasificación final, y 0,97 frente a 0,97 a primera vista.
+
+**Exploratorio:**
+
+- **En un mundo estable la volatilidad no hace nada**: nunca hay una sorpresa y `noVolatility` da exactamente lo mismo que `full`.
+- **Cuando el mundo cambia, nada se lo avisa hasta que algo falla.** A primera vista, las clases que brotan justo al cambiar las juzga como el azar (0,24). No hay de dónde saberlo.
+- **Plasticidad con coste.** Con volatilidad vuelve a examinar lo que sabía, lo rehace (5,3 conceptos rehechos; 0,5–0,7 retirados por fallar) y acaba clasificando bien, pero se pica casi el doble (6,4 frente a 3,5). Sin volatilidad se pica menos, pero sigue creyendo lo que ya no es cierto (precisión 0,54). Es el mismo dilema entre estabilidad y plasticidad que la consolidación nocturna en el §25.9, esta vez resuelto con una señal de cambio y no con menos memoria.
+- **Supervivencia.** Las cosas apenas la cambian: muere sobre todo por el veneno de la fruta, y las diferencias de vida entre condiciones van en direcciones distintas según la familia. Aprender lo que permiten las cosas mejora el juicio y el uso, no la supervivencia, en este mundo.
+- **Del desarrollo:** sin clases que brotan tarde, examina todo el mapa en los primeros días y los conceptos apenas llegan a usarse. Eso motivó las clases tardías, que son la prueba real de generalizar.
+
 ### 25.3 Pendiente
 
 - Fase 1: el reflejo térmico salta con el 70 % del estrés letal, y con calor extremo ya no deja margen: se salva quien llega al nido y se enfría deprisa (§25.10). Un animal real huye del calor mucho antes, a su «máximo térmico voluntario». Candidato a revisar, disparándolo por la temperatura corporal y no por el daño acumulado, con su propia medición.
 - Fase 3: medir la retención a varios días y si lo que se aprende con bocados de prueba llega a reglas; convertir lo que sabe de la fruta en supervivencia (hoy mueren de hambre y sed, no por la fruta).
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
 - Fase 5: densodependencia gradual en lugar del tope del nido, fertilidad que decae con la edad, `health` como variable propia, transmisión social de la aversión alimentaria (§25.8) y, en el juego, seguir a la descendencia cuando muere la Fagi seguida (hoy se cierra la grabación y la población sigue en pantalla).
-- Fase 6: formar conceptos a partir de rasgos, que los objetos del mapa dejen de ser categorías innatas y el resto de acciones experimentales del §12.3 (tocar, combinar, esperar y volver a mirar).
+- Fase 6, lo que queda del §12.3:
+  - que el agua, el nido, los árboles y las rocas dejen de ser categorías innatas (hoy solo las cosas lo son);
+  - combinar objetos, y esperar y volver a mirar algo que cambia con el tiempo (ninguna cosa cambia todavía);
+  - seguir a otra que interactúa: que los conceptos se transmitan en la colonia;
+  - que la noche ordene también los conceptos.
 - Fase 7, siguiente protocolo: confirmar que el replay empeora el juicio (y decidir si apagarlo), que consolidar reduce la adaptación al cambio, y separar la memoria episódica de la consolidación para que sea una ablación propia.
 
 ### 25.4 Cómo reproducir
@@ -1950,6 +1981,12 @@ node scripts/population.js --maps 1 --seed 5000 --duration 10800 --set LIFE.maxP
 # §25.9 evaluación congelada (docs/research/organism-protocol.md)
 node research/organism/run.js --jobs 16
 node research/organism/analyze.js research/results/organism
+
+# §25.11 cosas y conceptos (protocolo congelado: docs/research/concepts-protocol.md)
+node research/concepts/run.js --jobs 16
+node research/concepts/analyze.js research/results/concepts
+node scripts/concept-lab.js --lives 48                  # banco exploratorio
+node scripts/concept-lab.js --lives 48 --dims color --turn
 
 # §25.10 batería de sexos
 node scripts/sex-battery.js --lives 120 --jobs 16
