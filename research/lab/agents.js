@@ -25,14 +25,15 @@ const CLASSES = ['poison', 'nourishing', 'mild'];
 const HAZARD = 0.01;      // chance per bite, for the ideal observer, that the world changed
 const EPS = 0.002;        // the ideal observer never rules anything out for good
 
-function fagiEats(ant, key) {
+// How much Fagi wants to eat it, or null if she won't.
+function fagiScore(ant, key) {
   const tasted = (ant.brain.facts[key]?.tries ?? 0) > 0;
-  if (ant.hunger < (tasted ? CARRY.eatBelow : habit(ant, 'tasteAt'))) return false;
-  if (verdict(ant, 'pursue', key) === 'avoid') return false;
+  if (ant.hunger < (tasted ? CARRY.eatBelow : habit(ant, 'tasteAt'))) return null;
+  if (verdict(ant, 'pursue', key) === 'avoid') return null;
   const [c] = evaluate(ant.brain, [{
     key, kind: 'food', dist: 0.5, range: 1, urgency: ant.hunger / HUNGER.max, cues: cuesOf(key),
   }]);
-  return c.score > BRAIN.minScore;
+  return c.score > BRAIN.minScore ? c.score : null;
 }
 
 // --- the ideal observer -----------------------------------------------------
@@ -63,13 +64,13 @@ function idealState(p) {
   return { hyps, post: hyps.map(() => 1 / hyps.length) };
 }
 
-function idealEats(ant, key, p, traits) {
-  if (ant.hunger < CARRY.eatBelow) return false;
+function idealScore(ant, p, traits) {
+  if (ant.hunger < CARRY.eatBelow) return null;
   const s = ant.ideal ?? (ant.ideal = idealState(p));
   const cues = cuesOfTraits(traits);
   let expected = 0;
   s.hyps.forEach((h, i) => { expected += s.post[i] * FEED[classUnder(h, cues)]; });
-  return expected < 0;   // it lowers hunger, on average
+  return expected < 0 ? -expected : null;   // it lowers hunger, on average
 }
 
 function idealLearns(ant, p, traits, cls) {
@@ -87,12 +88,15 @@ function idealLearns(ant, p, traits, cls) {
 
 // --- the interface ----------------------------------------------------------
 
-// Does `ant` eat the fruit `key` with these traits, whose true class is `truth`?
-export function decides(p, ant, key, traits, truth) {
-  if (p.agent === 'fagi') return fagiEats(ant, key);
-  if (p.agent === 'ideal') return idealEats(ant, key, p, traits);
-  if (ant.hunger < CARRY.eatBelow) return false;
-  return p.agent === 'random' || truth !== 'poison';
+// How much `ant` wants to eat the fruit `key` with these traits, whose true
+// class is `truth`; null if she would not eat it at all. Offered several at
+// once, she eats the one she wants most.
+export function scoreOf(p, ant, key, traits, truth) {
+  if (p.agent === 'fagi') return fagiScore(ant, key);
+  if (p.agent === 'ideal') return idealScore(ant, p, traits);
+  if (ant.hunger < CARRY.eatBelow) return null;
+  if (p.agent === 'random') return 0;
+  return truth === 'poison' ? null : -FEED[truth];
 }
 
 // What the agent learns from a bite beyond what eat() already taught the brain.

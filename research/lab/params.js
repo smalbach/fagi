@@ -25,7 +25,9 @@ export const DEFAULTS = {
   colony: 5,
   life: 1800,           // seconds each generation lives, at most
   dt: 1,                // seconds per step
-  encounter: 1 / 30,    // chance per second of meeting a fruit
+  encounter: 1 / 30,    // chance per second of meeting fruit
+  choices: 1,           // fruit met at once: she eats the one she wants most (the game
+                        // offers several; refusing one then costs little)
 
   // Knowledge.
   agent: 'fagi',        // 'fagi' | 'ideal' | 'random' | 'oracle' (agents.js)

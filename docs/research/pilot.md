@@ -144,3 +144,39 @@ carry more false beliefs through a change. Its lethal consequence does not,
 at least not with 16 lineages: it depends on how costly a refused meal is.
 That dependency is itself a prediction to test (the cost of a false "avoid"
 as a factor), not a detail to hide.
+
+## When does the trap kill?
+
+Two exploratory designs in the lab, 60 seeds per cell, inversion at
+generation 6.
+
+**How many fruit are met at once** (`research/designs/cost-of-refusal.json`).
+The lab offered one fruit at a time, so refusing it meant waiting for the
+next; the game shows several. With three at once the trap is shallower but
+still there: survivors at the inversion, rule 0.56–0.60 against verdict
+0.88–0.93 (one at a time: 0.43–0.44 against 0.64–0.80). Choice alone does not
+explain why the game did not show it.
+
+**How long a life lasts** (`research/designs/life-length.json`). From
+sated, an ant takes about 1250 s to starve. The game check used lives of
+900 s: long enough to eat poison, too short to starve for refusing food.
+
+| format | life | harmful bites / ant (stable) | alive at the inversion | meals lost at the inversion | myths / ant at the inversion |
+|---|---|---|---|---|---|
+| none | 900 | 0.71 | 0.87 [0.83, 0.91] | 0.01 | 0 |
+| verdict | 900 | 0.63 | 0.89 [0.85, 0.92] | 0.08 | 0.92 |
+| rule | 900 | 0.34 | 0.80 [0.76, 0.85] | 0.27 | 1.81 |
+| evidence | 900 | 0.37 | 0.76 [0.71, 0.82] | 0.24 | 0.83 |
+| none | 1800 | 1.12 | 0.82 [0.77, 0.86] | 0.02 | 0 |
+| verdict | 1800 | 0.84 | 0.75 [0.68, 0.81] | 0.10 | 1.80 |
+| rule | 1800 | 0.39 | **0.45** [0.35, 0.54] | 0.29 | 3.14 |
+| evidence | 1800 | 0.51 | 0.66 [0.57, 0.75] | 0.20 | 1.08 |
+
+With 900 s lives the lab looks like the game: reasons still teach best and
+still carry twice the myths of verdicts through the inversion, but the trap
+barely kills (80% against 89%). With 1800 s it kills (45% against 75%). The
+trap is starvation by refusal: reason-lineages turn down a quarter to a third
+of the food they meet, and that only kills an ant with time to starve.
+
+This makes a prediction for the game, which is running: with lives of
+1800 s, the game should show the trap too.

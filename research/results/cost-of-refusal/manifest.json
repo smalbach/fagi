@@ -1,0 +1,39 @@
+{
+ "design": {
+  "name": "cost-of-refusal",
+  "description": "When does the reasons trap kill? The cost of refusing a fruit, set by how many fruit are met at once (choices: with several, refusing one costs little, as in the game) and how often (encounter), crossed with the formats, in a world that inverts at generation 6. Exploratory: follows the game check, where reasons carried more myths but did not kill.",
+  "base": {
+   "family": "one",
+   "change": "invert",
+   "switchAt": 6,
+   "generations": 12
+  },
+  "factors": {
+   "format": [
+    "none",
+    "verdict",
+    "rule",
+    "evidence"
+   ],
+   "choices": [
+    1,
+    2,
+    3
+   ],
+   "encounter": [
+    0.0167,
+    0.0333
+   ]
+  },
+  "seeds": 60,
+  "seed0": 1
+ },
+ "seeds": 60,
+ "seed0": 1,
+ "commit": "0a6c8df",
+ "node": "v22.22.2",
+ "startedAt": "2026-09-28T03:32:24.002Z",
+ "cells": 24,
+ "lineages": 1440,
+ "pending": 1440
+}

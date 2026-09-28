@@ -30,7 +30,7 @@ import { rng, withRng } from '../../scripts/batch/random.js';
 import { epochOf } from './params.js';
 import { theoryOf, seed as seedTheory } from './theory.js';
 import { accuracy, falseRules, ruleIsFalse } from './truth.js';
-import { decides, learns, CLASSES } from './agents.js';
+import { scoreOf, learns, CLASSES } from './agents.js';
 
 const NO_PANTRY = { stored: 0, edible: 0 };
 const round = (v, d = 3) => Math.round(v * 10 ** d) / 10 ** d;
@@ -175,13 +175,24 @@ function live(p, f, ants, map, chem, rnd) {
   f.hunger += HUNGER.rate * statMult(f, 'hungerRate') * p.dt;
 
   if (rnd() < p.encounter * p.dt) {
-    const traits = map[Math.floor(rnd() * map.length)];
-    const key = speciesKey(traits);
-    const truth = feedOf(chem, traits);
+    // She comes upon `choices` fruit at once and eats the one she wants most,
+    // if any. With one, refusing it means waiting for the next; with several,
+    // refusing one costs little.
+    const options = Array.from({ length: p.choices }, () => {
+      const traits = map[Math.floor(rnd() * map.length)];
+      return { traits, key: speciesKey(traits), truth: feedOf(chem, traits) };
+    });
     // Only a meeting while hungry is a choice: sated, nobody eats anything.
     const hungry = f.hunger >= CARRY.eatBelow;
     if (hungry) f.stats.encounters += 1;
-    if (decides(p, f, key, traits, truth)) {
+    let best = null;
+    let bestScore = -Infinity;
+    for (const o of options) {
+      const score = scoreOf(p, f, o.key, o.traits, o.truth);
+      if (score !== null && score > bestScore) { best = o; bestScore = score; }
+    }
+    if (best) {
+      const { traits, key, truth } = best;
       // A noisy bite does what a fruit of another class would.
       let cls = truth;
       if (p.noise > 0 && rnd() < p.noise) {
@@ -196,7 +207,7 @@ function live(p, f, ants, map, chem, rnd) {
       for (const b of ants) {
         if (b !== f && b.alive && rnd() < p.observe) learnSeen(b.brain, key, f.lastMeal.reward ?? 0, b.age, f.id);
       }
-    } else if (hungry && truth === 'poison') f.stats.poisonSkipped += 1;
+    } else if (hungry && options.every((o) => o.truth === 'poison')) f.stats.poisonSkipped += 1;
     else if (hungry) f.stats.foodSkipped += 1;
   }
 

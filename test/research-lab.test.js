@@ -77,3 +77,10 @@ test('beliefs passed on are followed back to where they started', () => {
   assert.ok(genealogy.some((e) => e.seeded), 'the founders\' theory is followed');
   for (const e of genealogy) assert.ok(e.lastG >= e.bornG);
 });
+
+test('offered several fruit at once, an ant eats at most one, the one she wants most', () => {
+  const one = runLineage(small({ agent: 'oracle', culture: 0 }), 4).rows;
+  const three = runLineage(small({ agent: 'oracle', culture: 0, choices: 3 }), 4).rows;
+  assert.equal(three.reduce((a, r) => a + r.harmful, 0), 0);
+  assert.ok(three.reduce((a, r) => a + r.foodSkipped, 0) <= one.reduce((a, r) => a + r.foodSkipped, 0));
+});

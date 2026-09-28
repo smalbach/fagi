@@ -1,0 +1,8 @@
+{
+  "name": "life-length",
+  "description": "Does the reasons trap kill by starvation? Refusing food can only kill an ant that lives long enough to starve (about 1250 s from sated): lives of 900 s (as in the game check) against 1800 s, crossed with the formats, in a world that inverts at generation 6. Exploratory.",
+  "base": { "family": "one", "change": "invert", "switchAt": 6, "generations": 12 },
+  "factors": { "format": ["none", "verdict", "rule", "evidence"], "life": [900, 1800] },
+  "seeds": 60,
+  "seed0": 1
+}
