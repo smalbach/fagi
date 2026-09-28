@@ -16,10 +16,12 @@
 // experience says otherwise). One nobody verifies can go round the whole
 // colony: a myth. batch measures them (scripts/batch/run.js).
 
-import { SOCIAL } from './config.js';
+import { SOCIAL, POINT_TYPES } from './config.js';
 import { nestUnder } from './nest.js';
 import { learnSeen } from './brain.js';
-import { subjectOf, upsertRule } from './learned/rules.js';
+import { subjectOf, upsertRule, traitsMatch, decidingRule } from './learned/rules.js';
+import { SCOPE } from './learned/synth.js';
+import { cuesOf } from './learned/cues.js';
 import { viewRangeOf } from './vision.js';
 
 const round = (v, d = 1) => Math.round(v * 10 ** d) / 10 ** d;
@@ -27,30 +29,125 @@ const round = (v, d = 1) => Math.round(v * 10 ** d) / 10 ** d;
 // How much she trusts one of her rules: fully if she lived it.
 export const trustOf = (r) => r.source?.trust ?? 1;
 
-// Everything the giver can tell the receiver now: the ids adopted.
-export function tell(giver, receiver, now) {
+// What one sister passes to another, in the colony's format (SOCIAL.format):
+//   'rule':     her rules as they are, trait rules included ("sour drops make
+//               you sick"). The default, and how the game plays;
+//   'verdict':  only conclusions, one per fruit she has an opinion on ("don't
+//               eat the red drop"), whatever rule that opinion comes from.
+//               A conclusion says nothing about a fruit she never met;
+//   'evidence': her rules, each followed by the bites behind it
+//               (learned/explain.js keeps them), which the receiver weighs
+//               like something she saw a sister go through (learnSeen).
+// `budget` caps the items passed at once (a rule, a verdict and a bite each
+// count one; 0 = no cap). With a cap, what she trusts and weighs most goes
+// first. That is how research/ compares the formats on equal terms.
+//
+// `kind` is the source mark ('told' between sisters, 'born' from an elder to
+// a newborn) and `scale` how much of the giver's trust survives the telling.
+// Every rule passed on carries `origin`: where it was first lived, kept from
+// copy to copy, so a belief can be followed back to the bite it came from.
+//
+// Returns what was adopted: [{ id, origin, kind: 'rule' | 'verdict' | 'bite' }].
+export function pass(giver, receiver, now, { kind, scale, budget = 0, format = SOCIAL.format }) {
   const mine = receiver.brain;
-  const adopted = [];
-  for (const r of giver.brain.rules.list) {
-    if (r.retired || giver.brain.rules.quarantined.has(r.id)) continue;
-    const trust = trustOf(r) * SOCIAL.trust;
-    if (trust < SOCIAL.minTrust) continue;
-    const subject = subjectOf(r);
-    // She already has an opinion about it, or had one and dropped it.
-    if (mine.rules.list.some((x) => subjectOf(x) === subject)) continue;
-    // A fruit she has tasted is judged by her own experience.
-    if (r.when.key && (mine.facts[r.when.key]?.tries ?? 0) > 0) continue;
+  const out = [];
+  const at = round(now);
+  const has = (subject) => mine.rules.list.some((x) => subjectOf(x) === subject);
+  const tasted = (key) => (mine.facts[key]?.tries ?? 0) > 0;
+  const room = () => !budget || out.length < budget;
+
+  const adopt = (r, trust, origin) => {
     const copy = JSON.parse(JSON.stringify(r));
     delete copy.revisedAt;
     upsertRule(mine.rules, {
       ...copy,
-      weight: round(r.weight * SOCIAL.trust, 3),
-      learnedAt: round(now),
-      source: { kind: 'told', from: giver.id, at: round(now), trust: round(trust, 3) },
+      weight: round(r.weight * scale, 3),
+      learnedAt: at,
+      origin,
+      source: { kind, from: giver.id, at, trust: round(trust, 3) },
     });
-    adopted.push(r.id);
+  };
+
+  if (format === 'verdict') {
+    for (const v of giverVerdicts(giver, scale, budget)) {
+      if (!room()) break;
+      const id = `${v.verdict}-${v.key}`;
+      if (has(v.key) || tasted(v.key)) continue;
+      adopt({
+        id, on: SCOPE[v.verdict], when: { key: v.key }, verdict: v.verdict, weight: v.rule.weight,
+        because: [{ sense: 'told', v: v.verdict === 'avoid' ? -1 : 1 }], tries: 0, stage: 'short',
+      }, v.trust, v.origin);
+      out.push({ id, origin: v.origin, kind: 'verdict' });
+    }
+    return out;
   }
+
+  for (const r of passable(giver, scale, budget)) {
+    if (!room()) break;
+    const subject = subjectOf(r);
+    // She already has an opinion about it, or had one and dropped it.
+    if (has(subject)) continue;
+    // A fruit she has tasted is judged by her own experience.
+    if (r.when.key && tasted(r.when.key)) continue;
+    const origin = originOf(giver, r);
+    adopt(r, trustOf(r) * scale, origin);
+    out.push({ id: r.id, origin, kind: 'rule' });
+    if (format !== 'evidence') continue;
+    for (const b of backing(giver, r)) {
+      if (!room()) break;
+      learnSeen(mine, b.key, b.reward, now, giver.id);
+      out.push({ id: r.id, origin, kind: 'bite', key: b.key });
+    }
+  }
+  return out;
+}
+
+// Where a rule was first lived: a rule she lived herself starts a lineage.
+const originOf = (f, r) => r.origin ?? `${f.id}/${r.id}@${round(r.learnedAt ?? 0)}`;
+
+// The rules worth passing on, most trusted and weighty first when there is a cap.
+function passable(giver, scale, budget) {
+  const list = giver.brain.rules.list.filter((r) => !r.retired && !giver.brain.rules.quarantined.has(r.id)
+    && trustOf(r) * scale >= SOCIAL.minTrust);
+  return budget ? list.sort((a, b) => strength(b) - strength(a)) : list;
+}
+const strength = (r) => trustOf(r) * Math.abs(r.weight ?? 0);
+
+// Her conclusions: for every fruit she knows of, what her rules say about
+// eating it, and the rule that says it.
+function giverVerdicts(giver, scale, budget) {
+  const out = [];
+  for (const key of Object.keys(giver.brain.facts)) {
+    if (!POINT_TYPES[key]?.traits) continue;
+    const r = decidingRule(giver, 'eat', key);
+    if (!r || trustOf(r) * scale < SOCIAL.minTrust) continue;
+    out.push({ key, verdict: r.verdict, rule: r, trust: trustOf(r) * scale, origin: originOf(giver, r) });
+  }
+  return budget ? out.sort((a, b) => strength(b.rule) - strength(a.rule)) : out;
+}
+
+// Her own bites behind a rule, one per fruit, newest first.
+function backing(giver, r) {
+  const about = r.cases ? (k) => r.cases.includes(k)
+    : r.when.key ? (k) => k === r.when.key
+      : (k) => traitsMatch(r, k, cuesOf(k));
+  const seen = new Set();
+  const out = [];
+  for (let i = (giver.brain.bites ?? []).length - 1; i >= 0 && out.length < SOCIAL.evidence; i--) {
+    const b = giver.brain.bites[i];
+    if (b.saw != null || b.late || seen.has(b.key) || !about(b.key)) continue;
+    seen.add(b.key);
+    out.push(b);
+  }
+  return out;
+}
+
+// Everything the giver can tell the receiver now: the ids adopted.
+export function tell(giver, receiver, now) {
+  const got = pass(giver, receiver, now, { kind: 'told', scale: SOCIAL.trust, budget: SOCIAL.budget });
+  const adopted = [...new Set(got.map((g) => g.id))];
   if (adopted.length) {
+    const mine = receiver.brain;
     mine.lastTold = { n: (mine.lastTold?.n ?? 0) + 1, from: giver.id, ids: adopted, at: round(now) };
     mine.version = (mine.version ?? 0) + 1;
   }

@@ -59,14 +59,16 @@ function validateWhen(when) {
 //   pro/con: how many species she has tasted back it and contradict it;
 //   cases: the species that back it; from: the rule it grew out of;
 //   source: where it came from if she did not live it herself:
-//           { kind: 'told' | 'saw', from: <sister id>, at, trust }.
+//           { kind: 'told' | 'saw', from: <sister id>, at, trust };
+//   origin: where a rule passed from sister to sister was first lived
+//           ('<ant id>/<rule id>@<age>'), for following a belief back.
 export function rule(id, spec) {
   if (typeof id !== 'string' || !VALID_ID.test(id)) fail(`id "${id}" is malformed`);
   if (!spec || typeof spec !== 'object') fail('the rule body is missing');
 
   const {
     on, when, except, verdict, weight, pro, con, cases, because, learnedAt, revisedAt, from,
-    source, tries, stage, retired, retiredAt, ...rest
+    source, origin, tries, stage, retired, retiredAt, ...rest
   } = spec;
   const extra = Object.keys(rest);
   if (extra.length) fail(`unknown fields: ${extra.join(', ')}`);
@@ -92,6 +94,7 @@ export function rule(id, spec) {
   if (revisedAt !== undefined && !isNumber(revisedAt)) fail('"revisedAt" must be numeric');
   if (from !== undefined && (typeof from !== 'string' || !VALID_ID.test(from))) fail('"from" must be a rule id');
   if (source !== undefined) validateSource(source);
+  if (origin !== undefined && (typeof origin !== 'string' || origin.length > 120)) fail('"origin" must be a short string');
   if (!isCount(tries)) fail('"tries" must be an integer ≥ 0');
   if (!STAGE_NAMES.includes(stage)) fail(`"stage" must be ${STAGE_NAMES.join('|')}`);
   if (retired !== undefined && typeof retired !== 'boolean') fail('"retired" must be a boolean');
@@ -108,6 +111,7 @@ export function rule(id, spec) {
     learnedAt, ...(revisedAt !== undefined ? { revisedAt } : {}),
     ...(from !== undefined ? { from } : {}),
     ...(source !== undefined ? { source: { kind: source.kind, from: source.from, at: source.at, trust: source.trust } } : {}),
+    ...(origin !== undefined ? { origin } : {}),
     tries, stage,
     ...(retired ? { retired: true, retiredAt: retiredAt ?? learnedAt } : {}),
   };

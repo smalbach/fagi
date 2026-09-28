@@ -17,10 +17,9 @@
 // Nothing here runs in a normal game: batch --generations uses it
 // (scripts/batch/generations.js).
 
-import { GEN, SOCIAL } from './config.js';
+import { GEN } from './config.js';
 import { TRAITS } from './chemistry.js';
-import { upsertRule } from './learned/rules.js';
-import { trustOf } from './social.js';
+import { pass } from './social.js';
 import { restoreHabits, habitsSnapshot } from './habits.js';
 
 // Every trait a fruit can have, rotten fruit's smell included.
@@ -59,24 +58,11 @@ export function applyGenome(fagi, genome) {
   }
 }
 
-// Raised by an elder: her rules, trusted less, and her habits.
+// Raised by an elder: her rules (in the colony's format, SOCIAL.format),
+// trusted less, and her habits. Returns how many items she was taught.
 export function teach(child, elder) {
   if (!GEN.culture) return 0;
-  let n = 0;
-  for (const r of elder.brain.rules.list) {
-    if (r.retired || elder.brain.rules.quarantined.has(r.id)) continue;
-    const trust = trustOf(r) * GEN.cultureTrust;
-    if (trust < SOCIAL.minTrust) continue;
-    const copy = JSON.parse(JSON.stringify(r));
-    delete copy.revisedAt;
-    upsertRule(child.brain.rules, {
-      ...copy,
-      weight: round(r.weight * GEN.cultureTrust),
-      learnedAt: 0,
-      source: { kind: 'born', from: elder.id, at: 0, trust: round(trust) },
-    });
-    n++;
-  }
+  const n = pass(elder, child, 0, { kind: 'born', scale: GEN.cultureTrust, budget: GEN.budget }).length;
   if (GEN.habits) child.brain.habits = restoreHabits(habitsSnapshot(elder.brain.habits));
   return n;
 }

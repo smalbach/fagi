@@ -10,7 +10,7 @@ import { weight } from '../memory.js';
 import { activeRule, retireRule, upsertRule } from './rules.js';
 import { induce } from './induce.js';
 
-const SCOPE = { avoid: ['eat', 'store', 'pursue'], prefer: ['eat', 'store'] };
+export const SCOPE = { avoid: ['eat', 'store', 'pursue'], prefer: ['eat', 'store'] };
 // What isn't eaten (deep water, rain, the pressure drop, water,
 // puddles) is only pursued or avoided: a rule about it says nothing about eating.
 const scope = (key, verdict) => (POINT_TYPES[key] ? SCOPE[verdict] : ['pursue']);

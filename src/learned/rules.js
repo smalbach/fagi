@@ -100,6 +100,22 @@ export function verdict(fagi, scope, key, { deliberate = false, traits: asIf = n
   return result;
 }
 
+// The rule behind her verdict on `key` (what verdict() would say without
+// curiosity): the first 'avoid' that holds, else the first 'prefer'; null if
+// none does. What a sister passes on as a conclusion (social.js).
+export function decidingRule(fagi, scope, key) {
+  const tasted = (fagi.brain.facts[key]?.tries ?? 0) > 0;
+  const traits = CUES.enabled && !tasted ? cuesOf(key) : [];
+  let prefer = null;
+  for (const r of liveRules(fagi.brain.rules)) {
+    const about = r.when.all ? traitsMatch(r, key, traits) : r.when.key === key;
+    if (!r.on.includes(scope) || !about) continue;
+    if (r.verdict === 'avoid') return r;
+    if (r.verdict === 'prefer' && !prefer) prefer = r;
+  }
+  return prefer;
+}
+
 // How much of a stock she would actually eat: what she has learned to avoid is
 // there, but it feeds nobody. A pantry full of poison is not a full pantry.
 export function edibleCount(fagi, stock) {

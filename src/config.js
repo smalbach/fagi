@@ -282,6 +282,9 @@ export const SOCIAL = {
   minTrust: 0.3,      // below this, a rule is not worth passing on
   every: 20,          // seconds before the same two sisters exchange again
   seeRange: 1,        // fraction of her view range at which she notices a sister eat
+  format: 'rule',     // what is passed on (social.js): 'rule' | 'verdict' | 'evidence'
+  budget: 0,          // items passed in one exchange (a rule, a verdict, a bite); 0 = no cap
+  evidence: 2,        // bites behind each rule, in the 'evidence' format
 };
 
 // Generations (generations.js, batch --generations): what a newborn inherits.
@@ -293,6 +296,7 @@ export const GEN = {
   mutation: 0.15,     // spread of each bias's random step from parent to child
   innateN: 1,         // an innate bias is trusted as if she had met the trait this often
   storedWorth: 5,     // seconds of life a stored ration is worth, when choosing parents
+  budget: 0,          // items an elder teaches a newborn (SOCIAL.format); 0 = no cap
 };
 
 // Explanations (learned/explain.js): why she thinks what she thinks of a fruit.

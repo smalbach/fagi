@@ -59,19 +59,48 @@ export function cuesOfTraits(traits) {
 
 // The chemistry of one map. `rnd` defaults to Math.random, which the batch
 // runner seeds per map.
-export function createChemistry(rnd = Math.random) {
+//
+// `family` picks how the chemistry is built:
+//   'smell' (the default): one smell poisons, one nourishes, the rest are mild;
+//   'one':  the same, but written as rules (below) on any dimension (`dim`);
+//   'conj': poison needs two traits at once, a color AND a smell; one smell
+//           nourishes. A theory about the smell alone is then too broad.
+// Rules-based chemistries ('one', 'conj') carry `rules: { poison, food }`,
+// each a list of clauses, a clause a list of cues that must all be there.
+// They are what research/ changes and seeds theories from.
+export function createChemistry(rnd = Math.random, { family = 'smell', dim = 'smell' } = {}) {
   const smells = shuffle(TRAITS.smell, rnd);
   const colors = shuffle(TRAITS.color, rnd);
-  return {
+  const chem = {
     smell: { [smells[0]]: 'poison', [smells[1]]: 'nourishing', [smells[2]]: 'mild', [smells[3]]: 'mild' },
     color: { [colors[0]]: 'speed', [colors[1]]: 'sight', [colors[2]]: 'metabolism' },
   };
+  if (family === 'smell') return chem;
+  if (family === 'one') {
+    const values = shuffle(TRAITS[dim], rnd);
+    return { ...chem, rules: { poison: [[`${dim}:${values[0]}`]], food: [[`${dim}:${values[1]}`]] } };
+  }
+  if (family === 'conj') {
+    return { ...chem, rules: { poison: [[`color:${colors[3]}`, `smell:${smells[0]}`]], food: [[`smell:${smells[1]}`]] } };
+  }
+  throw new Error(`unknown chemistry family: ${family}`);
+}
+
+// What a fruit with these traits does to hunger: 'poison', 'nourishing' or 'mild'.
+export function feedOf(chem, traits) {
+  if (!chem.rules) return chem.smell[traits.smell] ?? 'mild';
+  const cues = cuesOfTraits(traits);
+  const hit = (clauses) => clauses.some((c) => c.every((x) => cues.includes(x)));
+  if (hit(chem.rules.poison)) return 'poison';
+  if (hit(chem.rules.food)) return 'nourishing';
+  return 'mild';
 }
 
 // The same chemistry turned upside down: the smell that poisoned now
 // nourishes and the other way round. Colors keep their buffs. It is the
 // hardest change for whoever learned the old one: what she avoided is now food.
 export function invertChemistry(chem) {
+  if (chem.rules) return { ...chem, rules: { poison: chem.rules.food, food: chem.rules.poison } };
   const smell = { ...chem.smell };
   const poison = Object.keys(smell).find((s) => smell[s] === 'poison');
   const food = Object.keys(smell).find((s) => smell[s] === 'nourishing');
@@ -80,8 +109,37 @@ export function invertChemistry(chem) {
   return { ...chem, smell };
 }
 
+// A rules-based chemistry after the world changes (`kind`):
+//   'invert': poison and food swap (above);
+//   'rotate': every poison cue moves to another value of its dimension, one no
+//             clause uses: a theory about the old value is simply wrong now;
+//   'shift':  the poison moves to another dimension (a smell becomes a color):
+//             a theory on the right dimension becomes one on the wrong one.
+// Food stays where it was in 'rotate' and 'shift'.
+export function changeChemistry(chem, kind, rnd = Math.random) {
+  if (!chem.rules) throw new Error('changeChemistry needs a rules-based chemistry');
+  if (kind === 'invert') return invertChemistry(chem);
+  const used = new Set([...chem.rules.poison, ...chem.rules.food].flat());
+  const fresh = (dim) => {
+    const free = TRAITS[dim].map((v) => `${dim}:${v}`).filter((c) => !used.has(c));
+    const c = free[Math.floor(rnd() * free.length)];
+    used.add(c);
+    return c;
+  };
+  const dimOf = (c) => c.split(':')[0];
+  let poison;
+  if (kind === 'rotate') poison = chem.rules.poison.map((clause) => clause.map((c) => fresh(dimOf(c))));
+  else if (kind === 'shift') {
+    poison = chem.rules.poison.map((clause) => clause.map((c) => {
+      const dims = Object.keys(TRAITS).filter((d) => d !== dimOf(c) && !clause.some((x) => dimOf(x) === d));
+      return fresh(dims[Math.floor(rnd() * dims.length)]);
+    }));
+  } else throw new Error(`unknown change: ${kind}`);
+  return { ...chem, rules: { poison, food: chem.rules.food } };
+}
+
 export function effectOf(chem, traits) {
-  const feed = chem.smell[traits.smell] ?? 'mild';
+  const feed = feedOf(chem, traits);
   const buff = chem.color[traits.color];
   return {
     hunger: FEED[feed],
@@ -103,34 +161,44 @@ export function createSpecies(chem, count, rnd = Math.random) {
   const out = [];
   const used = new Set();
   for (const cls of wanted) {
-    for (let tries = 0; tries < 50; tries++) {
+    for (let tries = 0; tries < (chem.rules ? 500 : 50); tries++) {
+      // Smell-based chemistry: the smell decides, pick one of that class. A
+      // rules-based one: draw at random until the fruit falls in the class.
       const traits = {
         color: pick(TRAITS.color),
         shape: pick(TRAITS.shape),
-        smell: cls ? pick(bySmell(cls)) : pick(TRAITS.smell),
+        smell: cls && !chem.rules ? pick(bySmell(cls)) : pick(TRAITS.smell),
       };
+      if (cls && chem.rules && feedOf(chem, traits) !== cls) continue;
       const key = speciesKey(traits);
       if (used.has(key) || POINT_TYPES[key] && !POINT_TYPES[key].species) continue;
       used.add(key);
-      const fx = effectOf(chem, traits);
-      out.push({
-        key,
-        spec: {
-          color: COLOR_HEX[traits.color],
-          radius: 6,
-          aroma: 130,
-          life: 200,
-          hunger: fx.hunger,
-          effects: fx.effects,
-          traits,
-          painter: SHAPE_PAINTER[traits.shape],
-          species: true,
-        },
-      });
+      out.push(speciesUnder(chem, traits));
       break;
     }
   }
   return out;
+}
+
+// A species with these traits, as this chemistry makes it. The same traits
+// under another chemistry (after the world changes) are the same species
+// doing something else.
+export function speciesUnder(chem, traits) {
+  const fx = effectOf(chem, traits);
+  return {
+    key: speciesKey(traits),
+    spec: {
+      color: COLOR_HEX[traits.color],
+      radius: 6,
+      aroma: 130,
+      life: 200,
+      hunger: fx.hunger,
+      effects: fx.effects,
+      traits,
+      painter: SHAPE_PAINTER[traits.shape],
+      species: true,
+    },
+  };
 }
 
 // Species are part of the map: a new map drops the old ones.
