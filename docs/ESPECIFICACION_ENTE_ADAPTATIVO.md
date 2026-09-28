@@ -1,6 +1,6 @@
 # Especificación: Fagi como ente adaptativo autónomo
 
-**Estado:** en implementación: fases 1, 3 y 4 hechas; 2, 5 y 6, en parte (ver §25)  
+**Estado:** en implementación: fases 1, 3, 4 y 5 hechas; 2 y 6, en parte (ver §25)  
 **Proyecto:** First AGI / Fagi  
 **Objetivo de esta versión:** transformar la simulación actual, inspirada en una hormiga, en un entorno experimental para estudiar un organismo artificial limitado que percibe, aprende, descansa, consolida experiencias, se reproduce y se adapta durante varias generaciones.
 
@@ -10,7 +10,7 @@
 
 El repositorio contiene estudios preregistrados y congelados (`docs/research/`) que ejecutan el mismo motor de simulación mediante `scripts/batch.js`. Todo lo que añade esta especificación debe respetar estas condiciones:
 
-1. **Cada bloque nuevo arranca apagado** en `src/config.js` (`CYCLE.enabled`, `THERMAL.enabled`, `SEX.enabled`, `SLEEP.enabled`, `EXPERIMENT.enabled`, `APPETITE.enabled`, `PERCEPT.enabled`, `NIGHTAI.enabled`, `GEN.sexual`).
+1. **Cada bloque nuevo arranca apagado** en `src/config.js` (`CYCLE.enabled`, `THERMAL.enabled`, `SEX.enabled`, `SLEEP.enabled`, `EXPERIMENT.enabled`, `APPETITE.enabled`, `PERCEPT.enabled`, `NIGHTAI.enabled`, `LIFE.enabled`, `GEN.sexual`).
 2. **Con todo apagado, la simulación es idéntica número a número**: no se consume ni un número aleatorio más ni en otro orden, y todo multiplicador corporal vale exactamente `1`. Se comprobó comparando byte a byte la salida JSON de `batch.js` antes y después (ejecución simple y por generaciones con especies).
 3. **El juego enciende el organismo** al arrancar (`src/app/organism-on.js`, que se importa antes que los ajustes). En batch se enciende con `--organism`, y `--set` puede apagar después cualquier pieza (`--set SLEEP.consolidate=0`).
 4. **Las sesiones grabadas guardan los flags** con el resto de ajustes. Al reproducir una sesión anterior al organismo, los flags ausentes se consideran `0` (`organismOffConfig`).
@@ -1542,11 +1542,17 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] Se acepta solo lo que mejora o cambia algo con respaldo, y se registran todas las aceptaciones y rechazos.
 - [x] Mente local determinista como reserva; mente HTTP con tiempo límite.
 
+**Fase 5: reproducción dentro del mundo**
+- [x] Recombinación de dos progenitores, selección de pareja, costes reproductivos y huevo (§10.6).
+- [x] Juvenil, adulta y senescente; muerte por vejez.
+- [x] Parentesco y consanguinidad registrados; extinción como resultado válido.
+- [x] La población se mantiene varias generaciones sin que el runner cree ninguna (§25.8).
+
 **Fase 6: parcial**
 - [x] Identidad real separada de lo percibido, en lo que Fagi decide y en lo que ve la API (§12.7).
 - [x] El mordisco de prueba como primera acción experimental (§12.6).
 
-**Fase 5: parcial (en batch)**
+**Fase 5: en batch (generaciones por lotes)**
 - [x] Recombinación de dos progenitores, mutación posterior y límites.
 - [x] Parentesco (`genome.parents`), apareamientos entre hermanos, diversidad genética, proporción de sexos y cuerpo medio por generación.
 - [x] La extinción es un resultado del informe.
@@ -1716,18 +1722,45 @@ Queda pendiente probar un modelo de lenguaje real por `http`. La mente local es 
 
 **Pregunta abierta.** Con el organismo completo sin experimentos ni mente nocturna, consolidar da un juicio menor que no consolidar (0,710 ± 0,025 frente a 0,791 ± 0,030). La diferencia está en el límite del ruido; se deja anotada, sin explicación todavía.
 
+### 25.8 Población: resultado
+
+`scripts/population.js --maps 8 --duration 10800`: 4 fundadores, el organismo completo, 6 especies, 60 días de juego por mapa.
+
+| | Resultado |
+|---|---|
+| Se mantiene sola | **7 de 8 poblaciones** durante todo el periodo, en el techo del nido (16), con 6–7 generaciones |
+| Nacimientos por mapa | 28 de media (entre 15 y 32) |
+| Muertes | casi todas **de vejez** (16–21 por mapa); algún envenenamiento, frío o hambre |
+| Consanguinidad media de los huevos | 0,06–0,13, por el cuello de botella de 4 fundadores |
+| Diversidad genética de los vivos | 0,16–0,26 |
+| Extinción | 0/8 totales. **Una funcional** (semilla 5001): quedan 2 machos |
+
+**Semilla 5001.** El nido se llena hacia los 1800 s, y durante unos 3600 s no hay sitio para criar. La cohorte que nació salió sesgada por azar (5 hembras, 11 machos). Las fundadoras y la primera cohorte, casi de la misma edad, se vuelven senescentes a la vez y dejan de criar. Cuando se libera espacio queda una sola hembra adulta, emparentada con casi todos los machos, y luego ninguna. Es estocasticidad demográfica de una población pequeña con efecto fundador, como la que extingue poblaciones reales, y se deja como resultado. Contribuyen dos decisiones de diseño que conviene revisar con criterio biológico, no para evitar la extinción:
+
+- el tope del nido es abrupto (todo o nada) y no una densodependencia gradual;
+- la fertilidad se corta de golpe al empezar la senescencia, cuando en animales reales decae poco a poco.
+
+**Hallazgo: lo aprendido no se acumula entre generaciones.** Una vida sola con el organismo completo llega a un juicio de ~0,85 sobre la fruta que nunca probó. En las poblaciones, los vivos se quedan en 0,55–0,80 según el mapa, sin tendencia de una generación a la siguiente. Dos causas probables:
+
+- la cultura transmite **reglas**, pero la mayor parte del juicio vive en la **aversión** (el apetito y los pesos de los rasgos), que ni se enseña ni se hereda;
+- en colonia cada individuo come mucho de la despensa común y prueba menos especies por su cuenta.
+
+Transmitir preferencias alimentarias por vía social es algo que existe en animales reales (Galef: ratas que aprenden qué comer oliendo a una compañera), y sería el paso natural si se quiere cultura acumulativa.
+
+**Criterio de salida de la fase 5** («la población puede mantenerse varias generaciones sin crear directamente cada generación desde el runner»): **se cumple**.
+
 ### 25.3 Pendiente
 
 - Fase 2: probar con una batería de mapas que ningún sexo domina todos los escenarios (criterio de salida).
 - Fase 3: medir la retención a varios días y si lo que se aprende con bocados de prueba llega a reglas; convertir lo que sabe de la fruta en supervivencia (hoy mueren de hambre y sed, no por la fruta).
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
-- Fase 5: reproducción dentro del mundo (selección de pareja, costes, huevo o gestación, juvenil y senescente, `fertility`, `health`) y población persistente sin runner; que los inmaduros no se reproduzcan.
+- Fase 5: densodependencia gradual en lugar del tope del nido, fertilidad que decae con la edad, `health` como variable propia, transmisión social de la aversión alimentaria (§25.8) y, en el juego, seguir a la descendencia cuando muere la Fagi seguida (hoy se cierra la grabación y la población sigue en pantalla).
 - Fase 6: formar conceptos a partir de rasgos, que los objetos del mapa dejen de ser categorías innatas y el resto de acciones experimentales del §12.3 (tocar, combinar, esperar y volver a mirar).
 - Fase 7: baselines (aleatorio, reglas fijas), batería de ablaciones del §18.2 y preregistro de las afirmaciones.
 
 ### 25.4 Cómo reproducir
 
-Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas.
+Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas. `LIFE` solo afecta a quien pertenece a una población que se reproduce, así que no cambia las vidas individuales; en cualquier ejecución con colonia (`--colony`, `--generations`) sí la pone a criar.
 
 ```text
 npm test
@@ -1775,7 +1808,11 @@ node scripts/sleep-lab.js --game 48 --set MAPGEN.family=conj
 node scripts/sleep-lab.js --game 48 --set NIGHTAI.enabled=0 --set EXPERIMENT.enabled=0
 node scripts/sleep-lab.js --game 48 --set SLEEP.consolidate=0
 
-# generaciones con reproducción sexual
-node scripts/batch.js --organism --set GEN.sexual=1 --generations 6 --colony 6 --runs 4 --duration 600 --set MAPGEN.species=6
+# §25.8 población que se reproduce sola
+node scripts/population.js --maps 8 --duration 10800
+node scripts/population.js --maps 1 --seed 5000 --duration 10800 --set LIFE.maxPopulation=40
+
+# generaciones con reproducción sexual, creadas por lotes (sin cría dentro del mundo)
+node scripts/batch.js --organism --set LIFE.enabled=0 --set GEN.sexual=1 --generations 6 --colony 6 --runs 4 --duration 600 --set MAPGEN.species=6
 ```
 

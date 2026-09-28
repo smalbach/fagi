@@ -23,8 +23,11 @@ export function drawLifespan(rnd = Math.random) {
   return Math.round(LIFE.lifespan * (1 + (rnd() * 2 - 1) * LIFE.lifespanSpread));
 }
 
+// Only one who belongs to a breeding population has a life cycle: she carries
+// a lifespan (the founders and everyone hatched, reproduction.js). A Fagi on
+// her own, as in the single-life runs, is the adult she always was.
 export function stageOf(fagi) {
-  if (!LIFE.enabled) return 'adult';
+  if (!LIFE.enabled || fagi.lifespan == null) return 'adult';
   const age = lifeAge(fagi);
   if (age < LIFE.adultAt) return 'juvenile';
   if (fagi.lifespan && age >= fagi.lifespan * LIFE.senescentAt) return 'senescent';

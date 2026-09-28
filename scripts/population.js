@@ -87,13 +87,19 @@ function run(i) {
   const living = colony.ants.filter((f) => f.alive);
   const inbred = Object.values(world.lineage ?? {}).filter((l) => l.inbreeding != null).map((l) => l.inbreeding);
   const byGen = {};
-  for (const f of living) (byGen[f.generation] ??= []).push(judgment(f, world.chemistry));
+  const byStage = {};
+  for (const f of living) {
+    const j = judgment(f, world.chemistry);
+    (byGen[f.generation] ??= []).push(j);
+    (byStage[f.lifeStage] ??= []).push(j);
+  }
   return {
     seed, curve, census: c,
     diversity: living.length > 1 ? diversity(living.map((f) => f.genome)) : null,
     inbreeding: r2(mean(inbred)),
     inbredEggs: inbred.filter((v) => v > 0).length,
     judgment: Object.fromEntries(Object.entries(byGen).map(([g, xs]) => [g, r2(mean(xs))])),
+    byStage: Object.fromEntries(Object.entries(byStage).map(([g, xs]) => [g, r2(mean(xs))])),
   };
 }
 
@@ -111,7 +117,7 @@ for (const r of runs) {
   const lost = Object.entries(c.eggsLost).map(([k, n]) => `${k} ${n}`).join(' · ') || '-';
   console.log(`  seed ${r.seed}: ${c.extinctAt != null ? `extinct at ${Math.round(c.extinctAt)}s` : `alive ${c.alive} (${c.females}♀ ${c.males}♂), eggs ${c.eggs}`} · generations ${c.generations} · peak ${c.peak} · matings ${c.matings} · hatched ${c.hatched} · eggs lost ${lost} · died: ${deaths}`);
   console.log(`      over time: ${r.curve.map((p) => `${p.t}s ${p.alive}+${p.eggs}`).join('  ')}`);
-  console.log(`      diversity ${r.diversity ?? '-'} · egg inbreeding ${r.inbreeding} (${r.inbredEggs} inbred) · would she eat it, by generation: ${Object.entries(r.judgment).map(([g, v]) => `g${g} ${v}`).join(' ') || '-'}`);
+  console.log(`      diversity ${r.diversity ?? '-'} · egg inbreeding ${r.inbreeding} (${r.inbredEggs} inbred) · would she eat it, by generation: ${Object.entries(r.judgment).map(([g, v]) => `g${g} ${v}`).join(' ') || '-'}; by stage: ${Object.entries(r.byStage).map(([g, v]) => `${g} ${v}`).join(' ') || '-'}`);
 }
 const ext = runs.filter((r) => r.census.extinctAt != null);
 console.log(`  extinct ${ext.length}/${MAPS}${ext.length ? ` (at ${ext.map((r) => Math.round(r.census.extinctAt)).join(', ')}s)` : ''} · generations reached ${runs.map((r) => r.census.generations).join(', ')} · hatched per map ${r2(mean(runs.map((r) => r.census.hatched)))}`);
