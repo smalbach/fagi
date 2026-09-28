@@ -2,8 +2,9 @@
 // The buttons and bars are generated from config, so adding a new type
 // doesn't require touching anything here. The texts come from i18n.
 
-import { HUNGER, THIRST, POINT_TYPES, TYPE_KEYS, OBJECT_TYPES, OBJECT_KEYS, TREE, THERMAL, CYCLE, specOf } from './config.js';
+import { HUNGER, THIRST, POINT_TYPES, TYPE_KEYS, OBJECT_TYPES, OBJECT_KEYS, TREE, THERMAL, CYCLE, LIFE, specOf } from './config.js';
 import { cycleAt } from './cycle.js';
+import { census } from './reproduction.js';
 import { organismOn } from './organism.js';
 import { energyMax } from './biology.js';
 import { heading, verticalSense } from './compass.js';
@@ -106,6 +107,8 @@ export function createUI(input, world, onReset) {
     sleepVal: document.getElementById('sleep-val'),
     sexVal: document.getElementById('sex-val'),
     nightsVal: document.getElementById('nights-val'),
+    stageVal: document.getElementById('stage-val'),
+    popVal: document.getElementById('pop-val'),
   };
 
   const foodBox = document.getElementById('type-buttons');
@@ -226,6 +229,13 @@ function paintOrganism(el, fagi, world) {
   barEl(el.sleepBar, el.sleepVal, fagi.sleepPressure ?? 0, 1);
   el.sexVal.textContent = t(fagi.sex ? `sex.${fagi.sex}` : 'sex.none');
   el.nightsVal.textContent = String(fagi.consolidations ?? 0);
+  if (el.stageVal) el.stageVal.textContent = LIFE.enabled ? t(`stage.life.${fagi.lifeStage}`) : t('word.off');
+  if (el.popVal) {
+    const c = LIFE.enabled && world.colony?.life ? census(world, world.colony) : null;
+    el.popVal.textContent = c
+      ? (c.extinctAt != null ? t('pop.extinct') : t('pop.line', { alive: c.alive, f: c.females, m: c.males, eggs: c.eggs, gen: c.generations }))
+      : t('word.off');
+  }
 }
 
 function barEl(bar, val, value, max) {

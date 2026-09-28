@@ -482,6 +482,25 @@ huevo → juvenil → adulto → senescente → muerte
 
 La senescencia crea una tensión interesante: un individuo viejo puede ser físicamente débil pero informativamente valioso.
 
+### 10.6 Implementado: una población que se reproduce sola
+
+`lifecycle.js` y `reproduction.js`, con el flag `LIFE.enabled`, que forma parte del organismo. En el juego, con `LIFE` encendido, la colonia empieza con `LIFE.founders` adultos (4) de ambos sexos. `scripts/population.js` la deja vivir sola y la mide.
+
+| Parte | Cómo funciona |
+|---|---|
+| Etapas | Juvenil hasta `adultAt` (360 s, unos 2 días): más lenta (×0,85), no cría y se dibuja más pequeña. Adulta. Senescente desde el 75 % de su vida: cada vez más lenta (hasta ×0,6) y de colores apagados. Muere de vieja (causa `age`) al cumplir su esperanza de vida, que cada una sortea al nacer: `lifespan` ± 15 % (5400 s ≈ 30 días). |
+| Condiciones (§10.1) | Hembra y macho adultos, dentro del nido, con energía ≥ 60 %, hambre y sed < 45 %, sin estrés térmico, pasado su tiempo de recuperación (hembra 360 s, macho 120 s), con una despensa que ella **cree** que guarda al menos 2 raciones que comería, y con sitio en el nido. |
+| Elección de pareja (§10.2) | Entre los machos que pueden, el que mejor aspecto tiene (necesidades y energía, lo que cualquiera ve). Nunca un pariente con parentesco ≥ `kinLimit` (0,5: padre, madre, hijos, hermanos). |
+| Costes (§10.4) | 15 de energía cada uno; la hembra paga además 12 de hambre, porque el huevo sale de ella. |
+| Huevo | Se concibe en el apareamiento: genoma recombinado de ambos, más una mutación (`generations.js recombine`), y sexo sorteado en la concepción (§9.3). Se queda en el nido y se desarrolla según la temperatura del nido (nada por debajo de 12 °C y al máximo desde 22 °C). Cuando está listo necesita una ración de la despensa para eclosionar; si en `eggStarve` s no la hay, muere. |
+| Cría | Juvenil. Nace sin recuerdos: solo trae sus genes (sesgos innatos y cuerpo). Si su madre vive, esta la cría con su cultura (`teach`), marcada como `born`. |
+| Parentesco | `world.lineage` guarda madre, padre, generación y consanguinidad de cada individuo. La consanguinidad del huevo es la coascendencia de los padres, calculada recursivamente sobre el pedigrí. |
+| Extinción | Cuando muere la última y no queda ningún huevo, se registra la extinción (`extinct`). Es un resultado válido, no un error. |
+
+Nada de esto crea individuos desde el runner: después de los fundadores, cada generación sale de apareamientos dentro del mundo.
+
+**Límite de población.** En este mundo la comida sobra: seis árboles sueltan unas 0,75 frutas/s y un individuo come unas 0,002/s. Lo que limita la población es el **espacio del nido**, `maxPopulation` (16, huevos incluidos): con el nido lleno no hay puesta. Es un límite físico real en organismos que anidan, pero conviene saber que la población se queda en ese techo y no en uno fijado por la comida.
+
 ---
 
 ## 11. Arquitectura día/noche del aprendizaje

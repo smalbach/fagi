@@ -36,14 +36,19 @@ export const EVENT_TYPES = {
   fagi_rule: ['rule'],
   fagi_death: ['cause'],
   track: ['pts'],
-  sisters: ['ants'],   // her sisters (colony.js): [[id, x, y, angle, alive, carrying], ...]
+  sisters: ['ants'],   // her sisters (colony.js): [[id, x, y, angle, alive, carrying, stage?], ...]
   mind: [],
   log: ['tag', 'text'],
   // The organism (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md): a new day, and
   // what she sorted out while asleep.
   day: ['day'],
   night_report: ['report'],
-  night_mind: ['night', 'entries'],   // what the night mind proposed and what was kept (night/)
+  night_mind: ['night', 'entries'],
+  // Life (reproduction.js): an egg laid, one that hatched, one lost, and the end.
+  egg: ['id', 'mother', 'father'],
+  hatch: ['id', 'egg'],
+  egg_lost: ['id', 'reason'],
+  extinct: ['at'],   // what the night mind proposed and what was kept (night/)
 };
 
 // Columns of each point in a `track` block, in this order.

@@ -224,6 +224,8 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     nextSisters = world.time + SISTERS_EVERY;
     const ants = colony.ants.filter((f) => f.sister).map((f) => [
       f.id, round(f.x, 1), round(f.y, 1), round(f.angle, 2), f.alive ? 1 : 0, f.carrying?.type ?? null,
+      // Her life stage when it is not 'adult' (LIFE, lifecycle.js): the replay draws the young small.
+      ...(f.lifeStage && f.lifeStage !== 'adult' ? [f.lifeStage] : []),
     ]);
     if (ants.length) emit('sisters', { ants });
   }

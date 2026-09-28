@@ -18,6 +18,7 @@
 // would follow her and read as plastic.
 
 import { POINT_TYPES } from './config.js';
+import { mix } from './sprite-kit.js';
 import { localLight, shadow } from './fagi-sprite/light.js';
 import {
   bodyShape, colorsOf, drawFilaments, drawMembranes, drawMantle, drawSenses, drawCore, drawCargo,
@@ -30,7 +31,8 @@ export function drawFagi(ctx, fagi) {
   const alive = fagi.alive;
   const step = alive ? fagi.stride * 0.07 : 0;
   const shape = bodyShape(fagi);
-  const colors = colorsOf(fagi);
+  // Old, her colors fade toward grey.
+  const colors = fagi.alive && fagi.lifeStage === 'senescent' ? faded(colorsOf(fagi)) : colorsOf(fagi);
 
   ctx.save();
   ctx.translate(fagi.x, fagi.y);
@@ -40,9 +42,11 @@ export function drawFagi(ctx, fagi) {
   const L = localLight(fagi.angle);
   shadow(ctx, L, alive);
 
-  // The cold makes her draw in a little; walking rocks her very slightly.
+  // The cold makes her draw in a little; a juvenile is smaller; walking rocks
+  // her very slightly.
   const cold = alive && fagi.thermalFeel === 'cold' ? 0.94 : 1;
-  ctx.scale(cold, cold);
+  const grown = fagi.lifeStage === 'juvenile' ? 0.72 : 1;
+  ctx.scale(cold * grown, cold * grown);
   ctx.rotate(alive && !asleep(fagi) ? Math.sin(step) * 0.03 : 0);
 
   drawFilaments(ctx, fagi, shape, step, colors);
@@ -71,4 +75,8 @@ export function drawFagiGlow(ctx, fagi, dark) {
   ctx.arc(fagi.x, fagi.y, 16, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+}
+
+function faded(colors) {
+  return Object.fromEntries(Object.entries(colors).map(([k, c]) => [k, mix(c, '#9aa0a6', 0.35)]));
 }

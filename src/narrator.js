@@ -44,6 +44,7 @@ export const TAG_COLOR = {
   coolDown: '#e0c35a',
   toSleep: '#8f7fd0',
   taste: '#b57bff',
+  life: '#e7a6c4',
   shelter: '#6f9fbf',
   api: '#4cc9f0',
   rethink: '#f0c75e',
@@ -414,6 +415,16 @@ function narrateOrganism(narr, fagi, p) {
         moved: r.replayed?.moved?.length ?? 0,
       } } : { key: 'log.nightReportEmpty' });
     p.night = r.n;
+  }
+
+  // Mating and brood (reproduction.js).
+  if (fagi.lastMate && fagi.lastMate.n !== p.mate) {
+    push(narr, fagi, 'life', { key: 'log.mate', params: { with: fagi.lastMate.with } }, { key: 'log.mateSub' });
+    p.mate = fagi.lastMate.n;
+  }
+  if (fagi.lastBrood && fagi.lastBrood.n !== p.brood) {
+    push(narr, fagi, 'life', { key: 'log.brood', params: { child: fagi.lastBrood.child } }, { key: 'log.broodSub' });
+    p.brood = fagi.lastBrood.n;
   }
 
   // What the night mind proposed, and what the gate let through (night/).

@@ -276,13 +276,13 @@ function putSisters(sisters, samples, t) {
   if (t < a.t) return [];
   const k = b.t > a.t ? Math.min(1, Math.max(0, (t - a.t) / (b.t - a.t))) : 0;
   const next = new Map(b.ants.map((s) => [s[0], s]));
-  return a.ants.map(([id, x, y, angle, alive, carrying]) => {
+  return a.ants.map(([id, x, y, angle, alive, carrying, stage]) => {
     const n = next.get(id) ?? [id, x, y, angle, alive, carrying];
     const f = sisters.get(id) ?? { id, sister: true, stride: 0, castSide: 1 };
     const nx = x + (n[1] - x) * k;
     const ny = y + (n[2] - y) * k;
     f.stride += Math.hypot(nx - (f.x ?? nx), ny - (f.y ?? ny));
-    Object.assign(f, { x: nx, y: ny, angle: angle + normalizeAngle(n[3] - angle) * k, alive: Boolean(alive), carrying: carrying ? { type: carrying } : null });
+    Object.assign(f, { x: nx, y: ny, angle: angle + normalizeAngle(n[3] - angle) * k, alive: Boolean(alive), carrying: carrying ? { type: carrying } : null, lifeStage: stage ?? 'adult' });
     sisters.set(id, f);
     return f;
   });

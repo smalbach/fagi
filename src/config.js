@@ -683,64 +683,6 @@ export const SEX = {
 
 // Sleep (sleep.js, consolidation.js). Resting recovers energy; sleeping at
 // night, safe in the nest, is also when the day's experiences are sorted.
-// Experiments (experiment.js, decision/experiment.js): last night's questions
-// become the next day's agenda, and she answers them with a small bite.
-//   portion : share of a whole fruit a trial bite is (the body pays that much;
-//             she learns what a whole one would do)
-//   maxWary : she does not try a fruit whose traits make her this wary (0-1)
-//   agenda  : questions carried into the day
-// Appetite (appetite.js): what the body lets her eat, and when; and thirst
-// that sends her looking for water before it is critical.
-//   handling    : seconds a bite takes before the next one
-//   malaise     : seconds after a bite that felt bad in which she eats only what
-//                 she knows is good
-//   searchWater : thirst (fraction) from which, not knowing where water is, she
-//                 stops gathering and goes looking for it
-//   averse, desperate: below
-// The night mind (night/): a model that proposes hypotheses while she sleeps,
-// and the gate that decides which she keeps.
-//   backend     : 'local' (deterministic, no network) or 'http' (a server at `url`)
-//   trust       : what a kept proposal is trusted, as a share of what backs it
-//   minSupport  : fruit she tasted that must back a proposed rule
-//   maxProposals: proposals weighed per night
-//   timeout     : seconds a remote mind has to answer
-//   log         : entries kept in her night log
-export const NIGHTAI = {
-  enabled: 0,
-  backend: 'local',
-  url: '',
-  trust: 0.5,
-  minSupport: 2,
-  maxProposals: 4,
-  timeout: 4,
-  log: 40,
-};
-
-// Perception (percept.js): she tells things apart only by what she perceives.
-// By smell alone, only the smell.
-export const PERCEPT = {
-  enabled: 0,
-};
-
-export const APPETITE = {
-  enabled: 0,
-  handling: 3,
-  malaise: 40,
-  searchWater: 0.3,
-  smellAversion: 0.15, // a smell whose learned weight is this bad or worse puts her off any untasted
-                      // fruit that has it (one bad bite does it: CUES.rate × a harmful reward)
-  averse: 0.5,        // wariness (learned/cues.js) from which she won't eat a fruit she never tasted
-  desperate: 0.85,    // hunger (fraction) from which she eats it anyway
-  poisonWindow: 120,  // seconds a harmful bite counts toward "died of poisoning"
-};
-
-export const EXPERIMENT = {
-  enabled: 0,
-  portion: 0.25,
-  maxWary: 0.3,
-  agenda: 6,
-};
-
 export const SLEEP = {
   enabled: 0,
   rise: 0.008,        // sleep pressure per second awake (0-1): ~2 min of activity fills it
@@ -762,4 +704,109 @@ export const SLEEP = {
   replayRate: 0.15,   // how far each rehearsal moves the traits (a day bite moves them CUES.rate)
   downscale: 0,       // share of weight every rehearsed trait loses before each round. 0 = pure
                       // replay; 0.1 guesses untasted fruit better but is less wary of poison (§25.2)
+};
+
+// Experiments (experiment.js, decision/experiment.js): last night's questions
+// become the next day's agenda, and she answers them with a small bite.
+//   portion : share of a whole fruit a trial bite is (the body pays that much;
+//             she learns what a whole one would do)
+//   maxWary : she does not try a fruit whose traits make her this wary (0-1)
+//   agenda  : questions carried into the day
+export const EXPERIMENT = {
+  enabled: 0,
+  portion: 0.25,
+  maxWary: 0.3,
+  agenda: 6,
+};
+
+// Appetite (appetite.js): what the body lets her eat, and when; and thirst
+// that sends her looking for water before it is critical.
+//   handling    : seconds a bite takes before the next one
+//   malaise     : seconds after a bite that felt bad in which she eats only what
+//                 she knows is good
+//   searchWater : thirst (fraction) from which, not knowing where water is, she
+//                 stops gathering and goes looking for it
+//   averse, desperate: below
+export const APPETITE = {
+  enabled: 0,
+  handling: 3,
+  malaise: 40,
+  searchWater: 0.3,
+  smellAversion: 0.15, // a smell whose learned weight is this bad or worse puts her off any untasted
+                      // fruit that has it (one bad bite does it: CUES.rate × a harmful reward)
+  averse: 0.5,        // wariness (learned/cues.js) from which she won't eat a fruit she never tasted
+  desperate: 0.85,    // hunger (fraction) from which she eats it anyway
+  poisonWindow: 120,  // seconds a harmful bite counts toward "died of poisoning"
+};
+
+// Perception (percept.js): she tells things apart only by what she perceives.
+// By smell alone, only the smell.
+export const PERCEPT = {
+  enabled: 0,
+};
+
+// The night mind (night/): a model that proposes hypotheses while she sleeps,
+// and the gate that decides which she keeps.
+//   backend     : 'local' (deterministic, no network) or 'http' (a server at `url`)
+//   trust       : what a kept proposal is trusted, as a share of what backs it
+//   minSupport  : fruit she tasted that must back a proposed rule
+//   maxProposals: proposals weighed per night
+//   timeout     : seconds a remote mind has to answer
+//   log         : entries kept in her night log
+export const NIGHTAI = {
+  enabled: 0,
+  backend: 'local',
+  url: '',
+  trust: 0.5,
+  minSupport: 2,
+  maxProposals: 4,
+  timeout: 4,
+  log: 40,
+};
+
+// Life (lifecycle.js, reproduction.js): egg → juvenile → adult → senescent →
+// death, and a population that breeds inside the world
+// (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md §10). Times in seconds of game, the
+// same compressed clock as hunger and thirst (180 s ≈ one day).
+//   founders       : how many the population starts with, as adults (both sexes)
+//   adultAt        : age at which a juvenile becomes an adult (and may breed)
+//   lifespan       : mean age at which she dies of old age; each one draws her
+//                    own, ± lifespanSpread (a fraction)
+//   senescentAt    : fraction of her lifespan from which she ages
+//   juvenileSpeed  : a juvenile's speed (×); oldSpeed: the speed she ends at
+//   mateEnergy     : energy (fraction of her maximum) both need to mate
+//   mateNeed       : hunger and thirst (fraction) both must be under
+//   mateStock      : edible rations the nest must hold: no brood in a lean time
+//   mateCost       : energy mating costs each
+//   eggCost        : hunger the female pays to lay (the egg is made of her)
+//   femaleRecover / maleRecover: seconds before each may mate again
+//   incubation     : seconds an egg takes at a good temperature
+//   eggCold / eggWarm: nest temperature (°C) from which an egg does not develop /
+//                    develops at full pace (only with THERMAL on)
+//   eggStarve      : seconds a ready egg waits for a ration to hatch before it dies
+//   kinLimit       : relatedness (0-1) from which two do not mate (0.5 = parent
+//                    and child, full siblings)
+//   maxPopulation  : the nest holds this many, eggs included
+export const LIFE = {
+  enabled: 0,
+  founders: 4,
+  adultAt: 360,
+  lifespan: 5400,
+  lifespanSpread: 0.15,
+  senescentAt: 0.75,
+  juvenileSpeed: 0.85,
+  oldSpeed: 0.6,
+  mateEnergy: 0.6,
+  mateNeed: 0.45,
+  mateStock: 2,
+  mateCost: 15,
+  eggCost: 12,
+  femaleRecover: 360,
+  maleRecover: 120,
+  incubation: 240,
+  eggCold: 12,
+  eggWarm: 22,
+  eggStarve: 180,
+  kinLimit: 0.5,
+  maxPopulation: 16,
 };

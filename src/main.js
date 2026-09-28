@@ -8,7 +8,7 @@
 // Which screen shows before and after (login, home, admin) is not handled
 // here: app/boot.js decides that, since it's the one that creates the game.
 
-import { WORLD, SOCIAL } from './config.js';
+import { WORLD, SOCIAL, LIFE } from './config.js';
 import { createWorld, resetWorld, record } from './world.js';
 import { generateMap } from './mapgen.js';
 import { createFagi } from './fagi.js';
@@ -156,7 +156,9 @@ export function createGame({ onExit } = {}) {
       if (snap) { restore(fagi, snap); learned = { facts: Object.keys(snap.facts ?? {}).length, rules: snap.rules?.length ?? 0 }; }
     }
     // Her sisters, if the colony has more than one: born knowing nothing.
-    world.colony = SOCIAL.size > 1 ? createColony(SOCIAL.size, fagi) : null;
+    // With LIFE, a population that breeds (reproduction.js): at least LIFE.founders.
+    const size = Math.max(SOCIAL.size, LIFE.enabled ? LIFE.founders : 1);
+    world.colony = size > 1 ? createColony(size, fagi) : null;
     // The clock starts with the session, not with the map: the time spent
     // setting up doesn't count.
     world.time = 0;

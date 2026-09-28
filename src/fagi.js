@@ -38,6 +38,7 @@ import { refreshRules } from './learned/synth.js';
 import { edibleCount } from './learned/rules.js';
 import { observeHabits, deathLesson } from './habits.js';
 import { assignSex, bodyFor, energyMax } from './biology.js';
+import { updateStage } from './lifecycle.js';
 import { senseBody } from './thermal.js';
 import { updateSleep } from './sleep.js';
 
@@ -165,6 +166,7 @@ function tickLearnedCode(fagi, dt) {
 export function updateFagi(fagi, world, dt) {
   if (!fagi.alive) return;
   fagi.age += dt;
+  updateStage(fagi);             // juvenile, adult, senescent (lifecycle.js; always 'adult' without LIFE)
 
   updateEffects(fagi, dt);
   resolveEpisodes(fagi, dt);     // is it known yet how the last thing she ate agreed with her?

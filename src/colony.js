@@ -13,6 +13,7 @@ import { SOCIAL } from './config.js';
 import { createFagi, updateFagi } from './fagi.js';
 import { socialize } from './social.js';
 import { ensureBothSexes } from './biology.js';
+import { updateLife } from './reproduction.js';
 
 // `first`: an existing Fagi to be #1 (the one the game follows); the rest
 // are born here, up to `size`.
@@ -39,10 +40,12 @@ export function createColony(size = SOCIAL.size, first = null) {
 export function updateSisters(world, colony, dt) {
   for (const f of colony.ants) if (f.sister) updateFagi(f, world, dt);
   socialize(colony, world, world.time ?? 0);
+  updateLife(world, colony, dt);   // with LIFE: mating, eggs, hatching (reproduction.js)
 }
 
 // A whole colony for one step, all of them measured alike (batch).
 export function updateColony(world, colony, dt) {
   for (const f of colony.ants) updateFagi(f, world, dt);
   socialize(colony, world, world.time ?? 0);
+  updateLife(world, colony, dt);
 }

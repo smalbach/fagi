@@ -43,6 +43,10 @@ function frame(ms) {
   critter(fagi(730, row, -0.6, { carrying: { type: 'nectar' } }), 3.2, t, 'carrying');
   critter(fagi(890, row, 0.2, { targetKind: 'scent', castSide: 1 }), 3.2, t, 'tracking');
   critter(fagi(1050, row, 0.9, { alive: false }), 3.2, t, 'dead');
+  // Life stages (LIFE): juvenile, adult, old.
+  critter(fagi(800, 630, 0.2, { lifeStage: 'juvenile' }), 2.4, t, 'juvenile');
+  critter(fagi(900, 630, 0.2), 2.4, t, 'adult');
+  critter(fagi(1000, 630, 0.2, { lifeStage: 'senescent' }), 2.4, t, 'old');
 
   // At night: the core is the light.
   ctx.fillStyle = '#141a33'; ctx.fillRect(0, 560, 700, 140);
@@ -52,8 +56,8 @@ function frame(ms) {
     drawFagiGlow(ctx, f, 1);
   }
   // And at real size, which is how she looks on the map.
-  critter(fagi(900, 630, 0.2), 1, t, 'real size');
-  critter(fagi(960, 630, 2.4, { sex: 'male' }), 1, t);
+  critter(fagi(1100, 630, 0.2), 1, t, 'real size');
+  critter(fagi(1140, 630, 2.4, { sex: 'male' }), 1, t);
 
   requestAnimationFrame(frame);
 }
