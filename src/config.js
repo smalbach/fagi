@@ -721,7 +721,9 @@ export const SLEEP = {
   minSupport: 2,      // bites behind a hypothesis
   minEffect: 0.15,    // average reward (±) for a trait to predict something
   reports: 12,        // night reports kept
-  replay: 4,          // rounds of interleaved replay of the remembered fruit (consolidation.js); 0 = none
+  replay: 0,          // rounds of interleaved replay of the remembered fruit (consolidation.js); 0 = none.
+                      // Off since the follow-up evaluation (§25.13): with 4 rounds she judged untasted
+                      // fruit worse, and worse again after the world turned over. Measured up to §25.12 with 4
   replayRate: 0.15,   // how far each rehearsal moves the traits (a day bite moves them CUES.rate)
   downscale: 0,       // share of weight every rehearsed trait loses before each round. 0 = pure
                       // replay; 0.1 guesses untasted fruit better but is less wary of poison (§25.2)

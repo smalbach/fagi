@@ -182,7 +182,9 @@ test('interleaved replay gives the shared smell the blame the day spread over on
   const muskyShare = blameOf(cues, 'smell:musky', 'red-round-musky');
   const red = Math.abs(cues['color:red'].w);
 
+  SLEEP.replay = 4;   // off by default since §25.13; here, what it does when on
   const r = consolidate(fagi, { night: 1, now: 60 });
+  SLEEP.replay = 0;
   assert.equal(r.replayed.fruit, 3);
   assert.ok(r.replayed.moved.length > 0);
   assert.ok(blameOf(cues, 'smell:musky', 'red-round-musky') > muskyShare, 'the smell carries more of the blame');
@@ -198,6 +200,7 @@ test('the replay is deterministic, and SLEEP.replay = 0 leaves the traits alone'
   const b = createFagi();
   liveWildDay(a);
   liveWildDay(b);
+  SLEEP.replay = 4;
   consolidate(a, { night: 1, now: 60 });
   consolidate(b, { night: 1, now: 60 });
   assert.deepEqual(a.brain.cues, b.brain.cues);
@@ -209,6 +212,5 @@ test('the replay is deterministic, and SLEEP.replay = 0 leaves the traits alone'
   const r = consolidate(c, { night: 1, now: 60 });
   assert.equal(JSON.stringify(c.brain.cues), before);
   assert.deepEqual(r.replayed.moved, []);
-  SLEEP.replay = 4;
   registerSpecies([]);
 });

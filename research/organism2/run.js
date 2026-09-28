@@ -22,6 +22,7 @@ if (argv[0] === '--piece') {
   const [, condition, env, from, to, file, offset = '0'] = argv;
   const k = Number(offset);
   enableOrganism();
+  CONFIG.SLEEP.replay = 4;        // on when this protocol was frozen (it turned it off, §25.13)
   CONFIG.MAPGEN.species = SPECIES;
   for (const [path, value] of Object.entries(INDIVIDUAL[condition])) {
     const [block, key] = path.split('.');

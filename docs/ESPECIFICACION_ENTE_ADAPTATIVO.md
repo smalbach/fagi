@@ -1612,6 +1612,7 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] Batería de ablaciones del §18.2, en un mundo estable y en uno que se invierte a mitad de vida, y condiciones de población.
 - [x] Protocolo congelado antes de correr (`docs/research/organism-protocol.md`, commit `c181469`), semillas nunca usadas, un solo comando.
 - [x] Resultados negativos publicados, datos brutos conservados (`research/results/organism/`) e informe automático (§25.9).
+- [x] Protocolo de seguimiento: replay, rigidez de la consolidación y memoria episódica como ablación propia (§25.13). El replay queda apagado por defecto.
 
 **Fase 6: novedad y conceptos emergentes**
 - [x] Identidad real separada de lo percibido, en lo que Fagi decide y en lo que ve la API (§12.7).
@@ -1943,6 +1944,34 @@ Protocolo congelado en `acd96a4` antes de correr (`docs/research/concepts-protoc
 
 Las autopsias del organismo actual (48 vidas, 1800 s) no encuentran artefactos. Las 8 muertes son por veneno, y todas siguen el mismo patrón: muy hambrienta, come fruta podrida (`toxic`), y el veneno la termina de matar. El hambre desesperada vence a la aversión, como en los animales reales. Mueren por comida mala cuando no queda otra, no por no saber distinguirla.
 
+### 25.13 Seguimiento: replay, consolidación y memoria episódica
+
+El primer protocolo (§25.9) dejó tres cosas como exploratorias:
+
+- el replay nocturno empeoraba el juicio;
+- consolidar frenaba la adaptación a un mundo que cambia;
+- quitar la memoria episódica daba exactamente lo mismo que quitar la consolidación.
+
+**Lo que se cambió antes de congelar.** La noche solo preguntaba después de un día con bocados propios. Pero la pregunta «¿qué vi y nunca probé?» es memoria semántica, no episódica. Con `SLEEP.askAlways` la hace aunque no haya episodios que ordenar, así que quitar la memoria episódica deja de ser lo mismo que quitar la noche.
+
+Con el organismo de hoy y vidas de desarrollo, los dos primeros efectos se repitieron. Se congeló el protocolo (`docs/research/organism2-protocol.md`, commit `85bea4d`) y se corrió con 120 vidas por condición y mundo, semillas 18000–18119 y mapas nunca usados. Informe: `research/results/organism2/report.md`.
+
+| | Predicción | a − b [IC 95 %] | ¿Se sostiene? |
+|---|---|---|---|
+| F1 | el replay empeora el juicio sobre fruta no probada (mundo estable) | +0,024 [0,005, 0,043] | sí |
+| F2 | y más aún cuando el mundo se invierte | +0,072 [0,046, 0,096] | sí |
+| F3 | consolidar la hace más lenta para juzgar por el mundo nuevo | +0,203 [0,168, 0,239] | sí |
+| F4 | sin memoria episódica la noche sigue preguntando, y encuentra más fruta buena que sin noche | +0,448 [0,380, 0,517] | sí |
+
+**Decisión, tal como estaba escrita en el protocolo: el replay se apaga por defecto** (`SLEEP.replay = 0`). Lo que el laboratorio mostraba (repasar la fruta recordada reparte mejor la culpa entre rasgos, §25.2) no compensa en el juego: el mismo peso que mueve lo usa también la aversión. Queda como opción, y las evaluaciones congeladas lo mantienen encendido para reproducirse.
+
+**Exploratorio:**
+
+- **La rigidez se ve en la conducta.** Tras la inversión, con consolidación vuelve a comer la fruta que antes le iba bien y ahora es dañina: 2,58 bocados repetidos frente a 0,86 sin consolidación. Además toma más veneno después del cambio (2,62 frente a 1,43). Consolidar sube la confianza y las etapas de memoria de lo que el día confirmó, y eso lo vuelve más difícil de desaprender.
+- **Pero sin consolidación le va peor en un mundo estable.** Encuentra la mitad de las especies buenas (0,50 frente a 0,95), toma el triple de veneno y el 29 % muere, frente al 2 %. Lo que el sueño aporta es la agenda del día siguiente.
+- **Sin memoria episódica se comporta casi igual que sin replay.** Conserva la agenda y pierde el repaso y el refuerzo de lo que el día confirmó. La memoria episódica aporta su propio efecto, separado de la noche entera.
+- Las dos caras juntas son el dilema entre estabilidad y plasticidad. La salida realista sería la de las cosas (§25.11): ante una sorpresa, dudar de lo consolidado, en lugar de consolidar menos. Queda pendiente para la fruta.
+
 ### 25.3 Pendiente
 
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
@@ -1952,11 +1981,10 @@ Las autopsias del organismo actual (48 vidas, 1800 s) no encuentran artefactos. 
   - combinar objetos, y esperar y volver a mirar algo que cambia con el tiempo (ninguna cosa cambia todavía);
   - seguir a otra que interactúa: que los conceptos se transmitan en la colonia;
   - que la noche ordene también los conceptos.
-- Fase 7, siguiente protocolo: confirmar que el replay empeora el juicio (y decidir si apagarlo), que consolidar reduce la adaptación al cambio, y separar la memoria episódica de la consolidación para que sea una ablación propia.
 
 ### 25.4 Cómo reproducir
 
-Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas. Todas las tablas anteriores al §25.11 se midieron sin cosas ni conceptos y con el reflejo térmico antiguo: a los comandos de `batch.js`, `sleep-lab.js`, `autopsy.js` y `population.js` hay que añadirles `--set CONCEPT.enabled=0 --set THERMAL.voluntary=0`; la del §25.11, solo `--set THERMAL.voluntary=0`. Las evaluaciones congeladas y la batería de sexos ya lo hacen solas. `LIFE` solo afecta a quien pertenece a una población que se reproduce, así que no cambia las vidas individuales; en cualquier ejecución con colonia (`--colony`, `--generations`) sí la pone a criar.
+Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas. Todas las tablas anteriores al §25.11 se midieron sin cosas ni conceptos y con el reflejo térmico antiguo: a los comandos de `batch.js`, `sleep-lab.js`, `autopsy.js` y `population.js` hay que añadirles `--set CONCEPT.enabled=0 --set THERMAL.voluntary=0 --set SLEEP.askAlways=0 --set SLEEP.replay=4`; la del §25.11, solo las tres últimas; las del §25.12, `--set SLEEP.askAlways=0 --set SLEEP.replay=4`. A `population.js` y a todo lo que cría antes del §25.14, además, `--set LIFE.gradual=0`. Las evaluaciones congeladas y la batería de sexos ya lo hacen solas. `LIFE` solo afecta a quien pertenece a una población que se reproduce, así que no cambia las vidas individuales; en cualquier ejecución con colonia (`--colony`, `--generations`) sí la pone a criar.
 
 ```text
 npm test
@@ -2017,6 +2045,10 @@ node research/concepts/run.js --jobs 16
 node research/concepts/analyze.js research/results/concepts
 node scripts/concept-lab.js --lives 48                  # banco exploratorio
 node scripts/concept-lab.js --lives 48 --dims color --turn
+
+# §25.13 seguimiento congelado (docs/research/organism2-protocol.md)
+node research/organism2/run.js --jobs 16
+node research/organism2/analyze.js research/results/organism2
 
 # §25.12 retención
 node scripts/retention.js

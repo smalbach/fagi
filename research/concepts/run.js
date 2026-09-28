@@ -24,6 +24,7 @@ if (argv[0] === '--piece') {
   enableOrganism();
   CONFIG.THERMAL.voluntary = 0;   // came after this protocol was frozen
   CONFIG.SLEEP.askAlways = 0;     // so did this
+  CONFIG.SLEEP.replay = 4;        // and replay was on
   CONFIG.MAPGEN.species = SPECIES;
   CONFIG.CONCEPT.dims = FAMILIES[family];
   for (const [path, value] of Object.entries(CONDITIONS[condition])) {
