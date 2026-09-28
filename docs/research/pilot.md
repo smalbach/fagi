@@ -180,3 +180,31 @@ of the food they meet, and that only kills an ant with time to starve.
 
 This makes a prediction for the game, which is running: with lives of
 1800 s, the game should show the trap too.
+
+### The prediction in the game: lives of 1800 s
+
+The game check again (`--duration 1800`, 16 lineages per format, seed 3000,
+`SOCIAL.topic=food`), paired by lineage:
+
+| format | harmful bites / ant, gens 1–3 | accuracy taught | alive at the inversion | harmful bites / ant at the inversion | myths / ant at the inversion |
+|---|---|---|---|---|---|
+| none | 1.99 [1.85, 2.11] | 0.50 | 0.75 [0.58, 0.91] | 2.05 | 0.08 |
+| verdict | 1.09 [0.93, 1.26] | 0.54 | **0.86** [0.69, 1.00] | 1.14 | 0.72 |
+| rule | **0.72** [0.57, 0.87] | 0.61 | **0.67** [0.48, 0.86] | 1.50 | 1.42 |
+| evidence | 0.85 [0.72, 1.00] | 0.62 | 0.83 [0.67, 0.95] | 1.17 | 0.83 |
+
+- H1 again: verdict − rule, harmful bites in the steady state, +0.38
+  [0.18, 0.57], p = .014 (Holm), dz 0.87.
+- The trap now points the predicted way: at the inversion, reason-lineages
+  have the fewest survivors (67%, against 86% for verdicts and 83% for
+  evidence), where with 900 s lives the formats were level. The verdict −
+  rule gap grew from +0.06 (900 s) to +0.19 (1800 s).
+- But 16 lineages are not enough to call it: +0.19 [−0.09, 0.45], dz 0.33,
+  which needs about 75 lineages per format for 80% power. In the game the
+  trap also works partly through eating: reason-lineages eat more poison at
+  the inversion (1.50 against 1.14 harmful bites per ant), not only refuse
+  food.
+
+The game agrees in direction with the lab on every contrast, including the
+one that depends on life length; it has not yet been run with enough
+lineages to confirm the trap on its own.
