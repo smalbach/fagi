@@ -36,6 +36,7 @@ export const EVENT_TYPES = {
   fagi_pantry: ['what'],
   fagi_rule: ['rule'],
   fagi_death: ['cause'],
+  follow: ['id', 'from'],   // she died; the game follows another of the population from here
   track: ['pts'],
   sisters: ['ants'],   // her sisters (colony.js): [[id, x, y, angle, alive, carrying, stage?], ...]
   mind: [],

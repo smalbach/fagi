@@ -29,7 +29,7 @@ import { nestUnder } from './nest.js';
 import { createFagi } from './fagi.js';
 import { assignSex, energyMax } from './biology.js';
 import { createGenome, recombine, applyGenome, teach } from './generations.js';
-import { drawLifespan, lifeAge } from './lifecycle.js';
+import { drawLifespan, lifeAge, fertility } from './lifecycle.js';
 import { cycleAt } from './cycle.js';
 import { edibleCount } from './learned/rules.js';
 
@@ -80,11 +80,29 @@ function coancestry(lineage, a, b, memo = new Map(), depth = 0) {
 
 export const relatedness = (lineage, a, b) => 2 * coancestry(lineage ?? {}, a, b);
 
+// How much a crowded nest slows every brood (LIFE.gradual): 1 when it is
+// empty, growing as it fills, as a crowd competes for food and room long before
+// the nest cannot hold one more.
+export function crowding(n) {
+  if (!LIFE.gradual) return 1;
+  return 1 / Math.max(0.05, 1 - (n / LIFE.maxPopulation) ** 2);
+}
+
+// Seconds after mating before she may again: her sex's recovery, longer as her
+// fertility fades and as the nest fills.
+function recovery(f, crowd) {
+  const base = f.sex === 'female' ? LIFE.femaleRecover : LIFE.maleRecover;
+  return base * crowd / Math.max(0.01, fertility(f));
+}
+
 // Can she breed right now (§10.1)? `nest` is the nest object.
-function ready(f, world, nest) {
-  if (!f.alive || f.lifeStage !== 'adult' || f.swimming || !f.sex) return false;
+function ready(f, world, nest, crowd = 1) {
+  if (!f.alive || f.swimming || !f.sex) return false;
+  if (LIFE.gradual ? fertility(f) <= 0 : f.lifeStage !== 'adult') return false;
   if (nestUnder(f, world) !== nest) return false;
-  if (f.age < (f.nextMateAt ?? 0)) return false;
+  if (LIFE.gradual) {
+    if (f.lastMatedAt != null && f.age < f.lastMatedAt + recovery(f, crowd)) return false;
+  } else if (f.age < (f.nextMateAt ?? 0)) return false;
   if (f.energy < LIFE.mateEnergy * energyMax(f)) return false;
   if (f.hunger / HUNGER.max >= LIFE.mateNeed || f.thirst / THIRST.max >= LIFE.mateNeed) return false;
   if (THERMAL.enabled && (f.thermalStress ?? 0) > 0.25 * THERMAL.maxStress) return false;
@@ -115,6 +133,8 @@ function mate(world, colony, nest, mother, father) {
   mother.hunger = Math.min(HUNGER.max, mother.hunger + LIFE.eggCost);
   mother.nextMateAt = mother.age + LIFE.femaleRecover;
   father.nextMateAt = father.age + LIFE.maleRecover;
+  mother.lastMatedAt = mother.age;
+  father.lastMatedAt = father.age;
   const tag = (f) => `${f.id}`;
   const egg = {
     id: colony.nextEgg = (colony.nextEgg ?? 0) + 1,
@@ -135,11 +155,12 @@ function mate(world, colony, nest, mother, father) {
 function matings(world, colony, nest) {
   const alive = living(colony) + (nest.eggs?.length ?? 0);
   if (alive >= LIFE.maxPopulation) return;
-  const females = colony.ants.filter((f) => f.sex === 'female' && ready(f, world, nest) && edibleCount(f, f.pantry) >= LIFE.mateStock);
+  const crowd = crowding(alive);
+  const females = colony.ants.filter((f) => f.sex === 'female' && ready(f, world, nest, crowd) && edibleCount(f, f.pantry) >= LIFE.mateStock);
   if (!females.length) return;
-  const males = colony.ants.filter((f) => f.sex === 'male' && ready(f, world, nest));
+  const males = colony.ants.filter((f) => f.sex === 'male' && ready(f, world, nest, crowd));
   for (const mother of females) {
-    const options = males.filter((m) => relatedness(world.lineage, mother.id, m.id) < LIFE.kinLimit && m.age >= (m.nextMateAt ?? 0));
+    const options = males.filter((m) => relatedness(world.lineage, mother.id, m.id) < LIFE.kinLimit && ready(m, world, nest, crowd));
     if (!options.length) continue;
     const father = options.reduce((best, m) => (looksWell(m) > looksWell(best) || (looksWell(m) === looksWell(best) && m.id < best.id) ? m : best));
     mate(world, colony, nest, mother, father);

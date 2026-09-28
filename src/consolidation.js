@@ -21,6 +21,10 @@
 //
 // SLEEP.consolidate = 0 is the ablation: she sleeps, but sorts nothing.
 // SLEEP.replay = 0 keeps the rest of the night and drops only step 6.
+// Steps 1-6 and the 'check' questions need the day's episodes (the bite log,
+// EXPLAIN.log); the 'taste' questions need only what she believes (the fruit
+// she saw and never tasted): with SLEEP.askAlways they are asked even when
+// there is no episode to sort, so without episodic memory she still wonders.
 
 import { SLEEP, MEMORY } from './config.js';
 import { cuesOf, predict } from './learned/cues.js';
@@ -224,7 +228,7 @@ export function consolidate(fagi, { night, now, since = -Infinity }) {
     forgotten,
     replayed,
     contradictions: sorting ? contradictions(day) : [],
-    questions: sorting ? questions(fagi, hyps) : [],
+    questions: sorting || (SLEEP.consolidate && SLEEP.askAlways) ? questions(fagi, sorting ? hyps : []) : [],
     sorted: Boolean(sorting),
   };
 }

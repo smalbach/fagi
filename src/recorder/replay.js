@@ -153,6 +153,11 @@ export function applyEvent(state, ev) {
     case 'fagi_death':
       state.dead = { t: ev.t, cause: ev.cause };
       break;
+    case 'follow':
+      // The game followed another of the population from here: alive again.
+      state.dead = null;
+      state.followed = { t: ev.t, id: ev.id, from: ev.from };
+      break;
     case 'night_report':
       state.nights.push({ t: ev.t, report: ev.report });
       break;

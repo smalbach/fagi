@@ -67,6 +67,18 @@ export function createNarrator() {
   };
 }
 
+// The game now follows another one (main.js): what she already lived is not
+// news, only that she is the one on screen now.
+export function followed(narr, fagi, kin, from) {
+  const lines = [...narr.lines];
+  const seq = narr.seq;
+  narr.prev = createNarrator().prev;
+  narrate(narr, fagi);
+  narr.lines = lines;
+  narr.seq = seq;
+  push(narr, fagi, 'life', { key: `log.follow.${kin}`, params: { who: fagi.id, from } }, { key: 'log.followSub' });
+}
+
 function push(narr, fagi, tag, text, detail = null) {
   narr.lines.push({ id: ++narr.seq, t: fagi.age, tag, text, detail });
   if (narr.lines.length > MAX_LINES) narr.lines.shift();

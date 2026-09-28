@@ -53,5 +53,14 @@ export function lifeSpeed(fagi) {
   return 1 - (1 - LIFE.oldSpeed) * t;
 }
 
+// How fertile she is (0-1): full as an adult, fading through old age to none
+// at the end of her lifespan (LIFE.gradual). Without it only adults breed.
+export function fertility(fagi) {
+  if (fagi.lifeStage === 'adult') return 1;
+  if (!LIFE.gradual || fagi.lifeStage !== 'senescent' || !fagi.lifespan) return 0;
+  const from = fagi.lifespan * LIFE.senescentAt;
+  return Math.max(0, 1 - (lifeAge(fagi) - from) / (fagi.lifespan - from));
+}
+
 // Has her time come?
 export const oldAge = (fagi) => Boolean(LIFE.enabled && fagi.lifespan && lifeAge(fagi) >= fagi.lifespan);

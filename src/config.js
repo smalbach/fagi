@@ -725,6 +725,9 @@ export const SLEEP = {
   replayRate: 0.15,   // how far each rehearsal moves the traits (a day bite moves them CUES.rate)
   downscale: 0,       // share of weight every rehearsed trait loses before each round. 0 = pure
                       // replay; 0.1 guesses untasted fruit better but is less wary of poison (§25.2)
+  askAlways: 1,       // 1 = the night asks about fruit she saw and never tasted even when the day
+                      // left no bite of hers to sort: that question is semantic memory, not
+                      // episodic (0 = only after a day with bites, as measured up to §25.12)
 };
 
 // Experiments (experiment.js, decision/experiment.js): last night's questions
@@ -809,6 +812,9 @@ export const NIGHTAI = {
 //   kinLimit       : relatedness (0-1) from which two do not mate (0.5 = parent
 //                    and child, full siblings)
 //   maxPopulation  : the nest holds this many, eggs included
+//   gradual        : 1 = fertility fades through old age, and a crowded nest slows
+//                    every brood before the ceiling (0 = senescents never breed and
+//                    the ceiling is the only brake, as measured up to §25.12)
 export const LIFE = {
   enabled: 0,
   founders: 4,
@@ -831,6 +837,7 @@ export const LIFE = {
   eggStarve: 180,
   kinLimit: 0.5,
   maxPopulation: 16,
+  gradual: 1,
 };
 
 // Things and concepts (things.js, concepts.js, decision/things.js; spec §12.8).

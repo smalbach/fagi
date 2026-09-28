@@ -17,13 +17,13 @@ import { updateTrails } from './smell.js';
 import { render } from './render.js';
 import { createInput } from './input.js';
 import { createAskCard } from './ask.js';
-import { createColony } from './colony.js';
+import { createColony, successorOf, swapInto } from './colony.js';
 import { createCamera, centerOn, fit } from './camera.js';
 import { createUI } from './ui.js';
 import { versionLabel, versionTitle } from './version.js';
 import { createSettings, loadSettings, configSnapshot, applyConfig, onConfigChange, organismOffConfig } from './settings.js';
 import { bindDom, t, onLangChange, formatDuration } from './i18n.js';
-import { createNarrator, narrate } from './narrator.js';
+import { createNarrator, narrate, followed } from './narrator.js';
 import { createConsole } from './console.js';
 import { createLearnedPanel } from './learned/panel.js';
 import { createBrainMap } from './brainmap.js';
@@ -181,6 +181,20 @@ export function createGame({ onExit } = {}) {
     return session.closing;
   }
 
+  // She died. In a population that breeds (LIFE) the game follows her nearest
+  // descendant, or whoever is left; the session ends only with the last one.
+  function followOrClose() {
+    const found = world.colony && LIFE.enabled ? successorOf(world, world.colony, fagi) : null;
+    if (!found) { closeRecording('death'); return; }
+    const from = fagi.id;
+    const other = found.next;
+    swapInto(fagi, other);
+    resetCortex(fagi.cortex);
+    session.rec.follow(fagi, from);
+    followed(narrator, fagi, found.kin, from);
+    console.reset();
+  }
+
   async function finishUp(reason) {
     if (mode !== 'play') return;
     const closing = closeRecording(reason);
@@ -235,7 +249,7 @@ export function createGame({ onExit } = {}) {
     const lines = narrate(narrator, fagi);
     if (session && !session.rec.ended) {
       session.rec.observe(fagi, lines);
-      if (!fagi.alive) closeRecording('death');
+      if (!fagi.alive) followOrClose();
     }
     if (camera.follow) centerOn(camera, canvas, world, fagi);
     render(ctx, world, fagi, camera);

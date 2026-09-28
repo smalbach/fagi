@@ -60,6 +60,19 @@ test('without sorting, the night asks nothing: the agenda stays empty', () => {
   registerSpecies([]);
 });
 
+test('without a bite of her own to sort, the night still asks about fruit she saw and never tasted', () => {
+  species();
+  const fagi = createFagi();
+  recall(fagi.brain, 'yellow-crystal-sweet');
+  const report = consolidate(fagi, { night: 1, now: 60 });
+  assert.equal(report.sorted, false);
+  assert.deepEqual(agendaFrom(fagi, report), ['yellow-crystal-sweet']);
+  SLEEP.askAlways = 0;
+  assert.deepEqual(agendaFrom(fagi, consolidate(fagi, { night: 1, now: 60 })), [], 'as it was: only after a day with bites');
+  SLEEP.askAlways = 1;
+  registerSpecies([]);
+});
+
 test('she goes for a question only when nothing presses and its traits do not scare her', () => {
   species();
   EXPERIMENT.enabled = 1;

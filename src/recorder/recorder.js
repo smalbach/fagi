@@ -270,8 +270,23 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     return summary;
   }
 
+  // The one followed died and the game follows another of the population
+  // (main.js, colony.js): from here the path, the events and the mind are hers.
+  function follow(next, from) {
+    closePending();
+    closeTrack();
+    emit('follow', { id: next.id, from, x: round(next.x, 1), y: round(next.y, 1) });
+    Object.assign(prev, {
+      meal: next.lastMeal?.n ?? 0, picked: next.picked ?? 0, stored: next.lastDeposit?.n ?? 0,
+      pantry: next.lastPantry?.n ?? 0, rule: next.brain?.lastRule?.n ?? 0, drinking: Boolean(next.drinking), alive: next.alive,
+    });
+    deathNoted = false;
+    lastRow = null;
+    for (const k of Object.keys(mindPrev)) delete mindPrev[k];
+  }
+
   return {
-    emit, start, observe, end, flush,
+    emit, start, observe, end, flush, follow,
     get seq() { return seq; },
     get ended() { return ended; },
   };
