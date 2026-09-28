@@ -678,6 +678,19 @@ export const SEX = {
 
 // Sleep (sleep.js, consolidation.js). Resting recovers energy; sleeping at
 // night, safe in the nest, is also when the day's experiences are sorted.
+// Experiments (experiment.js, decision/experiment.js): last night's questions
+// become the next day's agenda, and she answers them with a small bite.
+//   portion : share of a whole fruit a trial bite is (the body pays that much;
+//             she learns what a whole one would do)
+//   maxWary : she does not try a fruit whose traits make her this wary (0-1)
+//   agenda  : questions carried into the day
+export const EXPERIMENT = {
+  enabled: 0,
+  portion: 0.25,
+  maxWary: 0.3,
+  agenda: 6,
+};
+
 export const SLEEP = {
   enabled: 0,
   rise: 0.008,        // sleep pressure per second awake (0-1): ~2 min of activity fills it

@@ -43,6 +43,7 @@ export const TAG_COLOR = {
   warmUp: '#e0875a',
   coolDown: '#e0c35a',
   toSleep: '#8f7fd0',
+  taste: '#b57bff',
   shelter: '#6f9fbf',
   api: '#4cc9f0',
   rethink: '#f0c75e',

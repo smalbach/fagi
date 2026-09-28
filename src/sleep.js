@@ -13,6 +13,7 @@ import { cycleAt, nightOf } from './cycle.js';
 import { nestUnder } from './nest.js';
 import { consolidate } from './consolidation.js';
 import { record } from './world.js';
+import { agendaFrom } from './experiment.js';
 
 // Is she asleep right now (as opposed to awake, doing anything else)?
 export const isAsleep = (fagi) => fagi.alive && fagi.thought?.action === 'rest' && !fagi.swimming;
@@ -33,6 +34,8 @@ function sortTheDay(fagi, world) {
   fagi.lastNightReport = report;
   (fagi.nightReports ??= []).push(report);
   if (fagi.nightReports.length > SLEEP.reports) fagi.nightReports.splice(0, fagi.nightReports.length - SLEEP.reports);
+  // What the night asked becomes what she tries when she wakes up.
+  fagi.agenda = agendaFrom(fagi, report);
   fagi.brain.version = (fagi.brain.version ?? 0) + 1;
   if (!fagi.sister) record(world, 'night_report', { report });
 }

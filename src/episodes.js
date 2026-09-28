@@ -29,7 +29,7 @@ function learnFrom(fagi, key, reward, sensations) {
 
 // Opens an episode and immediately teaches what she felt. `before` is the snapshot of the
 // body before eating or starting to drink.
-export function openEpisode(fagi, { action, key, before }) {
+export function openEpisode(fagi, { action, key, before, portion = 1 }) {
   const previous = fagi.episode;
   if (previous) close(fagi, previous, null);   // the scare, if it comes, belongs to the new one
 
@@ -37,6 +37,7 @@ export function openEpisode(fagi, { action, key, before }) {
   const ep = {
     n: (fagi.lastEpisode?.n ?? 0) + 1,
     action, key, need,
+    ...(portion !== 1 ? { portion } : {}),
     at: fagi.age,
     before,
     // If the need was ALREADY critical before the bite, the bad outcome is no surprise:
@@ -60,7 +61,11 @@ export function openEpisode(fagi, { action, key, before }) {
 
 function feelNow(fagi, ep) {
   const after = snapshotBody(fagi);
-  const { reward, sensations } = feel(ep.before, after);
+  const felt = feel(ep.before, after);
+  // A trial bite: she felt a fraction of the fruit, and knows how small the bite
+  // was, so she learns what a whole one would do.
+  const reward = ep.portion ? Math.max(-1, Math.min(1, felt.reward / ep.portion)) : felt.reward;
+  const sensations = ep.portion ? [...felt.sensations, { sense: 'trial', v: ep.portion }] : felt.sensations;
   ep.reward = reward;
   ep.sensations = sensations;
   ep.change = learnFrom(fagi, ep.key, reward, sensations);

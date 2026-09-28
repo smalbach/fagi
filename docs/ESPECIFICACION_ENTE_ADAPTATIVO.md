@@ -1,6 +1,6 @@
 # Especificación: Fagi como ente adaptativo autónomo
 
-**Estado:** en implementación: fases 1 y 3 hechas (la 3, con efecto medido solo en laboratorio); 2 y 5, en parte (ver §25)  
+**Estado:** en implementación: fases 1 y 3 hechas; 2, 5 y 6, en parte (ver §25)  
 **Proyecto:** First AGI / Fagi  
 **Objetivo de esta versión:** transformar la simulación actual, inspirada en una hormiga, en un entorno experimental para estudiar un organismo artificial limitado que percibe, aprende, descansa, consolida experiencias, se reproduce y se adapta durante varias generaciones.
 
@@ -10,7 +10,7 @@
 
 El repositorio contiene estudios preregistrados y congelados (`docs/research/`) que ejecutan el mismo motor de simulación mediante `scripts/batch.js`. Todo lo que añade esta especificación debe respetar estas condiciones:
 
-1. **Cada bloque nuevo arranca apagado** en `src/config.js` (`CYCLE.enabled`, `THERMAL.enabled`, `SEX.enabled`, `SLEEP.enabled`, `GEN.sexual`).
+1. **Cada bloque nuevo arranca apagado** en `src/config.js` (`CYCLE.enabled`, `THERMAL.enabled`, `SEX.enabled`, `SLEEP.enabled`, `EXPERIMENT.enabled`, `GEN.sexual`).
 2. **Con todo apagado, la simulación es idéntica número a número**: no se consume ni un número aleatorio más ni en otro orden, y todo multiplicador corporal vale exactamente `1`. Se comprobó comparando byte a byte la salida JSON de `batch.js` antes y después (ejecución simple y por generaciones con especies).
 3. **El juego enciende el organismo** al arrancar (`src/app/organism-on.js`, que se importa antes que los ajustes). En batch se enciende con `--organism`, y `--set` puede apagar después cualquier pieza (`--set SLEEP.consolidate=0`).
 4. **Las sesiones grabadas guardan los flags** con el resto de ajustes. Al reproducir una sesión anterior al organismo, los flags ausentes se consideran `0` (`organismOffConfig`).
@@ -697,6 +697,18 @@ valor_exploración = incertidumbre
 ```
 
 Cuando hambre, sed o temperatura son críticas, sobrevivir debe dominar. En estado estable, el agente puede elegir experimentos informativos.
+
+### 12.6 Experimentos implementados: el mordisco de prueba
+
+`experiment.js` y `decision/experiment.js`, con el flag `EXPERIMENT.enabled`, que forma parte del organismo.
+
+Medir antes de diseñar cambió el problema. Con 6 especies, cada vida **ve las 6** (casi todas antes de los 200 s), pero **prueba unas 3**. El cuello de botella no es encontrar las especies, sino decidir probarlas. Una especie no probada que se deja pasar sin hambre acaba guardada sin probar o abandonada, y la mitad de las que se quedaban sin probar no eran dañinas.
+
+1. **Agenda.** Al terminar la noche, las preguntas del informe (§11.4) se convierten en la agenda del día: frutas vistas y nunca probadas (`taste`), y frutas no probadas que tienen un rasgo cuya hipótesis tiene excepciones o poco soporte (`check`). Como máximo `EXPERIMENT.agenda` entradas. Solo entra lo que Fagi percibió, así que nada revela qué es cada fruta.
+2. **Regla `taste`**, en el último nivel (§16.7, experimentación y exploración) y antes de explorar. Se activa si no aprieta nada, no carga nada, le sobra energía y hay a la vista una fruta de la agenda cuyos rasgos no le dan una cautela ≥ `EXPERIMENT.maxWary`. Elige la más cercana.
+3. **Mordisco de prueba.** Al tocarla come solo `EXPERIMENT.portion` (0,25) de la fruta. El hambre cambia en esa fracción, y cada efecto pasa a `mult^porción` y dura esa fracción del tiempo. Lo que siente se divide por la porción, porque sabe lo pequeño que fue el bocado, así que aprende casi lo mismo que con una fruta entera. La explicación lo dice con la sensación `trial`. La pregunta queda respondida.
+
+Con `SLEEP.consolidate = 0` la noche no pregunta nada, la agenda queda vacía y no hay experimentos. Esa es la parte del sueño que llega al día siguiente. Las mismas preguntas podrían calcularse despierta; el diseño las ata a la noche porque la noche es cuando el día ya está ordenado y hay algo que preguntar.
 
 ---
 
@@ -1459,6 +1471,7 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] Informe nocturno determinista, una vez por noche, con los pasos del §11.4.
 - [x] Refuerzo, olvido de redundancias y ablación `SLEEP.consolidate = 0`.
 - [x] Replay intercalado de los rasgos (§11.4), con su ablación `SLEEP.replay = 0` y un banco de laboratorio pareado (`scripts/sleep-lab.js`).
+- [x] Las preguntas del informe dirigen el día siguiente: agenda y mordisco de prueba (§12.6).
 
 **Fase 5: parcial (en batch)**
 - [x] Recombinación de dos progenitores, mutación posterior y límites.
@@ -1467,16 +1480,16 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 
 ### 25.2 Resultados de calibración
 
-Mapa 1, `--organism`, 12 vidas de 2400 s por condición. Las cifras son descriptivas y no están preregistradas.
+Mapa 1, `--organism`, 12 vidas de 2400 s por condición. Las cifras son descriptivas y no están preregistradas. Se volvieron a medir después de añadir los experimentos (§25.1), que `--organism` también enciende; las muertes no cambiaron y el resto varió poco.
 
 | Clima | `THERMAL.behave` | Muertes | Segundos con estrés | Pico de estrés | Despierta de noche |
 |---|---|---|---|---|---|
-| ±12 °C (por defecto) | 1 | 0/12 | 115 | 0,18 | 347 s |
-| ±12 °C | 0 (ablación) | 0/12 | 198 | 0,33 | 550 s |
-| ±16 °C | 1 | 1/12 (frío) | 504 | 0,61 | 321 s |
-| ±16 °C | 0 (ablación) | 2/12 (frío) | 993 | 0,77 | 494 s |
+| ±12 °C (por defecto) | 1 | 0/12 | 112 | 0,19 | 380 s |
+| ±12 °C | 0 (ablación) | 0/12 | 182 | 0,32 | 550 s |
+| ±16 °C | 1 | 1/12 (frío) | 506 | 0,58 | 319 s |
+| ±16 °C | 0 (ablación) | 2/12 (frío) | 973 | 0,72 | 476 s |
 
-**Criterio de salida de la fase 1:** se cumple en parte. Actuar sobre lo aprendido reduce aproximadamente a la mitad la exposición y el estrés. Con el clima por defecto el frío no llega a matar, así que la diferencia en supervivencia solo aparece con clima duro, y con 12 vidas no es concluyente. Lo aprendido al final (valor medio): frío −0,45, calor −0,40, refugio +0,17, oscuridad −0,50.
+**Criterio de salida de la fase 1:** se cumple en parte. Actuar sobre lo aprendido reduce aproximadamente a la mitad la exposición y el estrés. Con el clima por defecto el frío no llega a matar, así que la diferencia en supervivencia solo aparece con clima duro, y con 12 vidas no es concluyente. Lo aprendido al final, con el clima por defecto (valor medio): frío −0,46, calor −0,45, refugio +0,17, oscuridad −0,47.
 
 **Criterio de salida de la fase 3: se cumple en el laboratorio y no en el juego.**
 
@@ -1502,15 +1515,27 @@ Dormir con replay generaliza mejor sin recibir información nueva. Con el replay
 
 No hay diferencia. La causa es la exposición: en una vida Fagi prueba unas 3 especies, y el ajuste diurno ya reproduce esos pocos datos casi sin error (error cuadrático medio del repaso < 0,01). Las 8 muertes de cada condición son de hambre (5) y de sed (3), ninguna de frío, y son las mismas con y sin consolidación: lo que la noche cambia sobre la fruta no llega a decidir quién sobrevive. Para que la noche se note en el juego hacen falta más datos por vida (curiosidad dirigida por las preguntas del informe, §12.5, o vidas en colonia) antes que una consolidación más fuerte. Se deja constancia en lugar de ajustar parámetros hasta que aparezca un efecto.
 
+**Experimentos: las preguntas de la noche, al día siguiente** (`scripts/sleep-lab.js --game 48`). `--organism`, 6 especies, 48 vidas de 1800 s, un mapa por vida y las mismas semillas en cada condición:
+
+| Condición | Especies probadas | Especies buenas descubiertas | Frutas dañinas enteras | Bocados de prueba dañinos | Dosis dañina (en frutas enteras) | Exactitud de sus reglas | Vivas |
+|---|---|---|---|---|---|---|---|
+| sin experimentos (`EXPERIMENT.enabled = 0`) | 3,06 | 47 % | 1,54 | 0 | 1,54 | 0,516 | 36/48 |
+| con experimentos, sin consolidar (`SLEEP.consolidate = 0`) | 3,13 | 47 % | 1,58 | 0 | 1,58 | 0,516 | 36/48 |
+| con experimentos (por defecto) | **5,33** | **77 %** | **1,29** | 1,56 | 1,68 | 0,532 | 37/48 |
+
+Preguntar de noche y probar de día hace que Fagi conozca casi el doble de especies y encuentre muchas más de las que alimentan. Además come menos frutas dañinas enteras, porque la especie mala ya la conoció con un bocado. El coste es un 9 % más de dosis dañina en total: bocados pequeños de especies que antes nunca habría probado. La supervivencia no cambia (las muertes siguen siendo de hambre y sed, 12 frente a 11), y la exactitud de sus reglas apenas sube, porque la mayoría de lo aprendido queda en los pesos de los rasgos sin llegar a regla. Sin consolidar no hay agenda, y el efecto desaparece por completo.
+
+Con esto el criterio de salida de la fase 3 («dormir mejora transferencia o retención sin recibir información externa adicional») se cumple por dos vías medidas: el replay en el laboratorio y la agenda en el juego. Ninguna de las dos basta aún para cambiar la supervivencia.
+
 **Sexos:** en 8 vidas de 1200 s sobrevivieron todas, tanto hembras (5) como machos (3); ningún sexo dominó en esa muestra. Hace falta una batería de mapas para afirmar equilibrio.
 
 ### 25.3 Pendiente
 
 - Fase 2: sprite ficticio nuevo y retirar el lenguaje de «hormiga» de la interfaz y la documentación (`fagi-sprite/`, `i18n/`).
-- Fase 3: el replay ya mejora la transferencia en el laboratorio, pero no en el juego (§25.2). Falta que las preguntas del informe dirijan la curiosidad del día siguiente, para que cada vida pruebe más especies, y medir la retención a varios días.
+- Fase 3: medir la retención a varios días y si lo que se aprende con bocados de prueba llega a reglas; convertir lo que sabe de la fruta en supervivencia (hoy mueren de hambre y sed, no por la fruta).
 - Fase 4: IA nocturna acotada (esquema, DSL, sandbox, aceptación por comparación). Aún no hay ninguna vía por la que un modelo externo modifique la memoria.
 - Fase 5: reproducción dentro del mundo (selección de pareja, costes, huevo o gestación, juvenil y senescente, `fertility`, `health`) y población persistente sin runner; que los inmaduros no se reproduzcan.
-- Fase 6: separar la identidad real de la representación percibida, acciones experimentales y conceptos.
+- Fase 6: separar la identidad real de la representación percibida y formar conceptos. De las acciones experimentales del §12.3, solo existe el mordisco de prueba (§12.6).
 - Fase 7: baselines (aleatorio, reglas fijas), batería de ablaciones del §18.2 y preregistro de las afirmaciones.
 
 ### 25.4 Cómo reproducir
@@ -1525,6 +1550,9 @@ node scripts/sleep-lab.js --k 6 --trials 300 --set SLEEP.downscale=0.1
 node scripts/sleep-lab.js --game 32
 node scripts/sleep-lab.js --game 32 --set SLEEP.replay=0
 node scripts/sleep-lab.js --game 32 --set SLEEP.consolidate=0
+node scripts/sleep-lab.js --game 48 --set EXPERIMENT.enabled=0
+node scripts/sleep-lab.js --game 48
+node scripts/sleep-lab.js --game 48 --set SLEEP.consolidate=0
 node scripts/batch.js --organism --set GEN.sexual=1 --generations 6 --colony 6 --runs 4 --duration 600 --set MAPGEN.species=6
 ```
 

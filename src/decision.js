@@ -25,6 +25,7 @@ import { carry, pursue } from './decision/provide.js';
 import { persistOnScent, persistFromMemory } from './decision/clues.js';
 import { earlyDirective, safeDirective } from './decision/directive.js';
 import { exploreRule } from './decision/explore.js';
+import { taste } from './decision/experiment.js';
 
 // Exported: the cortex uses it to know whether an external directive can
 // afford to ignore the emergency, or whether instinct has to take over.
@@ -55,6 +56,8 @@ const RULES = [
   // clues of something she already perceived and lost, from the freshest to the oldest
   ['clues', 'scent', persistOnScent],
   ['clues', 'memory', persistFromMemory],
+  // 4. explore: last night's questions come first (experiment.js)
+  ['explore', 'taste', taste],
 ];
 
 // The tiers in order, for whoever wants to draw the hierarchy.

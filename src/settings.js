@@ -7,8 +7,9 @@
 import {
   FAGI, HUNGER, THIRST, ENERGY, BRAIN, CARRY, NEST, EXPLORE, WIND, PLUME, PHERO, TREE, FRUIT, MEMORY,
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
-  CYCLE, THERMAL, SEX, SLEEP,
+  CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT,
 } from './config.js';
+import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
 import { removeAllTrees } from './trees.js';
 import { wipe } from './learned/store.js';
@@ -84,6 +85,12 @@ const GROUPS = [
     n(SLEEP, 'minSleep', 'Seconds asleep before sorting the day', 'Segundos dormida antes de ordenar el día', 0, 120, 1),
     n(SLEEP, 'consolidate', 'Sort the day while asleep (1 = yes)', 'Ordenar el día al dormir (1 = sí)', 0, 1, 1),
     n(SLEEP, 'boost', 'Confidence a replayed belief gains', 'Confianza que gana una creencia repasada', 0, 1, 0.05),
+    n(SLEEP, 'replay', 'Rounds of replay of the remembered fruit', 'Rondas de repaso de la fruta recordada', 0, 20, 1),
+  ]},
+  { title: { en: 'Experiments', es: 'Experimentos' }, fieldsOf: [
+    n(EXPERIMENT, 'enabled', 'Tries what the night asked (1 = yes)', 'Prueba lo que se preguntó de noche (1 = sí)', 0, 1, 1),
+    n(EXPERIMENT, 'portion', 'Size of a trial bite (share of a fruit)', 'Tamaño del mordisco de prueba (fracción de fruta)', 0.05, 1, 0.05),
+    n(EXPERIMENT, 'maxWary', 'Wariness above which she does not try', 'Cautela por encima de la cual no prueba', 0, 1, 0.05),
   ]},
   { title: { en: 'Hunger', es: 'Hambre' }, fieldsOf: [
     n(HUNGER, 'rate', 'Hunger per second', 'Hambre por segundo', 0, 12, 0.1),
@@ -314,7 +321,7 @@ export function applyConfig(data) {
 // was played without it. Laid under a recorded config, this keeps it that way.
 export function organismOffConfig() {
   const off = {};
-  for (const block of [CYCLE, THERMAL, SEX, SLEEP]) {
+  for (const block of Object.values(ORGANISM)) {
     const id = configIdOf(block, 'enabled');
     if (id) off[id] = 0;
   }

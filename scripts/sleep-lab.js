@@ -18,7 +18,8 @@
 // seconds with the organism on and MAPGEN.species wild species (6 unless
 // --set), one map per life. Reported as is, with whatever --set says
 // (--set SLEEP.consolidate=0 is the ablation): how many are alive at the
-// end, harmful bites, first bites of a harmful species, and the balanced
+// end, harmful bites (whole and trial), the harm dose in whole fruit,
+// helpful species found, and the balanced
 // accuracy of her rules over the whole catalogue (research/lab/truth.js).
 
 import { createFagi } from '../src/fagi.js';
@@ -34,7 +35,7 @@ import { generateMap } from '../src/mapgen.js';
 import { updateFagi } from '../src/fagi.js';
 import { stepWorld } from '../src/simulation.js';
 import { enableOrganism } from '../src/organism.js';
-import { isHarmful } from '../src/chemistry.js';
+import { isHarmful, isHelpful } from '../src/chemistry.js';
 import { accuracy } from '../research/lab/truth.js';
 
 const args = process.argv.slice(2);
@@ -100,20 +101,28 @@ function life(i, duration, dt = 0.05) {
   const fagiRng = rng(seed);
   const fagi = withRng(fagiRng, () => createFagi());
   const tried = new Set();
-  let harmful = 0; let firstHarmful = 0;
+  let harmful = 0; let harmfulTrials = 0; let firstHarmful = 0; let dose = 0; let trialBites = 0;
   for (let s = 0; s < Math.ceil(duration / dt) && fagi.alive; s++) {
     withRng(worldRng, () => stepWorld(world, dt));
     const eaten = fagi.eaten;
     withRng(fagiRng, () => updateFagi(fagi, world, dt));
     if (fagi.eaten === eaten || !fagi.lastMeal) continue;
     const key = fagi.lastMeal.type;
-    if (isHarmful(key)) { harmful += 1; if (!tried.has(key)) firstHarmful += 1; }
+    const portion = fagi.lastEpisode?.portion ?? 1;
+    if (portion < 1) trialBites += 1;
+    if (isHarmful(key)) {
+      if (portion < 1) harmfulTrials += 1; else harmful += 1;
+      if (!tried.has(key)) firstHarmful += 1;
+      dose += portion;
+    }
     tried.add(key);
   }
+  const helpful = world.species.map((sp) => sp.key).filter((k) => isHelpful(k));
   return {
-    alive: fagi.alive ? 1 : 0, cause: fagi.alive ? null : fagi.cause, harmful, firstHarmful,
+    alive: fagi.alive ? 1 : 0, cause: fagi.alive ? null : fagi.cause, harmful, harmfulTrials, firstHarmful, dose,
+    helpfulFound: helpful.filter((k) => tried.has(k)).length / Math.max(1, helpful.length),
     accuracy: accuracy(fagi, world.chemistry, catalogue).balanced,
-    tasted: tried.size, nights: fagi.consolidations ?? 0,
+    tasted: tried.size, nights: fagi.consolidations ?? 0, trials: trialBites,
   };
 }
 
@@ -121,8 +130,10 @@ if (GAME) {
   const duration = opt('duration', 1800);
   const lives = Array.from({ length: GAME }, (_, i) => life(i, duration));
   const m = (f) => (lives.reduce((a, r) => a + f(r), 0) / lives.length).toFixed(3);
-  console.log(`sleep in the game: ${GAME} lives × ${duration}s, ${CONFIG.MAPGEN.species} species; consolidate ${SLEEP.consolidate}, replay ${SLEEP.replay}, downscale ${SLEEP.downscale}`);
-  console.log(`  alive ${lives.reduce((a, r) => a + r.alive, 0)}/${GAME} · harmful bites ${m((r) => r.harmful)} · first harmful ${m((r) => r.firstHarmful)} · accuracy ${m((r) => r.accuracy)} · kinds tasted ${m((r) => r.tasted)} · nights ${m((r) => r.nights)}`);
+  console.log(`sleep in the game: ${GAME} lives × ${duration}s, ${CONFIG.MAPGEN.species} species; consolidate ${SLEEP.consolidate}, replay ${SLEEP.replay}, downscale ${SLEEP.downscale}, experiments ${CONFIG.EXPERIMENT.enabled}`);
+  console.log(`  alive ${lives.reduce((a, r) => a + r.alive, 0)}/${GAME} · nights ${m((r) => r.nights)} · kinds tasted ${m((r) => r.tasted)} · trial bites ${m((r) => r.trials)}`);
+  console.log(`  harmful: whole bites ${m((r) => r.harmful)} · trial bites ${m((r) => r.harmfulTrials)} · kinds met by mouth ${m((r) => r.firstHarmful)} · dose (whole fruit) ${m((r) => r.dose)}`);
+  console.log(`  helpful kinds found ${m((r) => r.helpfulFound)} · accuracy of her rules over the catalogue ${m((r) => r.accuracy)}`);
   const causes = {};
   for (const r of lives) if (r.cause) causes[r.cause] = (causes[r.cause] ?? 0) + 1;
   console.log(`  died of: ${Object.entries(causes).map(([c, n]) => `${c} ${n}`).join(' · ') || 'nothing'}`);

@@ -7,13 +7,16 @@ export function createEffects() {
   return {}; // stat -> { mult, time, sec, color, stat }
 }
 
-export function applyEffects(fagi, typeKey) {
+// `portion` below 1 (a trial bite): the multiplier that much closer to 1, for
+// that share of the time.
+export function applyEffects(fagi, typeKey, portion = 1) {
   const spec = POINT_TYPES[typeKey];
   for (const e of spec.effects) {
+    const mult = portion === 1 ? e.mult : Math.round(e.mult ** portion * 1000) / 1000;
     fagi.effects[e.stat] = {
-      mult: e.mult,
-      time: e.sec,
-      sec: e.sec,
+      mult,
+      time: e.sec * portion,
+      sec: e.sec * portion,
       color: spec.color,
       stat: e.stat,
     };

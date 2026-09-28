@@ -7,6 +7,8 @@ import { applyEffects } from './effects.js';
 import { snapshotBody } from './interoception.js';
 import { openEpisode } from './episodes.js';
 import { verdict, edibleCount } from './learned/rules.js';
+import { onAgenda, answered } from './experiment.js';
+import { EXPERIMENT } from './config.js';
 
 // When hungry she eats it on the spot. When not hungry she picks it up and takes it to the nest:
 // that's the difference between eating and working. And with the pantry stocked she doesn't even
@@ -26,7 +28,12 @@ export function tryPickOrEat(fagi, world) {
   // A fruit she has never tasted may be eaten sooner than carried: that is a
   // habit (habits.js), learned from storing what turned out to harm her.
   const tasted = (fagi.brain.facts[p.type]?.tries ?? 0) > 0;
-  if (fagi.hunger >= (tasted ? CARRY.eatBelow : habit(fagi, 'tasteAt'))) {
+  // One of last night's questions, and she came for it: a trial bite.
+  if (fagi.target === p && fagi.thought?.action === 'taste' && onAgenda(fagi, p.type)) {
+    eat(fagi, p.type, { portion: EXPERIMENT.portion });
+    answered(fagi, p.type);
+    removePoint(world, p, 'tasted');
+  } else if (fagi.hunger >= (tasted ? CARRY.eatBelow : habit(fagi, 'tasteAt'))) {
     eat(fagi, p.type);
     removePoint(world, p, 'eaten');
   } else if (verdict(fagi, 'store', p.type) === 'avoid') {
@@ -65,12 +72,14 @@ export function eatCarried(fagi) {
 //
 // `hunger` overrides what this bite does to hunger (research/ uses it for
 // noisy outcomes: the same fruit does not always do the same).
-export function eat(fagi, type, { hunger = null } = {}) {
+// `portion` below 1 is a trial bite (experiment.js): that share of the hunger,
+// and each effect that much weaker and shorter.
+export function eat(fagi, type, { hunger = null, portion = 1 } = {}) {
   const spec = POINT_TYPES[type];
   const before = snapshotBody(fagi);
-  fagi.hunger = Math.min(HUNGER.max, Math.max(0, fagi.hunger + (hunger ?? spec.hunger)));
-  applyEffects(fagi, type);
-  const ep = openEpisode(fagi, { action: 'eat', key: type, before });
+  fagi.hunger = Math.min(HUNGER.max, Math.max(0, fagi.hunger + (hunger ?? spec.hunger) * portion));
+  applyEffects(fagi, type, portion);
+  const ep = openEpisode(fagi, { action: 'eat', key: type, before, portion });
   fagi.eaten += 1;
   fagi.lastMeal = {
     n: fagi.eaten, type,
