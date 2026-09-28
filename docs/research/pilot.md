@@ -89,3 +89,31 @@ From the pilot's paired effects, lineages per cell for 80% power at α = .05:
 The main study can afford 200 lineages per cell (16 cells ≈ 3 minutes), so it
 is powered for effects well below the pilot's, including in the conjunctive
 chemistry, where they may be smaller.
+
+## Check in the game: the crossover does not show (yet)
+
+The same three formats in the game itself (`scripts/batch.js --generations 8
+--switch-at 4 --colony 4 --runs 8 --duration 900 --set MAPGEN.species=6
+--set GEN.genes=0 --set SOCIAL.format=F --set SOCIAL.budget=4 --set
+GEN.budget=4`): 8 lineages per format, 32 ants per generation.
+
+| format | alive, gens 1–3 | harmful bites, gens 1–3 | alive at the inversion (gen 4) | harmful bites at the inversion | newborns taught to avoid the poison, gen 3 → avoid the food, gen 4 |
+|---|---|---|---|---|---|
+| verdict | 81–88% | 27–32% | 84% | 31% | 0% → 0% |
+| rule | 75–94% | 23–36% | **97%** | 22% | 0–16% → 13% |
+| evidence | 84–97% | 26–32% | 88% | 27% | 0–19% → 22% |
+
+In the game, reasons are **not** a trap at the inversion, and they barely
+help before it. The likely reason is visible in the last column: in the game,
+culture carries very little. At most a fifth of newborns are taught to avoid
+the poison before the change, against a culture in the lab that teaches
+two-thirds of the catalogue right. With so little passed on there is little
+to be trapped by. The lab's own sensitivity analysis says the same: the trap
+grows with how much is passed on.
+
+Eight lineages cannot settle it either way, and the two set-ups differ in
+more than space (lives of 900 s against 1800 s, 6 species against 12, one
+tree per species). Before the main study, this gap has to be understood:
+either the game is made to carry culture comparable to the lab (longer lives,
+more contact in the nest), or the claim is limited to cultures that carry
+this much. Until then, the lab's crossover is a result about the lab.
