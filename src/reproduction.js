@@ -80,12 +80,13 @@ function coancestry(lineage, a, b, memo = new Map(), depth = 0) {
 
 export const relatedness = (lineage, a, b) => 2 * coancestry(lineage ?? {}, a, b);
 
-// How much a crowded nest slows every brood (LIFE.gradual): 1 when it is
-// empty, growing as it fills, as a crowd competes for food and room long before
-// the nest cannot hold one more.
+// How much a crowded nest slows every brood (LIFE.gradual): 1 while it is
+// less than a quarter full, growing as it fills, as a crowd competes for food
+// and room long before the nest cannot hold one more.
 export function crowding(n) {
   if (!LIFE.gradual) return 1;
-  return 1 / Math.max(0.05, 1 - (n / LIFE.maxPopulation) ** 2);
+  const over = Math.max(0, n / LIFE.maxPopulation - 0.25) / 0.75;
+  return 1 / Math.max(0.05, 1 - over ** 2);
 }
 
 // Seconds after mating before she may again: her sex's recovery, longer as her
@@ -102,6 +103,8 @@ function ready(f, world, nest, crowd = 1) {
   if (nestUnder(f, world) !== nest) return false;
   if (LIFE.gradual) {
     if (f.lastMatedAt != null && f.age < f.lastMatedAt + recovery(f, crowd)) return false;
+    // Her first brood waits too, the more the fuller the nest (nothing if it is empty).
+    if (f.lastMatedAt == null && f.age < (f.stageAt ?? 0) + recovery(f, crowd) - recovery(f, 1)) return false;
   } else if (f.age < (f.nextMateAt ?? 0)) return false;
   if (f.energy < LIFE.mateEnergy * energyMax(f)) return false;
   if (f.hunger / HUNGER.max >= LIFE.mateNeed || f.thirst / THIRST.max >= LIFE.mateNeed) return false;

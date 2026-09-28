@@ -104,6 +104,7 @@ export function believe(concepts, look) {
   const kind = concepts.kinds[key];
   const own = settled(kind);
   const sure = 1 - volatilityOf(concepts);
+  if (own && kind.watched && !kind.touch && !kind.mouth) return { aff: own, confidence: CONCEPT.seen * sure, via: 'saw', possible: kind.possible };
   if (own) return { aff: own, confidence: sure, via: 'self', possible: kind.possible };
   const possible = kind?.possible ?? AFFORDANCES;
   if (CONCEPT.generalize) {
@@ -113,12 +114,30 @@ export function believe(concepts, look) {
   return { aff: null, confidence: 0, via: null, possible };
 }
 
+// She saw a sister react to a thing (social.js): stung ('pain') or drinking its
+// sap ('sap'). What she sees tells that kind apart only if she has not touched
+// it herself: her own contact always outweighs what she watched. It counts as
+// a settled kind for her concepts too: a sister's sting is evidence.
+export function watched(concepts, world, obj, felt, now) {
+  const kind = noteSeen(concepts, obj, false, now);
+  if (kind.touch || kind.mouth || settled(kind)) return null;
+  const aff = felt === 'pain' ? 'sting' : felt === 'sap' ? 'sap' : null;
+  if (!aff) return null;
+  kind.possible = [aff];
+  kind.watched = true;
+  const out = CONCEPT.generalize ? form(concepts, world, now) : { formed: [], retired: [] };
+  concepts.version += 1;
+  return { settled: aff, ...out };
+}
+
 // One touch or nibble and what she felt ('dry' teaches nothing: she saw it
 // was drained). Returns what changed: { settled, scored, formed, retired }.
 export function experience(concepts, world, obj, act, felt, now) {
   const kind = noteSeen(concepts, obj, false, now);
   const out = { settled: null, scored: null, formed: [], retired: [] };
   if (felt === 'dry') return out;
+  // What she only watched gives way to what she lives.
+  if (kind.watched && !kind.touch && !kind.mouth) { kind.possible = [...AFFORDANCES]; kind.watched = false; }
   // Looking again at a kind she knew, after a surprise: what she felt then
   // counts no more; this contact starts it afresh.
   const known = settled(kind);

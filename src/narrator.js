@@ -470,6 +470,15 @@ function narrateOrganism(narr, fagi, p) {
     }
     for (const gone of c.retired) push(narr, fagi, 'concept', { key: 'log.conceptRevised', params: { id: gone.id } }, null);
   }
+  const saw = fagi.lastWatchedThing;
+  if (saw && saw.n !== p.sawThing) {
+    p.sawThing = saw.n;
+    push(narr, fagi, 'concept', { key: `log.thingSaw.${saw.change.settled}`, params: { from: saw.from, what: saw.key } }, null);
+    for (const made of saw.change.formed) {
+      push(narr, fagi, 'concept', { key: `log.conceptFormed.${made.aff}`, params: { id: made.id, traits: made.all.join(' + ') } },
+        { key: 'log.conceptFormedSub', params: { n: made.members.length } });
+    }
+  }
 }
 
 // A kept proposal in a few words: 'avoid color:red + smell:sour', '✗ avoid-smell-sour'

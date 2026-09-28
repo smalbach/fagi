@@ -22,7 +22,7 @@ import { reasonOf, pressing } from './common.js';
 
 const trusted = (b, aff) => b.aff === aff && b.confidence >= CONCEPT.trust;
 const dist = (fagi, p) => Math.hypot(p.x - fagi.x, p.y - fagi.y);
-const via = (b) => (b.via === 'self' ? 'self' : 'concept');
+const via = (b) => (b.via === 'self' || b.via === 'saw' ? b.via : 'concept');
 
 // The things she believes afford `aff`: those in sight (not dry) and those she
 // remembers, where she last saw them not dry. Nearest first.
@@ -129,7 +129,7 @@ export function useThing(fagi, world) {
   const felt = contact(fagi, world, obj, act);
   const change = experience(conceptsOf(fagi), world, obj, act, felt, fagi.age);
   record(world, 'thing_contact', { id: obj.id, act, felt, ...(felt === 'sap' ? { dry: CONCEPT.sapRegrow } : {}) });
-  fagi.lastThing = { n: (fagi.lastThing?.n ?? 0) + 1, key: obj.key, act, felt, change, via: action };
+  fagi.lastThing = { n: (fagi.lastThing?.n ?? 0) + 1, id: obj.id, key: obj.key, act, felt, change, via: action };
   // What she was going for is done: she decides afresh next step.
   fagi.target = null;
   fagi.targetKind = null;

@@ -868,6 +868,9 @@ export const LIFE = {
 //   surprise   : how much a belief about things that fails makes the world seem changeable
 //                (0-1); 0 = she never doubts nor looks again (the ablation)
 //   calm       : seconds for that to fade to half
+//   social     : 1 = seeing a sister stung by a thing, or drinking its sap, teaches that
+//                kind without touching it (social.js); watched, not lived: trusted `seen`
+//   seen       : confidence (0-1) of what she only saw happen to a sister
 //   generalize : 0 = every kind on its own, concepts never predict (the ablation)
 export const CONCEPT = {
   enabled: 0,
@@ -891,5 +894,7 @@ export const CONCEPT = {
   sipAt: 0.25,
   surprise: 0.6,
   calm: 240,
+  social: 1,
+  seen: 0.6,
   generalize: 1,
 };

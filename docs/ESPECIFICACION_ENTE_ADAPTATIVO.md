@@ -813,6 +813,8 @@ Se conserva si agrupa al menos `CONCEPT.minKinds` clases, tiene más casos a fav
 
 En un mundo que no cambia nunca hay sorpresas y nada de esto ocurre. Con `CONCEPT.surprise = 0` (la ablación) nunca duda.
 
+**Aprender mirando** (`CONCEPT.social`). Si una hermana se pica con una cosa, o bebe su savia, quien la ve aprende esa clase sin tocarla, con confianza `CONCEPT.seen` (0,6). El frío o el calor al tacto no se ven desde fuera, así que eso no se transmite. Lo visto cuenta como evidencia para sus conceptos, y lo que después viva ella lo sustituye. En los animales reales basta ver el miedo de otro para temer lo que lo causó (los monos y las serpientes de Mineka y Cook). En colonias de 4, con 24 mapas de desarrollo, las picaduras por individuo bajan de 2,24 a 1,88: solo aprende quien está mirando en ese momento.
+
 **Cambia decisiones.**
 
 - Con sed, una cosa que cree `sap` (por experiencia propia o por un concepto) y está más cerca que el agua la hace ir a mordisquearla.
@@ -1983,7 +1985,6 @@ El efecto del replay no tiene la confusión que se describe más abajo para F3: 
 - Fase 6, lo que queda del §12.3:
   - que el agua, el nido, los árboles y las rocas dejen de ser categorías innatas (hoy solo las cosas lo son);
   - combinar objetos, y esperar y volver a mirar algo que cambia con el tiempo (ninguna cosa cambia todavía);
-  - seguir a otra que interactúa: que los conceptos se transmitan en la colonia;
   - que la noche ordene también los conceptos.
 
 ### 25.4 Cómo reproducir

@@ -16,7 +16,8 @@
 // experience says otherwise). One nobody verifies can go round the whole
 // colony: a myth. batch measures them (scripts/batch/run.js).
 
-import { SOCIAL, POINT_TYPES } from './config.js';
+import { SOCIAL, POINT_TYPES, CONCEPT } from './config.js';
+import { conceptsOf, watched } from './concepts.js';
 import { nestUnder } from './nest.js';
 import { learnSeen } from './brain.js';
 import { subjectOf, upsertRule, traitsMatch, decidingRule } from './learned/rules.js';
@@ -189,8 +190,32 @@ function observation(colony, now) {
   }
 }
 
+// A sister just touched or nibbled a thing (things.js): if it stung her, or
+// she drank its sap, whoever sees it learns that kind without touching it.
+// Cold or warmth to the touch cannot be seen. Watching a fellow's pain is
+// enough for real animals to fear what caused it (Mineka and Cook's monkeys).
+function watchThings(colony, world, now) {
+  if (!CONCEPT.enabled || !CONCEPT.social || !SOCIAL.observe) return;
+  colony.seenThing ??= {};
+  for (const a of colony.ants) {
+    const t = a.lastThing;
+    if (!t || colony.seenThing[a.id] === t.n) continue;
+    colony.seenThing[a.id] = t.n;
+    if (t.felt !== 'pain' && t.felt !== 'sap') continue;
+    const obj = world.objects.find((o) => o.id === t.id);
+    if (!obj) continue;
+    for (const b of colony.ants) {
+      if (b === a || !b.alive) continue;
+      if (Math.hypot(b.x - a.x, b.y - a.y) > viewRangeOf(b) * SOCIAL.seeRange) continue;
+      const change = watched(conceptsOf(b), world, obj, t.felt, now);
+      if (change) b.lastWatchedThing = { n: (b.lastWatchedThing?.n ?? 0) + 1, from: a.id, key: obj.key, felt: t.felt, change };
+    }
+  }
+}
+
 // Once per step, after every sister has moved.
 export function socialize(colony, world, now) {
   trophallaxis(colony, world, now);
   observation(colony, now);
+  watchThings(colony, world, now);
 }

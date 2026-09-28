@@ -249,3 +249,31 @@ test('without volatility (the ablation) a surprise changes nothing she believes'
   assert.equal(believe(c, old.look).confidence, 1);
   assert.ok(!c.kinds[old.key].stale);
 });
+
+test('seeing a sister stung by a thing teaches that kind without touching it; her own touch outweighs it', async () => {
+  const { createColony } = await import('../src/colony.js');
+  const { socialize } = await import('../src/social.js');
+  CONCEPT.enabled = 1;
+  const world = world0();
+  const colony = createColony(3);
+  const [a, b, far] = colony.ants;
+  b.x = a.x + 30; b.y = a.y;
+  far.x = a.x + 2000; far.y = a.y;
+  const spiny = addThing(world, a.x, a.y, look('red', 'pod', 'rough'));
+  a.lastThing = { n: 1, id: spiny.id, key: spiny.key, act: 'touch', felt: 'pain' };
+  socialize(colony, world, 10);
+  const seen = believe(conceptsOf(b), spiny.look);
+  assert.equal(seen.aff, 'sting');
+  assert.equal(seen.via, 'saw');
+  assert.equal(seen.confidence, CONCEPT.seen);
+  assert.equal(far.brain.concepts?.kinds[spiny.key], undefined, 'too far to see it');
+  // A cool touch cannot be seen.
+  const cool = addThing(world, a.x, a.y, look('red', 'pod', 'smooth'));
+  a.lastThing = { n: 2, id: cool.id, key: cool.key, act: 'touch', felt: 'cold' };
+  socialize(colony, world, 11);
+  assert.equal(believe(conceptsOf(b), cool.look).aff, null);
+  // What she lives replaces what she watched.
+  experience(conceptsOf(b), world, spiny, 'touch', 'nothing', 12);
+  assert.deepEqual(conceptsOf(b).kinds[spiny.key].possible, ['sap', 'inert']);
+  CONCEPT.enabled = 0;
+});
