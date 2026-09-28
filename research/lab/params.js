@@ -31,7 +31,8 @@ export const DEFAULTS = {
   agent: 'fagi',        // 'fagi' | 'ideal' | 'random' | 'oracle' (agents.js)
   theory: 'none',       // what the founders are taught (theory.js):
                         // 'none' | 'correct' | 'partial' | 'false' | 'irrelevant'
-  format: 'rule',       // SOCIAL.format: 'rule' | 'verdict' | 'evidence'
+  format: 'rule',       // SOCIAL.format: 'rule' | 'verdict' | 'evidence'; 'none' = nothing is
+                        // told or taught (the control: every generation starts from scratch)
   budget: 4,            // items per exchange and per teaching (SOCIAL.budget, GEN.budget)
   meetEvery: 60,        // seconds between exchanges: each ant tells one random sister
   observe: 0.3,         // chance a sister sees a meal (and learns from it)
@@ -47,7 +48,7 @@ const CHOICES = {
   change: ['none', 'invert', 'rotate', 'shift'],
   agent: ['fagi', 'ideal', 'random', 'oracle'],
   theory: ['none', 'correct', 'partial', 'false', 'irrelevant'],
-  format: ['rule', 'verdict', 'evidence'],
+  format: ['none', 'rule', 'verdict', 'evidence'],
 };
 
 export function params(over = {}) {

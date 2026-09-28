@@ -1,0 +1,8 @@
+{
+  "name": "pilot",
+  "description": "Pilot of the main question: nothing passed on (none), conclusions (verdict), reasons (rule) and reasons with evidence, under four kinds of world change at generation 6. For effect sizes and sample sizes only; not for conclusions.",
+  "base": { "family": "one", "switchAt": 6, "generations": 12 },
+  "factors": { "format": ["none", "verdict", "rule", "evidence"], "change": ["none", "invert", "rotate", "shift"] },
+  "seeds": 30,
+  "seed0": 1
+}

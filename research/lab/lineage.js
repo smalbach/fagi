@@ -50,9 +50,10 @@ export function withConfig(sets, fn) {
 }
 
 export function configFor(p) {
+  const none = p.format === 'none';
   return {
-    'SOCIAL.format': p.format, 'SOCIAL.budget': p.budget, 'GEN.budget': p.budget,
-    'GEN.culture': p.culture, 'GEN.genes': 0,
+    'SOCIAL.format': none ? 'rule' : p.format, 'SOCIAL.budget': p.budget, 'GEN.budget': p.budget,
+    'GEN.culture': none ? 0 : p.culture, 'SOCIAL.share': none ? 0 : 1, 'GEN.genes': 0,
     ...p.sets,
   };
 }
@@ -224,7 +225,7 @@ function meet(ants, rnd, g, genealogy) {
 function entry(genealogy, origin, g) {
   let e = genealogy.get(origin);
   if (!e) {
-    e = { origin, seed: origin.startsWith('seed/'), bornG: g, lastG: g, told: 0, gens: 0, falseGens: 0, maxCarriers: 0 };
+    e = { origin, seeded: origin.startsWith('seed/'), bornG: g, lastG: g, told: 0, gens: 0, falseGens: 0, maxCarriers: 0 };
     genealogy.set(origin, e);
   }
   return e;

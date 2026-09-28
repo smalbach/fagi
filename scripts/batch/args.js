@@ -76,7 +76,10 @@ function profile(file) {
 
 function assignment(txt) {
   const [routeOf, value] = txt.split('=');
-  return [routeOf.split('.'), JSON.parse(value)];
+  // A bare word is a string: --set SOCIAL.format=verdict.
+  let v;
+  try { v = JSON.parse(value); } catch { v = value; }
+  return [routeOf.split('.'), v];
 }
 
 export function applySets(sets) {

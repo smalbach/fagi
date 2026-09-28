@@ -74,6 +74,6 @@ test('the baselines run, and the oracle never eats poison', () => {
 
 test('beliefs passed on are followed back to where they started', () => {
   const { genealogy } = runLineage(small({ theory: 'correct' }), 3);
-  assert.ok(genealogy.some((e) => e.seed), 'the founders\' theory is followed');
+  assert.ok(genealogy.some((e) => e.seeded), 'the founders\' theory is followed');
   for (const e of genealogy) assert.ok(e.lastG >= e.bornG);
 });
