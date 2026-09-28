@@ -28,6 +28,25 @@ export function embodiedOutcomes(gens, S) {
 
 const fmt = (x, d = 2) => (Number.isFinite(x) ? x.toFixed(d) : '–');
 
+// The game confirmation as preregistered (docs/research/preregistration.md):
+// H1, H2a and H3, two-sided, Holm over the three.
+export const GAME_TESTS = [
+  { id: 'H1', outcome: 'stable.harm', a: 'verdict', b: 'rule' },
+  { id: 'H2a', outcome: 'shock.alive', a: 'verdict', b: 'rule' },
+  { id: 'H3', outcome: 'shock.myths', a: 'rule', b: 'verdict' },
+];
+
+export function confirmGame(byName) {
+  const out = GAME_TESTS.map((t) => {
+    const A = byName[t.a];
+    const Bs = byName[t.b];
+    const n = Math.min(A.length, Bs.length);
+    return { ...t, ...paired(A.slice(0, n).map((o) => o[t.outcome]), Bs.slice(0, n).map((o) => o[t.outcome]), { B: 10000 }) };
+  });
+  holm(out.map((r) => r.p)).forEach((p, i) => { out[i].pHolm = p; });
+  return out;
+}
+
 function main() {
   const argv = process.argv.slice(2);
   const S = argv.includes('--switch-at') ? Number(argv[argv.indexOf('--switch-at') + 1]) : 4;
@@ -37,6 +56,12 @@ function main() {
     const { lineages } = JSON.parse(readFileSync(file, 'utf8'));
     return { name, outcomes: lineages.map((l) => embodiedOutcomes(l, S)) };
   });
+  if (argv.includes('--confirm')) {
+    const rs = confirmGame(Object.fromEntries(data.map((d) => [d.name, d.outcomes])));
+    console.log(['| test | outcome | a − b | n | diff [95% CI] | dz | p | p (Holm) | supported |', '|---|---|---|---|---|---|---|---|---|',
+      ...rs.map((r) => `| ${r.id} | ${r.outcome} | ${r.a} − ${r.b} | ${r.n} | ${fmt(r.diff, 3)} [${fmt(r.ci[0], 3)}, ${fmt(r.ci[1], 3)}] | ${fmt(r.dz)} | ${fmt(r.p, 4)} | ${fmt(r.pHolm, 4)} | ${r.pHolm < 0.05 ? 'yes' : 'no'} |`)].join('\n'));
+    return;
+  }
   const names = Object.keys(data[0].outcomes[0]);
   const L = [`| format | n | ${names.join(' | ')} |`, `|---|---|${names.map(() => '---').join('|')}|`];
   for (const d of data) {

@@ -1,7 +1,8 @@
 # Preregistration (draft): reasons, conclusions and evidence in changing worlds
 
-Status: **draft, not yet registered.** To be frozen (OSF) before the main
-study runs. Everything below was written after the pilot (`pilot.md`), which
+Status: **superseded** by the frozen [`preregistration.md`](preregistration.md),
+which is what the main study follows. Kept as the record of how the
+hypotheses were drafted. Everything below was written after the pilot (`pilot.md`), which
 suggested the hypotheses; the main study uses seeds the pilot never used.
 
 ## Question

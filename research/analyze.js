@@ -179,7 +179,7 @@ export function comparisonTable(comparisons, factor) {
 // Does the a − b difference change with a moderator? Per seed, the difference
 // at level m1 minus the difference at level m2 (every other factor fixed at
 // `at`), tested like any paired comparison: an interaction, lineage by lineage.
-export function interaction(data, { factor, a, b, moderator, m1, m2, outcome, at = {} }) {
+export function interaction(data, { factor, a, b, moderator, m1, m2, outcome, at = {}, alternative = 'two-sided' }) {
   const find = (fv, mv) => data.cells.find((c) => String(c.cell[factor]) === String(fv)
     && String(c.cell[moderator]) === String(mv)
     && Object.entries(at).every(([k, v]) => String(c.cell[k]) === String(v)));
@@ -189,7 +189,7 @@ export function interaction(data, { factor, a, b, moderator, m1, m2, outcome, at
   const v = (c, sd) => c.values[outcome][c.seeds.indexOf(sd)];
   const d1 = seeds.map((sd) => v(cs[0], sd) - v(cs[1], sd));
   const d2 = seeds.map((sd) => v(cs[2], sd) - v(cs[3], sd));
-  return { outcome, diffAt: { [m1]: mean(d1), [m2]: mean(d2) }, ...paired(d1, d2) };
+  return { outcome, diffAt: { [m1]: mean(d1), [m2]: mean(d2) }, ...paired(d1, d2, { alternative }) };
 }
 
 function main() {

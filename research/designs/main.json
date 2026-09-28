@@ -1,0 +1,13 @@
+{
+  "name": "main",
+  "description": "Main study (preregistered in docs/research/preregistration.md): format × change × chemistry family × life length, several fruit met at once, 200 lineages per cell on seeds the pilot never used.",
+  "base": { "switchAt": 6, "generations": 12, "choices": 3 },
+  "factors": {
+    "format": ["none", "verdict", "rule", "evidence"],
+    "change": ["none", "invert", "rotate", "shift"],
+    "family": ["one", "conj"],
+    "life": [900, 1800]
+  },
+  "seeds": 200,
+  "seed0": 1001
+}

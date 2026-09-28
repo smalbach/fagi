@@ -38,9 +38,10 @@ export function bootstrapCI(xs, { B = 2000, level = 0.95, seed = 1 } = {}) {
 }
 
 // Paired comparison of two samples aligned by seed: the mean difference (a - b),
-// its bootstrap interval, a two-sided sign-flip permutation p-value, and the
+// its bootstrap interval, a sign-flip permutation p-value, and the
 // standardized effect dz (mean difference / sd of differences).
-export function paired(a, b, { B = 5000, seed = 1 } = {}) {
+// `alternative`: 'two-sided' (default), or 'greater' (a − b > 0 expected).
+export function paired(a, b, { B = 5000, seed = 1, alternative = 'two-sided' } = {}) {
   if (a.length !== b.length) throw new Error('paired samples must have the same length');
   const d = a.map((x, i) => x - b[i]).filter((x) => !Number.isNaN(x));
   if (!d.length) return { n: 0, diff: NaN, ci: [NaN, NaN], p: NaN, dz: NaN };
@@ -50,7 +51,9 @@ export function paired(a, b, { B = 5000, seed = 1 } = {}) {
   for (let k = 0; k < B; k++) {
     let s = 0;
     for (const x of d) s += rnd() < 0.5 ? x : -x;
-    if (Math.abs(s / d.length) >= Math.abs(m) - 1e-12) extreme += 1;
+    const flipped = s / d.length;
+    const hit = alternative === 'greater' ? flipped >= m - 1e-12 : Math.abs(flipped) >= Math.abs(m) - 1e-12;
+    if (hit) extreme += 1;
   }
   const s = sd(d);
   return {

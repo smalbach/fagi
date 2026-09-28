@@ -26,6 +26,16 @@ test('a paired comparison finds a consistent difference and not a null one', () 
   assert.equal(paired([], []).n, 0);
 });
 
+test('a one-sided paired test only counts the predicted direction', () => {
+  const a = Array.from({ length: 30 }, (_, i) => i % 7);
+  const up = a.map((x, i) => x + 1 + (i % 3) * 0.1);
+  assert.ok(paired(up, a, { alternative: 'greater' }).p < 0.001);
+  assert.ok(paired(a, up, { alternative: 'greater' }).p > 0.99);
+  const two = paired(up.slice(0, 8), a.slice(0, 8)).p;
+  const one = paired(up.slice(0, 8), a.slice(0, 8), { alternative: 'greater' }).p;
+  assert.ok(one < two);
+});
+
 test('Holm adjusts step-down and keeps order', () => {
   assert.deepEqual(holm([0.01, 0.04, 0.03]), [0.03, 0.06, 0.06]);
 });
