@@ -1,6 +1,6 @@
 # Especificación: Fagi como ente adaptativo autónomo
 
-**Estado:** en implementación: fases 1, 3, 4, 5 y 7 hechas; 2 y 6, en parte (ver §25)  
+**Estado:** en implementación: fases 1 a 5 y 7 hechas; 6, en parte (ver §25)  
 **Proyecto:** First AGI / Fagi  
 **Objetivo de esta versión:** transformar la simulación actual, inspirada en una hormiga, en un entorno experimental para estudiar un organismo artificial limitado que percibe, aprende, descansa, consolida experiencias, se reproduce y se adapta durante varias generaciones.
 
@@ -1519,12 +1519,13 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] HUD «Día y cuerpo», capa de noche y crepúsculo en el render, narración (amanecer, anochecer, primeras lecciones de frío, calor, refugio y oscuridad) y ajustes.
 - [x] Grabación y replay.
 
-**Fase 2: parcial**
+**Fase 2: ente ficticio y dimorfismo**
 - [x] Sexo al nacer (50/50) y estadísticas corporales equilibradas, aplicadas una sola vez.
 - [x] Energía máxima individual; metabolismo y aislamiento.
 - [x] La población inicial tiene siempre ambos sexos.
 - [x] Sexo visible en el HUD, en las grabaciones y en la observación.
 - [x] Sprite ficticio nuevo (§5.2) y retirada del lenguaje de hormiga de la interfaz y de la documentación.
+- [x] Batería de escenarios pareada: ningún sexo domina en todos (§25.10).
 
 **Fase 3: sueño y consolidación local**
 - [x] Presión de sueño (sube despierta, más deprisa de noche, y baja durmiendo).
@@ -1807,9 +1808,29 @@ Fagi supera claramente a los dos baselines, y aprender (del cuerpo y de los rasg
 
 **Criterio de salida de la fase 7** («los resultados pueden repetirse desde un comando y respaldan afirmaciones concretas, no impresiones visuales»): **se cumple**. `node research/organism/run.js --jobs 16 && node research/organism/analyze.js` reproduce todo desde las semillas registradas, y las afirmaciones de arriba se limitan a lo medido, incluido lo que no se sostuvo.
 
+### 25.10 Dimorfismo: batería de escenarios
+
+Criterio de salida de la fase 2: «ambos sexos presentan fortalezas distintas y resultados comparables bajo una batería diversa». `scripts/sex-battery.js`: cada vida se vive dos veces, como hembra y como macho, con el mismo mapa y la misma secuencia aleatoria (120 vidas por escenario, semillas 14000–14119, mapas nunca usados), con el organismo completo, 6 especies y 2400 s. Siete escenarios, cada uno aprieta una parte distinta del cuerpo: templado (el de siempre), frío (media 13 °C), calor (media 31 °C), seco (sed ×1,27), hambruna (hambre ×1,5), comida lejos (árboles a 330–480) y un mundo que se invierte a mitad de vida. Exploratorio: intervalos bootstrap del 95 % de la diferencia pareada, sin corrección. Informe: `research/results/sex/report.md`.
+
+| Escenario | Vida (hembra − macho) | Vivas al final | Lo que decide |
+|---|---|---|---|
+| templado | −116 s [−322, 73] | −0,09 [−0,22, 0,02] | comparables; el macho encuentra más especies buenas (+0,11) y juzga algo mejor (+0,03) |
+| frío | **+502 s** [311, 713] | **+0,22** | la hembra: su aislamiento. El macho muere de frío 81 veces, ella 43 |
+| calor | **−905 s** [−1113, −679] | **−0,36** | el macho: se enfría antes. La hembra muere de calor 99 veces, él 29 |
+| seco | +80 s [−108, 276] | +0,03 | comparables |
+| hambruna | +9 s [−191, 223] | −0,01 | comparables |
+| comida lejos | −140 s [−310, 51] | −0,09 | comparables; el macho encuentra más especies buenas (+0,13) |
+| se invierte | −61 s [−240, 106] | −0,04 | comparables; la hembra toma algo menos de veneno (−0,28) |
+
+En todos los escenarios la hembra pasa menos tiempo con estrés térmico (su aislamiento amortigua los cambios del aire), salvo en el frío, donde vive más tiempo y por tanto acumula más.
+
+**Se cumple.** Ningún sexo domina: cada uno tiene un clima donde sobrevive claramente mejor (la hembra en el frío, el macho en el calor), el macho explora y encuentra más (su velocidad) y en cinco de los siete escenarios la supervivencia es comparable. La ventaja metabólica de la hembra no aparece en la hambruna, porque ahí también se muere sobre todo por veneno.
+
+El resultado del calor merece una explicación, porque se revisó por si era un artefacto. El aire llega a 43 °C la primera tarde. El reflejo que la lleva al nido salta con el 70 % del estrés letal, y dentro del nido el estrés sigue subiendo mientras el cuerpo esté por encima de 33 °C. Con ese margen, se salva quien se enfría deprisa. El aislamiento que protege a la hembra del frío es el que le impide soltar el calor. Es física coherente, no un error, pero el reflejo tardío sí es poco realista (§25.3). Se probó que buscar sombra por reflejo no cambia nada: el nido suele estar más cerca que los árboles, y a 43 °C la sombra no basta. Por eso se descartó.
+
 ### 25.3 Pendiente
 
-- Fase 2: probar con una batería de mapas que ningún sexo domina todos los escenarios (criterio de salida).
+- Fase 1: el reflejo térmico salta con el 70 % del estrés letal, y con calor extremo ya no deja margen: se salva quien llega al nido y se enfría deprisa (§25.10). Un animal real huye del calor mucho antes, a su «máximo térmico voluntario». Candidato a revisar, disparándolo por la temperatura corporal y no por el daño acumulado, con su propia medición.
 - Fase 3: medir la retención a varios días y si lo que se aprende con bocados de prueba llega a reglas; convertir lo que sabe de la fruta en supervivencia (hoy mueren de hambre y sed, no por la fruta).
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
 - Fase 5: densodependencia gradual en lugar del tope del nido, fertilidad que decae con la edad, `health` como variable propia, transmisión social de la aversión alimentaria (§25.8) y, en el juego, seguir a la descendencia cuando muere la Fagi seguida (hoy se cierra la grabación y la población sigue en pantalla).
@@ -1873,6 +1894,9 @@ node scripts/population.js --maps 1 --seed 5000 --duration 10800 --set LIFE.maxP
 # §25.9 evaluación congelada (docs/research/organism-protocol.md)
 node research/organism/run.js --jobs 16
 node research/organism/analyze.js research/results/organism
+
+# §25.10 batería de sexos
+node scripts/sex-battery.js --lives 120 --jobs 16
 
 # generaciones con reproducción sexual, creadas por lotes (sin cría dentro del mundo)
 node scripts/batch.js --organism --set LIFE.enabled=0 --set GEN.sexual=1 --generations 6 --colony 6 --runs 4 --duration 600 --set MAPGEN.species=6

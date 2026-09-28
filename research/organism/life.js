@@ -50,11 +50,11 @@ function shift(world) {
   registerSpecies(world.species);
 }
 
-export function runLife({ fagiSeed, mapSeed, seconds, shiftAt = null, dt = 0.05 }) {
+export function runLife({ fagiSeed, mapSeed, seconds, shiftAt = null, sex = null, dt = 0.05 }) {
   const world = withRng(rng(mapSeed), () => { const w = createWorld(); generateMap(w); return w; });
   const worldRng = rng(fagiSeed * 7919);
   const fagiRng = rng(fagiSeed);
-  const fagi = withRng(fagiRng, () => createFagi());
+  const fagi = withRng(fagiRng, () => createFagi(sex ? { sex } : {}));
   const bitten = new Set();
   let safe = 0; let stressed = 0; let dose = 0; let postDose = 0; let firstHarm = 0; let repeated = 0; let shifted = false;
   const steps = Math.ceil(seconds / dt);
