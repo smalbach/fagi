@@ -143,6 +143,12 @@ function foreground(ctx, world, fagi, camera, inside) {
   else if (!world.immersive && fagi.target) drawTargetLine(ctx, fagi);
   else if (!world.immersive && fagi.thought?.action === 'explore' && fagi.exploreTarget) drawLeg(ctx, fagi);
   drawFagi(ctx, fagi);
+  // A thing she is taking home for the nest (things.js), held in front of her.
+  if (fagi.hauling) {
+    const hx = fagi.x + Math.cos(fagi.angle) * 9;
+    const hy = fagi.y + Math.sin(fagi.angle) * 9;
+    drawThing(ctx, { id: fagi.hauling.id, x: hx, y: hy, look: fagi.hauling.look }, 5, world.time);
+  }
   drawBuffRings(ctx, fagi);
   if (!world.immersive) drawCoords(ctx, fagi, camera.zoom);
 }
@@ -302,6 +308,11 @@ function drawObject(ctx, o, busy, wind, raining, time) {
   } else if (isNest(o)) {
     drawNest(ctx, o, spec, r);
     drawNestMouth(ctx, o, r, busy, performance.now());
+    // Its lining (things.js): what was carried in, around the rim.
+    (o.lining ?? []).forEach((item, i, all) => {
+      const a = (i / Math.max(3, all.length)) * Math.PI * 2 + 0.6;
+      drawThing(ctx, { id: item.id, x: o.x + Math.cos(a) * r * 0.62, y: o.y + Math.sin(a) * r * 0.62, look: item.look }, 6, time);
+    });
   } else if (isTree(o)) {
     drawTree(ctx, o, spec, r, wind, performance.now());
   } else if (spec.kind === 'thing') {

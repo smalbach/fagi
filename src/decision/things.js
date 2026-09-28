@@ -16,7 +16,8 @@
 import { CONCEPT, THIRST, ENERGY } from '../config.js';
 import { habit } from '../habits.js';
 import { believe, experience, conceptsOf, drained } from '../concepts.js';
-import { touching, contact, isThing } from '../things.js';
+import { touching, contact, isThing, haul } from '../things.js';
+import { nestOf } from '../world.js';
 import { record } from '../world.js';
 import { reasonOf, pressing } from './common.js';
 
@@ -84,6 +85,21 @@ export function huddle(fagi, world, ctx) {
   return { action: 'huddleTo', reason: reasonOf(key, params), target: best.ref, targetKind: 'thing', trailKey: null };
 }
 
+// Lining the nest (things.js): nothing presses and her hands are free, the
+// lining is not full and she believes a thing warm, by her own touch or by a
+// concept. She takes it home. Laying it down happens in the nest (nest.js).
+export function line(fagi, world, ctx) {
+  if (!CONCEPT.enabled || !CONCEPT.lining || !ctx.things || !ctx.nest) return null;
+  if (fagi.hauling) {
+    return { action: 'lineNest', reason: reasonOf('reason.lineNest'), target: ctx.nest, targetKind: 'nest', trailKey: null };
+  }
+  if (pressing(ctx) || fagi.carrying || fagi.thermalFeel) return null;
+  if ((nestOf(world)?.lining?.length ?? 0) >= CONCEPT.lining) return null;
+  const best = believed(fagi, world, ctx, 'warm')[0];
+  if (!best) return null;
+  return { action: 'haul', reason: reasonOf(`reason.haul.${via(best.b)}`), target: best.ref, targetKind: 'thing', trailKey: null };
+}
+
 // What she would do next to a kind: touch it first, then nibble. null when
 // her contact has already told her all a contact can.
 function nextAct(kind) {
@@ -123,9 +139,15 @@ export function probe(fagi, world, ctx) {
 // happens (fagi.js calls this every step).
 export function useThing(fagi, world) {
   const action = fagi.thought?.action;
-  if (action !== 'probe' && action !== 'sip') return;
+  if (action !== 'probe' && action !== 'sip' && action !== 'haul') return;
   const obj = fagi.target;
-  if (!isThing(obj) || !touching(fagi, obj)) return;
+  if (!isThing(obj) || !touching(fagi, obj) || !world.objects.includes(obj)) return;
+  if (action === 'haul') {
+    haul(fagi, world, obj);
+    fagi.target = null;
+    fagi.targetKind = null;
+    return;
+  }
   const act = action === 'sip' ? 'nibble' : nextAct(conceptsOf(fagi).kinds[obj.key]);
   if (!act) return;
   const felt = contact(fagi, world, obj, act);

@@ -76,6 +76,11 @@ export function applyEvent(state, ev) {
       if (o) { o.look = ev.look; o.dryUntil = 0; }
       break;
     }
+    case 'nest_line': {
+      const n = w.objects.find((o) => OBJECT_TYPES[o.type]?.kind === 'nest');
+      if (n) (n.lining ??= []).push({ id: ev.id, look: ev.look });
+      break;
+    }
     case 'thing_contact': {
       const o = w.objects.find((x) => x.id === ev.id);
       if (o && ev.felt === 'sap') o.dryUntil = ev.t + (ev.dry ?? 0);

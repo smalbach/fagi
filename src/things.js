@@ -18,7 +18,7 @@
 
 import { CONCEPT, THIRST, OBJECT_TYPES, FAGI, MAPGEN, WORLD } from './config.js';
 import { COLOR_HEX } from './chemistry.js';
-import { addObject, record } from './world.js';
+import { addObject, removeObject, record, nestOf } from './world.js';
 import { radiusOf } from './obstacles.js';
 
 export const THING_TRAITS = {
@@ -176,3 +176,37 @@ export function contact(fagi, world, obj, act) {
 
 // Thirst it would take away, for whoever weighs it (THIRST.max units).
 export const sapRelief = () => CONCEPT.sap / THIRST.max;
+
+// --- combining: lining the nest -----------------------------------------------
+// A thing carried into the nest stays there and changes it: a warm one warms
+// it, a cool one cools it (like the materials birds line a nest with). That is
+// an affordance of the pair, not of the thing alone.
+
+// She picks it up: it leaves the map and goes with her.
+export function haul(fagi, world, obj) {
+  removeObject(world, obj, 'hauled');
+  fagi.hauling = { id: obj.id, key: obj.key, look: { ...obj.look } };
+}
+
+// Inside the nest she lays it down among the others.
+export function lineNest(fagi, world, nest) {
+  const item = fagi.hauling;
+  (nest.lining ??= []).push(item);
+  record(world, 'nest_line', { id: item.id, look: item.look });
+  fagi.hauling = null;
+  fagi.lastLining = { n: (fagi.lastLining?.n ?? 0) + 1, key: item.key, count: nest.lining.length };
+}
+
+// °C the nest's lining adds to its temperature.
+export function nestWarmth(world) {
+  if (!CONCEPT.enabled) return 0;
+  const nest = nestOf(world);
+  let heat = 0;
+  for (const item of nest?.lining ?? []) {
+    const aff = affordanceOf(world.thingChemistry, item.look);
+    if (aff === 'warm') heat += CONCEPT.liningHeat;
+    else if (aff === 'cool') heat -= CONCEPT.liningHeat;
+  }
+  return heat;
+}
+

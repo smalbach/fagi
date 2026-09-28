@@ -48,6 +48,8 @@ export const TAG_COLOR = {
   huddle: '#d9a86f',
   huddleTo: '#d9a86f',
   probe: '#c9b8ff',
+  haul: '#c9a26f',
+  lineNest: '#c9a26f',
   life: '#e7a6c4',
   concept: '#7fd0c1',
   shelter: '#6f9fbf',
@@ -469,6 +471,11 @@ function narrateOrganism(narr, fagi, p) {
         { key: 'log.conceptFormedSub', params: { n: made.members.length } });
     }
     for (const gone of c.retired) push(narr, fagi, 'concept', { key: 'log.conceptRevised', params: { id: gone.id } }, null);
+  }
+  const lined = fagi.lastLining;
+  if (lined && lined.n !== p.lining) {
+    p.lining = lined.n;
+    push(narr, fagi, 'concept', { key: 'log.lining', params: { what: lined.key, count: lined.count } }, null);
   }
   const saw = fagi.lastWatchedThing;
   if (saw && saw.n !== p.sawThing) {

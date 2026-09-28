@@ -26,7 +26,7 @@ import { persistOnScent, persistFromMemory } from './decision/clues.js';
 import { earlyDirective, safeDirective } from './decision/directive.js';
 import { exploreRule } from './decision/explore.js';
 import { taste } from './decision/experiment.js';
-import { sip, huddle, probe } from './decision/things.js';
+import { sip, huddle, probe, line } from './decision/things.js';
 import { BASELINE } from './config.js';
 
 // Exported: the cortex uses it to know whether an external directive can
@@ -55,6 +55,7 @@ const RULES = [
   ['endure', 'dusk', dusk],                       // CYCLE only, once the dark means cold to her
   // 3. provide
   ['provide', 'directive', safeDirective],     // only answers with BACKEND.authority === 0 (the default)
+  ['provide', 'line', line],                      // CONCEPT only: take a thing she believes warm home, for the nest
   ['provide', 'carry', carry],
   ['provide', 'thirstSearch', thirstSearch],   // only with APPETITE on
   ['provide', 'pursue', pursue],

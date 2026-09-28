@@ -31,6 +31,7 @@ import { assignSex, energyMax } from './biology.js';
 import { createGenome, recombine, applyGenome, teach } from './generations.js';
 import { drawLifespan, lifeAge, fertility } from './lifecycle.js';
 import { cycleAt } from './cycle.js';
+import { nestWarmth } from './things.js';
 import { edibleCount } from './learned/rules.js';
 
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -115,7 +116,7 @@ function ready(f, world, nest, crowd = 1) {
 function nestTemperature(world) {
   if (!THERMAL.enabled || !CYCLE.enabled) return null;
   const sky = cycleAt(world.time);
-  return THERMAL.nestBuffer * THERMAL.nestTemp + (1 - THERMAL.nestBuffer) * sky.ambient;
+  return THERMAL.nestBuffer * (THERMAL.nestTemp + nestWarmth(world)) + (1 - THERMAL.nestBuffer) * sky.ambient;
 }
 
 // How fast an egg develops at this nest temperature: 0 in the cold, 1 warm.

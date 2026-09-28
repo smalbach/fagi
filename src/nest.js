@@ -8,6 +8,7 @@ import { weight } from './memory.js';
 import { verdict } from './learned/rules.js';
 import { storedHarm, spoiledRations } from './habits.js';
 import { canEat } from './appetite.js';
+import { lineNest } from './things.js';
 
 export function nestUnder(fagi, world) {
   const nestObj = nestOf(world);
@@ -20,6 +21,8 @@ export function nestUnder(fagi, world) {
 export function useNest(fagi, world) {
   const nestObj = nestUnder(fagi, world);
   if (!nestObj) return null;
+
+  if (fagi.hauling) lineNest(fagi, world, nestObj);   // a thing for the lining (things.js)
 
   if (fagi.carrying) {
     const t = fagi.carrying.type;

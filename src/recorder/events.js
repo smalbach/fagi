@@ -18,6 +18,7 @@ export const EVENT_TYPES = {
   obj_resize: ['id', 'r'],
   obj_fruit: ['id', 'what'],   // a tree of a wild species (chemistry.js)
   obj_look: ['id', 'look'],    // how a thing looks (things.js): { color, shape, texture }
+  nest_line: ['id', 'look'],   // a thing laid in the nest's lining (things.js)
   point_add: ['id', 'what', 'x', 'y'],
   point_rot: ['id', 'what'],
   point_remove: ['id', 'reason'],

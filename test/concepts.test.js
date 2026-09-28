@@ -295,3 +295,31 @@ test('she learns how long sap takes to come back, and goes to look again when it
   assert.equal(c.places[o.id].drainedAt, null);
   void world;
 });
+
+test('she takes a thing she believes warm home, lines the nest with it, and the nest is warmer', async () => {
+  const { line } = await import('../src/decision/things.js');
+  const { nestWarmth, haul, lineNest } = await import('../src/things.js');
+  const { addObject, nestOf } = await import('../src/world.js');
+  CONCEPT.enabled = 1;
+  const world = world0();
+  world.thingChemistry.aff.spiny = 'warm';
+  const fagi = createFagi();
+  fagi.angle = 0;
+  addObject(world, fagi.x - 200, fagi.y, 'nest');
+  const warm = addThing(world, fagi.x + 50, fagi.y, look('red', 'pod', 'spiny'));
+  experience(conceptsOf(fagi), world, warm, 'touch', 'warm', 1);
+  const intent = line(fagi, world, perceive(fagi, world));
+  assert.equal(intent?.action, 'haul');
+  assert.equal(intent.target, warm);
+  haul(fagi, world, warm);
+  assert.ok(!world.objects.includes(warm));
+  assert.equal(line(fagi, world, perceive(fagi, world)).action, 'lineNest');
+  assert.equal(nestWarmth(world), 0);
+  lineNest(fagi, world, nestOf(world));
+  assert.equal(fagi.hauling, null);
+  assert.equal(nestWarmth(world), CONCEPT.liningHeat);
+  CONCEPT.lining = 0;
+  assert.equal(line(fagi, world, perceive(fagi, world)), null, 'without lining (the ablation) she never does');
+  CONCEPT.lining = 3;
+  CONCEPT.enabled = 0;
+});

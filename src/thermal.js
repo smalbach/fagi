@@ -24,7 +24,7 @@ import { peekWeight } from './memory.js';
 import { nestUnder } from './nest.js';
 import { isTree, radiusOf } from './obstacles.js';
 import { bodyOf } from './biology.js';
-import { thermalOfContact } from './things.js';
+import { thermalOfContact, nestWarmth } from './things.js';
 
 export const COLD_KEY = 'cold';
 export const HEAT_KEY = 'heat';
@@ -43,7 +43,7 @@ const isWet = (fagi, inNest) => (fagi.wet ?? 0) > 0 || fagi.swimming || (fagi.ra
 // The temperature her body is heading to right now.
 export function targetTemperature(fagi, world, sky, inNest) {
   let target = inNest
-    ? THERMAL.nestBuffer * THERMAL.nestTemp + (1 - THERMAL.nestBuffer) * sky.ambient
+    ? THERMAL.nestBuffer * (THERMAL.nestTemp + nestWarmth(world)) + (1 - THERMAL.nestBuffer) * sky.ambient
     : sky.ambient;
   if (!inNest && fagi.moving) target += THERMAL.moveHeat;
   if (!inNest && sky.light > CYCLE.minLight && inShade(fagi, world)) target -= THERMAL.shade * sky.light;

@@ -871,6 +871,8 @@ export const LIFE = {
 //   lookAgain  : seconds she waits, before she has learned how long sap takes to come
 //                back, to go and look again at a sap thing she left dry; 0 = she never
 //                goes back on purpose (as measured up to §25.14)
+//   lining     : things she lines the nest with, at most (a warm one warms it, a cool one
+//                cools it, by liningHeat °C each); 0 = she never does (as up to §25.14)
 //   social     : 1 = seeing a sister stung by a thing, or drinking its sap, teaches that
 //                kind without touching it (social.js); watched, not lived: trusted `seen`
 //   seen       : confidence (0-1) of what she only saw happen to a sister
@@ -898,6 +900,8 @@ export const CONCEPT = {
   surprise: 0.6,
   calm: 240,
   lookAgain: 60,
+  lining: 3,
+  liningHeat: 2.5,
   social: 1,
   seen: 0.6,
   generalize: 1,

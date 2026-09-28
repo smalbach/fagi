@@ -815,6 +815,17 @@ En un mundo que no cambia nunca hay sorpresas y nada de esto ocurre. Con `CONCEP
 
 **Esperar y volver a mirar** (`CONCEPT.lookAgain`). Una cosa con savia que vacía queda seca un rato (`CONCEPT.sapRegrow`, 45 s), y ella lo ve. Recuerda cuándo la dejó seca y aprende cuánto tarda en rellenarse: verla llena otra vez le dice «como mucho tanto», y encontrarla aún seca, «más que esto». Con esa estimación, o un minuto antes de tener ninguna, vuelve a mirar cuando tiene sed. En 48 vidas de desarrollo bebe algo más de savia (15,9 frente a 15,1 bocados), y su estimación acaba en 58 s de media frente a los 45 reales. Solo la corrige cuando vuelve y la encuentra llena, así que tiende a quedarse larga.
 
+**Combinar: forrar el nido** (`CONCEPT.lining`). Una cosa llevada al nido se queda allí y lo cambia: cada cosa tibia lo calienta `CONCEPT.liningHeat` (2,5 °C) y cada fría lo enfría. Es una affordance de la pareja cosa + nido, no de la cosa sola. Como las aves que forran el nido, el impulso de forrarlo es innato, pero qué lleva lo decide lo aprendido: con las manos libres y nada urgente, lleva una cosa que cree tibia, por su propio tacto o por un concepto, hasta `CONCEPT.lining` (3). El nido más cálido también incuba antes los huevos. 48 vidas de desarrollo:
+
+| Clima | Cosas en el forro | Tiempo con estrés térmico | Muertes por frío |
+|---|---|---|---|
+| frío (media 13 °C), sin forro | 0 | 403 s | 14 |
+| frío, con forro | 1,7 | **325 s** (−19 %) | 15 |
+| templado, sin forro | 0 | 81 s | 0 |
+| templado, con forro | 1,9 | **72 s** (−11 %) | 0 |
+
+Pasa menos frío en el nido, pero no muere menos de frío: las muertes ocurren fuera, lejos de casa. No siempre hay cosas tibias: la química de cada mapa elige dos de frío, tibio y nada.
+
 **Aprender mirando** (`CONCEPT.social`). Si una hermana se pica con una cosa, o bebe su savia, quien la ve aprende esa clase sin tocarla, con confianza `CONCEPT.seen` (0,6). El frío o el calor al tacto no se ven desde fuera, así que eso no se transmite. Lo visto cuenta como evidencia para sus conceptos, y lo que después viva ella lo sustituye. En los animales reales basta ver el miedo de otro para temer lo que lo causó (los monos y las serpientes de Mineka y Cook). En colonias de 4, con 24 mapas de desarrollo, las picaduras por individuo bajan de 2,24 a 1,88: solo aprende quien está mirando en ese momento.
 
 **Cambia decisiones.**
@@ -2005,7 +2016,7 @@ La población se regula antes de chocar con el techo. Hay más generaciones porq
 - Fase 5: `health` como variable propia (hoy el daño va a la energía, al estrés térmico o al hambre).
 - Fase 6, lo que queda del §12.3:
   - que el agua, el nido, los árboles y las rocas dejen de ser categorías innatas (hoy solo las cosas lo son);
-  - combinar objetos, y esperar y volver a mirar algo que cambia con el tiempo (ninguna cosa cambia todavía).
+  - combinaciones más ricas que forrar el nido: una cosa que solo sirve junto a otra fuera de casa (romper una contra otra, por ejemplo), con transporte y acción propios.
 
 **Decidido y descartado**, con su motivo:
 

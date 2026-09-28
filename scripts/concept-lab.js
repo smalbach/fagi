@@ -28,7 +28,7 @@
 //                               [--dims shape,texture] [--set BLOCK.key=V ...] [--json file]
 
 import { writeFileSync } from 'node:fs';
-import { createWorld } from '../src/world.js';
+import { createWorld, nestOf } from '../src/world.js';
 import { generateMap } from '../src/mapgen.js';
 import { createFagi, updateFagi } from '../src/fagi.js';
 import { stepWorld } from '../src/simulation.js';
@@ -64,13 +64,13 @@ export function classification(fagi, chem) {
   return { classify: n ? right / n : 0, precision: believed ? believedRight / believed : null, coverage: n ? believed / n : 0 };
 }
 
-export function runThingLife({ fagiSeed, mapSeed, seconds, turn = false, dt = 0.05 }) {
+export function runThingLife({ fagiSeed, mapSeed, seconds, turn = false, extra = false, dt = 0.05 }) {
   const world = withRng(rng(mapSeed), () => { const w = createWorld(); generateMap(w); return w; });
   const worldRng = rng(fagiSeed * 7919);
   const fagiRng = rng(fagiSeed);
   const fagi = withRng(fagiRng, () => createFagi());
   let last = 0; let stings = 0; let sips = 0; let novelSips = 0;
-  let lateStings = 0; let lateSapUsed = 0;
+  let lateStings = 0; let lateSapUsed = 0; let stressed = 0;
   const touched = new Set();
   const judged = new Map();   // late kind -> was her belief right when she first saw it?
   const steps = Math.ceil(seconds / dt);
@@ -82,6 +82,7 @@ export function runThingLife({ fagiSeed, mapSeed, seconds, turn = false, dt = 0.
     }
     withRng(worldRng, () => stepWorld(world, dt));
     withRng(fagiRng, () => updateFagi(fagi, world, dt));
+    if ((fagi.thermalStress ?? 0) > 0) stressed += dt;
     const late = world.lateKinds ?? [];
     const kinds = fagi.brain.concepts?.kinds;
     for (const key of late) {
@@ -111,7 +112,6 @@ export function runThingLife({ fagiSeed, mapSeed, seconds, turn = false, dt = 0.
     retired: concepts?.list.filter((c) => c.retired && c.why === 'fails').length ?? 0,
     revised: concepts?.list.filter((c) => c.retired && c.why === 'revised').length ?? 0,
     surprises: concepts?.surprises ?? 0,
-    regrow: concepts?.regrow ?? null,
     kindsKnown: Object.values(concepts?.kinds ?? {}).filter((k) => k.possible.length === 1).length,
     stings, sips, novelSips,
     lateSeen: judged.size,
@@ -122,6 +122,9 @@ export function runThingLife({ fagiSeed, mapSeed, seconds, turn = false, dt = 0.
     alive: fagi.alive ? 1 : 0,
     cause: fagi.alive ? null : fagi.cause,
   };
+  // Measured after the concepts protocol was frozen: only when asked, so its
+  // rows stay as they were.
+  if (extra) Object.assign(out, { regrow: concepts?.regrow ?? null, lined: nestOf(world)?.lining?.length ?? 0, stressed: Math.round(stressed), cold: fagi.cause === 'cold' ? 1 : 0 });
   registerSpecies([]);
   return out;
 }
@@ -144,7 +147,7 @@ if (isMain) {
   }
   const rows = [];
   const turn = args.includes('--turn');
-  for (let i = 0; i < LIVES; i++) rows.push({ i, ...runThingLife({ fagiSeed: SEED + i, mapSeed: MAP + 13 * i, seconds: SECONDS, turn }) });
+  for (let i = 0; i < LIVES; i++) rows.push({ i, ...runThingLife({ fagiSeed: SEED + i, mapSeed: MAP + 13 * i, seconds: SECONDS, turn, extra: true }) });
   const mean = (k) => {
     const v = rows.map((r) => r[k]).filter((x) => x != null);
     return v.length ? v.reduce((a, b) => a + b, 0) / v.length : NaN;
@@ -155,7 +158,7 @@ if (isMain) {
     return v.length > 1 ? Math.sqrt(v.reduce((a, b) => a + (b - m) ** 2, 0) / (v.length - 1) / v.length) : NaN;
   };
   console.log(`${LIVES} lives, dims ${CONFIG.CONCEPT.dims.join(',')}, generalize ${CONFIG.CONCEPT.generalize}, surprise ${CONFIG.CONCEPT.surprise}${turn ? ', turns over' : ''}`);
-  for (const k of ['classify', 'precision', 'coverage', 'hits', 'misses', 'concepts', 'retired', 'revised', 'surprises', 'kindsKnown', 'stings', 'sips', 'novelSips', 'regrow', 'lateSeen', 'lateRight', 'lateBelieved', 'lateStings', 'lateSapUsed', 'lifetime', 'alive']) {
+  for (const k of ['classify', 'precision', 'coverage', 'hits', 'misses', 'concepts', 'retired', 'revised', 'surprises', 'kindsKnown', 'stings', 'sips', 'novelSips', 'regrow', 'lined', 'stressed', 'cold', 'lateSeen', 'lateRight', 'lateBelieved', 'lateStings', 'lateSapUsed', 'lifetime', 'alive']) {
     console.log(`  ${k.padEnd(11)} ${mean(k).toFixed(3)} ± ${se(k).toFixed(3)}`);
   }
   const causes = {};

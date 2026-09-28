@@ -136,6 +136,7 @@ function thingsOf(fagi) {
   });
   return {
     seen,
+    hauling: fagi.hauling ? { look: fagi.hauling.look } : null,
     concepts: liveConcepts(concepts).map((c) => ({
       id: c.id, traits: c.all, affords: c.aff, kinds: c.members.length, except: c.except,
       hits: c.hits, misses: c.misses, confidence: r2(confidence(c)),
