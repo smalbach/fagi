@@ -13,6 +13,22 @@ import { THERMAL } from './config.js';
 import { organismOn } from './organism.js';
 import { energyMax } from './biology.js';
 import { nauseous } from './appetite.js';
+import { perceptOn, unnamed, smellOf } from './percept.js';
+
+// What the API reads with PERCEPT on (percept.js): a fruit it only smells is
+// its smell, and no classic fruit goes by the name this code gives it. A copy:
+// byId, which stays home, keeps the real keys the cortex needs.
+function asPerceived(observation) {
+  const out = JSON.parse(unnamed(JSON.stringify(observation)));
+  observation.candidates.forEach((c, i) => {
+    if (c.kind === 'food' && c.via === 'smell') {
+      out.candidates[i].key = `smell:${smellOf(c.key)}`;
+      out.candidates[i].belief = null;
+      out.candidates[i].verdict = null;
+    }
+  });
+  return out;
+}
 
 const r2 = (v) => Math.round(v * 100) / 100;
 
@@ -71,7 +87,7 @@ export function observe(fagi, world, ctx) {
   };
   if (organismOn()) Object.assign(observation, organism(fagi));
 
-  return { observation, refs, byId };
+  return { observation: perceptOn() ? asPerceived(observation) : observation, refs, byId };
 }
 
 // Version 2 (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md §17): only what she can

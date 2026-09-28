@@ -692,6 +692,12 @@ export const SEX = {
 //   searchWater : thirst (fraction) from which, not knowing where water is, she
 //                 stops gathering and goes looking for it
 //   averse, desperate: below
+// Perception (percept.js): she tells things apart only by what she perceives.
+// By smell alone, only the smell.
+export const PERCEPT = {
+  enabled: 0,
+};
+
 export const APPETITE = {
   enabled: 0,
   handling: 3,

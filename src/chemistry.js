@@ -15,7 +15,7 @@
 // them too. The classic fruit have traits as well (config.js): learning is the
 // same for all.
 
-import { POINT_TYPES } from './config.js';
+import { POINT_TYPES, PERCEPT } from './config.js';
 
 export const TRAITS = {
   color: ['red', 'orange', 'yellow', 'green', 'blue', 'purple'],
@@ -160,6 +160,12 @@ export function createSpecies(chem, count, rnd = Math.random) {
   ].slice(0, count);
   const out = [];
   const used = new Set();
+  // With PERCEPT (percept.js) no species may look like a classic fruit: two
+  // things that look the same would be told apart only by a name she cannot
+  // see. Off, the draw stays exactly what the preregistered studies used.
+  const looks = PERCEPT.enabled
+    ? new Set(Object.values(POINT_TYPES).filter((s) => s.traits && !s.species).map((s) => speciesKey(s.traits)))
+    : new Set();
   for (const cls of wanted) {
     for (let tries = 0; tries < (chem.rules ? 500 : 50); tries++) {
       // Smell-based chemistry: the smell decides, pick one of that class. A
@@ -171,7 +177,7 @@ export function createSpecies(chem, count, rnd = Math.random) {
       };
       if (cls && chem.rules && feedOf(chem, traits) !== cls) continue;
       const key = speciesKey(traits);
-      if (used.has(key) || POINT_TYPES[key] && !POINT_TYPES[key].species) continue;
+      if (used.has(key) || looks.has(key) || POINT_TYPES[key] && !POINT_TYPES[key].species) continue;
       used.add(key);
       out.push(speciesUnder(chem, traits));
       break;

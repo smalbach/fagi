@@ -9,6 +9,7 @@ import { specOf, FAGI, PLUME, WORLD, TREE, RAIN } from './config.js';
 import { statMult } from './effects.js';
 import { distanceTo, normalizeAngle } from './vision.js';
 import { radiusOf, isTree, isWater } from './obstacles.js';
+import { sameScent } from './percept.js';
 
 // Fagi's total sensitivity applied to something's aroma.
 export function aromaOf(fagi, key) {
@@ -136,7 +137,8 @@ export function scentFromSourceAt(fagi, source, x, y) {
 export function scentAt(fagi, world, key, x, y) {
   let max = 0;
   for (const source of scentSources(world)) {
-    if (source.key !== key) continue;
+    // She follows a smell, not a species (percept.js): the same thing without PERCEPT.
+    if (!sameScent(source.key, key)) continue;
     max = Math.max(max, scentFromSourceAt(fagi, source, x, y));
   }
   return max;

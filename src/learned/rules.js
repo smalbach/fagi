@@ -76,14 +76,16 @@ export function quarantine(rules, id) {
 //
 // `traits` asks "what if it had these traits instead?" (explain.js, the
 // counterfactual); by default, the ones it has.
-export function verdict(fagi, scope, key, { deliberate = false, traits: asIf = null } = {}) {
+// `blind`: she perceives only `traits` (by smell alone, percept.js): rules about
+// the one species she cannot tell it is, and its exceptions, do not apply.
+export function verdict(fagi, scope, key, { deliberate = false, traits: asIf = null, blind = false } = {}) {
   const rules = fagi.brain.rules;
-  const tasted = (fagi.brain.facts[key]?.tries ?? 0) > 0;
+  const tasted = !blind && (fagi.brain.facts[key]?.tries ?? 0) > 0;
   const traits = CUES.enabled && !tasted ? asIf ?? cuesOf(key) : [];
   let result = null;
   for (const r of liveRules(rules)) {
     try {
-      const about = r.when.all ? traitsMatch(r, key, traits) : r.when.key === key;
+      const about = r.when.all ? traitsMatch(r, blind ? null : key, traits) : !blind && r.when.key === key;
       if (r.on.includes(scope) && about) {
         if (r.verdict === 'avoid') result = 'avoid';
         else if (r.verdict === 'prefer' && result === null) result = 'prefer';

@@ -7,6 +7,7 @@ import { wariness } from '../learned/cues.js';
 import { labelOf } from '../i18n.js';
 import { habit } from '../habits.js';
 import { onAgenda } from '../experiment.js';
+import { smellOnly } from '../percept.js';
 import { reasonOf, pressing } from './common.js';
 
 export function taste(fagi, world, ctx) {
@@ -14,7 +15,8 @@ export function taste(fagi, world, ctx) {
   if (pressing(ctx) || fagi.carrying || fagi.energy <= Math.max(habit(fagi, 'restAt'), ENERGY.tired)) return null;
   let best = null;
   for (const c of ctx.ranked) {
-    if (c.kind !== 'food' || !c.ref || !onAgenda(fagi, c.key)) continue;
+    // A question is about a fruit she can tell by sight, not by a smell (percept.js).
+    if (c.kind !== 'food' || !c.ref || smellOnly(c) || !onAgenda(fagi, c.key)) continue;
     if (c.guess && wariness(c.guess) >= EXPERIMENT.maxWary) continue;
     if (!best || c.dist < best.dist) best = c;
   }

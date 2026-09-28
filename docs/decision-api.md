@@ -113,7 +113,7 @@ a version-1 client keeps working.
   "biology": {
     "sex": "female", "stage": "adult", "energyMax": 112,
     "temperature": 14.8, "thermalState": "cold", "thermalStress": 0.21,
-    "sleepPressure": 0.74, "asleep": false
+    "sleepPressure": 0.74, "asleep": false, "nauseous": false
   },
   "memory": {
     "consolidations": 3,
@@ -127,6 +127,15 @@ day or the air's temperature. `thermalStress` and `sleepPressure` are 0–1;
 `thermalState` is `"cold"`, `"heat"` or `"comfortable"`. The night report is
 data she produced herself while asleep (`src/consolidation.js`); the API can read
 it, not write it.
+`nauseous` is true for a while after a bite that made her feel bad
+(`src/appetite.js`): she will eat only what she knows is good.
+
+With `PERCEPT` on (part of the organism, `src/percept.js`) the observation says
+only what she perceives. A fruit is named by how it looks (`"red-round-rotten"`),
+never by the name the code gives it (`toxic`, `nectar`...), in every field:
+candidates, beliefs, rules and reasons. A fruit she only smells is
+`"smell:<smell>"`, with no `belief` and no `verdict`, since by smell alone she
+cannot tell which fruit it is.
 
 ### Intention (what the API returns)
 

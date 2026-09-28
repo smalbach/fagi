@@ -1,6 +1,6 @@
 # Especificación: Fagi como ente adaptativo autónomo
 
-**Estado:** en implementación: fases 1 y 3 hechas; 2, 5 y 6, en parte (ver §25)  
+**Estado:** en implementación: fase 1 hecha; 2, 3, 5 y 6, en parte (ver §25)  
 **Proyecto:** First AGI / Fagi  
 **Objetivo de esta versión:** transformar la simulación actual, inspirada en una hormiga, en un entorno experimental para estudiar un organismo artificial limitado que percibe, aprende, descansa, consolida experiencias, se reproduce y se adapta durante varias generaciones.
 
@@ -10,7 +10,7 @@
 
 El repositorio contiene estudios preregistrados y congelados (`docs/research/`) que ejecutan el mismo motor de simulación mediante `scripts/batch.js`. Todo lo que añade esta especificación debe respetar estas condiciones:
 
-1. **Cada bloque nuevo arranca apagado** en `src/config.js` (`CYCLE.enabled`, `THERMAL.enabled`, `SEX.enabled`, `SLEEP.enabled`, `EXPERIMENT.enabled`, `APPETITE.enabled`, `GEN.sexual`).
+1. **Cada bloque nuevo arranca apagado** en `src/config.js` (`CYCLE.enabled`, `THERMAL.enabled`, `SEX.enabled`, `SLEEP.enabled`, `EXPERIMENT.enabled`, `APPETITE.enabled`, `PERCEPT.enabled`, `GEN.sexual`).
 2. **Con todo apagado, la simulación es idéntica número a número**: no se consume ni un número aleatorio más ni en otro orden, y todo multiplicador corporal vale exactamente `1`. Se comprobó comparando byte a byte la salida JSON de `batch.js` antes y después (ejecución simple y por generaciones con especies).
 3. **El juego enciende el organismo** al arrancar (`src/app/organism-on.js`, que se importa antes que los ajustes). En batch se enciende con `--organism`, y `--set` puede apagar después cualquier pieza (`--set SLEEP.consolidate=0`).
 4. **Las sesiones grabadas guardan los flags** con el resto de ajustes. Al reproducir una sesión anterior al organismo, los flags ausentes se consideran `0` (`organismOffConfig`).
@@ -711,6 +711,28 @@ Medir antes de diseñar cambió el problema. Con 6 especies, cada vida **ve las 
 Con `SLEEP.consolidate = 0` la noche no pregunta nada, la agenda queda vacía y no hay experimentos. Esa es la parte del sueño que llega al día siguiente. Las mismas preguntas podrían calcularse despierta; el diseño las ata a la noche porque la noche es cuando el día ya está ordenado y hay algo que preguntar.
 
 ---
+
+### 12.7 Identidad real y representación percibida
+
+`percept.js`, con el flag `PERCEPT.enabled`, que forma parte del organismo.
+
+**La auditoría.** La memoria de Fagi se indexa por tipo de fruta (`brain.facts['red-round-sour']`). Eso no es una fuga: cada tipo tiene un aspecto propio (color, forma y olor), así que distinguirlos a la vista es exactamente lo que es ver. Renombrar las claves por sus rasgos no cambiaría nada de lo que sabe. Sí había fugas en otros sitios:
+
+1. **Por el olfato conocía la especie exacta.** Un fruto que solo olía se juzgaba con su memoria de esa especie y con las reglas escritas sobre ella, aunque por el olor solo sabía cómo olía.
+2. **Rastreaba estelas por especie, no por olor.** Distinguía dos estelas del mismo olor según qué especie las emitía.
+3. **La API recibía los nombres internos.** Nombres como `toxic` o `nectar`; `toxic` le dice literalmente al modelo que es tóxica (§17: «solo lo que Fagi puede conocer»).
+4. **Una especie silvestre podía tener el mismo aspecto que una fruta clásica** (por ejemplo `blue-crystal-sharp`, igual que `spark`) con otros efectos. Si convivían, su memoria las distinguía sin poder percibir la diferencia. El generador solo evitaba claves repetidas, no aspectos repetidos. Lo encontró un test.
+
+**Con `PERCEPT` encendido:**
+
+- un fruto que solo huele se juzga por lo que ese olor ha significado para ella (`learned/cues.js`): nada de su memoria de la especie, ni reglas sobre ella, ni preguntas de su agenda; una regla sobre el olor sí se aplica;
+- al rastrear sigue un olor, lo emita quien lo emita;
+- la API recibe rasgos, nunca nombres: un fruto olido es `smell:<olor>`, y cada nombre clásico se sustituye por su aspecto (`red-round-rotten`);
+- ninguna especie nueva puede tener el aspecto de una fruta clásica.
+
+Con el flag apagado, el sorteo de especies es el mismo que usaron los estudios preregistrados.
+
+Queda fuera de este paso: los objetos del mapa (agua, nido, árbol, roca) siguen siendo categorías que Fagi reconoce de nacimiento, y la traza de sinapsis (`synapses.js`, que no decide nada) sigue ligando olores a especies. Formar conceptos a partir de rasgos es el resto de la fase 6.
 
 ## 13. Memoria propuesta
 
@@ -1475,6 +1497,10 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] Las preguntas del informe dirigen el día siguiente: agenda y mordisco de prueba (§12.6).
 - [x] Apetito y sed apetitiva, corregidos a partir de autopsias (§25.5).
 
+**Fase 6: parcial**
+- [x] Identidad real separada de lo percibido, en lo que Fagi decide y en lo que ve la API (§12.7).
+- [x] El mordisco de prueba como primera acción experimental (§12.6).
+
 **Fase 5: parcial (en batch)**
 - [x] Recombinación de dos progenitores, mutación posterior y límites.
 - [x] Parentesco (`genome.parents`), apareamientos entre hermanos, diversidad genética, proporción de sexos y cuerpo medio por generación.
@@ -1527,7 +1553,7 @@ No hay diferencia. La causa es la exposición: en una vida Fagi prueba unas 3 es
 
 Preguntar de noche y probar de día hace que Fagi conozca casi el doble de especies y encuentre muchas más de las que alimentan. Además come menos frutas dañinas enteras, porque la especie mala ya la conoció con un bocado. El coste es un 9 % más de dosis dañina en total: bocados pequeños de especies que antes nunca habría probado. La supervivencia no cambia (las muertes siguen siendo de hambre y sed, 12 frente a 11), y la exactitud de sus reglas apenas sube, porque la mayoría de lo aprendido queda en los pesos de los rasgos sin llegar a regla. Sin consolidar no hay agenda, y el efecto desaparece por completo.
 
-Con esto el criterio de salida de la fase 3 («dormir mejora transferencia o retención sin recibir información externa adicional») se cumple por dos vías medidas: el replay en el laboratorio y la agenda en el juego. Ninguna de las dos basta aún para cambiar la supervivencia.
+Esto no cumple por sí solo el criterio de salida de la fase 3 («dormir mejora transferencia o retención sin recibir información externa adicional»). La agenda mejora la **exploración**: cuántas especies prueba y encuentra. No mide transferencia ni retención. El criterio se cumple solo en el laboratorio, con el replay, y con un efecto pequeño (+0,006 de acierto en especies nunca probadas). En el juego sigue pendiente, y la retención a varios días no se ha medido. Ninguna de las dos vías cambia todavía la supervivencia.
 
 **Sexos:** en 8 vidas de 1200 s sobrevivieron todas, tanto hembras (5) como machos (3); ningún sexo dominó en esa muestra. Hace falta una batería de mapas para afirmar equilibrio.
 
@@ -1580,32 +1606,68 @@ Las 10 muertes que quedan son realistas y se dejan como están. Todas son de for
 
 Todas las muertes por sed desaparecieron con la sed apetitiva. La aversión reduce el veneno recibido y a cambio prueba algo menos: es el intercambio real entre prudencia y exploración.
 
+### 25.6 Percepción: resultado
+
+Organismo completo (48 vidas de 1800 s, 6 especies):
+
+| | `PERCEPT = 0` | `PERCEPT = 1` |
+|---|---|---|
+| Vivas | 38/48 | 40/48 |
+| Especies probadas / buenas descubiertas | 4,63 / 72 % | 4,69 / 74 % |
+| Dosis de veneno (en frutas enteras) | 1,20 | 1,23 |
+| Muertes / con algo que parece un artefacto | 10 / 0 | 8 / 0 |
+
+La conducta apenas cambia, y era lo esperable. En la química por defecto el olor decide si una fruta alimenta o envenena, así que juzgar solo por el olor pierde poco. La diferencia importaría en químicas donde el veneno depende de color y olor a la vez (`family: 'conj'`). El valor de este paso no es un número: es que lo que Fagi aprende ya no puede apoyarse en información que no percibe, y eso lo comprueba un test (§20, novedad: «el agente no recibe el tipo verdadero»).
+
 ### 25.3 Pendiente
 
 - Fase 2: sprite ficticio nuevo y retirar el lenguaje de «hormiga» de la interfaz y la documentación (`fagi-sprite/`, `i18n/`).
 - Fase 3: medir la retención a varios días y si lo que se aprende con bocados de prueba llega a reglas; convertir lo que sabe de la fruta en supervivencia (hoy mueren de hambre y sed, no por la fruta).
 - Fase 4: IA nocturna acotada (esquema, DSL, sandbox, aceptación por comparación). Aún no hay ninguna vía por la que un modelo externo modifique la memoria.
 - Fase 5: reproducción dentro del mundo (selección de pareja, costes, huevo o gestación, juvenil y senescente, `fertility`, `health`) y población persistente sin runner; que los inmaduros no se reproduzcan.
-- Fase 6: separar la identidad real de la representación percibida y formar conceptos. De las acciones experimentales del §12.3, solo existe el mordisco de prueba (§12.6).
+- Fase 6: formar conceptos a partir de rasgos, que los objetos del mapa dejen de ser categorías innatas y el resto de acciones experimentales del §12.3 (tocar, combinar, esperar y volver a mirar).
 - Fase 7: baselines (aleatorio, reglas fijas), batería de ablaciones del §18.2 y preregistro de las afirmaciones.
 
 ### 25.4 Cómo reproducir
 
+Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas.
+
 ```text
 npm test
-node scripts/batch.js --organism --runs 12 --duration 2400
-node scripts/batch.js --organism --runs 12 --duration 2400 --set THERMAL.behave=0
-node scripts/batch.js --organism --runs 16 --duration 1800 --set MAPGEN.species=6 --set SLEEP.consolidate=0
+
+# §25.2 calibración térmica (medida con apetito, antes de PERCEPT)
+node scripts/batch.js --organism --runs 12 --duration 2400 --set PERCEPT.enabled=0
+node scripts/batch.js --organism --runs 12 --duration 2400 --set PERCEPT.enabled=0 --set THERMAL.behave=0
+node scripts/batch.js --organism --runs 12 --duration 2400 --set PERCEPT.enabled=0 --set CYCLE.swing=16
+node scripts/batch.js --organism --runs 12 --duration 2400 --set PERCEPT.enabled=0 --set CYCLE.swing=16 --set THERMAL.behave=0
+
+# §25.2 replay en el laboratorio
 node scripts/sleep-lab.js --k 6 --trials 300
 node scripts/sleep-lab.js --k 6 --trials 300 --set SLEEP.downscale=0.1
-node scripts/sleep-lab.js --game 32
-node scripts/sleep-lab.js --game 32 --set SLEEP.replay=0
-node scripts/sleep-lab.js --game 32 --set SLEEP.consolidate=0
-node scripts/sleep-lab.js --game 48 --set EXPERIMENT.enabled=0
+node scripts/sleep-lab.js --k 3 --trials 300 --set SLEEP.downscale=0.1
+
+# §25.2 replay en el juego (antes de los experimentos, el apetito y PERCEPT)
+OFF="--set EXPERIMENT.enabled=0 --set APPETITE.enabled=0 --set PERCEPT.enabled=0"
+node scripts/sleep-lab.js --game 32 $OFF
+node scripts/sleep-lab.js --game 32 $OFF --set SLEEP.replay=0
+node scripts/sleep-lab.js --game 32 $OFF --set SLEEP.consolidate=0
+
+# §25.2 experimentos (antes del apetito y PERCEPT)
+OFF="--set APPETITE.enabled=0 --set PERCEPT.enabled=0"
+node scripts/sleep-lab.js --game 48 $OFF --set EXPERIMENT.enabled=0
+node scripts/sleep-lab.js --game 48 $OFF
+node scripts/sleep-lab.js --game 48 $OFF --set SLEEP.consolidate=0
+
+# §25.5 autopsias y apetito (antes de PERCEPT)
+node scripts/autopsy.js --lives 48 --set PERCEPT.enabled=0 --set APPETITE.enabled=0
+node scripts/autopsy.js --lives 48 --set PERCEPT.enabled=0
+node scripts/sleep-lab.js --game 48 --set PERCEPT.enabled=0
+
+# §25.6 percepción (el organismo completo)
 node scripts/sleep-lab.js --game 48
-node scripts/sleep-lab.js --game 48 --set SLEEP.consolidate=0
 node scripts/autopsy.js --lives 48
-node scripts/autopsy.js --lives 48 --set APPETITE.enabled=0
+
+# generaciones con reproducción sexual
 node scripts/batch.js --organism --set GEN.sexual=1 --generations 6 --colony 6 --runs 4 --duration 600 --set MAPGEN.species=6
 ```
 

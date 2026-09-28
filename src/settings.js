@@ -7,7 +7,7 @@
 import {
   FAGI, HUNGER, THIRST, ENERGY, BRAIN, CARRY, NEST, EXPLORE, WIND, PLUME, PHERO, TREE, FRUIT, MEMORY,
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
-  CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE,
+  CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT,
 } from './config.js';
 import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
@@ -86,6 +86,9 @@ const GROUPS = [
     n(SLEEP, 'consolidate', 'Sort the day while asleep (1 = yes)', 'Ordenar el día al dormir (1 = sí)', 0, 1, 1),
     n(SLEEP, 'boost', 'Confidence a replayed belief gains', 'Confianza que gana una creencia repasada', 0, 1, 0.05),
     n(SLEEP, 'replay', 'Rounds of replay of the remembered fruit', 'Rondas de repaso de la fruta recordada', 0, 20, 1),
+  ]},
+  { title: { en: 'Perception', es: 'Percepción' }, fieldsOf: [
+    n(PERCEPT, 'enabled', 'By smell alone she knows only the smell (1 = yes)', 'Por el olor solo conoce el olor (1 = sí)', 0, 1, 1),
   ]},
   { title: { en: 'Appetite', es: 'Apetito' }, fieldsOf: [
     n(APPETITE, 'enabled', 'Bites take time and a bad one puts her off food (1 = yes)', 'Comer lleva tiempo y un mal bocado le quita el apetito (1 = sí)', 0, 1, 1),

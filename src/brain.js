@@ -9,6 +9,10 @@ import { createCues, cuesOf, learnCues, predict, wariness } from './learned/cues
 import { createSynapses, wire } from './synapses.js';
 import { logBite } from './learned/explain.js';
 import { createHabits } from './habits.js';
+import { smellOnly } from './percept.js';
+
+// A smell she has met fewer than BRAIN.curiosityTries times is still new.
+const smellIsNew = (brain, cues = []) => cues.every((c) => (brain.cues[c]?.n ?? 0) < BRAIN.curiosityTries);
 
 // The brain is memory (what she believes) plus rules (what she has written
 // from what she believes). Memory is the single source of truth for value;
@@ -39,7 +43,9 @@ export function createBrain() {
 // which is exactly what the console shows.
 export function evaluate(brain, candidates) {
   return candidates.map((c) => {
-    const r = recall(brain, c.key);
+    // Only smelled (percept.js): she knows the smell, not which fruit it is.
+    const blind = smellOnly(c);
+    const r = blind ? { value: 0, confidence: 0, stage: 'short', tries: 0 } : recall(brain, c.key);
     // What she has tasted she knows by itself. What she never tasted she can
     // only guess from its traits: "it smells like the one that made me sick".
     const tasted = r.tries > 0;
@@ -48,9 +54,10 @@ export function evaluate(brain, candidates) {
     // barely pulls, and then curiosity comes back and she tries it again.
     const known = guess ? guess.value * guess.confidence : weight(brain, c.key);
     // Curiosity is how she learns anything, but a fruit that looks like poison
-    // does not make her curious.
+    // does not make her curious. A smell alone is new until she has met it.
     const wary = guess ? wariness(guess) : 0;
-    const curiosity = curious(brain, c.key, BRAIN.curiosityTries) ? BRAIN.curiosityBonus * (1 - wary) : 0;
+    const isNew = blind ? smellIsNew(brain, c.cues) : curious(brain, c.key, BRAIN.curiosityTries);
+    const curiosity = isNew ? BRAIN.curiosityBonus * (1 - wary) : 0;
     // Appetite follows need: when sated, what she knows is good barely pulls her.
     const appetite = BRAIN.baseInterest + (1 - BRAIN.baseInterest) * c.urgency;
     const near = -BRAIN.distanceWeight * (c.dist / c.range);
