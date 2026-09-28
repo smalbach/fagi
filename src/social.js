@@ -1,6 +1,6 @@
 // Learning from sisters.
 //
-// Two ways, both as an ant would:
+// Two ways, both as a social insect would:
 //   - trophallaxis: sisters who meet in the nest pass each other food (the
 //     pantry is already shared) and what they have written down. A rule she is
 //     told comes in marked "told" ({ source: { kind: 'told', from, trust } }),

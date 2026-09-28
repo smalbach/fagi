@@ -135,7 +135,7 @@ const GROUPS = [
     n(LEARN, 'autosaveEvery', 'Seconds between copies', 'Segundos entre copias', 1, 120, 1),
   ]},
   { title: { en: 'Colony (new sessions)', es: 'Colonia (sesiones nuevas)' }, fieldsOf: [
-    n(SOCIAL, 'size', 'Ants in the colony (1 = Fagi alone)', 'Hormigas en la colonia (1 = Fagi sola)', 1, 8, 1),
+    n(SOCIAL, 'size', 'Individuals in the colony (1 = Fagi alone)', 'Individuos en la colonia (1 = Fagi sola)', 1, 8, 1),
     n(SOCIAL, 'share', 'Tell each other rules in the nest (1 = yes)', 'Contarse reglas en el nido (1 = sí)', 0, 1, 1),
     n(SOCIAL, 'observe', 'Learning from watching a sister eat', 'Aprender de ver comer a una hermana', 0, 1, 0.05),
     n(SOCIAL, 'trust', 'Trust in a rule told', 'Confianza en una regla contada', 0.1, 1, 0.05),

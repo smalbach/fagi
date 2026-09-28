@@ -1,9 +1,12 @@
 // Every tunable number in the game lives here.
 
-// Scale and clocks. 1 px = 0.5 mm: Fagi is ~9 mm long, like a Formica
-// worker, and the map is a 64 x 43 cm patch of ground. Moving, seeing, smelling
+// Scale and clocks. 1 px = 0.5 mm: Fagi is ~9 mm long, and the map is a
+// 64 x 43 cm patch of ground. Fagi is a made-up organism, but her body
+// numbers (size, speed, how she drinks, pheromone, weather sense) were
+// calibrated on ants, the closest real animal of her size; the ant figures
+// quoted below are that calibration, not a claim of what she is. Moving, seeing, smelling
 // and pheromone run in real time. Only biology (thirst, hunger, forgetting, what
-// rots) is compressed: 1 s of game = ~8 min of ant, keeping the real
+// rots) is compressed: 1 s of game = ~8 min of her life, keeping the real
 // proportions between one thing and another.
 export const WORLD = {
   width: 1280,
@@ -103,7 +106,7 @@ export const THIRST = {
   ignoreBelow: 0.10,  // with less thirst than this, water isn't even considered
 };
 
-// Water from the inside. An ant doesn't swim: she weighs so little that surface
+// Water from the inside. She doesn't swim: like an ant, she weighs so little that surface
 // tension traps her and she flails almost without moving. She drinks from the shore, in the
 // shallows, where her legs still touch bottom. All of this is physics, not learned. What
 // she DOES learn, by sinking, is to stay out of deep water: the belief
@@ -141,7 +144,7 @@ export const WATER = {
 // Rain (rain.js). Short showers every so often that leave shallow
 // puddles; the sun shrinks them until they dry up. While it rains the
 // pheromone and smells wash away and Fagi, outside the nest, gets soaked (WATER.wetSpeed).
-//   every        : seconds between showers (min, max). ~1-2 ant days
+//   every        : seconds between showers (min, max). ~1-2 of her days
 //   duration     : how long each one lasts
 //   puddles      : puddles each shower leaves
 //   puddleRadius : size of a puddle when it forms (px)
@@ -277,7 +280,7 @@ export const HABITS = {
 // The colony (colony.js, social.js): sisters sharing a nest, a pantry and the
 // trail pheromone, and what they learn from each other.
 export const SOCIAL = {
-  size: 1,            // ants in the colony: 1 = Fagi alone
+  size: 1,            // individuals in the colony: 1 = Fagi alone
   share: 1,           // trophallaxis: sisters in the nest tell each other their rules
   observe: 0.4,       // watching a sister eat teaches at this fraction of the strength (0 = off)
   trust: 0.6,         // a rule told is trusted this fraction of the teller's own trust
@@ -538,7 +541,7 @@ export const EXPLORE = {
   visitGain: 1.0,     // how much a cell becomes known per second while in it
   visitMax: 3,        // cap on how well a cell is known
   fade: 0.001,        // how much is forgotten per second: a cell becomes new
-                      // ground again after ~15 min (ant days) without stepping on it
+                      // ground again after ~15 min (days, for her) without stepping on it
   distanceWeight: 1.4, // how much a cell's distance weighs when choosing it
   homeBias: 0,        // how much she prefers cells far from the nest. 0: workers
                       // aren't born in a hurry to get away, they widen their range with experience

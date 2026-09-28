@@ -116,7 +116,7 @@ Fagi leaves), `vision.js` (field of view), `effects.js` (temporary buffs).
 
 ## Screen
 
-`render.js` (scene, and the night over it), `terrain.js` (the ground), `fagi-sprite.js` (Fagi),
+`render.js` (scene, and the night over it), `terrain.js` (the ground), `fagi-sprite.js` (Fagi, a made-up organism),
 `rock-sprite.js` (rocks), `nest-sprite.js` (the nest), `tree-sprite.js` (trunk and
 crown), `fruit-sprite.js` (the fruit), `sprite-kit.js` (canvases, noise and cache
 they share), `colors.js` (blends),
@@ -128,7 +128,7 @@ entry point (it exports the usual things and keeps the caches) and the pieces go
 
 | entry point | pieces |
 |---|---|
-| `fagi-sprite.js` | `fagi-sprite/`: palette, light, silhouettes, legs, body, head, leaf, antennae, cargo and `stroke.js` (ellipse, dot, line, arc) |
+| `fagi-sprite.js` | `fagi-sprite/`: `entity` (mantle, core, filaments, membranes, sensory stalks, cargo), `palette`, `light` and `stroke.js` (ellipse, dot) |
 | `fruit-sprite.js` | `fruit-sprite/`: one painter per fruit (`berry`, `spark`, `eye`, `resin`, `rotten`) and what they share in `common.js` |
 | `tree-sprite.js` | `tree-sprite/`: `trunk`, `branches`, `base`, `crown`, `realistic-crown`, `wind`, `fruits`; trunk and high branches share `trunkCanvas` (in `common.js`) |
 | `rock-sprite.js` | `rock-sprite/`: `realistic`, `materials`, `shape`, `surface`, `paint` |

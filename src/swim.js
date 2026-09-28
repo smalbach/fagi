@@ -1,4 +1,4 @@
-// Deep water. An ant doesn't swim: surface tension traps her and she
+// Deep water. She doesn't swim (like an ant her size): surface tension traps her and she
 // flails almost without moving, wearing herself out. That's physics and it always happens to her
 // (movement.js slows her down, needs.js charges her the energy, decision.js takes her to
 // the nearest shore). What she doesn't know from birth is that deep water is a

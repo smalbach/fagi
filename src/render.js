@@ -14,7 +14,7 @@ import { viewRangeOf, fovOf } from './vision.js';
 import { activeEffects } from './effects.js';
 import { isWater, isNest, isTree, radiusOf } from './obstacles.js';
 import { colorOf, toRGB } from './colors.js';
-import { drawFagi, ellipse } from './fagi-sprite.js';
+import { drawFagi, drawFagiGlow, ellipse } from './fagi-sprite.js';
 import { scentSources } from './smell.js';
 import { drawRock } from './rock-sprite.js';
 import { drawNest, drawNestMouth } from './nest-sprite.js';
@@ -86,16 +86,21 @@ function scene(ctx, world, fagi, camera, rain) {
     drawSplashes(ctx, world, performance.now());
   }
   // And the night over all of it (cycle.js): the same clock the simulation reads.
-  drawNight(ctx, world);
+  const dark = drawNight(ctx, world);
+  // In the dark, each core is the light it gives off.
+  if (dark > 0) {
+    for (const s of world.colony?.ants ?? []) if (s.sister && !hidden(s, world)) drawFagiGlow(ctx, s, dark);
+    if (fagi && !inside) drawFagiGlow(ctx, fagi, dark);
+  }
 }
 
 // Darkness as a cool multiply, deepest at minimum light; a warm veil at dawn
 // and dusk, while the light is between.
 function drawNight(ctx, world) {
-  if (!CYCLE.enabled) return;
+  if (!CYCLE.enabled) return 0;
   const sky = cycleAt(world.time);
   const dark = Math.min(1, (1 - sky.light) / (1 - CYCLE.minLight));
-  if (dark <= 0.01) return;
+  if (dark <= 0.01) return 0;
   ctx.save();
   ctx.globalCompositeOperation = 'multiply';
   ctx.fillStyle = `rgba(52,64,120,${(dark * 0.78).toFixed(3)})`;
@@ -107,6 +112,7 @@ function drawNight(ctx, world) {
     ctx.fillRect(0, 0, world.width, world.height);
   }
   ctx.restore();
+  return dark;
 }
 
 function foreground(ctx, world, fagi, camera, inside) {

@@ -263,7 +263,7 @@ export default {
   'log.reachWater': 'Llegó al agua',
   'log.leaveWater': 'Sale del agua',
   'log.sink': 'Se hunde en el agua honda',
-  'log.sinkSub': 'una hormiga no nada: patalea casi sin avanzar',
+  'log.sinkSub': 'no sabe nadar: pesa tan poco que el agua la atrapa y patalea casi sin avanzar',
   'log.dunk': 'Aprende del agua honda',
   'log.soaked': 'Sale empapada',
   'log.soakedSub': 'el agua se le pega a las patas: más lenta ~{sec}s hasta secarse',

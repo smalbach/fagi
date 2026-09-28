@@ -4,16 +4,17 @@
 // trail pheromone. Each has her own body and her own head (fagi.js); what one
 // learns reaches the others only through social.js.
 //
-// In the game, the Fagi you follow is the first ant; the panels, the narrator
+// In the game, the Fagi you follow is the first one; the panels, the narrator
 // and saving what she learned are hers. Her sisters live next to her
-// (world.colony) and are drawn around her. In batch every ant is measured.
+// (world.colony) and are drawn around her. In batch every one is measured.
+// (`ants` is the name the recordings and the research scripts already use.)
 
 import { SOCIAL } from './config.js';
 import { createFagi, updateFagi } from './fagi.js';
 import { socialize } from './social.js';
 import { ensureBothSexes } from './biology.js';
 
-// `first`: an existing Fagi to be ant #1 (the one the game follows); the rest
+// `first`: an existing Fagi to be #1 (the one the game follows); the rest
 // are born here, up to `size`.
 export function createColony(size = SOCIAL.size, first = null) {
   const ants = [];

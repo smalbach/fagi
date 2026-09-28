@@ -150,6 +150,22 @@ El sprite debe representar un organismo ficticio reconocible, no un insecto exis
 
 El diseño seguirá siendo vectorial y generado por Canvas para conservar nitidez con zoom y evitar depender de imágenes estáticas.
 
+**Implementado** en `src/fagi-sprite/entity.js`; `fagi-preview.html` muestra todos los estados.
+
+| Elemento | Cómo se dibuja |
+|---|---|
+| Cuerpo | Manto ovalado verde azulado, con volumen y borde iluminado según la luz del mundo. |
+| Núcleo | Brilla con su estado vital, que es lo peor entre hambre, sed, energía y estrés térmico: verde si está bien, ámbar si le cuesta, rojo si falla. Late despacio, más despacio dormida. De noche su brillo se pinta sobre la oscuridad (`drawFagiGlow`), así que en la oscuridad es la luz que emite. |
+| Locomoción | Cuatro filamentos blandos en S que caminan en pares diagonales. |
+| Sentidos | Dos tallos sensoriales con bulbo; al rastrear un olor se abren hacia el lado que barre. |
+| Membranas laterales | Translúcidas y festoneadas, con venas. Con calor se abren y aclaran; con frío se recogen bajo el manto y todo el cuerpo se encoge un 6 %. |
+| Sexo | Diferencias sutiles: la hembra es más ancha y con la parte trasera más llena; el macho es más largo, más delgado, de tono más azul y con los tallos algo más largos. |
+| Carga | Va sobre el dorso, detrás del núcleo. |
+| Sueño fuera del refugio | Filamentos y tallos recogidos, cuerpo quieto. En el nido no se dibuja. |
+| Cadáver | Se reconoce por la forma, no solo por el color: manto aplanado y arrugado, filamentos enroscados, tallos caídos y el núcleo convertido en un hueco oscuro. |
+
+La hormiga anterior (patas, cabeza, antenas, hoja) se retiró. En la interfaz ya no se la llama hormiga. Las cifras corporales se calibraron con hormigas reales, el animal real más parecido en tamaño, y `config.js` lo dice así: son calibración, no una afirmación sobre qué es Fagi. Los identificadores de datos `colony.ants` y el campo `ants` de las grabaciones se conservan, porque las sesiones guardadas y los scripts de investigación dependen de ellos.
+
 ### 5.3 Principio biológico
 
 Fagi será un ectotermo parcialmente regulador: su temperatura depende del ambiente, pero puede modificarla mediante conducta, refugio, movimiento y rasgos corporales.
@@ -1487,6 +1503,7 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] Energía máxima individual; metabolismo y aislamiento.
 - [x] La población inicial tiene siempre ambos sexos.
 - [x] Sexo visible en el HUD, en las grabaciones y en la observación.
+- [x] Sprite ficticio nuevo (§5.2) y retirada del lenguaje de hormiga de la interfaz y de la documentación.
 
 **Fase 3: sueño y consolidación local**
 - [x] Presión de sueño (sube despierta, más deprisa de noche, y baja durmiendo).
@@ -1621,7 +1638,7 @@ La conducta apenas cambia, y era lo esperable. En la química por defecto el olo
 
 ### 25.3 Pendiente
 
-- Fase 2: sprite ficticio nuevo y retirar el lenguaje de «hormiga» de la interfaz y la documentación (`fagi-sprite/`, `i18n/`).
+- Fase 2: probar con una batería de mapas que ningún sexo domina todos los escenarios (criterio de salida).
 - Fase 3: medir la retención a varios días y si lo que se aprende con bocados de prueba llega a reglas; convertir lo que sabe de la fruta en supervivencia (hoy mueren de hambre y sed, no por la fruta).
 - Fase 4: IA nocturna acotada (esquema, DSL, sandbox, aceptación por comparación). Aún no hay ninguna vía por la que un modelo externo modifique la memoria.
 - Fase 5: reproducción dentro del mundo (selección de pareja, costes, huevo o gestación, juvenil y senescente, `fertility`, `health`) y población persistente sin runner; que los inmaduros no se reproduzcan.

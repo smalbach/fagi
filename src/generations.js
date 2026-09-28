@@ -130,6 +130,6 @@ export function pick(items, weights, rnd = Math.random) {
   return items.at(-1);
 }
 
-// How well an ant did, for choosing parents: how long she lived, plus what
+// How well one did, for choosing parents: how long she lived, plus what
 // she stored for the colony.
 export const fitness = (f) => f.age + GEN.storedWorth * (f.stored ?? 0);

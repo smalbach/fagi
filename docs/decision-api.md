@@ -179,7 +179,7 @@ restarted, is discarded without being applied.
 1. Stand up a server that serves `POST /decide` with the contract above.
    `server/decision-api.example.js` is a starting point with no dependencies.
 2. Inside, pass the Observation to a model with a prompt along the lines of: *"You are
-   the instinct of an ant. Here is what she sees, believes and has learned.
+   the instinct of Fagi, a small artificial organism. Here is what she sees, believes and has learned.
    Return ONLY a JSON with `action` and, if applicable, a `targetId` from the
    candidate list."* — it is worth asking for structured output (JSON mode / tool use)
    so you do not depend on parsing free text.

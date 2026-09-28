@@ -264,7 +264,7 @@ export default {
   'log.reachWater': 'Reached the water',
   'log.leaveWater': 'Leaves the water',
   'log.sink': 'Sinks into deep water',
-  'log.sinkSub': 'an ant does not swim: paddles almost in place',
+  'log.sinkSub': 'she cannot swim: so light the water holds her, and she paddles almost in place',
   'log.dunk': 'Learns about deep water',
   'log.soaked': 'Climbs out soaked',
   'log.soakedSub': 'the water clings to its legs: slower for ~{sec}s until it dries',

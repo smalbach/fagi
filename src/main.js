@@ -155,7 +155,7 @@ export function createGame({ onExit } = {}) {
       const snap = load();
       if (snap) { restore(fagi, snap); learned = { facts: Object.keys(snap.facts ?? {}).length, rules: snap.rules?.length ?? 0 }; }
     }
-    // Her sisters, if the colony has more than one ant: born knowing nothing.
+    // Her sisters, if the colony has more than one: born knowing nothing.
     world.colony = SOCIAL.size > 1 ? createColony(SOCIAL.size, fagi) : null;
     // The clock starts with the session, not with the map: the time spent
     // setting up doesn't count.
