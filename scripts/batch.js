@@ -24,10 +24,13 @@ import { report } from './batch/report.js';
 import { runLineage, reportGenerations } from './batch/generations.js';
 import { round } from './batch/stats.js';
 import { writeFileSync, readFileSync } from 'node:fs';
+import { enableOrganism } from '../src/organism.js';
 
 // --- main -------------------------------------------------------------------
 
 const opts = args(process.argv.slice(2));
+// The organism first, so a --set can still turn one of its parts off.
+if (opts.organism) enableOrganism();
 applySets(opts.sets);
 
 // Generations are a report of their own: one line per generation.

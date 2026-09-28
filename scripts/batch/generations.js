@@ -9,15 +9,20 @@
 //   - genes (GEN.genes): newborns carry innate biases from parents chosen by
 //     how well they did, mutated a little.
 // Both, either or neither: --set GEN.culture=0, --set GEN.genes=0.
+//
+// With GEN.sexual (needs SEX, e.g. --organism) every newborn has a mother and a
+// father, each picked by fitness among her sex, and her genome recombines
+// theirs (generations.js recombine). A generation left without one sex ends
+// the lineage: extinction is a result, not an error.
 
 import { createWorld } from '../../src/world.js';
 import { generateMap } from '../../src/mapgen.js';
 import { stepWorld } from '../../src/simulation.js';
 import { createColony, updateColony } from '../../src/colony.js';
 import { createChemistry, invertChemistry, speciesKeys } from '../../src/chemistry.js';
-import { createGenome, mutate, applyGenome, teach, pick, fitness } from '../../src/generations.js';
+import { createGenome, mutate, recombine, diversity, applyGenome, teach, pick, fitness } from '../../src/generations.js';
 import { rng, withRng } from './random.js';
-import { POINT_TYPES } from '../../src/config.js';
+import { POINT_TYPES, GEN, SEX } from '../../src/config.js';
 import { accuracy } from '../../research/lab/truth.js';
 import { round, mean } from './stats.js';
 import { noteLearning, learningSummary, createMythLog, noteMyths, mythSummary, isFalse } from './run.js';
@@ -36,8 +41,10 @@ export function runLineage(opts, seed) {
   const fagiRng = rng(seed);
   const n = Math.max(2, opts.colony);
 
+  if (GEN.sexual && !SEX.enabled) throw new Error('GEN.sexual needs SEX.enabled (--organism turns it on)');
   let genomes = Array.from({ length: n }, () => createGenome());
   let elders = [];
+  let matings = null;   // sexual only: how the generation about to be born was conceived
   const out = [];
 
   for (let g = 0; g < opts.generations; g++) {
@@ -81,18 +88,60 @@ export function runLineage(opts, seed) {
       // Rules held at the end that are false on this map, by id (the old
       // chemistry's rules turn false after the switch).
       falseRules: falseRuleIds(colony),
+      ...(GEN.sexual ? { population: population(colony, genomes, matings) } : {}),
     });
 
     // The next generation. Genes: parents by fitness, children mutated.
     // Culture: raised by those still alive; if nobody is, what they knew dies.
+    elders = colony.ants.filter((f) => f.alive);
+    if (GEN.sexual) {
+      const next = conceive(colony, g, geneRng);
+      if (!next) { out.at(-1).population.extinct = true; break; }
+      ({ genomes, matings } = next);
+      continue;
+    }
     const weights = colony.ants.map(fitness);
     genomes = colony.ants.map(() => {
       const parent = withRng(geneRng, () => pick(colony.ants, weights));
       return mutate(parent.genome ?? createGenome(), geneRng);
     });
-    elders = colony.ants.filter((f) => f.alive);
   }
   return out;
+}
+
+// The next generation's genomes, from mothers and fathers of this one, each
+// picked by fitness among her sex. null when a sex is missing.
+function conceive(colony, g, geneRng) {
+  const females = colony.ants.filter((f) => f.sex === 'female');
+  const males = colony.ants.filter((f) => f.sex === 'male');
+  if (!females.length || !males.length) return null;
+  const tag = (f) => `${g}.${f.id}`;
+  let siblings = 0;
+  const genomes = colony.ants.map(() => {
+    const mother = withRng(geneRng, () => pick(females, females.map(fitness)));
+    const father = withRng(geneRng, () => pick(males, males.map(fitness)));
+    const mp = mother.genome?.parents ?? [];
+    if (mp.length && mp.some((p) => father.genome?.parents?.includes(p))) siblings++;
+    return recombine(mother.genome ?? createGenome(), father.genome ?? createGenome(), geneRng, [tag(mother), tag(father)]);
+  });
+  return { genomes, matings: { siblings, n: genomes.length } };
+}
+
+// Sexual lineages: sex ratio, genetic diversity, kinship and the body genes.
+function population(colony, genomes, matings) {
+  const females = colony.ants.filter((f) => f.sex === 'female').length;
+  const bodyMean = (k) => round(mean(genomes.map((gn) => gn.body?.[k] ?? 1)), 3);
+  return {
+    females, males: colony.ants.length - females,
+    diversity: diversity(genomes),
+    parents: genomes.map((gn) => gn.parents ?? null),
+    siblingMatings: matings?.siblings ?? 0,
+    body: { speed: bodyMean('speed'), metabolism: bodyMean('metabolism'), insulation: bodyMean('insulation'), energyMax: bodyMean('energyMax') },
+    bySex: {
+      female: round(mean(colony.ants.filter((f) => f.sex === 'female').map((f) => f.age))),
+      male: round(mean(colony.ants.filter((f) => f.sex === 'male').map((f) => f.age))),
+    },
+  };
 }
 
 // At birth, on average: the innate bias toward the poison and the food smells
@@ -135,6 +184,7 @@ export function reportGenerations(opts, lineages) {
   L.push('gen chem  alive   1st harmful/ant  harmful   born wary of poison · of food   taught avoid poison · food   false rules held (unlived · lived)   taught: accuracy · rules · trait rules');
   for (let g = 0; g < G; g++) {
     const rows = lineages.map((l) => l[g]).filter(Boolean);
+    if (!rows.length) { L.push(`${String(g).padStart(3)}  every lineage extinct`); continue; }
     const sum = (f) => rows.reduce((a, r) => a + f(r), 0);
     const ants = sum((r) => r.ants);
     L.push([
@@ -148,6 +198,28 @@ export function reportGenerations(opts, lineages) {
       `${round(mean(rows.map((r) => r.born.acc)), 2)} · ${round(mean(rows.map((r) => r.born.rules)), 1)} · ${round(mean(rows.map((r) => r.born.traitRules)), 1)}`.padStart(26),
     ].join(''));
   }
+  if (lineages.some((l) => l[0]?.population)) L.push('', ...reportPopulation(lineages, G));
   return L.join('\n');
+}
+
+// Sexual lineages only.
+function reportPopulation(lineages, G) {
+  const L = ['gen  lineages  ♀:♂      diversity  sibling matings  body speed · metabolism · insulation   lived ♀ · ♂'];
+  for (let g = 0; g < G; g++) {
+    const rows = lineages.map((l) => l[g]?.population).filter(Boolean);
+    if (!rows.length) continue;
+    const m = (f) => round(mean(rows.map(f).filter((x) => Number.isFinite(x))), 3);
+    L.push([
+      String(g).padStart(3), String(rows.length).padStart(8),
+      `${m((p) => p.females)}:${m((p) => p.males)}`.padStart(12),
+      String(m((p) => p.diversity)).padStart(11),
+      String(m((p) => p.siblingMatings)).padStart(17),
+      `${m((p) => p.body.speed)} · ${m((p) => p.body.metabolism)} · ${m((p) => p.body.insulation)}`.padStart(35),
+      `${m((p) => p.bySex.female)} · ${m((p) => p.bySex.male)}`.padStart(18),
+    ].join(' '));
+  }
+  const extinct = lineages.filter((l) => l.at(-1)?.population?.extinct).length;
+  L.push(`extinct lineages: ${extinct}/${lineages.length}`);
+  return L;
 }
 

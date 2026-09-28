@@ -7,7 +7,8 @@
 // image. The HUD (the coordinates, the magnification) is drawn without the
 // camera or with the font divided by the zoom, so it doesn't grow with it.
 
-import { FAGI, POINT_TYPES, OBJECT_TYPES } from './config.js';
+import { cycleAt } from './cycle.js';
+import { FAGI, POINT_TYPES, OBJECT_TYPES, CYCLE } from './config.js';
 import { heading } from './compass.js';
 import { viewRangeOf, fovOf } from './vision.js';
 import { activeEffects } from './effects.js';
@@ -84,6 +85,28 @@ function scene(ctx, world, fagi, camera, rain) {
     drawOvercast(ctx, world, performance.now());
     drawSplashes(ctx, world, performance.now());
   }
+  // And the night over all of it (cycle.js): the same clock the simulation reads.
+  drawNight(ctx, world);
+}
+
+// Darkness as a cool multiply, deepest at minimum light; a warm veil at dawn
+// and dusk, while the light is between.
+function drawNight(ctx, world) {
+  if (!CYCLE.enabled) return;
+  const sky = cycleAt(world.time);
+  const dark = Math.min(1, (1 - sky.light) / (1 - CYCLE.minLight));
+  if (dark <= 0.01) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.fillStyle = `rgba(52,64,120,${(dark * 0.78).toFixed(3)})`;
+  ctx.fillRect(0, 0, world.width, world.height);
+  const twilight = dark * (1 - dark) * 4;   // 0 at full day or night, 1 halfway
+  if (twilight > 0.02) {
+    ctx.globalCompositeOperation = 'soft-light';
+    ctx.fillStyle = `rgba(255,150,90,${(twilight * 0.35).toFixed(3)})`;
+    ctx.fillRect(0, 0, world.width, world.height);
+  }
+  ctx.restore();
 }
 
 function foreground(ctx, world, fagi, camera, inside) {

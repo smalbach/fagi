@@ -1,8 +1,21 @@
 # Especificación: Fagi como ente adaptativo autónomo
 
-**Estado:** propuesta técnica detallada  
+**Estado:** en implementación: fases 1 y 3 hechas (la 3, con efecto medido solo en laboratorio); 2 y 5, en parte (ver §25)  
 **Proyecto:** First AGI / Fagi  
 **Objetivo de esta versión:** transformar la simulación actual, inspirada en una hormiga, en un entorno experimental para estudiar un organismo artificial limitado que percibe, aprende, descansa, consolida experiencias, se reproduce y se adapta durante varias generaciones.
+
+---
+
+## 0. Regla de compatibilidad (añadida al implementar)
+
+El repositorio contiene estudios preregistrados y congelados (`docs/research/`) que ejecutan el mismo motor de simulación mediante `scripts/batch.js`. Todo lo que añade esta especificación debe respetar estas condiciones:
+
+1. **Cada bloque nuevo arranca apagado** en `src/config.js` (`CYCLE.enabled`, `THERMAL.enabled`, `SEX.enabled`, `SLEEP.enabled`, `GEN.sexual`).
+2. **Con todo apagado, la simulación es idéntica número a número**: no se consume ni un número aleatorio más ni en otro orden, y todo multiplicador corporal vale exactamente `1`. Se comprobó comparando byte a byte la salida JSON de `batch.js` antes y después (ejecución simple y por generaciones con especies).
+3. **El juego enciende el organismo** al arrancar (`src/app/organism-on.js`, que se importa antes que los ajustes). En batch se enciende con `--organism`, y `--set` puede apagar después cualquier pieza (`--set SLEEP.consolidate=0`).
+4. **Las sesiones grabadas guardan los flags** con el resto de ajustes. Al reproducir una sesión anterior al organismo, los flags ausentes se consideran `0` (`organismOffConfig`).
+
+Sin esta regla, cada mejora invalidaría en silencio los resultados publicados.
 
 ---
 
@@ -98,7 +111,7 @@ La base actual ya contiene piezas valiosas:
 - grabación y repetición de sesiones;
 - herramientas de experimentación por lotes.
 
-Sin embargo, todavía existen límites importantes:
+Sin embargo, antes de esta especificación existían límites importantes (el §25 indica cuáles ya se resolvieron):
 
 - la conducta final depende en gran parte de una jerarquía fija de reglas;
 - el mundo conoce tipos discretos y sus efectos antes que el agente;
@@ -181,6 +194,22 @@ Cada individuo debe mantener como mínimo:
 
 No es necesario implementar todas estas variables en una sola entrega. Sí deben formar parte del contrato de diseño para evitar soluciones incompatibles entre sí.
 
+**Correspondencia con el código actual.** Varias memorias del contrato ya existen con otro nombre, y no conviene duplicarlas:
+
+| Contrato | Dónde vive hoy |
+|---|---|
+| `episodicMemory` | `brain.bites` (registro acotado de experiencias con fruta, `learned/explain.js`) y `episodes.js` (experiencia abierta hasta conocer su final) |
+| `semanticMemory` | `brain.facts` (valor + confianza por especie, `memory.js`), `brain.cues` (pesos por rasgo) y `brain.rules` (reglas escritas) |
+| `proceduralMemory` | `brain.habits` (`habits.js`) |
+| `spatialMemory` | `fagi.explored` (`explore.js`) y `brain.places` (`memory.js`) |
+| `temperature`, `thermalStress` | `fagi.temperature`, `fagi.thermalStress`, más `fagi.thermalFeel` (`'cold' \| 'heat' \| null`) |
+| `sleepPressure`, `sleepTime` | `fagi.sleepPressure` (0–1), `fagi.sleepTime` (segundos de la fase de sueño actual en el nido) |
+| `sex`, rasgos corporales | `fagi.sex` y `fagi.body` (multiplicadores calculados una sola vez al nacer, `biology.js`) |
+| `energy` máxima | `energyMax(fagi)` = `ENERGY.max × body.energyMax` |
+| informe nocturno | `fagi.lastNightReport`, `fagi.nightReports`, `fagi.consolidations` |
+
+`fertility`, `gestation` y `health` siguen sin implementar (§25).
+
 ---
 
 ## 7. Ciclo de día y noche
@@ -197,21 +226,27 @@ El mundo tendrá ciclos repetibles con:
 - indicador de noche;
 - variación opcional por estación.
 
-Configuración inicial propuesta:
+Configuración implementada (`src/config.js`, `CYCLE`):
 
 ```js
 CYCLE = {
-  seconds: 300,
-  dawn: 0.20,
-  dusk: 0.72,
+  enabled: 0,       // apagado por defecto (§0)
+  seconds: 180,     // un día
+  start: 0.3,       // fase a la que empieza la sesión (0 = medianoche)
+  dawn: 0.22,       // fase en la que la luz está a medias al amanecer
+  dusk: 0.78,       // y al atardecer
+  twilight: 0.05,   // fase que dura cada rampa de luz
   minLight: 0.12,
-  cold: 10,
-  hot: 35,
-  mean: 23
+  mean: 22,         // °C
+  swing: 12,        // ± °C: 10 al amanecer, 34 a media tarde
+  warmest: 0.6,     // fase más calurosa
+  nightSight: 0.45  // fracción del alcance visual que queda de noche
 }
 ```
 
-Un ciclo corto permite observar varias noches durante una sesión sin pretender equivalencia literal con horas humanas.
+**Por qué 180 s y no 300.** El motor ya fija una escala biológica: 1 s de juego ≈ 8 min del organismo, y la sed mata en unos 180 s (≈ un día). Un día de 300 s haría que la sed matara en ~0,6 días y rompería esa proporción. Con 180 s, un día del reloj coincide con un día fisiológico, y una sesión de 30 min contiene 10 noches.
+
+**El ciclo es una función pura del reloj** (`cycle.js`, `cycleAt(world.time)`): no guarda estado. Por eso son deterministas el reinicio (basta con `world.time = 0`), el replay (reconstruye el cielo a partir de `t`) y el batch, sin tener que grabar nada. El cambio de día se registra como evento `day` solo para la línea de tiempo.
 
 ### 7.2 Efectos del día
 
@@ -236,6 +271,8 @@ Un ciclo corto permite observar varias noches durante una sesión sin pretender 
 
 Fagi puede percibir luz, temperatura y cambios regulares. Puede aprender la relación entre esas señales y los eventos. No debería recibir inicialmente “son las 22:00 y viene la noche” como conocimiento simbólico perfecto.
 
+Implementado así: el cuerpo recibe `fagi.light`, `fagi.dark` (luz por debajo de `THERMAL.duskSense`) y `fagi.dimming` (la luz está bajando). La hora, el número de día y la temperatura del aire no llegan a Fagi: se muestran en el HUD para quien observa, pero no entran en su observación (§17).
+
 ---
 
 ## 8. Frío, calor y termorregulación
@@ -244,32 +281,43 @@ Fagi puede percibir luz, temperatura y cambios regulares. Puede aprender la rela
 
 La temperatura corporal se aproxima gradualmente a una temperatura objetivo:
 
+La versión lineal (`T += (T_obj − T) × k × dt`) se vuelve inestable cuando `k·dt > 1`, por ejemplo con pasos grandes o si Fagi está mojada. Por eso se implementó en forma exponencial, que es estable con cualquier `dt`:
+
 ```text
-T_cuerpo += (T_objetivo - T_cuerpo)
-            × intercambio_térmico
-            × humedad
-            ÷ resistencia_corporal
-            × dt
+k        = THERMAL.exchange × (mojada ? THERMAL.wetExchange : 1) ÷ body.insulation      [1/s]
+T_cuerpo += (T_objetivo − T_cuerpo) × (1 − e^(−k·dt))
 ```
 
-Donde:
+`T_objetivo` se compone así (`thermal.js`, `targetTemperature`):
 
-- `T_objetivo` es la temperatura ambiente fuera del refugio;
-- dentro del refugio es una mezcla entre ambiente y temperatura estable del nido;
-- estar mojado acelera el intercambio;
-- moverse produce una pequeña cantidad de calor;
-- el genoma y el sexo modifican la resistencia térmica.
+- fuera del refugio, la temperatura del aire;
+- dentro del nido, `nestBuffer × nestTemp + (1 − nestBuffer) × aire` (con los valores por defecto, 80 % nido y 20 % aire);
+- `+ moveHeat` si caminó en el paso anterior (calor limitado: nunca más de `moveHeat` °C);
+- `− shade × luz` bajo la copa de un árbol mientras hay sol: la sombra como refugio pasivo;
+- `− wetChill` si está empapada (por el agua honda o por la lluvia a la intemperie).
+
+El estrés térmico es explícito:
+
+```text
+grados = distancia en °C fuera de [safeMin, safeMax]
+grados > 0      → estrés += stressRate × grados × dt
+grados = 0      → estrés −= recover × dt
+T ≤ lethalMin o T ≥ lethalMax → estrés = maxStress
+estrés = maxStress → muere de frío o de calor (el último que sufría)
+```
 
 ### 8.2 Rangos propuestos
 
 ```js
 THERMAL = {
-  preferred: 25,
-  safeMin: 15,
-  safeMax: 33,
-  lethalMin: 5,
-  lethalMax: 43,
-  maxStress: 100
+  preferred: 25, safeMin: 15, safeMax: 33,
+  lethalMin: 4, lethalMax: 44, maxStress: 100,
+  exchange: 0.05,   // ~20 s para asentarse
+  stressRate: 0.5, recover: 2,
+  coldHunger: 0.06, heatThirst: 0.06, coldSlow: 0.03, minSpeed: 0.5,
+  nestTemp: 24, nestBuffer: 0.8, shade: 5, moveHeat: 1.5, wetChill: 4, wetExchange: 2,
+  sample: 4, lesson: 0.6, refugeSample: 4, instinct: 0.15, reflex: 0.7, duskSense: 0.6,
+  behave: 1         // 0 = siente y aprende, pero nunca actúa (ablación)
 }
 ```
 
@@ -304,6 +352,16 @@ Fagi nace sintiendo que demasiado frío o calor perjudica su cuerpo, pero no con
 
 Esto preserva la distinción entre **interocepción innata** y **conocimiento ambiental aprendido**.
 
+Implementado con el mismo mecanismo con el que ya aprende la lluvia (`weather.js`):
+
+| Clave aprendida | Cómo se aprende | Qué cambia |
+|---|---|---|
+| `cold` / `heat` | cada `THERMAL.sample` s fuera del rango seguro es una experiencia negativa | más urgencia de ir al refugio; `synth.js` acaba escribiendo `avoid-cold` |
+| `refuge` | entra al nido con frío o calor y, tras `refugeSample` s dentro, compara temperatura y estrés; una lección por visita | **habilita** la regla `thermal`: mientras no sabe que el nido ayuda, no va a él por la temperatura |
+| `dusk` | si nota la oscuridad y después llega el frío, la oscuridad toma el valor del frío (condicionamiento clásico, igual que `pressure`) | regla `dusk`: vuelve al nido al oscurecer, antes de que el frío muerda |
+
+Lo único innato es un **reflejo**: cuando el estrés alcanza `reflex × maxStress`, vuelve a casa sin importar lo que la retenga fuera, y no sale hasta estar a gusto (histéresis para no rebotar en el umbral). Es el análogo de salir del agua honda.
+
 ---
 
 ## 9. Sexo y dimorfismo funcional
@@ -324,6 +382,8 @@ Configuración inicial propuesta:
 | Recuperación posreproductiva | Más lenta | Más rápida | Compensa el coste de descendencia |
 
 Estos valores son hipótesis de simulación. Se deberán ajustar hasta que ambos sexos tengan oportunidades reproductivas y ninguna estrategia domine en todos los mapas.
+
+Implementado (`SEX`, `biology.js`): `speed`, `energyMax`, `metabolism` (multiplica el hambre y el gasto al caminar) e `insulation` (divide el intercambio térmico). Se multiplican por los **genes corporales** (`genome.body`, limitados a `GEN.bodyRange`) y se guardan una sola vez en `fagi.body`. Así ningún multiplicador se aplica dos veces. Las filas de inversión y recuperación reproductiva esperan a la reproducción dentro del mundo (§25).
 
 ### 9.2 Separar sexo, cuerpo y conducta
 
@@ -380,6 +440,8 @@ rasgo_hijo = mezcla(rasgo_madre, rasgo_padre) + mutación_gaussiana
 ```
 
 Los recuerdos autobiográficos no pasan por el genoma. Las predisposiciones sí pueden heredarse. Las reglas aprendidas solo llegan al joven mediante cultura u observación.
+
+Implementado en `generations.js`, `recombine(madre, padre, rnd, padres)`. Cada sesgo innato se toma entero de uno de los progenitores (o se promedia si `GEN.blend = 1`) y después muta. Los genes corporales se promedian, mutan con `GEN.bodyMutation` y se limitan al rango. El genoma lleva `parents` para registrar el parentesco. En `batch --generations` con `GEN.sexual = 1`, cada recién nacido tiene madre y padre, elegidos por aptitud dentro de su sexo. Una generación sin alguno de los dos sexos termina el linaje, y ese final se informa como extinción.
 
 ### 10.4 Costes reproductivos
 
@@ -511,6 +573,29 @@ propuesta → validación de esquema → simulación aislada → comparación �
 ```
 
 Así se obtiene mejora nocturna sin convertir el sistema en autoedición insegura e imposible de auditar.
+
+### 11.4 Consolidación local implementada
+
+`sleep.js` y `consolidation.js`. Condiciones: sueño (acción `rest`) dentro del nido durante al menos `SLEEP.minSleep` s, con oscuridad y **una vez por noche**. La noche se identifica con `nightOf(t)`, de modo que la tarde y la madrugada siguiente cuentan como la misma noche. Una siesta al mediodía no consolida nada. Sin ciclo de día, cada fase de sueño en el nido cuenta como una noche.
+
+| Paso | Implementación |
+|---|---|
+| episodios del día | mordiscos propios en `brain.bites` posteriores a la última consolidación (no los observados en otras) |
+| relevancia | `abs(recompensa) + 0,5·abs(recompensa − creencia actual)`, + 0,25 si fue un juicio tardío |
+| destacados | los `SLEEP.salient` más relevantes |
+| hipótesis | por rasgo: soporte ≥ `minSupport`, efecto medio ≥ `minEffect`; confianza con suavizado de Laplace `(soporte − excepciones + 1)/(soporte + 2)` |
+| refuerzo | cada creencia cuyo signo coincide con un destacado gana `boost × (1 − confianza)` y cuenta como confirmación espaciada |
+| olvido | más de `SLEEP.redundant` mordiscos del mismo fruto con el mismo resultado en un día se fusionan; los destacados nunca se borran |
+| replay intercalado | los frutos que quedan en el registro (propios, tras el olvido) se repasan juntos `SLEEP.replay` rondas, cada uno hacia su recompensa media, con la regla de Rescorla-Wagner a `SLEEP.replayRate`; el orden es fijo (por clave, rotado en cada ronda). Solo cambian los pesos `w` de los rasgos; `n` no, porque repasar no es un encuentro nuevo. Los rasgos que cruzan un umbral reescriben su regla con la sensación `sleep` |
+| contradicciones | frutos con resultados de signo opuesto en el mismo día |
+| preguntas | hipótesis con excepciones o poco soporte, y frutos percibidos pero nunca probados |
+| informe | solo datos (se verifica que se serializa a JSON sin pérdida); se graba como evento `night_report` y se expone en la observación v2 |
+
+`SLEEP.consolidate = 0` es la ablación: duerme, pero no ordena nada. `SLEEP.replay = 0` conserva el resto de la noche y quita solo el replay.
+
+**Por qué un replay y no más refuerzo.** De día, cada mordisco reparte la misma sorpresa entre todos sus rasgos, un mordisco detrás de otro. Así nace la culpa mal repartida: la primera fruta mala culpa a su forma tanto como a su olor, y la última fruta probada pesa más que las anteriores. El repaso nocturno intercalado (McClelland, McNaughton y O'Reilly, 1995) lleva cada rasgo hacia lo que predice en el conjunto de frutas recordadas. Es la única operación de la noche que el día no puede hacer por sí mismo, porque el día nunca ve dos frutas a la vez.
+
+`SLEEP.downscale > 0` añade, antes de cada ronda, una atenuación multiplicativa de los pesos repasados (homeostasis sináptica, Tononi y Cirelli). Junto con el replay equivale a una regresión ridge: favorece el rasgo que comparten varias frutas frente al rasgo visto en una sola. Viene apagado por lo que se mide en el §25.2.
 
 ---
 
@@ -729,6 +814,8 @@ No se deben agregar todos a la vez. Cada dimensión nueva necesita pruebas aisla
 ---
 
 ## 16. Cambios técnicos por módulo
+
+> **Nota de implementación.** Los nombres de archivo de esta sección eran una propuesta. Lo que existe hoy es: `src/cycle.js`, `src/thermal.js` (temperatura, luz y su aprendizaje), `src/biology.js` (sexo y cuerpo), `src/sleep.js`, `src/consolidation.js`, `src/organism.js` (encender y apagar), `src/app/organism-on.js` y `scripts/batch/organism.js`. No se crearon `src/memory/*.js` ni `src/learned/hypotheses.js`, porque las estructuras existentes ya cubren esa función (§6). `src/lifecycle.js` y `src/reproduction.js` siguen pendientes (§25).
 
 ### 16.1 Configuración
 
@@ -962,6 +1049,26 @@ Ejemplo de versión futura:
 
 El API debe enviar solo lo que Fagi puede conocer. La verdad interna del simulador se reserva para evaluación.
 
+**Corrección.** El ejemplo anterior enviaba `day`, `phase` e `isNight`, lo que contradice el §7.4: Fagi no conoce el reloj. La versión 2 implementada (`observation.js`, solo con el organismo encendido; sin él se sigue enviando la versión 1, igual que antes) añade:
+
+```json
+{
+  "version": 2,
+  "senses": { "light": 0.12, "dark": true, "dimming": false },
+  "biology": {
+    "sex": "female", "stage": "adult", "energyMax": 112,
+    "temperature": 14.8, "thermalState": "cold", "thermalStress": 0.21,
+    "sleepPressure": 0.74, "asleep": false
+  },
+  "memory": {
+    "consolidations": 3,
+    "lastNightReport": { "night": 3, "episodes": 7, "hypotheses": [], "contradictions": [], "questions": [] }
+  }
+}
+```
+
+La temperatura del aire, la hora y el día no se envían, porque Fagi no los siente.
+
 ---
 
 ## 18. Evaluación científica
@@ -1161,6 +1268,8 @@ Si quitar una pieza no empeora nada, esa pieza no está demostrando valor.
 
 **Criterio de salida:** los resultados pueden repetirse desde un comando y respaldan afirmaciones concretas, no impresiones visuales.
 
+> Las casillas de este plan se actualizan en el §25, no aquí, para conservar la propuesta original tal como se escribió.
+
 ---
 
 ## 20. Pruebas mínimas requeridas
@@ -1315,4 +1424,107 @@ El siguiente orden minimiza retrabajo:
 10. ejecutar evaluación completa con baselines y ablaciones.
 
 Este orden construye primero el cuerpo y el entorno, después la memoria, después la evolución y finalmente la apertura conceptual. Intentar todo al mismo tiempo haría imposible saber qué funciona.
+
+---
+
+## 25. Estado de implementación
+
+Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás de los flags del §0.
+
+### 25.1 Hecho
+
+**Fase 0**
+- [x] Pruebas de regresión: con el organismo apagado, `batch.js` produce la misma salida byte a byte (verificado en una ejecución simple y en otra por generaciones con especies), y un nacimiento con `SEX` apagado consume exactamente un número aleatorio (`test/biology.test.js`).
+- [x] Versionado: observación v1 → v2 (§17), nuevas columnas en `track` (`temperature`, `thermalStress`, `sleepPressure`, `sex`) compatibles con las sesiones antiguas, y nuevos eventos `day` y `night_report`.
+
+**Fase 1: día, noche y temperatura**
+- [x] Reloj circadiano determinista (`cycle.js`).
+- [x] Temperatura ambiente, corporal y estrés térmico (`thermal.js`).
+- [x] El frío aumenta el hambre y reduce la velocidad; el calor aumenta la sed.
+- [x] El nido como refugio térmico; la copa de los árboles como sombra.
+- [x] Decisiones: reflejo (`thermalReflex`, nivel sobrevivir) y reglas aprendidas `thermal` y `dusk` (nivel aguantar).
+- [x] Visión reducida de noche.
+- [x] HUD «Día y cuerpo», capa de noche y crepúsculo en el render, narración (amanecer, anochecer, primeras lecciones de frío, calor, refugio y oscuridad) y ajustes.
+- [x] Grabación y replay.
+
+**Fase 2: parcial**
+- [x] Sexo al nacer (50/50) y estadísticas corporales equilibradas, aplicadas una sola vez.
+- [x] Energía máxima individual; metabolismo y aislamiento.
+- [x] La población inicial tiene siempre ambos sexos.
+- [x] Sexo visible en el HUD, en las grabaciones y en la observación.
+
+**Fase 3: sueño y consolidación local**
+- [x] Presión de sueño (sube despierta, más deprisa de noche, y baja durmiendo).
+- [x] Duerme de noche en el nido; agotada, en cualquier sitio.
+- [x] Informe nocturno determinista, una vez por noche, con los pasos del §11.4.
+- [x] Refuerzo, olvido de redundancias y ablación `SLEEP.consolidate = 0`.
+- [x] Replay intercalado de los rasgos (§11.4), con su ablación `SLEEP.replay = 0` y un banco de laboratorio pareado (`scripts/sleep-lab.js`).
+
+**Fase 5: parcial (en batch)**
+- [x] Recombinación de dos progenitores, mutación posterior y límites.
+- [x] Parentesco (`genome.parents`), apareamientos entre hermanos, diversidad genética, proporción de sexos y cuerpo medio por generación.
+- [x] La extinción es un resultado del informe.
+
+### 25.2 Resultados de calibración
+
+Mapa 1, `--organism`, 12 vidas de 2400 s por condición. Las cifras son descriptivas y no están preregistradas.
+
+| Clima | `THERMAL.behave` | Muertes | Segundos con estrés | Pico de estrés | Despierta de noche |
+|---|---|---|---|---|---|
+| ±12 °C (por defecto) | 1 | 0/12 | 115 | 0,18 | 347 s |
+| ±12 °C | 0 (ablación) | 0/12 | 198 | 0,33 | 550 s |
+| ±16 °C | 1 | 1/12 (frío) | 504 | 0,61 | 321 s |
+| ±16 °C | 0 (ablación) | 2/12 (frío) | 993 | 0,77 | 494 s |
+
+**Criterio de salida de la fase 1:** se cumple en parte. Actuar sobre lo aprendido reduce aproximadamente a la mitad la exposición y el estrés. Con el clima por defecto el frío no llega a matar, así que la diferencia en supervivencia solo aparece con clima duro, y con 12 vidas no es concluyente. Lo aprendido al final (valor medio): frío −0,45, calor −0,40, refugio +0,17, oscuridad −0,50.
+
+**Criterio de salida de la fase 3: se cumple en el laboratorio y no en el juego.**
+
+*Sin replay* (primera versión, solo refuerzo y olvido). Con 6 especies, 16 vidas de 1800 s y el mismo mapa, `SLEEP.consolidate = 1` y `= 0` dan el mismo aprendizaje: los mismos mordiscos dañinos, las mismas reglas y la misma exactitud. El refuerzo solo sube la confianza, y las decisiones ya pesan casi lo mismo gracias al residuo `MEMORY.floor`.
+
+*Con replay intercalado, en el laboratorio* (`scripts/sleep-lab.js`). Sin mapa: una química al azar, K especies probadas dos veces cada una por la vía real de comer y sentir, y la misma Fagi evaluada despierta y tras una noche. Se evalúan todas las especies del catálogo que nunca probó (96 combinaciones menos las probadas). Son 300 ensayos pareados; la diferencia se da con su error típico:
+
+| Condición | K | Acierto despierta → dormida | Cautela ante veneno | Cautela ante lo demás (falsas alarmas) |
+|---|---|---|---|---|
+| replay puro (`downscale 0`, por defecto) | 6 | 0,852 → 0,858 (+0,006 ± 0,001) | 0,609 → 0,607 (−0,002 ± 0,004) | 0,056 → 0,051 (−0,005 ± 0,001) |
+| replay + atenuación (`downscale 0,1`) | 6 | 0,852 → 0,865 (+0,013 ± 0,001) | 0,609 → 0,573 (−0,036 ± 0,004) | 0,056 → 0,044 (−0,013 ± 0,001) |
+| replay + atenuación (`downscale 0,1`) | 3 | 0,771 → 0,780 (+0,009 ± 0,002) | 0,476 → 0,434 (−0,042 ± 0,004) | 0,068 → 0,058 (−0,010 ± 0,001) |
+
+Dormir con replay generaliza mejor sin recibir información nueva. Con el replay puro la mejora es pequeña pero no tiene coste: acierta más y da menos falsas alarmas sin perder cautela ante el veneno. La atenuación duplica la mejora en acierto, pero reduce la cautela ante el veneno más de lo que reduce las falsas alarmas. Para un organismo que muere por un mordisco, ese intercambio es peor, así que queda apagada.
+
+*Con replay, en el juego* (`scripts/sleep-lab.js --game 32`). `--organism`, 6 especies, 32 vidas de 1800 s, un mapa por vida:
+
+| Condición | Vivas al final | Mordiscos dañinos | Primeros mordiscos dañinos | Especies probadas | Exactitud equilibrada (catálogo) |
+|---|---|---|---|---|---|
+| `SLEEP.consolidate = 0` | 24/32 | 1,75 | 1,56 | 3,3 | 0,519 |
+| `consolidate = 1`, `replay = 0` | 24/32 | 1,69 | 1,47 | 3,2 | 0,520 |
+| `consolidate = 1`, `replay = 4` | 24/32 | 1,69 | 1,47 | 3,2 | 0,520 |
+
+No hay diferencia. La causa es la exposición: en una vida Fagi prueba unas 3 especies, y el ajuste diurno ya reproduce esos pocos datos casi sin error (error cuadrático medio del repaso < 0,01). Las 8 muertes de cada condición son de hambre (5) y de sed (3), ninguna de frío, y son las mismas con y sin consolidación: lo que la noche cambia sobre la fruta no llega a decidir quién sobrevive. Para que la noche se note en el juego hacen falta más datos por vida (curiosidad dirigida por las preguntas del informe, §12.5, o vidas en colonia) antes que una consolidación más fuerte. Se deja constancia en lugar de ajustar parámetros hasta que aparezca un efecto.
+
+**Sexos:** en 8 vidas de 1200 s sobrevivieron todas, tanto hembras (5) como machos (3); ningún sexo dominó en esa muestra. Hace falta una batería de mapas para afirmar equilibrio.
+
+### 25.3 Pendiente
+
+- Fase 2: sprite ficticio nuevo y retirar el lenguaje de «hormiga» de la interfaz y la documentación (`fagi-sprite/`, `i18n/`).
+- Fase 3: el replay ya mejora la transferencia en el laboratorio, pero no en el juego (§25.2). Falta que las preguntas del informe dirijan la curiosidad del día siguiente, para que cada vida pruebe más especies, y medir la retención a varios días.
+- Fase 4: IA nocturna acotada (esquema, DSL, sandbox, aceptación por comparación). Aún no hay ninguna vía por la que un modelo externo modifique la memoria.
+- Fase 5: reproducción dentro del mundo (selección de pareja, costes, huevo o gestación, juvenil y senescente, `fertility`, `health`) y población persistente sin runner; que los inmaduros no se reproduzcan.
+- Fase 6: separar la identidad real de la representación percibida, acciones experimentales y conceptos.
+- Fase 7: baselines (aleatorio, reglas fijas), batería de ablaciones del §18.2 y preregistro de las afirmaciones.
+
+### 25.4 Cómo reproducir
+
+```text
+npm test
+node scripts/batch.js --organism --runs 12 --duration 2400
+node scripts/batch.js --organism --runs 12 --duration 2400 --set THERMAL.behave=0
+node scripts/batch.js --organism --runs 16 --duration 1800 --set MAPGEN.species=6 --set SLEEP.consolidate=0
+node scripts/sleep-lab.js --k 6 --trials 300
+node scripts/sleep-lab.js --k 6 --trials 300 --set SLEEP.downscale=0.1
+node scripts/sleep-lab.js --game 32
+node scripts/sleep-lab.js --game 32 --set SLEEP.replay=0
+node scripts/sleep-lab.js --game 32 --set SLEEP.consolidate=0
+node scripts/batch.js --organism --set GEN.sexual=1 --generations 6 --colony 6 --runs 4 --duration 600 --set MAPGEN.species=6
+```
 

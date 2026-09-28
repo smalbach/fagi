@@ -27,6 +27,9 @@ scent plumes → pheromone → Fagi.
 | `brain.js` | scoring what she perceives, and the single gate for all learning |
 | `interoception.js` | the body feels itself: comparing how it was before with how it is after |
 | `episodes.js` | an experience from when it starts until it is known how it ended |
+| `biology.js` | the body she was born with: sex and body genes, as multipliers worked out once |
+| `thermal.js` | her temperature, the light she feels, and what the cold, the nest and the dark teach her |
+| `sleep.js` + `consolidation.js` | sleep pressure, and sorting the day once per night asleep in the nest |
 | `learned/` | the code Fagi writes on her own from what she learns (see below) |
 | `observation.js` + `backend/` + `cortex.js` | the external decision API (see below) |
 
@@ -88,6 +91,19 @@ with an expiry, which `decision.js` consults as one more rule. The API
 **only decides**; it never writes rules. Full contract in
 `docs/decision-api.md`.
 
+## The organism
+
+Day and night, body temperature, sex and sleep
+(`docs/ESPECIFICACION_ENTE_ADAPTATIVO.md`). Each is a block in `config.js`
+(`CYCLE`, `THERMAL`, `SEX`, `SLEEP`) that starts **off**: with them off the
+simulation is the one the preregistered studies ran, to the last random draw.
+`organism.js` switches them together; the game does it at boot
+(`app/organism-on.js`), batch with `--organism`.
+
+`cycle.js` is the sky as a pure function of the world clock (light, air
+temperature, day). Fagi never reads it directly: `thermal.js` gives her the
+light and her own temperature, and she learns what they announce.
+
 ## The world
 
 `world.js` (state), `mapgen.js` (self-sufficient random map), `obstacles.js` (geometry of
@@ -97,7 +113,7 @@ Fagi leaves), `vision.js` (field of view), `effects.js` (temporary buffs).
 
 ## Screen
 
-`render.js` (scene), `terrain.js` (the ground), `fagi-sprite.js` (the ant),
+`render.js` (scene, and the night over it), `terrain.js` (the ground), `fagi-sprite.js` (Fagi),
 `rock-sprite.js` (rocks), `nest-sprite.js` (the nest), `tree-sprite.js` (trunk and
 crown), `fruit-sprite.js` (the fruit), `sprite-kit.js` (canvases, noise and cache
 they share), `colors.js` (blends),

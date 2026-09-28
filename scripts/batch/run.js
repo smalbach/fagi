@@ -13,6 +13,7 @@ import { round, mean } from './stats.js';
 import { isHarmful, isHelpful, ruleTruth } from '../../src/chemistry.js';
 import { explain, stance } from '../../src/learned/explain.js';
 import { habit, HABIT_IDS, habitsSnapshot, restoreHabits } from '../../src/habits.js';
+import { newOrganismFollow, noteOrganism, organismSummary } from './organism.js';
 
 const { WORLD } = CONFIG;
 
@@ -64,6 +65,7 @@ export function runOnce(opts, fagiSeed, startHabits = null) {
     noteMilestones(s.milestones, fagi);
     noteVisits(s.visitedList, fagi, world);
     noteLearning(s.learning, fagi);
+    noteOrganism(s.organism, fagi, world, opts.dt);
   }
 
   return runSummary(fagiSeed, fagi, world, s);
@@ -99,6 +101,7 @@ export function runColony(opts, fagiSeed) {
       noteMilestones(s.milestones, fagi);
       noteVisits(s.visitedList, fagi, world);
       noteLearning(s.learning, fagi);
+      noteOrganism(s.organism, fagi, world, opts.dt);
     });
     if (i % Math.round(MYTH_EVERY / opts.dt) === 0) noteMyths(myths, colony, world.time);
   }
@@ -172,6 +175,7 @@ function newFollow(opts, fagi) {
     path: [],            // position every second, to compare trajectories
     milestones: { firstDrink: null, firstMeal: null, firstPick: null, firstStore: null },
     visitedList: [],         // ids of map objects in the order she steps on them
+    organism: newOrganismFollow(),  // null without --organism
     nextPath: 0,
     // Learning: how long she takes to reach water once thirst becomes
     // urgent (NEEDS.critical), which is when she really starts looking for it.
@@ -333,6 +337,7 @@ function runSummary(fagiSeed, fagi, world, s) {
     heat: Array.from(s.warmth),
     path: s.path,
     fingerprint: fingerprintOf(fagi, world),
+    ...(s.organism ? { organism: organismSummary(s.organism, fagi) } : {}),
   };
 }
 

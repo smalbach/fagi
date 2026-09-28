@@ -1,9 +1,9 @@
 // Tier 1, survive now: ease hunger and thirst, which are what kill.
 
-import { FAGI, BRAIN, CARRY, NEEDS, HUNGER, THIRST } from '../config.js';
+import { FAGI, BRAIN, CARRY, NEEDS, HUNGER, THIRST, THERMAL } from '../config.js';
 import { statMult } from '../effects.js';
 import { waterZone, shorePoint, radiusOf } from '../obstacles.js';
-import { pct, reasonOf, pantryIntent } from './common.js';
+import { pct, reasonOf, pantryIntent, pressing } from './common.js';
 import { pursue } from './provide.js';
 import { habit } from '../habits.js';
 
@@ -106,4 +106,18 @@ export function goToPantry(fagi, world, ctx) {
   if (!ctx.nest || ctx.inNest || reachableFood) return null;
   if (fagi.hunger < CARRY.eatBelow) return null;
   return pantryIntent(fagi, ctx);
+}
+
+// The body is about to give out to the cold or the heat: home, whatever pulls
+// her outside. Innate, like leaving deep water; it lets go only once she is
+// comfortable again, so she does not bounce at the threshold. What already
+// kills sooner (critical hunger or thirst) still comes first.
+export function thermalReflex(fagi, world, ctx) {
+  if (!THERMAL.enabled || !THERMAL.behave || !ctx.nest) return null;
+  if (fagi.thermalStress >= THERMAL.reflex * THERMAL.maxStress) fagi.warmingUp = true;
+  else if (fagi.warmingUp && fagi.thermalStress <= 0 && !fagi.thermalFeel) fagi.warmingUp = false;
+  if (!fagi.warmingUp || pressing(ctx)) return null;
+  const params = { stress: pct(fagi.thermalStress / THERMAL.maxStress) };
+  if (ctx.inNest) return { action: 'rest', reason: reasonOf('reason.reflexIn', params), target: null, targetKind: null };
+  return { action: 'warmUp', reason: reasonOf('reason.reflex', params), target: ctx.nest, targetKind: 'nest', trailKey: null };
 }

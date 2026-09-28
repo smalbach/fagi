@@ -99,6 +99,35 @@ Fields:
 | `lastEpisode` | the last experience (eating or drinking) and what she felt |
 | `instinct` | what instinct would do RIGHT NOW if nobody else decided — a useful anchor to avoid proposing something absurd |
 
+#### Version 2: the organism
+
+With the organism on (day and night, body temperature, sex, sleep; the game
+turns it on, batch with `--organism`, see `docs/ESPECIFICACION_ENTE_ADAPTATIVO.md`)
+`version` is `2` and three blocks are added. Everything above stays the same, so
+a version-1 client keeps working.
+
+```json
+{
+  "version": 2,
+  "senses": { "light": 0.12, "dark": true, "dimming": false },
+  "biology": {
+    "sex": "female", "stage": "adult", "energyMax": 112,
+    "temperature": 14.8, "thermalState": "cold", "thermalStress": 0.21,
+    "sleepPressure": 0.74, "asleep": false
+  },
+  "memory": {
+    "consolidations": 3,
+    "lastNightReport": { "night": 3, "episodes": 7, "hypotheses": [], "contradictions": [], "questions": [] }
+  }
+}
+```
+
+Only what she can feel: the light and her own temperature, never the hour, the
+day or the air's temperature. `thermalStress` and `sleepPressure` are 0–1;
+`thermalState` is `"cold"`, `"heat"` or `"comfortable"`. The night report is
+data she produced herself while asleep (`src/consolidation.js`); the API can read
+it, not write it.
+
 ### Intention (what the API returns)
 
 ```json

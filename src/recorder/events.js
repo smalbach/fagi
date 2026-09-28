@@ -39,15 +39,20 @@ export const EVENT_TYPES = {
   sisters: ['ants'],   // her sisters (colony.js): [[id, x, y, angle, alive, carrying], ...]
   mind: [],
   log: ['tag', 'text'],
+  // The organism (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md): a new day, and
+  // what she sorted out while asleep.
+  day: ['day'],
+  night_report: ['report'],
 };
 
 // Columns of each point in a `track` block, in this order.
 export const TRACK_FIELDS = ['t', 'x', 'y', 'angle', 'action', 'targetId', 'carrying', 'hunger', 'thirst', 'energy',
   'targetKind', 'drinking', 'castSide', 'scentX', 'scentY', 'legX', 'legY', 'leg',
-  'wet', 'swimming', 'probing', 'pressure', 'pressureFalling'];
+  'wet', 'swimming', 'probing', 'pressure', 'pressureFalling',
+  'temperature', 'thermalStress', 'sleepPressure', 'sex'];
 
 // Events that deserve a mark on the player's timeline.
-export const MARKER_TYPES = new Set(['fagi_eat', 'fagi_pick', 'fagi_deposit', 'fagi_pantry', 'fagi_rule', 'fagi_death', 'config']);
+export const MARKER_TYPES = new Set(['fagi_eat', 'fagi_pick', 'fagi_deposit', 'fagi_pantry', 'fagi_rule', 'fagi_death', 'config', 'night_report']);
 
 // Returns null if the event is valid, or the reason if not.
 export function invalidEvent(ev) {

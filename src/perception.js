@@ -16,6 +16,7 @@ import { habit } from './habits.js';
 import { followPheromone } from './pheromone.js';
 import { nestUnder } from './nest.js';
 import { rememberPlace, recallPlace, forgetPlace, waterPlaceKind, peekWeight } from './memory.js';
+import { energyMax } from './biology.js';
 
 // The nearest visible pool. Water isn't learned: it's instinct.
 function nearestWater(fagi, world) {
@@ -243,7 +244,7 @@ export function perceive(fagi, world) {
 
   return {
     thirstU, hungerU, range, visible, pool, candidates, seen, smelledOnes, best, ranked,
-    energyU: fagi.energy / ENERGY.max,
+    energyU: fagi.energy / energyMax(fagi),
     nest: nestOf(world), source, visibleSource,
     inNest: Boolean(nestUnder(fagi, world)),
     waterPlace: placeOf,

@@ -8,6 +8,8 @@ import { rememberPlace, waterPlaceKind } from './memory.js';
 import { snapshotBody } from './interoception.js';
 import { openEpisode, closeOnDeath } from './episodes.js';
 import { learn } from './brain.js';
+import { bodyOf, energyMax } from './biology.js';
+import { thermalFactors, thermalDeath } from './thermal.js';
 
 // The turn first allows drinking, eating or using the pantry and only afterwards
 // settles whether a need reached its limit. That way touching the resource at the last
@@ -16,21 +18,27 @@ import { learn } from './brain.js';
 // dries out: hunger and thirst rise much more slowly (NEST.restHunger/Thirst).
 // That's why she can wait for it to clear; if the rain drags on and she gets
 // hungry, she eats from the pantry (nest.js).
+// Her body sets the pace too: a faster metabolism burns more, the cold burns
+// reserves and the heat dries her out (thermal.js). All ones without the organism.
 export function increaseNeeds(fagi, world, dt) {
   const sleeping = fagi.thought?.action === 'rest' && !fagi.swimming && Boolean(nestUnder(fagi, world));
-  fagi.hunger += HUNGER.rate * statMult(fagi, 'hungerRate') * (sleeping ? NEST.restHunger : 1) * dt;
-  fagi.thirst += THIRST.rate * (sleeping ? NEST.restThirst : 1) * dt;
+  const metabolism = bodyOf(fagi).metabolism;
+  const heat = thermalFactors(fagi);
+  fagi.hunger += HUNGER.rate * statMult(fagi, 'hungerRate') * metabolism * heat.hunger * (sleeping ? NEST.restHunger : 1) * dt;
+  fagi.thirst += THIRST.rate * heat.thirst * (sleeping ? NEST.restThirst : 1) * dt;
 }
 
 export function resolveVitalFailure(fagi) {
   // If both reach the limit on the same turn, report the one that overshot more
   // in proportion to its maximum. Keeps the order of the code from deciding the cause.
+  // Cold or heat kill only if hunger and thirst have not already.
   const hungerOverflow = fagi.hunger / HUNGER.max;
   const thirstOverflow = fagi.thirst / THIRST.max;
-  if (hungerOverflow < 1 && thirstOverflow < 1) return false;
+  const thermal = hungerOverflow < 1 && thirstOverflow < 1 ? thermalDeath(fagi) : null;
+  if (hungerOverflow < 1 && thirstOverflow < 1 && !thermal) return false;
 
   fagi.alive = false;
-  fagi.cause = thirstOverflow > hungerOverflow ? 'thirst' : 'hunger';
+  fagi.cause = thermal ?? (thirstOverflow > hungerOverflow ? 'thirst' : 'hunger');
   fagi.hunger = Math.min(fagi.hunger, HUNGER.max);
   fagi.thirst = Math.min(fagi.thirst, THIRST.max);
   // If she died with a recent bite in her body, that bite takes the blame.
@@ -76,9 +84,9 @@ export function spendEnergy(fagi, world, dt, isMoving) {
   } else if (isMoving) {
     // In the rain, outside the nest, every drop shakes her about: it costs more.
     const drops = fagi.raining && !inNest ? RAIN.effort : 1;
-    fagi.energy -= ENERGY.drain * statMult(fagi, 'speed') * drops * dt;
+    fagi.energy -= ENERGY.drain * statMult(fagi, 'speed') * drops * bodyOf(fagi).metabolism * dt;
   } else {
     fagi.energy += (inNest ? ENERGY.restNest : ENERGY.restOutside) * dt;
   }
-  fagi.energy = Math.max(0, Math.min(ENERGY.max, fagi.energy));
+  fagi.energy = Math.max(0, Math.min(energyMax(fagi), fagi.energy));
 }

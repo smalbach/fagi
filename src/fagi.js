@@ -1,4 +1,4 @@
-// Fagi: an ant with a single directive, survive.
+// Fagi: an organism with a single directive, survive.
 //
 // This file only defines her and orders her turn. Each part lives on its own:
 //   needs.js       hunger, thirst and energy
@@ -10,8 +10,11 @@
 //   synapses.js    what's learned as connections between neurons
 //   feeding.js     eating and carrying
 //   nest.js        the nest
+//   thermal.js     body temperature, light, and what they teach
+//   sleep.js       sleep pressure, and sorting the day at night
+//   biology.js     the body she was born with (sex, body genes)
 
-import { WORLD, ENERGY, PHERO, LEARN } from './config.js';
+import { WORLD, PHERO, LEARN, THERMAL } from './config.js';
 import { createBrain } from './brain.js';
 import { decayMemory } from './memory.js';
 import { decaySynapses, perceiveSynapses } from './synapses.js';
@@ -34,19 +37,41 @@ import { senseWeather } from './weather.js';
 import { refreshRules } from './learned/synth.js';
 import { edibleCount } from './learned/rules.js';
 import { observeHabits, deathLesson } from './habits.js';
+import { assignSex, bodyFor, energyMax } from './biology.js';
+import { senseBody } from './thermal.js';
+import { updateSleep } from './sleep.js';
 
-export function createFagi() {
+// `born`: what the birth already decided (sex, genome), for reproduction.
+// Without it the sex is drawn here, only when SEX is on.
+export function createFagi(born = {}) {
+  const angle = Math.random() * Math.PI * 2;
+  const sex = born.sex ?? assignSex();
+  const body = bodyFor(sex, born.genome);
   return {
     x: WORLD.width / 2,
     y: WORLD.height / 2,
-    angle: Math.random() * Math.PI * 2,
+    angle,
+
+    // the body (biology.js): sex and body genes, as multipliers worked out once
+    sex,               // 'female' | 'male' | null (SEX off)
+    body,
+    lifeStage: 'adult',
 
     // needs
     hunger: 0,
     thirst: 0,
-    energy: ENERGY.max,
+    energy: energyMax({ body }),
     alive: true,
     cause: '',         // what she died of
+
+    // temperature and sleep (thermal.js, sleep.js); idle while THERMAL/SLEEP are off
+    temperature: THERMAL.preferred,
+    thermalStress: 0,
+    thermalFeel: null, // 'cold' | 'heat' | null: what she feels right now
+    sleepPressure: 0,
+    sleepTime: 0,      // seconds of the current bout asleep in the nest
+    consolidations: 0,
+    lastNightReport: null,
 
     // work
     carrying: null,    // the point she's carrying on her back, or null
@@ -149,6 +174,7 @@ export function updateFagi(fagi, world, dt) {
   markVisited(fagi.explored, fagi.x, fagi.y, dt);  // being in a place is knowing it
   swim(fagi, world, dt);         // has she gone into deep water? she feels it and learns
   senseWeather(fagi, world, dt); // the pressure she feels, and what the rain teaches her
+  senseBody(fagi, world, dt);    // the light, her temperature, and what they teach her
   drink(fagi, world, dt);
   useNest(fagi, world);
 
@@ -163,12 +189,14 @@ export function updateFagi(fagi, world, dt) {
   const stop = !fagi.swimming
     && ((fagi.drinking && fagi.thirst > 0) || fagi.thought.action === 'rest');
   if (!stop) act(fagi, world, dt);
+  fagi.moving = !stop;           // walking warms her a little (thermal.js)
 
   spendEnergy(fagi, world, dt, !stop);
   markTrail(fagi, world, dt);
   tryPickOrEat(fagi, world);
   resolveTrail(fagi);            // did the trail she was following lead her to food?
   increaseNeeds(fagi, world, dt);
+  updateSleep(fagi, world, dt);  // pressure, and the night's sorting once she has slept enough
   // What happened to her body tunes her habits: a scare makes her more careful.
   const pantry = { stored: stockCount(fagi.pantry), edible: edibleCount(fagi, fagi.pantry) };
   observeHabits(fagi, pantry);

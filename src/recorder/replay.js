@@ -29,6 +29,7 @@ export function createReplayState() {
     windAt: 0,         // when the last wind was set
     rainSpans: [],     // [start, end|null] of each shower: rain washes away the pheromone
     dead: null,        // { t, cause } if Fagi died
+    nights: [],        // night reports (organism), in order
     ended: null,
     mind: {},          // part -> value: the last thing recorded from her head
     mindSeq: 0,        // goes up with each rule change: the code panel repaints
@@ -142,6 +143,9 @@ export function applyEvent(state, ev) {
     case 'fagi_death':
       state.dead = { t: ev.t, cause: ev.cause };
       break;
+    case 'night_report':
+      state.nights.push({ t: ev.t, report: ev.report });
+      break;
     case 'session_end':
       state.ended = { t: ev.t, reason: ev.reason };
       break;
@@ -236,6 +240,9 @@ export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
     w.wind.angle = normalizeAngle(w.wind.angle + Math.sign(diff) * turn);
     state.windAt = time;
     putFagi(fagi, track, route, time, state.dead, w);
+    const nights = state.nights ?? [];
+    fagi.lastNightReport = nights.at(-1)?.report ?? null;
+    fagi.consolidations = nights.length;
     w.colony = sisterTrack.length ? { ants: putSisters(sisters, sisterTrack, time) } : null;
     putMind(fagi, state, time);
     return { world: w, fagi, time, config: state.config, configSeq: state.configSeq };
@@ -317,6 +324,11 @@ function putFagi(fagi, track, route, t, dead, w) {
   fagi.probing = !!a[20];
   fagi.pressure = a[21] ?? 0;
   fagi.pressureFalling = !!a[22];
+  // Sessions from before the organism: the neutral body.
+  fagi.temperature = a[23] ?? null;
+  fagi.thermalStress = a[24] ?? 0;
+  fagi.sleepPressure = a[25] ?? 0;
+  fagi.sex = a[26] ?? null;
   fagi.carrying = a[6] ? { type: a[6], age: 0 } : null;
   fagi.hunger = a[7];
   fagi.thirst = a[8];

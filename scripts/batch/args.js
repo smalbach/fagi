@@ -25,6 +25,7 @@ export function args(argv) {
     else if (a === '--chain') o.chain = true;
     else if (a === '--habits-in') o.habitsIn = next();
     else if (a === '--habits-out') o.habitsOut = next();
+    else if (a === '--organism') o.organism = true;
     else if (a === '--profile') o.sets.push(...profile(next()));
     else if (a === '--set') o.sets.push(assignment(next()));
     else if (a === '-h' || a === '--help') { console.log(help()); process.exit(0); }
@@ -58,6 +59,9 @@ function help() {
                    (lives one after another, as with "Recover what it learned")
   --habits-in FILE the habits the first Fagi starts with (JSON from --habits-out)
   --habits-out FILE saves the habits the last Fagi ended with
+  --organism       day and night, body temperature, sex and sleep
+                   (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md); --set can still
+                   switch a part off, e.g. --set SLEEP.consolidate=0
   --json FILE      saves all the data to a file`;
 }
 

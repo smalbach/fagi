@@ -19,8 +19,8 @@
 // directive and what they all share); here there's only the order and whoever walks it.
 
 import { notice, rethink } from './attention.js';
-import { leaveWater, drink, eatCarriedFood, urgency, goToPantry } from './decision/survive.js';
-import { rest, seekShelter, anticipate } from './decision/endure.js';
+import { leaveWater, drink, eatCarriedFood, urgency, goToPantry, thermalReflex } from './decision/survive.js';
+import { rest, seekShelter, anticipate, sleep, thermoregulate, dusk } from './decision/endure.js';
 import { carry, pursue } from './decision/provide.js';
 import { persistOnScent, persistFromMemory } from './decision/clues.js';
 import { earlyDirective, safeDirective } from './decision/directive.js';
@@ -38,12 +38,16 @@ const RULES = [
   ['survive', 'drink', drink],
   ['survive', 'eatCarried', eatCarriedFood],
   ['survive', 'directiveEarly', earlyDirective],   // only answers with BACKEND.authority === 1, and never if something presses that it doesn't handle
+  ['survive', 'thermalReflex', thermalReflex],     // THERMAL only: stress about to kill
   ['survive', 'urgency', urgency],
   ['survive', 'pantry', goToPantry],
   // 2. endure
   ['endure', 'rest', rest],
+  ['endure', 'sleep', sleep],                     // SLEEP only
+  ['endure', 'thermal', thermoregulate],          // THERMAL only, once she knows the nest helps
   ['endure', 'shelter', seekShelter],
   ['endure', 'anticipate', anticipate],
+  ['endure', 'dusk', dusk],                       // CYCLE only, once the dark means cold to her
   // 3. provide
   ['provide', 'directive', safeDirective],     // only answers with BACKEND.authority === 0 (the default)
   ['provide', 'carry', carry],

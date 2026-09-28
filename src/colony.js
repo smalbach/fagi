@@ -1,4 +1,4 @@
-// The colony: Fagi and her sisters.
+// The colony: Fagi and her sisters (with SEX on, a mixed group).
 //
 // They share the world: the nest and its pantry, the fruit, the water and the
 // trail pheromone. Each has her own body and her own head (fagi.js); what one
@@ -11,6 +11,7 @@
 import { SOCIAL } from './config.js';
 import { createFagi, updateFagi } from './fagi.js';
 import { socialize } from './social.js';
+import { ensureBothSexes } from './biology.js';
 
 // `first`: an existing Fagi to be ant #1 (the one the game follows); the rest
 // are born here, up to `size`.
@@ -23,6 +24,8 @@ export function createColony(size = SOCIAL.size, first = null) {
     if (i > 0) f.sister = true;
     ants.push(f);
   }
+  // With sex on, a first population that can breed at all (biology.js).
+  ensureBothSexes(ants);
   return {
     ants,
     lastExchange: {},   // 'a-b' -> when those two last exchanged rules

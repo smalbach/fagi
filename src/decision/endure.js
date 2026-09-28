@@ -1,8 +1,10 @@
-// Tier 2, endure: without strength there's no surviving later. Rest and, if
-// it's raining or about to rain, take cover.
+// Tier 2, endure: without strength there's no surviving later. Rest, sleep at
+// night and, if it's raining, about to rain, too cold or too hot, take cover.
 
-import { FAGI, ENERGY, NEEDS, THIRST } from '../config.js';
+import { FAGI, ENERGY, NEEDS, THIRST, SLEEP, THERMAL } from '../config.js';
 import { rainAversion, pressureAversion } from '../weather.js';
+import { thermalAversion, refugeBelief, duskAversion } from '../thermal.js';
+import { energyMax } from '../biology.js';
 import { pct, reasonOf, pressing } from './common.js';
 import { habit } from '../habits.js';
 
@@ -12,7 +14,8 @@ export function rest(fagi, world, ctx) {
   // (ENERGY.weakSpeed), tending to what's urgent comes before lying down.
   if (pressing(ctx)) return null;
   if (fagi.energy <= habit(fagi, 'restAt')) fagi.resting = true;
-  if (fagi.resting && fagi.energy >= ENERGY.rested) fagi.resting = false;
+  // A body that holds less energy (biology.js) is rested sooner.
+  if (fagi.resting && fagi.energy >= Math.min(ENERGY.rested, energyMax(fagi) * 0.95)) fagi.resting = false;
   if (!fagi.resting) return null;
 
   if (ctx.inNest || !ctx.nest) {
@@ -49,11 +52,11 @@ function jerk(fagi, ctx) {
 }
 
 // Inside the nest she stays still; outside, she goes back to it.
-function sheltered(ctx, reasonInside, reasonOutside) {
+export function sheltered(ctx, reasonInside, reasonOutside, action = 'shelter', params = undefined) {
   if (ctx.inNest) {
-    return { action: 'rest', reason: reasonOf(reasonInside), target: null, targetKind: null };
+    return { action: 'rest', reason: reasonOf(reasonInside, params), target: null, targetKind: null };
   }
-  return { action: 'shelter', reason: reasonOf(reasonOutside), target: ctx.nest, targetKind: 'nest' };
+  return { action, reason: reasonOf(reasonOutside, params), target: ctx.nest, targetKind: 'nest' };
 }
 
 // It's raining: take cover, if the urge beats what pulls her outside.
@@ -72,4 +75,56 @@ export function anticipate(fagi, world, ctx) {
   if (!fagi.pressureFalling || !ctx.nest || pressing(ctx)) return null;
   if (pressureAversion(fagi) <= jerk(fagi, ctx)) return null;
   return sheltered(ctx, 'reason.pressureIn', 'reason.pressure');
+}
+
+// Sleep (sleep.js): in the dark, with enough pressure, she lies down, in the
+// nest if she can get there. Exhausted, she sleeps whatever the hour. She
+// wakes rested, or at daylight once the worst of it has gone.
+export function sleep(fagi, world, ctx) {
+  if (!SLEEP.enabled || pressing(ctx)) return null;
+  const dark = Boolean(fagi.dark);
+  if (!fagi.sleeping) {
+    if (fagi.sleepPressure >= SLEEP.exhausted || (dark && fagi.sleepPressure >= SLEEP.drowsy)) fagi.sleeping = true;
+  } else if (fagi.sleepPressure <= SLEEP.wake || (!dark && fagi.sleepPressure < SLEEP.drowsy / 2)) {
+    fagi.sleeping = false;
+  }
+  if (!fagi.sleeping) return null;
+  if (ctx.inNest || !ctx.nest) {
+    return {
+      action: 'rest',
+      reason: reasonOf(ctx.inNest ? 'reason.sleepIn' : 'reason.sleepOutside', { sleep: pct(fagi.sleepPressure) }),
+      target: null,
+      targetKind: null,
+    };
+  }
+  return {
+    action: 'toSleep',
+    reason: reasonOf('reason.goSleep', { sleep: pct(fagi.sleepPressure) }),
+    target: ctx.nest,
+    targetKind: 'nest',
+  };
+}
+
+// Too cold or too hot, and she has learned the nest helps (thermal.js,
+// 'refuge'): she goes to it if the urge beats what pulls her outside. Before
+// she knows, she keeps going and pays for it; only the reflex (survive tier)
+// takes her home.
+export function thermoregulate(fagi, world, ctx) {
+  const kind = fagi.thermalFeel;
+  if (!THERMAL.behave || !kind || !ctx.nest || pressing(ctx)) return null;
+  const refuge = refugeBelief(fagi);
+  if (refuge <= 0) return null;
+  if (thermalAversion(fagi, kind) + refuge <= jerk(fagi, ctx)) return null;
+  const params = { temp: Math.round(fagi.temperature) };
+  return kind === 'cold'
+    ? sheltered(ctx, 'reason.coldIn', 'reason.cold', 'warmUp', params)
+    : sheltered(ctx, 'reason.heatIn', 'reason.heat', 'coolDown', params);
+}
+
+// The light goes down. What that announces she has learned ('dusk',
+// thermal.js): if the dark means cold to her, she is home before it bites.
+export function dusk(fagi, world, ctx) {
+  if (!THERMAL.behave || !fagi.dark || !ctx.nest || pressing(ctx)) return null;
+  if (duskAversion(fagi) <= jerk(fagi, ctx)) return null;
+  return sheltered(ctx, 'reason.duskIn', 'reason.dusk', 'toNest');
 }

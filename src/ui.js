@@ -2,7 +2,10 @@
 // The buttons and bars are generated from config, so adding a new type
 // doesn't require touching anything here. The texts come from i18n.
 
-import { HUNGER, THIRST, ENERGY, POINT_TYPES, TYPE_KEYS, OBJECT_TYPES, OBJECT_KEYS, TREE, specOf } from './config.js';
+import { HUNGER, THIRST, POINT_TYPES, TYPE_KEYS, OBJECT_TYPES, OBJECT_KEYS, TREE, THERMAL, CYCLE, specOf } from './config.js';
+import { cycleAt } from './cycle.js';
+import { organismOn } from './organism.js';
+import { energyMax } from './biology.js';
 import { heading, verticalSense } from './compass.js';
 import { activeEffects } from './effects.js';
 import { nestOf, nestRipeness, record } from './world.js';
@@ -92,6 +95,17 @@ export function createUI(input, world, onReset) {
     skyVal: document.getElementById('sky-val'),
     pressureVal: document.getElementById('pressure-val'),
     effects: document.getElementById('effects'),
+    organism: document.getElementById('organism-group'),
+    dayVal: document.getElementById('day-val'),
+    lightVal: document.getElementById('light-val'),
+    airVal: document.getElementById('air-val'),
+    tempVal: document.getElementById('temp-val'),
+    stressBar: document.getElementById('stress-bar'),
+    stressVal: document.getElementById('stress-val'),
+    sleepBar: document.getElementById('sleep-bar'),
+    sleepVal: document.getElementById('sleep-val'),
+    sexVal: document.getElementById('sex-val'),
+    nightsVal: document.getElementById('nights-val'),
   };
 
   const foodBox = document.getElementById('type-buttons');
@@ -185,6 +199,35 @@ function paintSky(el, fagi, world) {
     : `${fagi.pressureFalling ? '↓ ' : ''}${t(fagi.pressureFalling ? 'pressure.falling' : 'pressure.low')} ${Math.round(p * 100)}%`;
 }
 
+// The day as the one watching sees it (the hour, the air), and her body as she
+// feels it. The whole group hides while the organism is off.
+function phaseName(sky) {
+  const tw = CYCLE.twilight;
+  if (Math.abs(sky.phase - CYCLE.dawn) <= tw) return 'phase.dawn';
+  if (Math.abs(sky.phase - CYCLE.dusk) <= tw) return 'phase.dusk';
+  return sky.isNight ? 'phase.night' : 'phase.day';
+}
+
+function paintOrganism(el, fagi, world) {
+  const on = organismOn();
+  if (el.organism) el.organism.hidden = !on;
+  if (!on || !el.dayVal) return;
+  const sky = cycleAt(world.time);
+  el.dayVal.textContent = sky.on ? `${sky.day} · ${t(phaseName(sky))}` : t('word.off');
+  el.lightVal.textContent = sky.on ? `${Math.round(sky.light * 100)}%` : t('word.off');
+  el.airVal.textContent = sky.on ? `${sky.ambient.toFixed(1)} °C` : t('word.off');
+  if (THERMAL.enabled && fagi.temperature != null) {
+    const feel = fagi.thermalFeel ? t(`thermal.${fagi.thermalFeel}`) : t('thermal.ok');
+    el.tempVal.textContent = `${fagi.temperature.toFixed(1)} °C · ${feel}`;
+  } else {
+    el.tempVal.textContent = t('word.off');
+  }
+  barEl(el.stressBar, el.stressVal, fagi.thermalStress ?? 0, THERMAL.maxStress);
+  barEl(el.sleepBar, el.sleepVal, fagi.sleepPressure ?? 0, 1);
+  el.sexVal.textContent = t(fagi.sex ? `sex.${fagi.sex}` : 'sex.none');
+  el.nightsVal.textContent = String(fagi.consolidations ?? 0);
+}
+
 function barEl(bar, val, value, max) {
   const pct = (value / max) * 100;
   bar.style.width = `${pct}%`;
@@ -194,7 +237,8 @@ function barEl(bar, val, value, max) {
 function update(el, beliefBox, beliefs, fagi, world) {
   barEl(el.hungerBar, el.hungerVal, fagi.hunger, HUNGER.max);
   barEl(el.thirstBar, el.thirstVal, fagi.thirst, THIRST.max);
-  barEl(el.energyBar, el.energyVal, fagi.energy, ENERGY.max);
+  barEl(el.energyBar, el.energyVal, fagi.energy, energyMax(fagi));
+  paintOrganism(el, fagi, world);
 
   el.ageVal.textContent = formatDuration(fagi.age);
   el.eatenVal.textContent = String(fagi.eaten);

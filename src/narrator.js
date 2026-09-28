@@ -4,7 +4,8 @@
 // It stores keys and data, never sentences: the console translates them when
 // painting, so switching language also rewrites the history already written.
 
-import { MEMORY, BRAIN, WATER, POINT_TYPES } from './config.js';
+import { MEMORY, BRAIN, WATER, POINT_TYPES, CYCLE } from './config.js';
+import { dayAt } from './cycle.js';
 import { explain, lines, stance } from './learned/explain.js';
 
 const MIN_SCORE = BRAIN.minScore;
@@ -37,6 +38,11 @@ export const TAG_COLOR = {
   swimOut: '#d95b7e',
   swim: '#d95b7e',
   rain: '#6f9fbf',
+  night: '#5a6aa8',
+  sleep: '#8f7fd0',
+  warmUp: '#e0875a',
+  coolDown: '#e0c35a',
+  toSleep: '#8f7fd0',
   shelter: '#6f9fbf',
   api: '#4cc9f0',
   rethink: '#f0c75e',
@@ -239,6 +245,8 @@ export function narrate(narr, fagi) {
   }
   p.pressureLesson = pl?.n ?? 0;
 
+  narrateOrganism(narr, fagi, p);
+
   // Goes to the puddle she remembered and it has dried up.
   if ((fagi.puddleGone ?? 0) !== p.puddleGone) {
     push(narr, fagi, 'spot', { key: 'log.puddleGone' }, { key: 'log.puddleGoneSub' });
@@ -368,4 +376,42 @@ export function legLine(c) {
   return c.resumed
     ? { text: { key: 'log.legResume' }, detail: { key: 'log.legResumeSub', params: { score: f(c.score), rival: f(c.rival) } } }
     : { text: { key: 'log.legNew' }, detail: { key: 'log.legNewSub', params: { score: f(c.score), rival: f(c.rival) } } };
+}
+
+// The organism: the light coming and going, what the cold and the nest teach
+// her, and the nights she sorts. Silent without it.
+function narrateOrganism(narr, fagi, p) {
+  if (CYCLE.enabled && fagi.dark != null && Boolean(fagi.dark) !== Boolean(p.dark)) {
+    // The session starts in daylight: only a real change is news.
+    if (p.dark != null) {
+      if (fagi.dark) push(narr, fagi, 'night', { key: 'log.dark' }, { key: 'log.darkSub' });
+      else push(narr, fagi, 'night', { key: 'log.day', params: { day: dayAt(fagi.age) } }, { key: 'log.daySub' });
+    }
+    p.dark = Boolean(fagi.dark);
+  }
+  const lesson = (last, seen, title, sub, params = {}) => {
+    if (!last || last.n === p[seen]) return;
+    if (!p[seen]) {   // only the first of each: afterwards it is the same lesson again
+      push(narr, fagi, 'learn', { key: title(last) }, { key: sub, params: {
+        ...params, arrow: arrow(last.beliefBefore, last.beliefAfter),
+        before: last.beliefBefore.toFixed(2), after: last.beliefAfter.toFixed(2),
+      } });
+    }
+    p[seen] = last.n;
+  };
+  const th = fagi.lastThermalLesson;
+  lesson(th, `thermalLesson.${th?.kind}`, (l) => (l.kind === 'heat' ? 'log.heatLearn' : 'log.coldLearn'), 'log.thermalLearnSub', { temp: th?.temperature });
+  lesson(fagi.lastRefugeLesson, 'refugeLesson', () => 'log.refugeLearn', 'log.refugeLearnSub');
+  lesson(fagi.lastDuskLesson, 'duskLesson', () => 'log.duskLearn', 'log.duskLearnSub');
+
+  const r = fagi.lastNightReport;
+  if (r && r.n !== p.night) {
+    push(narr, fagi, 'sleep', { key: 'log.nightReport', params: { night: r.night } },
+      r.episodes ? { key: 'log.nightReportSub', params: {
+        episodes: r.episodes, hypotheses: r.hypotheses.length, strengthened: r.strengthened.length, forgotten: r.forgotten,
+        // Older recordings have no replay in their reports.
+        moved: r.replayed?.moved?.length ?? 0,
+      } } : { key: 'log.nightReportEmpty' });
+    p.night = r.n;
+  }
 }

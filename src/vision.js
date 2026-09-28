@@ -1,6 +1,6 @@
 // Vision: which points fall inside Fagi's cone. Pure functions.
 
-import { FAGI } from './config.js';
+import { FAGI, CYCLE } from './config.js';
 import { statMult } from './effects.js';
 import { segmentBlocked } from './obstacles.js';
 
@@ -20,9 +20,18 @@ export function distanceTo(fagi, point) {
   return Math.hypot(point.x - fagi.x, point.y - fagi.y);
 }
 
-// Current range and angle, with buffs already applied.
+// In the dark she sees less (cycle.js): the light she last felt, from full
+// range at daylight down to CYCLE.nightSight of it at night.
+function darkness(fagi) {
+  const light = fagi.light ?? 1;
+  if (light >= 1) return 1;
+  const k = Math.max(0, (light - CYCLE.minLight) / (1 - CYCLE.minLight));
+  return CYCLE.nightSight + (1 - CYCLE.nightSight) * k;
+}
+
+// Current range and angle, with buffs (and the dark) already applied.
 export function viewRangeOf(fagi) {
-  return FAGI.viewRange * statMult(fagi, 'viewRange');
+  return FAGI.viewRange * statMult(fagi, 'viewRange') * darkness(fagi);
 }
 
 export function fovOf(fagi) {

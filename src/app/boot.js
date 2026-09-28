@@ -5,6 +5,9 @@
 //   approved            → home: saved sessions and "New session"
 //   new session         → set up the map and the settings, and "Start session"
 
+// First of all: the game plays the whole organism (before settings.js reads
+// its factory values).
+import './organism-on.js';
 import { get, ApiError } from './api.js';
 import { showLogin, showWaitlist, showHome, showAdmin, hide, esc } from './screens.js';
 import { createGame } from '../main.js';

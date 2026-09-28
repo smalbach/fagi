@@ -21,7 +21,7 @@ import { createColony } from './colony.js';
 import { createCamera, centerOn, fit } from './camera.js';
 import { createUI } from './ui.js';
 import { versionLabel, versionTitle } from './version.js';
-import { createSettings, loadSettings, configSnapshot, applyConfig, onConfigChange } from './settings.js';
+import { createSettings, loadSettings, configSnapshot, applyConfig, onConfigChange, organismOffConfig } from './settings.js';
 import { bindDom, t, onLangChange, formatDuration } from './i18n.js';
 import { createNarrator, narrate } from './narrator.js';
 import { createConsole } from './console.js';
@@ -250,7 +250,7 @@ export function createGame({ onExit } = {}) {
       if (player.time >= player.duration) replaying.on = false;
     }
     if (player.configSeq !== replaying.configSeq) {
-      applyConfig(player.config);
+      applyConfig({ ...organismOffConfig(), ...player.config });
       replaying.configSeq = player.configSeq;
     }
     updateTrails(player.world, dt);

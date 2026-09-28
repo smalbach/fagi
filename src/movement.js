@@ -9,6 +9,8 @@ import { scentAt } from './smell.js';
 import { waypointInView } from './explore.js';
 import { nestOf } from './world.js';
 import { fearsDeep } from './swim.js';
+import { bodyOf } from './biology.js';
+import { thermalFactors } from './thermal.js';
 
 export function turnTowards(fagi, targetAngle, dt) {
   const diff = normalizeAngle(targetAngle - fagi.angle);
@@ -62,7 +64,9 @@ function brakeAtEdge(fagi, world, before, dt) {
 export function advance(fagi, world, dt) {
   // Without energy she drags herself: she doesn't die, but everything costs her double.
   const weakness = fagi.energy <= 0 ? ENERGY.weakSpeed : 1;
-  const speed = FAGI.speed * statMult(fagi, 'speed') * weakness * drag(world, fagi);
+  // Her own legs (biology.js) and the cold stiffening them (thermal.js).
+  const body = bodyOf(fagi).speed * thermalFactors(fagi).speed;
+  const speed = FAGI.speed * statMult(fagi, 'speed') * weakness * drag(world, fagi) * body;
   const before = { x: fagi.x, y: fagi.y };
   fagi.stride += speed * dt;
   fagi.x += Math.cos(fagi.angle) * speed * dt;

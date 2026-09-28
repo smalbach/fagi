@@ -7,6 +7,7 @@
 import {
   FAGI, HUNGER, THIRST, ENERGY, BRAIN, CARRY, NEST, EXPLORE, WIND, PLUME, PHERO, TREE, FRUIT, MEMORY,
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
+  CYCLE, THERMAL, SEX, SLEEP,
 } from './config.js';
 import { startRain } from './rain.js';
 import { removeAllTrees } from './trees.js';
@@ -50,6 +51,39 @@ const GROUPS = [
     n(FAGI, 'probe', 'Antenna spacing', 'Separación de las antenas', 5, 80, 1),
     n(FAGI, 'castTurn', 'Casting width', 'Apertura del barrido', 0.2, 2.5, 0.05),
     n(FAGI, 'castEvery', 'Side switch when casting', 'Cambio de lado al barrer', 0.2, 4, 0.1),
+  ]},
+  // The organism (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md). One group per
+  // block: their ids ('Day and night.enabled'...) are what a recording keeps.
+  { title: { en: 'Day and night', es: 'Día y noche' }, fieldsOf: [
+    n(CYCLE, 'enabled', 'Day and night (1 = yes)', 'Día y noche (1 = sí)', 0, 1, 1),
+    n(CYCLE, 'seconds', 'Seconds in a day', 'Segundos que dura un día', 30, 1800, 10),
+    n(CYCLE, 'start', 'Hour the session starts (0 midnight, 0.5 noon)', 'Hora a la que empieza (0 medianoche, 0.5 mediodía)', 0, 0.99, 0.01),
+    n(CYCLE, 'minLight', 'Light at night', 'Luz de noche', 0, 1, 0.02),
+    n(CYCLE, 'nightSight', 'Sight left at night (fraction)', 'Vista que le queda de noche (fracción)', 0.1, 1, 0.05),
+    n(CYCLE, 'mean', 'Average air temperature (°C)', 'Temperatura media del aire (°C)', -10, 45, 1),
+    n(CYCLE, 'swing', 'Swing between day and night (± °C)', 'Oscilación entre día y noche (± °C)', 0, 30, 1),
+  ]},
+  { title: { en: 'Body temperature', es: 'Temperatura corporal' }, fieldsOf: [
+    n(THERMAL, 'enabled', 'Body temperature (1 = yes)', 'Temperatura corporal (1 = sí)', 0, 1, 1),
+    n(THERMAL, 'safeMin', 'Cold below (°C)', 'Frío por debajo de (°C)', -10, 30, 1),
+    n(THERMAL, 'safeMax', 'Heat above (°C)', 'Calor por encima de (°C)', 20, 50, 1),
+    n(THERMAL, 'exchange', 'How fast the body follows the air', 'Rapidez con que el cuerpo sigue al aire', 0.005, 0.5, 0.005),
+    n(THERMAL, 'stressRate', 'Stress per second per °C out of range', 'Estrés por segundo y °C fuera de rango', 0, 5, 0.05),
+    n(THERMAL, 'recover', 'Stress recovered per second in range', 'Estrés que recupera por segundo en rango', 0, 20, 0.5),
+    n(THERMAL, 'nestTemp', 'Temperature deep in the nest (°C)', 'Temperatura dentro del nido (°C)', 0, 40, 1),
+    n(THERMAL, 'behave', 'Acts on the cold and heat (1 = yes)', 'Actúa frente al frío y el calor (1 = sí)', 0, 1, 1),
+  ]},
+  { title: { en: 'Sex', es: 'Sexo' }, fieldsOf: [
+    n(SEX, 'enabled', 'Sexes with different bodies (1 = yes, new sessions)', 'Sexos con cuerpos distintos (1 = sí, sesiones nuevas)', 0, 1, 1),
+  ]},
+  { title: { en: 'Sleep', es: 'Sueño' }, fieldsOf: [
+    n(SLEEP, 'enabled', 'Sleep (1 = yes)', 'Sueño (1 = sí)', 0, 1, 1),
+    n(SLEEP, 'rise', 'Sleepiness per second awake', 'Sueño que acumula por segundo despierta', 0, 0.1, 0.001),
+    n(SLEEP, 'fall', 'Sleepiness lost per second asleep in the nest', 'Sueño que pierde por segundo dormida en el nido', 0, 0.2, 0.005),
+    n(SLEEP, 'drowsy', 'Sleepiness at which she goes to sleep at night', 'Sueño con el que se va a dormir de noche', 0.05, 1, 0.05),
+    n(SLEEP, 'minSleep', 'Seconds asleep before sorting the day', 'Segundos dormida antes de ordenar el día', 0, 120, 1),
+    n(SLEEP, 'consolidate', 'Sort the day while asleep (1 = yes)', 'Ordenar el día al dormir (1 = sí)', 0, 1, 1),
+    n(SLEEP, 'boost', 'Confidence a replayed belief gains', 'Confianza que gana una creencia repasada', 0, 1, 0.05),
   ]},
   { title: { en: 'Hunger', es: 'Hambre' }, fieldsOf: [
     n(HUNGER, 'rate', 'Hunger per second', 'Hambre por segundo', 0, 12, 0.1),
@@ -274,6 +308,17 @@ export function applyConfig(data) {
     if (field && Number.isFinite(value)) write(field, bound(field, value));
   }
   refresh?.();
+}
+
+// A session recorded before the organism existed says nothing about it: it
+// was played without it. Laid under a recorded config, this keeps it that way.
+export function organismOffConfig() {
+  const off = {};
+  for (const block of [CYCLE, THERMAL, SEX, SLEEP]) {
+    const id = configIdOf(block, 'enabled');
+    if (id) off[id] = 0;
+  }
+  return off;
 }
 
 // The setting id of a config.js number, or null if it isn't exposed.

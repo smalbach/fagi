@@ -9,6 +9,9 @@
 
 import { renderRule } from './learned/dsl.js';
 import { verdict } from './learned/rules.js';
+import { THERMAL } from './config.js';
+import { organismOn } from './organism.js';
+import { energyMax } from './biology.js';
 
 const r2 = (v) => Math.round(v * 100) / 100;
 
@@ -48,7 +51,7 @@ export function observe(fagi, world, ctx) {
   }
 
   const observation = {
-    version: 1,
+    version: organismOn() ? 2 : 1,
     t: r2(fagi.age),
     needs: { hungerU: r2(ctx.hungerU), thirstU: r2(ctx.thirstU), energyU: r2(ctx.energyU) },
     effects: Object.values(fagi.effects ?? {}).map((e) => ({ stat: e.stat, mult: e.mult, left: r2(e.time) })),
@@ -65,6 +68,38 @@ export function observe(fagi, world, ctx) {
       : null,
     instinct: fagi.thought ? { action: fagi.thought.action, reason: fagi.thought.reason } : null,
   };
+  if (organismOn()) Object.assign(observation, organism(fagi));
 
   return { observation, refs, byId };
+}
+
+// Version 2 (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md §17): only what she can
+// know. The light and her own temperature she feels; the hour, the air's
+// temperature and what anything really is she does not, so they are not here.
+function organism(fagi) {
+  const report = fagi.lastNightReport;
+  return {
+    senses: {
+      light: fagi.light != null ? r2(fagi.light) : null,
+      dark: Boolean(fagi.dark),
+      dimming: Boolean(fagi.dimming),
+    },
+    biology: {
+      sex: fagi.sex,
+      stage: fagi.lifeStage,
+      energyMax: r2(energyMax(fagi)),
+      temperature: r2(fagi.temperature),
+      thermalState: fagi.thermalFeel ?? 'comfortable',
+      thermalStress: r2(fagi.thermalStress / THERMAL.maxStress),
+      sleepPressure: r2(fagi.sleepPressure),
+      asleep: Boolean(fagi.sleeping),
+    },
+    memory: {
+      consolidations: fagi.consolidations ?? 0,
+      lastNightReport: report ? {
+        night: report.night, episodes: report.episodes, hypotheses: report.hypotheses,
+        contradictions: report.contradictions, questions: report.questions,
+      } : null,
+    },
+  };
 }

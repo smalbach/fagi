@@ -179,6 +179,7 @@ export function resetWorld(world) {
   clearWorld(world);
   world.nextId = 1;
   world.time = 0;
+  world.day = null;   // the next step records day 1 again (simulation.js)
   world.rec = null;
   world.wind = createWind();
   world.rain = createRain();

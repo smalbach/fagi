@@ -97,6 +97,8 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
       // The body and the sky she feels: soaked, in deep water, probing, pressure.
       Math.ceil(fagi.wet ?? 0), !!fagi.swimming, !!fagi.probing,
       round(fagi.pressure ?? 0, 1), !!fagi.pressureFalling,
+      // Her temperature, thermal stress and sleep pressure, and her sex (organism).
+      round(fagi.temperature ?? 0, 1), round(fagi.thermalStress ?? 0, 1), round(fagi.sleepPressure ?? 0, 2), fagi.sex ?? null,
     ];
   }
 

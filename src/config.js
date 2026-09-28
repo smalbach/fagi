@@ -300,6 +300,12 @@ export const GEN = {
   innateN: 1,         // an innate bias is trusted as if she had met the trait this often
   storedWorth: 5,     // seconds of life a stored ration is worth, when choosing parents
   budget: 0,          // items an elder teaches a newborn (SOCIAL.format); 0 = no cap
+  // Two parents instead of one (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md §10).
+  // 0 = the clonal lineages the preregistered study ran: one parent, mutated.
+  sexual: 0,          // 1 = a mother and a father, each picked by fitness; needs SEX.enabled
+  blend: 0,           // 0 = each innate bias comes whole from one parent; 1 = their average
+  bodyMutation: 0.03, // spread of each body gene's step (a multiplier around 1)
+  bodyRange: [0.8, 1.25], // how far a body gene can drift from 1
 };
 
 // Explanations (learned/explain.js): why she thinks what she thinks of a fruit.
@@ -601,4 +607,96 @@ export const MAPGEN = {
                       // wild species, one tree each (chemistry.js). 0 = classic
   speciesMinDistance: 200, // how far from the nest the species trees grow
   speciesMaxDistance: 480,
+};
+
+// ── The organism (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md) ───────────────────
+//
+// Day and night, body temperature, sex and sleep. Every block starts OFF: with
+// them off the simulation is, number for number and random draw for random
+// draw, the one the preregistered studies ran (docs/research/). The game turns
+// them on at boot (organism.js, enableOrganism); batch with --organism.
+//
+// These numbers belong to a fictional species. They are calibrated by running
+// the simulation, not taken from zoology.
+
+// The day (cycle.js). A pure function of the world clock: nothing to save,
+// and a replay at second t sees the same sky as the game did.
+export const CYCLE = {
+  enabled: 0,         // 0 = an endless day at THERMAL.preferred
+  seconds: 180,       // one day. At 1 s ≈ 8 min of the organism (see WORLD), ≈ 24 h;
+                      // THIRST.rate already kills in about one day
+  start: 0.3,         // phase at which a session starts (0 = midnight, 0.5 = noon)
+  dawn: 0.22,         // phase at which light is halfway up
+  dusk: 0.78,         // and halfway down
+  twilight: 0.05,     // phase it takes light to rise or fall at each end
+  minLight: 0.12,     // light at night (0-1)
+  mean: 22,           // °C, the day's average
+  swing: 12,          // °C above and below the mean: 10 at dawn, 34 mid-afternoon
+  warmest: 0.6,       // phase of the hottest moment
+  nightSight: 0.45,   // fraction of sight range left at minLight
+};
+
+// Body temperature (thermal.js). An ectotherm that regulates by behaviour:
+// her temperature follows the air unless she moves somewhere else.
+export const THERMAL = {
+  enabled: 0,
+  preferred: 25,      // °C where nothing costs extra
+  safeMin: 15,        // °C: below this, cold stress builds up
+  safeMax: 33,        // °C: above this, heat stress
+  lethalMin: 4,       // °C: stress fills at once
+  lethalMax: 44,
+  exchange: 0.05,     // fraction of the body-air gap closed per second (~20 s to settle)
+  wetExchange: 2,     // soaked, the exchange is this many times faster
+  wetChill: 4,        // °C of evaporative cooling while soaked
+  moveHeat: 1.5,      // °C over the air while she walks
+  nestTemp: 24,       // °C deep in the nest
+  nestBuffer: 0.8,    // inside, how much of the nest temperature she feels (the rest is the air)
+  shade: 5,           // °C cooler under a tree crown, at full daylight
+  stressRate: 0.5,    // stress per second per °C outside the safe range
+  recover: 2,         // stress recovered per second back inside it
+  maxStress: 100,     // at this, she dies of cold or heat
+  coldHunger: 0.06,   // hunger rate +6% per °C under safeMin (burning reserves)
+  heatThirst: 0.06,   // thirst rate +6% per °C over safeMax
+  coldSlow: 0.03,     // speed −3% per °C under safeMin
+  minSpeed: 0.5,      // cold never slows her below this fraction
+  sample: 4,          // seconds of a thermal experience before it is judged (like RAIN.sample)
+  lesson: 0.6,        // how bad a full sample of stress feels
+  refugeSample: 4,    // seconds inside the nest before judging whether it helped
+  instinct: 0.15,     // innate urge to move when too cold or too hot (she does not know where)
+  reflex: 0.7,        // stress fraction at which she heads home whatever pulls her out
+  duskSense: 0.6,     // light under which she notices it falling
+  behave: 1,          // 0 = she feels and learns it but never acts on it (the ablation)
+};
+
+// Sex (biology.js). It changes the body, never the rules she follows: no
+// "the female tends, the male explores". Two ways of spending the same budget.
+export const SEX = {
+  enabled: 0,         // 0 = no sex: every body is the plain one
+  female: { speed: 0.94, energyMax: 1.12, metabolism: 0.92, insulation: 1.08 },
+  male: { speed: 1.08, energyMax: 0.92, metabolism: 1.08, insulation: 0.94 },
+};
+
+// Sleep (sleep.js, consolidation.js). Resting recovers energy; sleeping at
+// night, safe in the nest, is also when the day's experiences are sorted.
+export const SLEEP = {
+  enabled: 0,
+  rise: 0.008,        // sleep pressure per second awake (0-1): ~2 min of activity fills it
+  nightRise: 2,       // × while it is dark
+  fall: 0.03,         // pressure lost per second asleep in the nest
+  fallOutside: 0.012, // asleep outside she sleeps worse
+  drowsy: 0.6,        // at night, with this much pressure she goes to sleep
+  exhausted: 1,       // with this much she sleeps wherever, day or night
+  wake: 0.08,         // she wakes when it drops below this (or at dawn, under drowsy/2)
+  minSleep: 15,       // seconds asleep in the nest before the night is consolidated
+  consolidate: 1,     // 0 = she sleeps but sorts nothing (the ablation)
+  salient: 6,         // episodes kept as the night's highlights
+  boost: 0.25,        // confidence a replayed belief gains (of what it lacks)
+  redundant: 3,       // same fruit, same outcome: more than this many in a day are merged
+  minSupport: 2,      // bites behind a hypothesis
+  minEffect: 0.15,    // average reward (±) for a trait to predict something
+  reports: 12,        // night reports kept
+  replay: 4,          // rounds of interleaved replay of the remembered fruit (consolidation.js); 0 = none
+  replayRate: 0.15,   // how far each rehearsal moves the traits (a day bite moves them CUES.rate)
+  downscale: 0,       // share of weight every rehearsed trait loses before each round. 0 = pure
+                      // replay; 0.1 guesses untasted fruit better but is less wary of poison (§25.2)
 };
