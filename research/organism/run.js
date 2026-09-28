@@ -36,6 +36,8 @@ function configure(settings) {
   // evaluated had none (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md §12.8).
   CONFIG.CONCEPT.enabled = 0;
   CONFIG.THERMAL.voluntary = 0;   // and the thermal reflex went off only with harm done
+  CONFIG.LIFE.gradual = 0;        // and only adults bred, braked only by the nest's ceiling
+  CONFIG.SLEEP.askAlways = 0;     // and the night asked only after a day with bites
   CONFIG.MAPGEN.species = SPECIES;
   for (const [path, value] of Object.entries(settings)) {
     const [block, key] = path.split('.');

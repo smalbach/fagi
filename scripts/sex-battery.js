@@ -55,6 +55,7 @@ if (argv[0] === '--piece') {
   if (current !== 'current') {
     CONFIG.CONCEPT.enabled = 0;   // measured before things and concepts existed
     CONFIG.THERMAL.voluntary = 0; // and before the voluntary thermal reflex
+    CONFIG.SLEEP.askAlways = 0;   // and before the night asked without episodes
   }
   CONFIG.MAPGEN.species = SPECIES;
   for (const [path, value] of Object.entries(SCENARIOS[scenario])) {

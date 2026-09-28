@@ -23,6 +23,7 @@ if (argv[0] === '--piece') {
   const k = Number(offset);
   enableOrganism();
   CONFIG.THERMAL.voluntary = 0;   // came after this protocol was frozen
+  CONFIG.SLEEP.askAlways = 0;     // so did this
   CONFIG.MAPGEN.species = SPECIES;
   CONFIG.CONCEPT.dims = FAMILIES[family];
   for (const [path, value] of Object.entries(CONDITIONS[condition])) {
