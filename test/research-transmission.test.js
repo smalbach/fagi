@@ -162,3 +162,21 @@ test('a belief keeps its origin from copy to copy, told or taught', () => {
   assert.equal(activeRule(c.brain.rules, 'smell:sour', 'avoid').source.from, 2);
   registerSpecies([]);
 });
+
+test('with topic food, the budget is not spent on rain or pheromone', () => {
+  species();
+  const a = giver();
+  a.brain.rules.list.push(rule('avoid-rain', {
+    on: ['pursue'], when: { key: 'rain' }, verdict: 'avoid', weight: -0.9,
+    because: [{ sense: 'wet', v: -1 }], learnedAt: 2, tries: 3, stage: 'short',
+  }));
+  const was = SOCIAL.topic;
+  try {
+    const all = pass(a, sisters(2)[1], 10, { kind: 'told', scale: SOCIAL.trust, budget: 1 });
+    assert.deepEqual(all.map((g) => g.id), ['avoid-rain'], 'the loudest rule goes first');
+    SOCIAL.topic = 'food';
+    const food = pass(a, sisters(2)[1], 10, { kind: 'told', scale: SOCIAL.trust, budget: 1 });
+    assert.notEqual(food[0].id, 'avoid-rain');
+  } finally { SOCIAL.topic = was; }
+  registerSpecies([]);
+});

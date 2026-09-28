@@ -287,6 +287,7 @@ export const SOCIAL = {
   format: 'rule',     // what is passed on (social.js): 'rule' | 'verdict' | 'evidence'
   budget: 0,          // items passed in one exchange (a rule, a verdict, a bite); 0 = no cap
   evidence: 2,        // bites behind each rule, in the 'evidence' format
+  topic: 'all',       // what is passed on: 'all' rules, or only 'food' (rules about eating)
 };
 
 // Generations (generations.js, batch --generations): what a newborn inherits.

@@ -106,9 +106,11 @@ export function pass(giver, receiver, now, { kind, scale, budget = 0, format = S
 const originOf = (f, r) => r.origin ?? `${f.id}/${r.id}@${round(r.learnedAt ?? 0)}`;
 
 // The rules worth passing on, most trusted and weighty first when there is a cap.
+// With SOCIAL.topic 'food', only rules about eating: the budget is not spent on
+// rain, pheromone or deep water (research/ compares formats on food alone).
 function passable(giver, scale, budget) {
   const list = giver.brain.rules.list.filter((r) => !r.retired && !giver.brain.rules.quarantined.has(r.id)
-    && trustOf(r) * scale >= SOCIAL.minTrust);
+    && trustOf(r) * scale >= SOCIAL.minTrust && (SOCIAL.topic !== 'food' || r.on.includes('eat')));
   return budget ? list.sort((a, b) => strength(b) - strength(a)) : list;
 }
 const strength = (r) => trustOf(r) * Math.abs(r.weight ?? 0);
