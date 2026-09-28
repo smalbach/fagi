@@ -1608,6 +1608,7 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] Juvenil, adulta y senescente; muerte por vejez.
 - [x] Parentesco y consanguinidad registrados; extinción como resultado válido.
 - [x] La población se mantiene varias generaciones sin que el runner cree ninguna (§25.8).
+- [x] Fertilidad que decae con la edad y densodependencia gradual; en el juego, se sigue a la descendencia (§25.14).
 
 **Fase 7: ciencia reproducible**
 - [x] Baselines: agente aleatorio y agente de reglas fijas sin aprendizaje (`BASELINE`).
@@ -1978,14 +1979,37 @@ El efecto del replay no tiene la confusión que se describe más abajo para F3: 
 - **Sin memoria episódica se comporta casi igual que sin replay.** Conserva la agenda y pierde el repaso y el refuerzo de lo que el día confirmó. La memoria episódica aporta su propio efecto, separado de la noche entera.
 - **Balance.** El sueño aporta sobre todo la agenda del día siguiente. Lo que se creía su coste, la rigidez, era el precio de haber aprendido más.
 
+### 25.14 Población: frenos graduales y descendencia
+
+Con `LIFE.gradual` (parte del organismo; apagado reproduce el §25.8):
+
+- **La fertilidad decae con la vejez.** Una senescente cría cada vez menos: el tiempo que necesita para volver a criar se alarga en proporción inversa a su fertilidad, que va de 1 al empezar la vejez a 0 al final de su vida.
+- **El hacinamiento frena antes del techo.** Por debajo de un cuarto del nido no pasa nada. A partir de ahí, cada recuperación, y también la espera antes de la primera cría, se alarga cuanto más lleno está el nido, como una multitud que compite por comida y sitio. El techo (`LIFE.maxPopulation`) sigue siendo el límite físico.
+
+Todo es determinista: no añade ningún número aleatorio. `scripts/population.js --maps 8 --duration 10800` (60 días, 8 mapas de desarrollo):
+
+| | Muestras en el techo del nido | Vivas de media | Generaciones | Crías por mapa | Extinciones |
+|---|---|---|---|---|---|
+| techo solo (antes) | 69 % | 13,5 | 5,9 | 29,9 | 0/8 |
+| frenos graduales | **23 %** | 12,8 | **6,8** | 30,9 | 0/8 |
+
+La población se regula antes de chocar con el techo. Hay más generaciones porque la cría se desplaza hacia las jóvenes: las viejas tardan cada vez más en volver a criar, y el tiempo entre generaciones se acorta. Un primer intento dejaba el techo casi igual de ocupado, porque quien nunca había criado no esperaba nada con el nido lleno. Se corrigió antes de medir.
+
+**En el juego, se sigue a la descendencia.** Cuando muere la Fagi que se sigue en una población que cría, el juego pasa a su descendiente viva más cercana (una cría antes que una nieta), y si no queda ninguna, a cualquiera de la población. La sesión solo termina con la última. La grabación sigue con un evento `follow`, y el replay la muestra viva de nuevo desde ese momento. La narración lo dice («Murió. Ahora sigues a su cría, #7»).
+
 ### 25.3 Pendiente
 
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
-- Fase 5: densodependencia gradual en lugar del tope del nido, fertilidad que decae con la edad, `health` como variable propia, transmisión social de la aversión alimentaria (§25.8) y, en el juego, seguir a la descendencia cuando muere la Fagi seguida (hoy se cierra la grabación y la población sigue en pantalla).
+- Fase 5: `health` como variable propia (hoy el daño va a la energía, al estrés térmico o al hambre).
 - Fase 6, lo que queda del §12.3:
   - que el agua, el nido, los árboles y las rocas dejen de ser categorías innatas (hoy solo las cosas lo son);
-  - combinar objetos, y esperar y volver a mirar algo que cambia con el tiempo (ninguna cosa cambia todavía);
-  - que la noche ordene también los conceptos.
+  - combinar objetos, y esperar y volver a mirar algo que cambia con el tiempo (ninguna cosa cambia todavía).
+
+**Decidido y descartado**, con su motivo:
+
+- **Transmitir la aversión alimentaria por observación.** Ver a una hermana comer algo que le sienta mal ya enseña (`learnSeen`, §25.8), pero no transmite la aversión del cuerpo (§25.5), que solo nace del malestar propio. Así pasa en las ratas: la transmisión social enseña qué comer, no qué evitar (Galef, 1985). Con las cosas es distinto, porque el dolor ajeno sí se ve.
+- **Que la noche ordene también los conceptos.** Los conceptos se forman al momento, con cada clase que queda decidida (§12.8), y se ponen a prueba con cada clase nueva. Una pasada nocturna repetiría el mismo cálculo sin evidencia nueva.
+- **Volatilidad para la fruta.** Se probó y no cambió nada (§25.13).
 
 ### 25.4 Cómo reproducir
 
@@ -2054,6 +2078,10 @@ node scripts/concept-lab.js --lives 48 --dims color --turn
 # §25.13 seguimiento congelado (docs/research/organism2-protocol.md)
 node research/organism2/run.js --jobs 16
 node research/organism2/analyze.js research/results/organism2
+
+# §25.14 frenos graduales (y sin ellos, como en el §25.8)
+node scripts/population.js --maps 8 --duration 10800
+node scripts/population.js --maps 8 --duration 10800 --set LIFE.gradual=0
 
 # §25.12 retención
 node scripts/retention.js
