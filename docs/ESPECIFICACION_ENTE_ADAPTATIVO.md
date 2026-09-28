@@ -1,6 +1,6 @@
 # Especificación: Fagi como ente adaptativo autónomo
 
-**Estado:** en implementación: fases 1, 3, 4 y 5 hechas; 2 y 6, en parte (ver §25)  
+**Estado:** en implementación: fases 1, 3, 4, 5 y 7 hechas; 2 y 6, en parte (ver §25)  
 **Proyecto:** First AGI / Fagi  
 **Objetivo de esta versión:** transformar la simulación actual, inspirada en una hormiga, en un entorno experimental para estudiar un organismo artificial limitado que percibe, aprende, descansa, consolida experiencias, se reproduce y se adapta durante varias generaciones.
 
@@ -1548,6 +1548,12 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] Parentesco y consanguinidad registrados; extinción como resultado válido.
 - [x] La población se mantiene varias generaciones sin que el runner cree ninguna (§25.8).
 
+**Fase 7: ciencia reproducible**
+- [x] Baselines: agente aleatorio y agente de reglas fijas sin aprendizaje (`BASELINE`).
+- [x] Batería de ablaciones del §18.2, en un mundo estable y en uno que se invierte a mitad de vida, y condiciones de población.
+- [x] Protocolo congelado antes de correr (`docs/research/organism-protocol.md`, commit `c181469`), semillas nunca usadas, un solo comando.
+- [x] Resultados negativos publicados, datos brutos conservados (`research/results/organism/`) e informe automático (§25.9).
+
 **Fase 6: parcial**
 - [x] Identidad real separada de lo percibido, en lo que Fagi decide y en lo que ve la API (§12.7).
 - [x] El mordisco de prueba como primera acción experimental (§12.6).
@@ -1749,6 +1755,58 @@ Transmitir preferencias alimentarias por vía social es algo que existe en anima
 
 **Criterio de salida de la fase 5** («la población puede mantenerse varias generaciones sin crear directamente cada generación desde el runner»): **se cumple**.
 
+### 25.9 Evaluación con baselines y ablaciones: resultado
+
+Protocolo congelado en `c181469` antes de cualquier corrida confirmatoria. 120 vidas por condición y mundo (semillas 9000–9119, mapas nunca usados), 2400 s cada una; 12 poblaciones por condición. Informe completo, generado por el propio código: `research/results/organism/report.md`.
+
+**Hipótesis confirmatorias** (unilaterales, pareadas, Holm):
+
+| | Predicción | a − b [IC 95 %] | dz | ¿Se sostiene? |
+|---|---|---|---|---|
+| H1 | vive más que un caminante aleatorio | +1725 s [1598, 1839] | 2,46 | sí |
+| H2 | juzga mejor la fruta que nunca probó que el aleatorio | +0,352 [0,335, 0,369] | 3,61 | sí |
+| H3 | aprender reduce el veneno respecto a su instinto solo | −1,17 frutas [0,92, 1,43] | 0,80 | sí |
+| H4 | aprender mejora ese juicio respecto a su instinto solo | +0,352 [0,335, 0,369] | 3,61 | sí |
+| H5 | ordenar el día de noche mejora ese juicio | +0,014 [−0,022, 0,051] | 0,07 | **no** |
+| H6 | el apetito reduce el veneno | −0,80 frutas [0,59, 1,01] | 0,73 | sí |
+| H7 | tras invertirse el mundo, juzga según el nuevo mejor que su instinto | +0,094 [0,064, 0,125] | 0,53 | sí |
+
+Fagi supera claramente a los dos baselines, y aprender (del cuerpo y de los rasgos) y el apetito le ahorran veneno. **La consolidación nocturna no mejora su juicio** (H5): el efecto de 0,07 que se vio en la exploración del §25.7, con 48 vidas, no se replica con 120 vidas en mapas nuevos.
+
+**Ablaciones (exploratorias, sin corrección, para orientar)**, diferencia con `full` y su IC 95 %:
+
+| Pieza quitada | Mundo estable | Mundo que se invierte |
+|---|---|---|
+| aprendizaje por rasgos | juicio **−0,31** [−0,32, −0,29]; más especies dañinas probadas (+0,93) | juicio −0,07 |
+| curiosidad y experimentos | juicio **−0,095** [−0,13, −0,06]; encuentra menos especies buenas (−0,21) | — |
+| sueño | +0,52 frutas de veneno; −0,24 de especies buenas halladas; −242 s de vida | juicio **+0,14** |
+| consolidación | +0,52 de veneno; −0,18 de especies buenas halladas; juicio sin diferencia | **vivas +0,16** [0,07, 0,25]; juicio **+0,15** [0,11, 0,18] |
+| replay | juicio **+0,073** [0,058, 0,088] | juicio **+0,063** [0,042, 0,084] |
+| mente nocturna | juicio −0,010 [−0,015, −0,005] | sin diferencia |
+| apetito | +0,80 de veneno; muere de hambre (22) o de sed (7) en lugar de envenenada | +0,78 de veneno |
+| olvido | sin diferencia en juicio ni en veneno; −25 s de estrés térmico | igual |
+| percepción | −137 s de vida [−281, −2] | −151 s |
+| variación térmica | sin estrés térmico; sin diferencia en lo demás | igual |
+| memoria episódica | idéntica a quitar la consolidación: no es una ablación independiente | — |
+
+**Lo que dicen.**
+
+1. **Lo que más aporta es aprender por rasgos**, y después la curiosidad y los experimentos. Es lo que convierte pocas experiencias en juicio sobre lo nunca probado.
+2. **El sueño aporta por la exploración, no por el juicio.** Sin sueño o sin consolidar, prueba menos y encuentra menos especies buenas (se pierde la agenda) y recibe más veneno. Pero su juicio queda igual.
+3. **Consolidar vuelve rígidas las creencias.** Cuando el mundo se invierte, quien no consolida sobrevive más y juzga mejor el mundo nuevo. Es el viejo dilema entre estabilidad y plasticidad: lo que el sueño afianza cuesta desaprenderlo. No estaba previsto y es de los resultados más interesantes.
+4. **El replay, tal como está, empeora el juicio en los dos mundos.** Esto explica la pregunta abierta del §25.7 (consolidar sin experimentos daba peor juicio que no consolidar). En el laboratorio mejoraba la predicción por rasgos, pero en el juego mueve pesos de los que también depende la aversión, y el resultado neto es peor. Como es exploratorio, se deja encendido hasta confirmarlo, y es el candidato claro para el siguiente protocolo.
+5. **La mente nocturna local aporta poco pero algo.** El apetito confirma su valor.
+6. El olvido y la variación térmica no cambian el juicio. Quitar el olvido reduce el estrés térmico: olvidar lecciones térmicas tiene un coste.
+
+**Poblaciones** (12 por condición, 5400 s, exploratorio):
+
+- `full`: 2/12 extinciones funcionales, 3 generaciones, juicio de los adultos 0,73.
+- Sin cultura: juicio −0,013 [−0,023, −0,003]; la cultura aporta poco, como se vio en el §25.8.
+- Sin comunicación: nacen más crías (+2,1) y es más consanguínea.
+- Sin aprendizaje (`fixed`): **9/12 extinciones**, juicio 0,58, ninguna muerte por vejez.
+
+**Criterio de salida de la fase 7** («los resultados pueden repetirse desde un comando y respaldan afirmaciones concretas, no impresiones visuales»): **se cumple**. `node research/organism/run.js --jobs 16 && node research/organism/analyze.js` reproduce todo desde las semillas registradas, y las afirmaciones de arriba se limitan a lo medido, incluido lo que no se sostuvo.
+
 ### 25.3 Pendiente
 
 - Fase 2: probar con una batería de mapas que ningún sexo domina todos los escenarios (criterio de salida).
@@ -1756,7 +1814,7 @@ Transmitir preferencias alimentarias por vía social es algo que existe en anima
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
 - Fase 5: densodependencia gradual en lugar del tope del nido, fertilidad que decae con la edad, `health` como variable propia, transmisión social de la aversión alimentaria (§25.8) y, en el juego, seguir a la descendencia cuando muere la Fagi seguida (hoy se cierra la grabación y la población sigue en pantalla).
 - Fase 6: formar conceptos a partir de rasgos, que los objetos del mapa dejen de ser categorías innatas y el resto de acciones experimentales del §12.3 (tocar, combinar, esperar y volver a mirar).
-- Fase 7: baselines (aleatorio, reglas fijas), batería de ablaciones del §18.2 y preregistro de las afirmaciones.
+- Fase 7, siguiente protocolo: confirmar que el replay empeora el juicio (y decidir si apagarlo), que consolidar reduce la adaptación al cambio, y separar la memoria episódica de la consolidación para que sea una ablación propia.
 
 ### 25.4 Cómo reproducir
 
@@ -1811,6 +1869,10 @@ node scripts/sleep-lab.js --game 48 --set SLEEP.consolidate=0
 # §25.8 población que se reproduce sola
 node scripts/population.js --maps 8 --duration 10800
 node scripts/population.js --maps 1 --seed 5000 --duration 10800 --set LIFE.maxPopulation=40
+
+# §25.9 evaluación congelada (docs/research/organism-protocol.md)
+node research/organism/run.js --jobs 16
+node research/organism/analyze.js research/results/organism
 
 # generaciones con reproducción sexual, creadas por lotes (sin cría dentro del mundo)
 node scripts/batch.js --organism --set LIFE.enabled=0 --set GEN.sexual=1 --generations 6 --colony 6 --runs 4 --duration 600 --set MAPGEN.species=6
