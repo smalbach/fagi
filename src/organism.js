@@ -5,9 +5,9 @@
 // (app/organism-on.js), and batch with --organism. A session records the
 // flags with the rest of its settings, so a replay knows which world it was.
 
-import { CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT } from './config.js';
+import { CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE } from './config.js';
 
-export const ORGANISM = { CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT };
+export const ORGANISM = { CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE };
 
 export function enableOrganism(on = true) {
   for (const block of Object.values(ORGANISM)) block.enabled = on ? 1 : 0;

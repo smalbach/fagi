@@ -684,6 +684,26 @@ export const SEX = {
 //             she learns what a whole one would do)
 //   maxWary : she does not try a fruit whose traits make her this wary (0-1)
 //   agenda  : questions carried into the day
+// Appetite (appetite.js): what the body lets her eat, and when; and thirst
+// that sends her looking for water before it is critical.
+//   handling    : seconds a bite takes before the next one
+//   malaise     : seconds after a bite that felt bad in which she eats only what
+//                 she knows is good
+//   searchWater : thirst (fraction) from which, not knowing where water is, she
+//                 stops gathering and goes looking for it
+//   averse, desperate: below
+export const APPETITE = {
+  enabled: 0,
+  handling: 3,
+  malaise: 40,
+  searchWater: 0.3,
+  smellAversion: 0.15, // a smell whose learned weight is this bad or worse puts her off any untasted
+                      // fruit that has it (one bad bite does it: CUES.rate × a harmful reward)
+  averse: 0.5,        // wariness (learned/cues.js) from which she won't eat a fruit she never tasted
+  desperate: 0.85,    // hunger (fraction) from which she eats it anyway
+  poisonWindow: 120,  // seconds a harmful bite counts toward "died of poisoning"
+};
+
 export const EXPERIMENT = {
   enabled: 0,
   portion: 0.25,

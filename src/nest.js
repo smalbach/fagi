@@ -7,6 +7,7 @@ import { eat } from './feeding.js';
 import { weight } from './memory.js';
 import { verdict } from './learned/rules.js';
 import { storedHarm, spoiledRations } from './habits.js';
+import { canEat } from './appetite.js';
 
 export function nestUnder(fagi, world) {
   const nestObj = nestOf(world);
@@ -33,7 +34,7 @@ export function useNest(fagi, world) {
   // but never serves something she learned disagrees with her.
   if (fagi.hunger >= CARRY.eatBelow) {
     const saved = Object.keys(nestObj.stock).filter(
-      (k) => nestObj.stock[k] > 0 && verdict(fagi, 'eat', k) !== 'avoid'
+      (k) => nestObj.stock[k] > 0 && verdict(fagi, 'eat', k) !== 'avoid' && canEat(fagi, k)
     );
     if (saved.length) {
       const best = saved.reduce((a, b) =>

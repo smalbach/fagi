@@ -10,7 +10,7 @@
 
 El repositorio contiene estudios preregistrados y congelados (`docs/research/`) que ejecutan el mismo motor de simulación mediante `scripts/batch.js`. Todo lo que añade esta especificación debe respetar estas condiciones:
 
-1. **Cada bloque nuevo arranca apagado** en `src/config.js` (`CYCLE.enabled`, `THERMAL.enabled`, `SEX.enabled`, `SLEEP.enabled`, `EXPERIMENT.enabled`, `GEN.sexual`).
+1. **Cada bloque nuevo arranca apagado** en `src/config.js` (`CYCLE.enabled`, `THERMAL.enabled`, `SEX.enabled`, `SLEEP.enabled`, `EXPERIMENT.enabled`, `APPETITE.enabled`, `GEN.sexual`).
 2. **Con todo apagado, la simulación es idéntica número a número**: no se consume ni un número aleatorio más ni en otro orden, y todo multiplicador corporal vale exactamente `1`. Se comprobó comparando byte a byte la salida JSON de `batch.js` antes y después (ejecución simple y por generaciones con especies).
 3. **El juego enciende el organismo** al arrancar (`src/app/organism-on.js`, que se importa antes que los ajustes). En batch se enciende con `--organism`, y `--set` puede apagar después cualquier pieza (`--set SLEEP.consolidate=0`).
 4. **Las sesiones grabadas guardan los flags** con el resto de ajustes. Al reproducir una sesión anterior al organismo, los flags ausentes se consideran `0` (`organismOffConfig`).
@@ -1408,6 +1408,7 @@ La versión objetivo se considera exitosa cuando, en mapas no vistos y múltiple
 - utiliza información social sin adoptar sistemáticamente información falsa;
 - mantiene una población con reproducción sexual durante varias generaciones;
 - conserva diversidad suficiente para adaptarse a cambios;
+- muere por causas que tendría un organismo real, nunca por artefactos de la simulación (§25.5); sobrevivir más no es un objetivo en sí;
 - produce trazas que permiten explicar qué percibió, creyó, predijo y decidió;
 - reproduce resultados estadísticos desde semillas registradas;
 - muestra mediante ablaciones qué componentes aportan la mejora.
@@ -1472,6 +1473,7 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] Refuerzo, olvido de redundancias y ablación `SLEEP.consolidate = 0`.
 - [x] Replay intercalado de los rasgos (§11.4), con su ablación `SLEEP.replay = 0` y un banco de laboratorio pareado (`scripts/sleep-lab.js`).
 - [x] Las preguntas del informe dirigen el día siguiente: agenda y mordisco de prueba (§12.6).
+- [x] Apetito y sed apetitiva, corregidos a partir de autopsias (§25.5).
 
 **Fase 5: parcial (en batch)**
 - [x] Recombinación de dos progenitores, mutación posterior y límites.
@@ -1480,16 +1482,16 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 
 ### 25.2 Resultados de calibración
 
-Mapa 1, `--organism`, 12 vidas de 2400 s por condición. Las cifras son descriptivas y no están preregistradas. Se volvieron a medir después de añadir los experimentos (§25.1), que `--organism` también enciende; las muertes no cambiaron y el resto varió poco.
+Mapa 1, `--organism`, 12 vidas de 2400 s por condición. Las cifras son descriptivas y no están preregistradas. Se volvieron a medir después de añadir los experimentos y el apetito (§25.1), que `--organism` también enciende. Solo cambió una muerte, en el clima duro sin conducta térmica (de 2 a 3), y el resto varió poco.
 
 | Clima | `THERMAL.behave` | Muertes | Segundos con estrés | Pico de estrés | Despierta de noche |
 |---|---|---|---|---|---|
-| ±12 °C (por defecto) | 1 | 0/12 | 112 | 0,19 | 380 s |
-| ±12 °C | 0 (ablación) | 0/12 | 182 | 0,32 | 550 s |
-| ±16 °C | 1 | 1/12 (frío) | 506 | 0,58 | 319 s |
-| ±16 °C | 0 (ablación) | 2/12 (frío) | 973 | 0,72 | 476 s |
+| ±12 °C (por defecto) | 1 | 0/12 | 110 | 0,19 | 383 s |
+| ±12 °C | 0 (ablación) | 0/12 | 174 | 0,26 | 547 s |
+| ±16 °C | 1 | 1/12 (frío) | 502 | 0,57 | 323 s |
+| ±16 °C | 0 (ablación) | 3/12 (frío) | 932 | 0,78 | 451 s |
 
-**Criterio de salida de la fase 1:** se cumple en parte. Actuar sobre lo aprendido reduce aproximadamente a la mitad la exposición y el estrés. Con el clima por defecto el frío no llega a matar, así que la diferencia en supervivencia solo aparece con clima duro, y con 12 vidas no es concluyente. Lo aprendido al final, con el clima por defecto (valor medio): frío −0,46, calor −0,45, refugio +0,17, oscuridad −0,47.
+**Criterio de salida de la fase 1:** se cumple en parte. Actuar sobre lo aprendido reduce aproximadamente a la mitad la exposición y el estrés. Con el clima por defecto el frío no llega a matar, así que la diferencia en supervivencia solo aparece con clima duro, y con 12 vidas no es concluyente. Lo aprendido al final, con el clima por defecto (valor medio): frío −0,46, calor −0,46, refugio +0,17, oscuridad −0,47.
 
 **Criterio de salida de la fase 3: se cumple en el laboratorio y no en el juego.**
 
@@ -1529,6 +1531,55 @@ Con esto el criterio de salida de la fase 3 («dormir mejora transferencia o ret
 
 **Sexos:** en 8 vidas de 1200 s sobrevivieron todas, tanto hembras (5) como machos (3); ningún sexo dominó en esa muestra. Hace falta una batería de mapas para afirmar equilibrio.
 
+### 25.5 Realismo antes que supervivencia: autopsias
+
+**Criterio.** El objetivo no es que Fagi sobreviva: es que se comporte y aprenda como un organismo real. Morir es un resultado válido; una muerte de sed con el agua demasiado lejos o un envenenamiento por probar lo desconocido son muertes de la vida real. Lo que se busca y se corrige son las muertes y conductas **que ningún animal tendría**. Nunca se ajustan parámetros para subir la tasa de supervivencia.
+
+**Herramienta.** `scripts/autopsy.js` guarda los últimos 180 s de cada vida que muere: acción, regla, necesidades, temperatura, noche, distancia real al agua y a la fruta comestible, raciones comestibles del nido y carga. Además marca lo que parece un artefacto, para que lo lea una persona:
+
+- quieta mientras la necesidad que la mata es crítica;
+- dando vueltas sin avanzar;
+- cerca del agua con sed crítica;
+- con comida en su propia despensa;
+- con fruta comestible a la vista;
+- envenenada otra vez por la misma fruta o por el mismo olor.
+
+**Lo que encontraron** (48 vidas de 1800 s, `--organism`, 6 especies), antes de cualquier corrección, con 11 muertes:
+
+1. **Envenenamiento en serie, registrado como «hambre».** Dentro del nido, hambrienta, comía una ración por frame: dos o tres venenosas en el mismo segundo. El hambre subía de 45 a 96 en ~15 s y la causa quedaba como «hambre».
+2. **Recién nacidas muertas de sed a los ~200 s.** Sin saber dónde había agua, dedicaban los primeros 120 s a acarrear fruta mientras la sed subía al 55 %, y solo empezaban a buscar agua al volverse crítica, casi siempre ya de noche.
+3. **Indecisión en la puerta del nido.** Creía que la despensa tenía algo, entraba, no había nada que pudiera comer, salía siguiendo un olor, y la creencia la volvía a mandar dentro, cada medio segundo.
+
+Al corregirlos aparecieron otros tres, y la autopsia también los mostró:
+
+4. Quieta hasta 77 s con una fruta en la boca que el malestar no le dejaba comer.
+5. Clavada sobre una fruta que no podía comer ni cargar.
+6. Al pasar el malestar, se comía la misma fruta que la había envenenado, que había recogido estando enferma.
+
+**Correcciones** (`appetite.js`, flag `APPETITE.enabled`, parte del organismo). Cada una es un mecanismo que tienen los animales, no un parche para que viva más:
+
+| Mecanismo | Qué hace | Base |
+|---|---|---|
+| tiempo de manipulación | `APPETITE.handling` s entre bocados | comer no es instantáneo |
+| malestar posingestivo | tras un bocado que sienta mal, `APPETITE.malaise` s sin comer nada que no sepa bueno | náusea; origen de la aversión aprendida |
+| aversión al olor en un ensayo | no come una fruta sin probar si su **olor** le hizo daño (peso ≤ −`smellAversion`), ni lo que probó y fue malo, ni lo que sus rasgos juntos desaconsejan (cautela ≥ `averse`); tampoco lo guarda. El hambre desesperada (`desperate`) lo anula | efecto Garcia (Garcia y Koelling, 1966): la aversión se liga al sabor u olor, no al color ni a la forma, y basta un ensayo |
+| sed apetitiva | con sed ≥ `searchWater` y sin saber dónde hay agua, deja de recolectar y la busca (regla `thirstSearch`) | la sed motiva la búsqueda antes de ser crítica |
+| la despensa llama solo si hay algo comestible | la intención de ir a la despensa usa el mismo filtro que el nido | sin él, indecisión en la puerta |
+| causa «envenenada» | si, sin el daño de los venenos de los últimos `poisonWindow` s, seguiría viva | nombrar la causa real |
+
+**Resultado** (mismas 48 vidas y semillas):
+
+| | Sin apetito | Con apetito |
+|---|---|---|
+| Muertes | 11: hambre 6, sed 5 | 10: envenenamiento 10 |
+| Vidas con algo que parece un artefacto | 9 | **0** |
+| Dosis de veneno recibida (en frutas enteras) | 1,68 | **1,20** |
+| Especies probadas / especies buenas descubiertas | 5,33 / 77 % | 4,63 / 72 % |
+
+Las 10 muertes que quedan son realistas y se dejan como están. Todas son de forrajeras ingenuas que prueban dos cosas desconocidas y venenosas con olores distintos, y en todas una de las dos es **fruta podrida** (`toxic`): la fruta que nadie recoge se pudre, y el olor a podrido todavía no le había hecho daño. Los machos mueren antes (hacia los 665 s, frente a los 800 s de las hembras) porque su metabolismo más rápido los lleva antes al umbral de hambre al que empiezan a comer lo desconocido. Que la aversión a lo podrido sea innata o aprendida es una pregunta abierta para la especie ficticia; por ahora es aprendida, como todo lo demás (§12).
+
+Todas las muertes por sed desaparecieron con la sed apetitiva. La aversión reduce el veneno recibido y a cambio prueba algo menos: es el intercambio real entre prudencia y exploración.
+
 ### 25.3 Pendiente
 
 - Fase 2: sprite ficticio nuevo y retirar el lenguaje de «hormiga» de la interfaz y la documentación (`fagi-sprite/`, `i18n/`).
@@ -1553,6 +1604,8 @@ node scripts/sleep-lab.js --game 32 --set SLEEP.consolidate=0
 node scripts/sleep-lab.js --game 48 --set EXPERIMENT.enabled=0
 node scripts/sleep-lab.js --game 48
 node scripts/sleep-lab.js --game 48 --set SLEEP.consolidate=0
+node scripts/autopsy.js --lives 48
+node scripts/autopsy.js --lives 48 --set APPETITE.enabled=0
 node scripts/batch.js --organism --set GEN.sexual=1 --generations 6 --colony 6 --runs 4 --duration 600 --set MAPGEN.species=6
 ```
 

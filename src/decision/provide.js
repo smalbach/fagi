@@ -5,6 +5,9 @@ import { FAGI, BRAIN, ATTENTION } from '../config.js';
 import { verdict } from '../learned/rules.js';
 import { labelOf } from '../i18n.js';
 import { pct, reasonOf, pressing, pantryDone } from './common.js';
+import { APPETITE } from '../config.js';
+import { seekWaterNear } from './survive.js';
+import { uselessNow } from '../appetite.js';
 
 // What she's carrying goes to the nest. The only thing that pulls her off the path, without
 // it getting pressing, is seeing water nearby while somewhat thirsty: drinking now, on the way,
@@ -51,7 +54,7 @@ export function pursue(fagi, world, ctx, dt, onlyKind = null) {
 function pickCandidate(fagi, ctx, onlyKind) {
   const { ranked } = ctx;
   const canPursue = (r) => !useless(fagi, ctx, r)
-    && (r.kind !== 'food' || verdict(fagi, 'pursue', r.key) !== 'avoid');
+    && (r.kind !== 'food' || (verdict(fagi, 'pursue', r.key) !== 'avoid' && !uselessNow(fagi, r.key)));
   // Her own trail leads to food (or so she believes): it counts when looking for food.
   const ofType = (r) => !onlyKind || r.kind === onlyKind || (onlyKind === 'food' && r.kind === 'trail');
   const available = ranked.filter((r) => ofType(r) && canPursue(r));
@@ -121,4 +124,16 @@ function intentToward(fagi, ctx, chosen) {
     targetKind: 'food',
     trailKey: null,
   };
+}
+
+// Thirsty, not yet critical, and she has no idea where water is: she stops
+// gathering and goes looking for it (appetite.js). Without this, a newborn
+// carried fruit home for two minutes with her thirst rising and only started
+// looking once it was critical, often already in the dark.
+export function thirstSearch(fagi, world, ctx) {
+  if (!APPETITE.enabled || fagi.carrying || pressing(ctx)) return null;
+  if (ctx.thirstU < APPETITE.searchWater || ctx.thirstU < ctx.hungerU) return null;
+  if (ctx.pool || ctx.ranked.some((c) => c.kind === 'water')) return null;
+  const search = seekWaterNear(fagi, ctx);
+  return { ...search, reason: reasonOf('reason.thirstSearch', { thirst: pct(ctx.thirstU) }) };
 }

@@ -140,6 +140,9 @@ export function deathLesson(fagi, cause, pantry) {
     if (pantry.stored === 0) move(fagi, 'reserve', 'safer', { key: 'habit.why.emptyPantry' });
   } else if (cause === 'thirst') {
     move(fagi, 'thirstAt', 'safer', { key: 'habit.why.died', params: { cause: { key: 'cause.thirst' } } });
+  } else if (cause === 'poison') {
+    // Poisoned: what killed her was eating what she had never tasted.
+    move(fagi, 'tasteAt', 'safer', { key: 'habit.why.died', params: { cause: { key: 'cause.poison' } } });
   }
 }
 

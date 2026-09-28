@@ -12,6 +12,7 @@ import { verdict } from './learned/rules.js';
 import { THERMAL } from './config.js';
 import { organismOn } from './organism.js';
 import { energyMax } from './biology.js';
+import { nauseous } from './appetite.js';
 
 const r2 = (v) => Math.round(v * 100) / 100;
 
@@ -93,6 +94,7 @@ function organism(fagi) {
       thermalStress: r2(fagi.thermalStress / THERMAL.maxStress),
       sleepPressure: r2(fagi.sleepPressure),
       asleep: Boolean(fagi.sleeping),
+      nauseous: nauseous(fagi),
     },
     memory: {
       consolidations: fagi.consolidations ?? 0,

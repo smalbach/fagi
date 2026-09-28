@@ -21,7 +21,7 @@
 import { notice, rethink } from './attention.js';
 import { leaveWater, drink, eatCarriedFood, urgency, goToPantry, thermalReflex } from './decision/survive.js';
 import { rest, seekShelter, anticipate, sleep, thermoregulate, dusk } from './decision/endure.js';
-import { carry, pursue } from './decision/provide.js';
+import { carry, pursue, thirstSearch } from './decision/provide.js';
 import { persistOnScent, persistFromMemory } from './decision/clues.js';
 import { earlyDirective, safeDirective } from './decision/directive.js';
 import { exploreRule } from './decision/explore.js';
@@ -52,6 +52,7 @@ const RULES = [
   // 3. provide
   ['provide', 'directive', safeDirective],     // only answers with BACKEND.authority === 0 (the default)
   ['provide', 'carry', carry],
+  ['provide', 'thirstSearch', thirstSearch],   // only with APPETITE on
   ['provide', 'pursue', pursue],
   // clues of something she already perceived and lost, from the freshest to the oldest
   ['clues', 'scent', persistOnScent],

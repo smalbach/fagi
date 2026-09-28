@@ -6,6 +6,7 @@ import { waterZone, shorePoint, radiusOf } from '../obstacles.js';
 import { pct, reasonOf, pantryIntent, pressing } from './common.js';
 import { pursue } from './provide.js';
 import { habit } from '../habits.js';
+import { canEat } from '../appetite.js';
 
 // Trapped in deep water: the first thing is to get out, by the nearest shore. It's
 // instinct, not learned; what's learned is not to go in again (swim.js).
@@ -43,6 +44,8 @@ function needAtRisk(fagi, ctx) {
 // A ration she's already carrying is the closest resource possible.
 export function eatCarriedFood(fagi) {
   if (!fagi.carrying || fagi.hunger < CARRY.eatBelow) return null;
+  // Sick from the last bite, or still chewing: she keeps it for later (appetite.js).
+  if (!canEat(fagi, fagi.carrying.type)) return null;
   return {
     action: 'eatCarried',
     reason: reasonOf('reason.seekFood', { n: 1, score: '∞' }),
@@ -76,7 +79,7 @@ export function urgency(fagi, world, ctx, dt) {
 // First she goes back home and explores from there. Once in the nest, that trip back
 // is done until she drinks: otherwise, stepping outside would send her back
 // to the nest again, and she'd stay at the door coming and going until she died.
-function seekWaterNear(fagi, ctx) {
+export function seekWaterNear(fagi, ctx) {
   if (ctx.inNest) fagi.homeSearched = true;
   if (ctx.nest && !ctx.inNest && !fagi.homeSearched) {
     return {

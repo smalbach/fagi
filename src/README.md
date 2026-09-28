@@ -31,6 +31,7 @@ scent plumes → pheromone → Fagi.
 | `thermal.js` | her temperature, the light she feels, and what the cold, the nest and the dark teach her |
 | `sleep.js` + `consolidation.js` | sleep pressure, and sorting the day once per night asleep in the nest |
 | `experiment.js` | the night's questions become the next day's agenda; she answers them with a trial bite (`decision/experiment.js`) |
+| `appetite.js` | what the body lets her eat and when: handling time, malaise after a bad bite, one-trial aversion to a smell, dying of poisoning; and thirst that sends her looking for water |
 | `learned/` | the code Fagi writes on her own from what she learns (see below) |
 | `observation.js` + `backend/` + `cortex.js` | the external decision API (see below) |
 

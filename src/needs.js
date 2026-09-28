@@ -8,6 +8,7 @@ import { rememberPlace, waterPlaceKind } from './memory.js';
 import { snapshotBody } from './interoception.js';
 import { openEpisode, closeOnDeath } from './episodes.js';
 import { learn } from './brain.js';
+import { hungerCause } from './appetite.js';
 import { bodyOf, energyMax } from './biology.js';
 import { thermalFactors, thermalDeath } from './thermal.js';
 
@@ -38,7 +39,7 @@ export function resolveVitalFailure(fagi) {
   if (hungerOverflow < 1 && thirstOverflow < 1 && !thermal) return false;
 
   fagi.alive = false;
-  fagi.cause = thermal ?? (thirstOverflow > hungerOverflow ? 'thirst' : 'hunger');
+  fagi.cause = thermal ?? (thirstOverflow > hungerOverflow ? 'thirst' : hungerCause(fagi));
   fagi.hunger = Math.min(fagi.hunger, HUNGER.max);
   fagi.thirst = Math.min(fagi.thirst, THIRST.max);
   // If she died with a recent bite in her body, that bite takes the blame.

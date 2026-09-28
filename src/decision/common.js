@@ -4,6 +4,7 @@
 import { NEEDS, CARRY } from '../config.js';
 import { habit } from '../habits.js';
 import { verdict, edibleCount } from '../learned/rules.js';
+import { canEat } from '../appetite.js';
 
 export const pct = (u) => `${Math.round(u * 100)}%`;
 
@@ -29,8 +30,10 @@ export function pantryIntent(fagi, ctx) {
   if (!ctx.nest || ctx.inNest) return null;
   // What she believes she has stored. If she's wrong, she finds out on arrival: entering
   // the nest rewrites fagi.pantry and the next decision is already the right one.
+  // The same test the nest applies when she is inside (nest.js useNest), or
+  // she walks in, finds nothing she can eat, walks out and is sent back.
   const has = Object.entries(fagi.pantry).some(
-    ([type, amount]) => amount > 0 && verdict(fagi, 'eat', type) !== 'avoid'
+    ([type, amount]) => amount > 0 && verdict(fagi, 'eat', type) !== 'avoid' && canEat(fagi, type)
   );
   if (!has) return null;
   return {
