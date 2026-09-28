@@ -3,7 +3,10 @@
 // once male (same map, same random stream), over a battery of worlds. Nothing
 // here decides anything: it runs the organism and compares.
 //
-//   node scripts/sex-battery.js [--lives 60] [--jobs 12] [--out research/results/sex]
+//   node scripts/sex-battery.js [--lives 60] [--jobs 12] [--out research/results/sex] [--current]
+//
+// By default it is the organism as it was measured in §25.10. --current runs
+// it as it is today (every piece of the organism on); give it another --out.
 //
 // Resumable like research/organism/run.js: every piece is its own process and
 // file, and a rerun skips what is done. Then it writes report.md.
@@ -47,9 +50,12 @@ const argv = process.argv.slice(2);
 const opt = (name, dflt) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : dflt);
 
 if (argv[0] === '--piece') {
-  const [, scenario, sex, from, to, file] = argv;
+  const [, scenario, sex, from, to, file, current] = argv;
   enableOrganism();
-  CONFIG.CONCEPT.enabled = 0;   // measured before things and concepts existed
+  if (current !== 'current') {
+    CONFIG.CONCEPT.enabled = 0;   // measured before things and concepts existed
+    CONFIG.THERMAL.voluntary = 0; // and before the voluntary thermal reflex
+  }
   CONFIG.MAPGEN.species = SPECIES;
   for (const [path, value] of Object.entries(SCENARIOS[scenario])) {
     const [block, key] = path.split('.');
@@ -86,7 +92,7 @@ async function worker() {
   while (todo.length) {
     const [sc, sex, from, to] = todo.shift();
     const file = part(sc, sex, from);
-    await run('node', [self, '--piece', sc, sex, String(from), String(to), `${file}.tmp`], { maxBuffer: 1 << 26 });
+    await run('node', [self, '--piece', sc, sex, String(from), String(to), `${file}.tmp`, argv.includes('--current') ? 'current' : ''], { maxBuffer: 1 << 26 });
     renameSync(`${file}.tmp`, file);
     done += 1;
     console.log(`${new Date().toISOString()} ${sc} ${sex} ${from}-${to} (${done}/${total})`);

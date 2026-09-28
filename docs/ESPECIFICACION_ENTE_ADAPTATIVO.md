@@ -1571,6 +1571,7 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] El frío aumenta el hambre y reduce la velocidad; el calor aumenta la sed.
 - [x] El nido como refugio térmico; la copa de los árboles como sombra.
 - [x] Decisiones: reflejo (`thermalReflex`, nivel sobrevivir) y reglas aprendidas `thermal` y `dusk` (nivel aguantar).
+- [x] El reflejo salta también por la temperatura del cuerpo, antes de cualquier daño: el máximo y el mínimo térmicos voluntarios (§25.10).
 - [x] Visión reducida de noche.
 - [x] HUD «Día y cuerpo», capa de noche y crepúsculo en el render, narración (amanecer, anochecer, primeras lecciones de frío, calor, refugio y oscuridad) y ajustes.
 - [x] Grabación y replay.
@@ -1886,7 +1887,19 @@ En todos los escenarios la hembra pasa menos tiempo con estrés térmico (su ais
 
 **Se cumple.** Ningún sexo domina: cada uno tiene un clima donde sobrevive claramente mejor (la hembra en el frío, el macho en el calor), el macho explora y encuentra más (su velocidad) y en cinco de los siete escenarios la supervivencia es comparable. La ventaja metabólica de la hembra no aparece en la hambruna, porque ahí también se muere sobre todo por veneno.
 
-El resultado del calor merece una explicación, porque se revisó por si era un artefacto. El aire llega a 43 °C la primera tarde. El reflejo que la lleva al nido salta con el 70 % del estrés letal, y dentro del nido el estrés sigue subiendo mientras el cuerpo esté por encima de 33 °C. Con ese margen, se salva quien se enfría deprisa. El aislamiento que protege a la hembra del frío es el que le impide soltar el calor. Es física coherente, no un error, pero el reflejo tardío sí es poco realista (§25.3). Se probó que buscar sombra por reflejo no cambia nada: el nido suele estar más cerca que los árboles, y a 43 °C la sombra no basta. Por eso se descartó.
+El resultado del calor merece una explicación, porque se revisó por si era un artefacto. El aire llega a 43 °C la primera tarde. El reflejo que la lleva al nido salta con el 70 % del estrés letal, y dentro del nido el estrés sigue subiendo mientras el cuerpo esté por encima de 33 °C. Con ese margen, se salva quien se enfría deprisa. El aislamiento que protege a la hembra del frío es el que le impide soltar el calor. Es física coherente, no un error, pero el reflejo tardío sí era poco realista. Se probó que buscar sombra por reflejo no cambia nada: el nido suele estar más cerca que los árboles, y a 43 °C la sombra no basta. Por eso se descartó.
+
+**Corregido: el máximo térmico voluntario.** Un ectotermo real huye del calor, o del frío, al llegar a su temperatura corporal voluntaria máxima o mínima, bastante antes de la letal. Ahora el reflejo salta también cuando su cuerpo llega a `THERMAL.voluntaryMax` (38 °C) o baja de `THERMAL.voluntaryMin` (9 °C); con `THERMAL.voluntary = 0` vuelve al reflejo de antes. Medido con las mismas 120 vidas de la batería (sin cosas):
+
+| Clima | Sexo | Vida: antes → ahora | Muertes térmicas |
+|---|---|---|---|
+| templado | ambos | idéntica: el reflejo nunca se activa | — |
+| calor | hembra | 534 → 1532 s | calor 99 → 65 |
+| calor | macho | 1439 → 1756 s | calor 29 → 9 |
+| frío | hembra | 1403 → 1578 s | frío 43 → 36 |
+| frío | macho | 901 → 1288 s | frío 81 → 62 |
+
+En los climas extremos sigue muriendo de calor o de frío, y cada sexo conserva su clima, pero ya no por llegar tarde: el juicio sobre la fruta también mejora, porque vive para aprender (calor, hembra: 0,62 → 0,86).
 
 ### 25.11 Cosas y conceptos: resultado
 
@@ -1913,7 +1926,6 @@ Protocolo congelado en `acd96a4` antes de correr (`docs/research/concepts-protoc
 
 ### 25.3 Pendiente
 
-- Fase 1: el reflejo térmico salta con el 70 % del estrés letal, y con calor extremo ya no deja margen: se salva quien llega al nido y se enfría deprisa (§25.10). Un animal real huye del calor mucho antes, a su «máximo térmico voluntario». Candidato a revisar, disparándolo por la temperatura corporal y no por el daño acumulado, con su propia medición.
 - Fase 3: medir la retención a varios días y si lo que se aprende con bocados de prueba llega a reglas; convertir lo que sabe de la fruta en supervivencia (hoy mueren de hambre y sed, no por la fruta).
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
 - Fase 5: densodependencia gradual en lugar del tope del nido, fertilidad que decae con la edad, `health` como variable propia, transmisión social de la aversión alimentaria (§25.8) y, en el juego, seguir a la descendencia cuando muere la Fagi seguida (hoy se cierra la grabación y la población sigue en pantalla).
@@ -1926,7 +1938,7 @@ Protocolo congelado en `acd96a4` antes de correr (`docs/research/concepts-protoc
 
 ### 25.4 Cómo reproducir
 
-Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas. Todas las tablas anteriores al §25.11 se midieron sin cosas ni conceptos: a los comandos de `batch.js`, `sleep-lab.js`, `autopsy.js` y `population.js` hay que añadirles `--set CONCEPT.enabled=0` (la evaluación congelada y la batería de sexos ya lo apagan solas). `LIFE` solo afecta a quien pertenece a una población que se reproduce, así que no cambia las vidas individuales; en cualquier ejecución con colonia (`--colony`, `--generations`) sí la pone a criar.
+Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas. Todas las tablas anteriores al §25.11 se midieron sin cosas ni conceptos y con el reflejo térmico antiguo: a los comandos de `batch.js`, `sleep-lab.js`, `autopsy.js` y `population.js` hay que añadirles `--set CONCEPT.enabled=0 --set THERMAL.voluntary=0`; la del §25.11, solo `--set THERMAL.voluntary=0`. Las evaluaciones congeladas y la batería de sexos ya lo hacen solas. `LIFE` solo afecta a quien pertenece a una población que se reproduce, así que no cambia las vidas individuales; en cualquier ejecución con colonia (`--colony`, `--generations`) sí la pone a criar.
 
 ```text
 npm test
@@ -1988,7 +2000,7 @@ node research/concepts/analyze.js research/results/concepts
 node scripts/concept-lab.js --lives 48                  # banco exploratorio
 node scripts/concept-lab.js --lives 48 --dims color --turn
 
-# §25.10 batería de sexos
+# §25.10 batería de sexos (--current: con el organismo de hoy)
 node scripts/sex-battery.js --lives 120 --jobs 16
 
 # generaciones con reproducción sexual, creadas por lotes (sin cría dentro del mundo)

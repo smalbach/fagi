@@ -22,6 +22,7 @@ if (argv[0] === '--piece') {
   const [, condition, family, world, from, to, file, offset = '0'] = argv;
   const k = Number(offset);
   enableOrganism();
+  CONFIG.THERMAL.voluntary = 0;   // came after this protocol was frozen
   CONFIG.MAPGEN.species = SPECIES;
   CONFIG.CONCEPT.dims = FAMILIES[family];
   for (const [path, value] of Object.entries(CONDITIONS[condition])) {

@@ -685,6 +685,11 @@ export const THERMAL = {
   refugeSample: 4,    // seconds inside the nest before judging whether it helped
   instinct: 0.15,     // innate urge to move when too cold or too hot (she does not know where)
   reflex: 0.7,        // stress fraction at which she heads home whatever pulls her out
+  voluntary: 1,       // 1 = her body's temperature also sets the reflex off, before any harm:
+                      // the voluntary thermal maximum and minimum of real ectotherms
+                      // (0 = only the harm already done, as measured up to §25.11)
+  voluntaryMax: 38,   // °C of her body from which she heads for cover
+  voluntaryMin: 9,    // °C of her body under which she does
   duskSense: 0.6,     // light under which she notices it falling
   behave: 1,          // 0 = she feels and learns it but never acts on it (the ablation)
 };

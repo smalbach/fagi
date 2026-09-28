@@ -35,6 +35,7 @@ function configure(settings) {
   // Things and concepts came after this protocol was frozen: the organism it
   // evaluated had none (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md §12.8).
   CONFIG.CONCEPT.enabled = 0;
+  CONFIG.THERMAL.voluntary = 0;   // and the thermal reflex went off only with harm done
   CONFIG.MAPGEN.species = SPECIES;
   for (const [path, value] of Object.entries(settings)) {
     const [block, key] = path.split('.');

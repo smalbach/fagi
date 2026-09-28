@@ -115,9 +115,16 @@ export function goToPantry(fagi, world, ctx) {
 // her outside. Innate, like leaving deep water; it lets go only once she is
 // comfortable again, so she does not bounce at the threshold. What already
 // kills sooner (critical hunger or thirst) still comes first.
+//
+// It goes off with the harm already done (THERMAL.reflex) or, before any, when
+// her body reaches the temperature real ectotherms flee at (THERMAL.voluntary):
+// well short of what kills, so there is still time to get home.
+const tooFar = (fagi) => THERMAL.voluntary
+  && (fagi.temperature >= THERMAL.voluntaryMax || fagi.temperature <= THERMAL.voluntaryMin);
+
 export function thermalReflex(fagi, world, ctx) {
   if (!THERMAL.enabled || !THERMAL.behave || !ctx.nest) return null;
-  if (fagi.thermalStress >= THERMAL.reflex * THERMAL.maxStress) fagi.warmingUp = true;
+  if (fagi.thermalStress >= THERMAL.reflex * THERMAL.maxStress || tooFar(fagi)) fagi.warmingUp = true;
   else if (fagi.warmingUp && fagi.thermalStress <= 0 && !fagi.thermalFeel) fagi.warmingUp = false;
   if (!fagi.warmingUp || pressing(ctx)) return null;
   const params = { stress: pct(fagi.thermalStress / THERMAL.maxStress) };
