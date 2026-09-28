@@ -85,6 +85,16 @@ interaction is not a pure common-random-numbers contrast.
 
 ## Game confirmation
 
-Running (four processes, 75 lineages per format, seed 5000, 1800 s lives,
-inversion at generation 4). Results will be added here, analysed with
+Running (75 lineages per format, seeds 5000–5074, 1800 s lives, inversion
+at generation 4). Results will be added here, analysed with
 `node research/embodied.js … --confirm` as preregistered.
+
+**Deviation in how it is run, not in what.** The four preregistered
+`scripts/batch.js --runs 75` processes were killed at lineage 2 when the
+container restarted. They are run instead by `research/game-confirm.js`,
+which runs each lineage as its own `--runs 1 --seed 5000+i` process with
+the same options and skips lineages already done, so an interruption loses
+at most the lineages in progress. A lineage depends only on its seed and the
+options (checked: lineage 2 of a two-lineage process and the same seed run
+alone come out byte-identical), so the lineages and the analysis are the
+same ones.
