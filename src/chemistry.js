@@ -32,7 +32,7 @@ export const COLOR_HEX = {
 export const SHAPE_PAINTER = { round: 'berry', drop: 'resin', crystal: 'spark', orb: 'eye' };
 
 // What each smell class does to hunger. Negative feeds.
-const FEED = { nourishing: -35, mild: -12, poison: 25 };
+export const FEED = { nourishing: -35, mild: -12, poison: 25 };
 const POISON_EFFECTS = [{ stat: 'speed', mult: 0.6, sec: 5 }];
 
 // What a color may carry on top.

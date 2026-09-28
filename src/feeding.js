@@ -62,10 +62,13 @@ export function eatCarried(fagi) {
 // Eating is physics: the bite does what it does to the body. What Fagi learns
 // from it doesn't come from here or from the food's spec: it comes from comparing how
 // she was before with how she feels afterwards (episodes.js).
-export function eat(fagi, type) {
+//
+// `hunger` overrides what this bite does to hunger (research/ uses it for
+// noisy outcomes: the same fruit does not always do the same).
+export function eat(fagi, type, { hunger = null } = {}) {
   const spec = POINT_TYPES[type];
   const before = snapshotBody(fagi);
-  fagi.hunger = Math.min(HUNGER.max, Math.max(0, fagi.hunger + spec.hunger));
+  fagi.hunger = Math.min(HUNGER.max, Math.max(0, fagi.hunger + (hunger ?? spec.hunger)));
   applyEffects(fagi, type);
   const ep = openEpisode(fagi, { action: 'eat', key: type, before });
   fagi.eaten += 1;

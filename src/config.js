@@ -259,6 +259,8 @@ export const CUES = {
   induce: 2,          // trait rules: 0 = one trait at a time, from its weight; 1 = induced from
                       // whole species (learned/induce.js); 2 = both
   induceMin: 2,       // species that must agree before she generalizes from them
+  checkTold: 1,       // a trait rule she did not live dies when more fruit she tastes
+                      // go against it than for it (synth.js checkTold)
 };
 
 // Habits (habits.js): the thresholds of her behavior she tunes from what

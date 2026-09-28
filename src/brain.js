@@ -4,7 +4,7 @@
 import { BRAIN, CUES, SOCIAL, MEMORY } from './config.js';
 import { createMemory, recall, weight, curious, reinforce, reinforceSeen } from './memory.js';
 import { createRules } from './learned/rules.js';
-import { synthAfterLearn, synthCues, synthInduced } from './learned/synth.js';
+import { synthAfterLearn, synthCues, synthInduced, checkTold } from './learned/synth.js';
 import { createCues, cuesOf, learnCues, predict, wariness } from './learned/cues.js';
 import { createSynapses, wire } from './synapses.js';
 import { logBite } from './learned/explain.js';
@@ -118,6 +118,7 @@ export function learn(brain, key, reward, now, because = []) {
     // one trait at a time from its weight.
     if (CUES.induce !== 1) synthCues(brain, traits, because, now);
     if (CUES.induce >= 1) synthInduced(brain, key, because, now);
+    checkTold(brain, key, now);
   }
   brain.version = (brain.version ?? 0) + 1;
   // Learning also wires: the concept to what the body felt.

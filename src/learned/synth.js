@@ -7,7 +7,8 @@
 
 import { LEARN, POINT_TYPES, CUES, MEMORY } from '../config.js';
 import { weight } from '../memory.js';
-import { activeRule, retireRule, upsertRule } from './rules.js';
+import { activeRule, retireRule, upsertRule, traitsMatch } from './rules.js';
+import { cuesOf } from './cues.js';
 import { induce } from './induce.js';
 
 export const SCOPE = { avoid: ['eat', 'store', 'pursue'], prefer: ['eat', 'store'] };
@@ -210,3 +211,36 @@ function synth(brain, subject, w, stage, tries, sensations, now, cue = null) {
     }
   }
 }
+
+// A rule about traits she did not live (a sister told her, an elder taught
+// her) is put to the test by every fruit it covers that she then tastes: her
+// own belief about that fruit agrees with it or not. More fruit against it
+// than for it, and she drops it. Without this, a rule about two traits she was
+// told could never die: no single trait's weight owns it (synthCues) and it is
+// not one of her induced rules (synthInduced).
+//
+// The tally lives in brain.checks, not in the rule: it is hers, not the
+// teller's. Only what she tasted counts, never what she saw.
+export function checkTold(brain, key, now) {
+  if (!CUES.checkTold) return;
+  const traits = cuesOf(key);
+  const fact = brain.facts[key];
+  if (!traits.length || !fact || !(fact.tries > 0)) return;
+  const w = weight(brain, key);
+  const checks = brain.checks ?? (brain.checks = {});
+  for (const r of brain.rules.list) {
+    if (r.retired || !r.source || r.source.kind === 'saw' || !r.when.all) continue;
+    if (!traitsMatch(r, key, traits)) continue;
+    const agrees = r.verdict === 'avoid' ? w < 0 : w > 0;
+    const c = checks[r.id] ?? (checks[r.id] = { pro: 0, con: 0, keys: [] });
+    if (c.keys.includes(key)) continue;   // one vote per fruit
+    c.keys.push(key);
+    if (agrees) c.pro += 1; else c.con += 1;
+    if (c.con > c.pro) {
+      retireRule(brain.rules, r, now);
+      markRule(brain, r.id, 'retired', key, r.verdict, [{ sense: 'contradiction', v: Math.round(w * 100) / 100 }]);
+      delete checks[r.id];
+    }
+  }
+}
+
