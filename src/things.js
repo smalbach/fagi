@@ -16,10 +16,11 @@
 // Nothing here decides anything: it places the things and says what happens
 // when she touches or nibbles one. With CONCEPT off no thing is ever placed.
 
-import { CONCEPT, THIRST, OBJECT_TYPES, FAGI, MAPGEN, WORLD } from './config.js';
+import { CONCEPT, THIRST, OBJECT_TYPES, FAGI, MAPGEN, WORLD, HEALTH } from './config.js';
 import { COLOR_HEX } from './chemistry.js';
 import { addObject, removeObject, record, nestOf } from './world.js';
 import { radiusOf } from './obstacles.js';
+import { hurt } from './health.js';
 
 export const THING_TRAITS = {
   color: Object.keys(COLOR_HEX),
@@ -166,6 +167,7 @@ export function contact(fagi, world, obj, act) {
   const felt = act === 'touch' ? TOUCH[aff] : MOUTH[aff];
   if (felt === 'pain') {
     fagi.energy = Math.max(0, fagi.energy - CONCEPT.sting);
+    hurt(fagi, HEALTH.sting, 'sting');
   } else if (felt === 'sap') {
     if (isDry(world, obj)) return 'dry';
     fagi.thirst = Math.max(0, fagi.thirst - CONCEPT.sap);

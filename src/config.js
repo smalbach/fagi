@@ -906,3 +906,26 @@ export const CONCEPT = {
   seen: 0.6,
   generalize: 1,
 };
+
+// Health (health.js; spec §25.15): the harm her body has taken and not yet
+// mended. Part of the organism, off by default.
+//   sting       : health a sting takes (things.js)
+//   poison      : health a whole poisonous fruit takes (a trial bite, its share)
+//   thermalFrom : thermal stress (fraction of the lethal) from which heat or cold harm
+//   thermal     : health per second that harms
+//   heal        : health mended per second while nothing presses; restHeal × in the nest
+//   slowFrom    : below this share of health she walks slower, down to `slowest` at none
+//   breed       : share of health she needs to breed (§10.1)
+export const HEALTH = {
+  enabled: 0,
+  max: 100,
+  sting: 12,
+  poison: 10,
+  thermalFrom: 0.5,
+  thermal: 1.5,
+  heal: 0.05,
+  restHeal: 3,
+  slowFrom: 0.5,
+  slowest: 0.6,
+  breed: 0.5,
+};

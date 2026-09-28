@@ -9,7 +9,8 @@
 
 import { renderRule } from './learned/dsl.js';
 import { verdict } from './learned/rules.js';
-import { THERMAL, CONCEPT } from './config.js';
+import { THERMAL, CONCEPT, HEALTH } from './config.js';
+import { healthU } from './health.js';
 import { organismOn } from './organism.js';
 import { energyMax } from './biology.js';
 import { nauseous } from './appetite.js';
@@ -112,6 +113,7 @@ function organism(fagi) {
       sleepPressure: r2(fagi.sleepPressure),
       asleep: Boolean(fagi.sleeping),
       nauseous: nauseous(fagi),
+      ...(HEALTH.enabled ? { health: r2(healthU(fagi)) } : {}),
     },
     memory: {
       consolidations: fagi.consolidations ?? 0,

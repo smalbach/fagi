@@ -25,6 +25,7 @@ if (argv[0] === '--piece') {
   CONFIG.SLEEP.replay = 4;        // on when this protocol was frozen (it turned it off, §25.13)
   CONFIG.CONCEPT.lookAgain = 0;   // she did not go back to look at drained sap
   CONFIG.CONCEPT.lining = 0;      // nor line the nest
+  CONFIG.HEALTH.enabled = 0;      // and health did not exist
   CONFIG.MAPGEN.species = SPECIES;
   for (const [path, value] of Object.entries(INDIVIDUAL[condition])) {
     const [block, key] = path.split('.');

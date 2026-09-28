@@ -662,6 +662,7 @@ export default {
   'brainmap.rule.thirstSearch': 'con sed y sin saber dónde hay agua: dejar de recolectar y buscarla',
   'reason.thirstSearch': 'sed {thirst} y no sabe dónde hay agua: la busca',
   'cause.poison': 'envenenada',
+  'cause.wounds': 'de sus heridas',
   'cause.cold': 'de frío',
   'cause.heat': 'de calor',
   'stat.stage': 'Etapa',

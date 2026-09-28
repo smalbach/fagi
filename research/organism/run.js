@@ -39,6 +39,7 @@ function configure(settings) {
   CONFIG.LIFE.gradual = 0;        // and only adults bred, braked only by the nest's ceiling
   CONFIG.SLEEP.askAlways = 0;     // and the night asked only after a day with bites
   CONFIG.SLEEP.replay = 4;        // and rehearsed the remembered fruit four rounds
+  CONFIG.HEALTH.enabled = 0;      // and health did not exist
   CONFIG.MAPGEN.species = SPECIES;
   for (const [path, value] of Object.entries(settings)) {
     const [block, key] = path.split('.');

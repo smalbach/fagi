@@ -660,6 +660,7 @@ export default {
   'brainmap.rule.thirstSearch': 'thirsty and no idea where water is: stop gathering and look for it',
   'reason.thirstSearch': 'thirst {thirst} and no idea where water is: looks for it',
   'cause.poison': 'of poisoning',
+  'cause.wounds': 'of her wounds',
   'cause.cold': 'of cold',
   'cause.heat': 'of heat',
   'stat.stage': 'Stage',

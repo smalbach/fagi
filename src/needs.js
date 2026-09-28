@@ -10,6 +10,7 @@ import { openEpisode, closeOnDeath } from './episodes.js';
 import { learn } from './brain.js';
 import { hungerCause } from './appetite.js';
 import { oldAge } from './lifecycle.js';
+import { woundsCause } from './health.js';
 import { bodyOf, energyMax } from './biology.js';
 import { thermalFactors, thermalDeath } from './thermal.js';
 
@@ -36,7 +37,7 @@ export function resolveVitalFailure(fagi) {
   // Cold or heat kill only if hunger and thirst have not already.
   const hungerOverflow = fagi.hunger / HUNGER.max;
   const thirstOverflow = fagi.thirst / THIRST.max;
-  const thermal = hungerOverflow < 1 && thirstOverflow < 1 ? thermalDeath(fagi) ?? (oldAge(fagi) ? 'age' : null) : null;
+  const thermal = hungerOverflow < 1 && thirstOverflow < 1 ? thermalDeath(fagi) ?? woundsCause(fagi) ?? (oldAge(fagi) ? 'age' : null) : null;
   if (hungerOverflow < 1 && thirstOverflow < 1 && !thermal) return false;
 
   fagi.alive = false;

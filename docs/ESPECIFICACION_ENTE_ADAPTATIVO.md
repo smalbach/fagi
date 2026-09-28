@@ -224,7 +224,7 @@ No es necesario implementar todas estas variables en una sola entrega. Sí deben
 | `energy` máxima | `energyMax(fagi)` = `ENERGY.max × body.energyMax` |
 | informe nocturno | `fagi.lastNightReport`, `fagi.nightReports`, `fagi.consolidations` |
 
-`fertility`, `gestation` y `health` siguen sin implementar (§25).
+`fertility` es `fertility(fagi)` (`lifecycle.js`, §25.14); la gestación es el huevo en el nido (`reproduction.js`); `health` es `fagi.health` (`health.js`, §25.15).
 
 ---
 
@@ -1622,6 +1622,7 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] Parentesco y consanguinidad registrados; extinción como resultado válido.
 - [x] La población se mantiene varias generaciones sin que el runner cree ninguna (§25.8).
 - [x] Fertilidad que decae con la edad y densodependencia gradual; en el juego, se sigue a la descendencia (§25.14).
+- [x] Salud como variable propia: daño, curación, cría y elección de pareja (§25.15).
 
 **Fase 7: ciencia reproducible**
 - [x] Baselines: agente aleatorio y agente de reglas fijas sin aprendizaje (`BASELINE`).
@@ -2013,7 +2014,6 @@ La población se regula antes de chocar con el techo. Hay más generaciones porq
 ### 25.3 Pendiente
 
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
-- Fase 5: `health` como variable propia (hoy el daño va a la energía, al estrés térmico o al hambre).
 - Fase 6, lo que queda del §12.3:
   - que el agua, el nido, los árboles y las rocas dejen de ser categorías innatas (hoy solo las cosas lo son);
   - combinaciones más ricas que forrar el nido: una cosa que solo sirve junto a otra fuera de casa (romper una contra otra, por ejemplo), con transporte y acción propios.

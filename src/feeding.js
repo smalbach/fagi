@@ -1,6 +1,7 @@
 // Eating and carrying. The rule is simple: when hungry you eat, when not hungry you work.
 
-import { HUNGER, CARRY, POINT_TYPES } from './config.js';
+import { HUNGER, CARRY, POINT_TYPES, HEALTH } from './config.js';
+import { hurt } from './health.js';
 import { habit } from './habits.js';
 import { pointTouching, removePoint } from './world.js';
 import { applyEffects } from './effects.js';
@@ -89,6 +90,7 @@ export function eat(fagi, type, { hunger = null, portion = 1 } = {}) {
   const ep = openEpisode(fagi, { action: 'eat', key: type, before, portion });
   fagi.eaten += 1;
   afterBite(fagi, ep.reward, added, type);
+  if (added > 0) hurt(fagi, HEALTH.poison * portion, 'poison');   // poison harms her too (health.js)
   fagi.lastMeal = {
     n: fagi.eaten, type,
     beliefBefore: ep.change.before.value,

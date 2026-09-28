@@ -32,6 +32,8 @@ import { createGenome, recombine, applyGenome, teach } from './generations.js';
 import { drawLifespan, lifeAge, fertility } from './lifecycle.js';
 import { cycleAt } from './cycle.js';
 import { nestWarmth } from './things.js';
+import { healthU } from './health.js';
+import { HEALTH } from './config.js';
 import { edibleCount } from './learned/rules.js';
 
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -39,7 +41,8 @@ const r2 = (v) => Math.round(v * 100) / 100;
 // How well she looks, 0-1: what anyone watching her can see.
 export function looksWell(f) {
   const need = Math.max(f.hunger / HUNGER.max, f.thirst / THIRST.max);
-  return Math.max(0, Math.min(1, (1 - need) * 0.6 + (f.energy / energyMax(f)) * 0.4));
+  // With HEALTH, how whole she is shows too (§10.2).
+  return Math.max(0, Math.min(1, ((1 - need) * 0.6 + (f.energy / energyMax(f)) * 0.4) * healthU(f)));
 }
 
 // The founders: grown, with a lifespan each, and the start of the lineage.
@@ -100,6 +103,7 @@ function recovery(f, crowd) {
 // Can she breed right now (§10.1)? `nest` is the nest object.
 function ready(f, world, nest, crowd = 1) {
   if (!f.alive || f.swimming || !f.sex) return false;
+  if (HEALTH.enabled && healthU(f) < HEALTH.breed) return false;   // too hurt to breed (§10.1)
   if (LIFE.gradual ? fertility(f) <= 0 : f.lifeStage !== 'adult') return false;
   if (nestUnder(f, world) !== nest) return false;
   if (LIFE.gradual) {

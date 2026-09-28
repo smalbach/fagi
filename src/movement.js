@@ -12,6 +12,7 @@ import { fearsDeep } from './swim.js';
 import { bodyOf } from './biology.js';
 import { thermalFactors } from './thermal.js';
 import { lifeSpeed } from './lifecycle.js';
+import { healthSpeed } from './health.js';
 
 export function turnTowards(fagi, targetAngle, dt) {
   const diff = normalizeAngle(targetAngle - fagi.angle);
@@ -66,7 +67,7 @@ export function advance(fagi, world, dt) {
   // Without energy she drags herself: she doesn't die, but everything costs her double.
   const weakness = fagi.energy <= 0 ? ENERGY.weakSpeed : 1;
   // Her own legs (biology.js) and the cold stiffening them (thermal.js).
-  const body = bodyOf(fagi).speed * thermalFactors(fagi).speed * lifeSpeed(fagi);
+  const body = bodyOf(fagi).speed * thermalFactors(fagi).speed * lifeSpeed(fagi) * healthSpeed(fagi);
   const speed = FAGI.speed * statMult(fagi, 'speed') * weakness * drag(world, fagi) * body;
   const before = { x: fagi.x, y: fagi.y };
   fagi.stride += speed * dt;
