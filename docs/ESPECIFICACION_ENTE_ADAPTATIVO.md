@@ -1857,7 +1857,7 @@ Fagi supera claramente a los dos baselines, y aprender (del cuerpo y de los rasg
 
 1. **Lo que más aporta es aprender por rasgos**, y después la curiosidad y los experimentos. Es lo que convierte pocas experiencias en juicio sobre lo nunca probado.
 2. **El sueño aporta por la exploración, no por el juicio.** Sin sueño o sin consolidar, prueba menos y encuentra menos especies buenas (se pierde la agenda) y recibe más veneno. Pero su juicio queda igual.
-3. **Consolidar vuelve rígidas las creencias.** Cuando el mundo se invierte, quien no consolida sobrevive más y juzga mejor el mundo nuevo. Es el viejo dilema entre estabilidad y plasticidad: lo que el sueño afianza cuesta desaprenderlo. No estaba previsto y es de los resultados más interesantes.
+3. **Cuando el mundo se invierte, quien no consolida juzga mejor el mundo nuevo.** Se interpretó como rigidez de lo consolidado (el dilema entre estabilidad y plasticidad). **El §25.13 lo corrige**: es una confusión por exposición. Con el sueño explora más y conoce el doble de fruta buena, así que tiene el doble de creencias que dar la vuelta. Por cada fruta conocida, desaprende igual.
 4. **El replay, tal como está, empeora el juicio en los dos mundos.** Esto explica la pregunta abierta del §25.7 (consolidar sin experimentos daba peor juicio que no consolidar). En el laboratorio mejoraba la predicción por rasgos, pero en el juego mueve pesos de los que también depende la aversión, y el resultado neto es peor. Como es exploratorio, se deja encendido hasta confirmarlo, y es el candidato claro para el siguiente protocolo.
 5. **La mente nocturna local aporta poco pero algo.** El apetito confirma su valor.
 6. El olvido y la variación térmica no cambian el juicio. Quitar el olvido reduce el estrés térmico: olvidar lecciones térmicas tiene un coste.
@@ -1922,7 +1922,7 @@ Protocolo congelado en `acd96a4` antes de correr (`docs/research/concepts-protoc
 
 - **En un mundo estable la volatilidad no hace nada**: nunca hay una sorpresa y `noVolatility` da exactamente lo mismo que `full`.
 - **Cuando el mundo cambia, nada se lo avisa hasta que algo falla.** A primera vista, las clases que brotan justo al cambiar las juzga como el azar (0,24). No hay de dónde saberlo.
-- **Plasticidad con coste.** Con volatilidad vuelve a examinar lo que sabía, lo rehace (5,3 conceptos rehechos; 0,5–0,7 retirados por fallar) y acaba clasificando bien, pero se pica casi el doble (6,4 frente a 3,5). Sin volatilidad se pica menos, pero sigue creyendo lo que ya no es cierto (precisión 0,54). Es el mismo dilema entre estabilidad y plasticidad que la consolidación nocturna en el §25.9, esta vez resuelto con una señal de cambio y no con menos memoria.
+- **Plasticidad con coste.** Con volatilidad vuelve a examinar lo que sabía, lo rehace (5,3 conceptos rehechos; 0,5–0,7 retirados por fallar) y acaba clasificando bien, pero se pica casi el doble (6,4 frente a 3,5). Sin volatilidad se pica menos, pero sigue creyendo lo que ya no es cierto (precisión 0,54). Es un dilema real entre estabilidad y plasticidad, resuelto con una señal de cambio y no con menos memoria. (En la fruta, lo que parecía el mismo dilema resultó ser otra cosa: §25.13.)
 - **Supervivencia.** Las cosas apenas la cambian: muere sobre todo por el veneno de la fruta, y las diferencias de vida entre condiciones van en direcciones distintas según la familia. Aprender lo que permiten las cosas mejora el juicio y el uso, no la supervivencia, en este mundo.
 - **Del desarrollo:** sin clases que brotan tarde, examina todo el mapa en los primeros días y los conceptos apenas llegan a usarse. Eso motivó las clases tardías, que son la prueba real de generalizar.
 
@@ -1963,14 +1963,18 @@ Con el organismo de hoy y vidas de desarrollo, los dos primeros efectos se repit
 | F3 | consolidar la hace más lenta para juzgar por el mundo nuevo | +0,203 [0,168, 0,239] | sí |
 | F4 | sin memoria episódica la noche sigue preguntando, y encuentra más fruta buena que sin noche | +0,448 [0,380, 0,517] | sí |
 
+El efecto del replay no tiene la confusión que se describe más abajo para F3: sin replay encuentra las mismas especies buenas (0,951 frente a 0,947), así que conoce lo mismo y juzga peor con el replay.
+
 **Decisión, tal como estaba escrita en el protocolo: el replay se apaga por defecto** (`SLEEP.replay = 0`). Lo que el laboratorio mostraba (repasar la fruta recordada reparte mejor la culpa entre rasgos, §25.2) no compensa en el juego: el mismo peso que mueve lo usa también la aversión. Queda como opción, y las evaluaciones congeladas lo mantienen encendido para reproducirse.
 
 **Exploratorio:**
 
-- **La rigidez se ve en la conducta.** Tras la inversión, con consolidación vuelve a comer la fruta que antes le iba bien y ahora es dañina: 2,58 bocados repetidos frente a 0,86 sin consolidación. Además toma más veneno después del cambio (2,62 frente a 1,43). Consolidar sube la confianza y las etapas de memoria de lo que el día confirmó, y eso lo vuelve más difícil de desaprender.
+- **Lo que parecía rigidez es exposición.** Tras la inversión, con consolidación vuelve a comer fruta que antes le iba bien y ahora es dañina: 2,58 bocados repetidos frente a 0,86 sin consolidación, y más veneno después del cambio (2,62 frente a 1,43). Pero con consolidación conocía el doble de fruta buena cuando el mundo cambió. Por cada fruta buena conocida en ese momento, repite casi lo mismo con consolidación y sin ella: 0,76 frente a 0,73 (24 vidas de desarrollo por condición). Consolidar no vuelve las creencias más difíciles de desaprender. Hace que haya más creencias que desaprender. F3 se sostiene como hecho medido, pero su explicación no es la rigidez.
+- **Por qué repite: seguridad aprendida.** Casi todos los bocados repetidos se dan sin regla que lo impida y con el valor de esa fruta todavía positivo, no solo con hambre crítica. Un mal bocado no borra una larga historia de bocados buenos. En los animales reales pasa lo mismo: cuesta más condicionar aversión a un alimento familiar y seguro (seguridad aprendida o inhibición latente; Kalat y Rozin, 1973). Es realista, no un artefacto.
+- **Se probó una volatilidad para la fruta**, como la de las cosas: una sorpresa aceleraba el aprendizaje y frenaba el refuerzo nocturno. No cambió nada (2,33 bocados repetidos frente a 2,38) y se retiró. El problema no era la velocidad de aprender.
 - **Pero sin consolidación le va peor en un mundo estable.** Encuentra la mitad de las especies buenas (0,50 frente a 0,95), toma el triple de veneno y el 29 % muere, frente al 2 %. Lo que el sueño aporta es la agenda del día siguiente.
 - **Sin memoria episódica se comporta casi igual que sin replay.** Conserva la agenda y pierde el repaso y el refuerzo de lo que el día confirmó. La memoria episódica aporta su propio efecto, separado de la noche entera.
-- Las dos caras juntas son el dilema entre estabilidad y plasticidad. La salida realista sería la de las cosas (§25.11): ante una sorpresa, dudar de lo consolidado, en lugar de consolidar menos. Queda pendiente para la fruta.
+- **Balance.** El sueño aporta sobre todo la agenda del día siguiente. Lo que se creía su coste, la rigidez, era el precio de haber aprendido más.
 
 ### 25.3 Pendiente
 
