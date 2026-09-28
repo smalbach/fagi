@@ -26,6 +26,9 @@ Stated for the one-trait chemistry (`family: 'one'`), change at generation 6.
 - **H5 — the trap needs the old reason to point the wrong way.** The H2
   difference (`verdict` − `rule` in survivors) is larger under `invert` than
   under `rotate` and under `shift` (difference of paired differences).
+- **H6 — the trap kills by starvation, so it needs time.** The H2 difference
+  is larger with lives of 1800 s than of 900 s (difference of paired
+  differences), while the H3 difference (myths) holds at both.
 
 ## Secondary (exploratory, reported as such)
 
@@ -40,7 +43,8 @@ Stated for the one-trait chemistry (`family: 'one'`), change at generation 6.
 
 - Lab (`research/lab`), commit to be fixed at registration.
 - Factors: format {none, verdict, rule, evidence} × change {none, invert,
-  rotate, shift} × family {one, conj}: 32 cells.
+  rotate, shift} × family {one, conj} × life {900, 1800}: 64 cells.
+  Everything with `choices: 3` (several fruit met at once, as in the game).
 - Everything else at the lab's defaults (`research/lab/params.js`), budget 4.
 - **200 lineages per cell**, seeds 1001–1200, the same seeds in every cell.
   The pilot's smallest confirmatory effect (dz 0.54) needs 29; 200 gives 80%
@@ -54,8 +58,9 @@ Stated for the one-trait chemistry (`family: 'one'`), change at generation 6.
   sign-flip permutation test (10 000 permutations) on the per-seed
   differences, with its mean difference, 95% bootstrap interval and dz.
 - H5: the permutation test on per-seed differences of differences.
-- Holm correction over the confirmatory family (H1, H2 ×2, H3, H4 ×3, H5 ×2:
-  9 tests), α = .05.
+- H1–H5 are tested at life 1800; H6 compares 1800 with 900.
+- Holm correction over the confirmatory family (H1, H2 ×2, H3, H4 ×3, H5 ×2,
+  H6 ×2: 11 tests), α = .05.
 - No lineage is excluded. A generation where everyone died still counts (its
   successor is untaught).
 

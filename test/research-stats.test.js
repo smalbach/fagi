@@ -64,3 +64,15 @@ test('lineage outcomes: steady state without the founders, the shock, the recove
   assert.equal(o.recovery, 2);
   assert.ok(Math.abs(o['excess.harm'] - ((10 + 1 + 1) / 5 - 3 * 0.4)) < 1e-9);
 });
+
+test('an interaction is the difference of paired differences, seed by seed', async () => {
+  const { interaction } = await import('../research/analyze.js');
+  const cell = (format, life, xs) => ({ cell: { format, life }, seeds: [1, 2, 3, 4], values: { y: xs } });
+  const data = { cells: [
+    cell('verdict', 1800, [5, 6, 5, 6]), cell('rule', 1800, [1, 2, 1, 2]),
+    cell('verdict', 900, [5, 6, 5, 6]), cell('rule', 900, [4, 5, 4, 5]),
+  ] };
+  const r = interaction(data, { factor: 'format', a: 'verdict', b: 'rule', moderator: 'life', m1: 1800, m2: 900, outcome: 'y' });
+  assert.deepEqual(r.diffAt, { 1800: 4, 900: 1 });
+  assert.equal(r.diff, 3);
+});

@@ -176,6 +176,22 @@ export function comparisonTable(comparisons, factor) {
   return L.join('\n');
 }
 
+// Does the a − b difference change with a moderator? Per seed, the difference
+// at level m1 minus the difference at level m2 (every other factor fixed at
+// `at`), tested like any paired comparison: an interaction, lineage by lineage.
+export function interaction(data, { factor, a, b, moderator, m1, m2, outcome, at = {} }) {
+  const find = (fv, mv) => data.cells.find((c) => String(c.cell[factor]) === String(fv)
+    && String(c.cell[moderator]) === String(mv)
+    && Object.entries(at).every(([k, v]) => String(c.cell[k]) === String(v)));
+  const cs = [find(a, m1), find(b, m1), find(a, m2), find(b, m2)];
+  if (cs.some((c) => !c)) throw new Error('a cell of the interaction is missing');
+  const seeds = cs[0].seeds.filter((sd) => cs.every((c) => c.seeds.includes(sd)));
+  const v = (c, sd) => c.values[outcome][c.seeds.indexOf(sd)];
+  const d1 = seeds.map((sd) => v(cs[0], sd) - v(cs[1], sd));
+  const d2 = seeds.map((sd) => v(cs[2], sd) - v(cs[3], sd));
+  return { outcome, diffAt: { [m1]: mean(d1), [m2]: mean(d2) }, ...paired(d1, d2) };
+}
+
 function main() {
   const argv = process.argv.slice(2);
   const dir = argv[0];
@@ -187,6 +203,20 @@ function main() {
   if (factor) {
     comparisons = compare(data, factor);
     parts.push(comparisonTable(comparisons, factor));
+  }
+  // --interaction format:verdict,rule life:1800,900 shock.alive [change=invert ...]
+  const ix = argv.indexOf('--interaction');
+  if (ix >= 0) {
+    const [factorName, levels] = argv[ix + 1].split(':');
+    const [moderator, mods] = argv[ix + 2].split(':');
+    const outcome = argv[ix + 3];
+    const at = Object.fromEntries(argv.slice(ix + 4).filter((x) => x.includes('=') && !x.startsWith('--')).map((x) => x.split('=')));
+    const [a, b] = levels.split(',');
+    const [m1, m2] = mods.split(',');
+    const r = interaction(data, { factor: factorName, a, b, moderator, m1, m2, outcome, at });
+    parts.push(`## Interaction: (${a} − ${b}) at ${moderator}=${m1} minus at ${m2}, ${outcome}\n\n`
+      + `${a} − ${b}: ${fmt(r.diffAt[m1], 3)} at ${m1}, ${fmt(r.diffAt[m2], 3)} at ${m2}; `
+      + `difference ${fmt(r.diff, 3)} [${fmt(r.ci[0], 3)}, ${fmt(r.ci[1], 3)}], p ${fmt(r.p, 4)}, dz ${fmt(r.dz)}, n ${r.n}`);
   }
   const text = parts.join('\n\n');
   writeFileSync(`${dir}/summary.md`, `${text}\n`);
