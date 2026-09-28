@@ -12,6 +12,18 @@ an equal budget, measuring both adaptation after a change and the persistence
 of false beliefs. Fagi can, because every belief records where it came from
 and every run is deterministic.
 
+## Findings so far
+
+Preregistered ([`preregistration.md`](preregistration.md)) and confirmed in
+both the lab (11 of 11 hypotheses) and the game (3 of 3, same direction as
+the lab); details in [`results.md`](results.md). At an equal budget of items,
+passing on reasons is the best teacher while the world holds and the worst
+inheritance when it inverts: reason-lineages carry more myths into the
+inversion and lose 22–27 percentage points more of that generation than
+verdict-lineages. Passing the evidence along with the reasons keeps most of
+the teaching advantage and cuts the myths and the deaths, without removing
+them.
+
 ## The pieces
 
 | piece | where | what |
@@ -25,6 +37,7 @@ and every run is deterministic.
 | Ground truth | `research/lab/truth.js` | Balanced accuracy over the whole catalogue (fruit never met included), false rules, myths (false and unlived). |
 | Runner | `research/run.js` | A design (JSON) × seeds, in parallel, resumable, same seeds in every cell. |
 | Analysis | `research/analyze.js`, `research/stats.js` | Lineage-level outcomes, bootstrap intervals, paired sign-flip permutation tests, Holm correction, effect sizes (dz) and lineages needed for 80% power. |
+| Game confirmation | `research/game-confirm.js`, `research/embodied.js` | The preregistered game runs, one resumable process per lineage; outcomes and the three game tests (`--confirm`). |
 | Sensitivity | `research/sensitivity.js` | Latin-hypercube designs over the hand-tuned parameters: does an effect keep its sign, and what does it depend on. |
 
 ## Running

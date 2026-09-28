@@ -85,9 +85,64 @@ interaction is not a pure common-random-numbers contrast.
 
 ## Game confirmation
 
-Running (75 lineages per format, seeds 5000–5074, 1800 s lives, inversion
-at generation 4). Results will be added here, analysed with
-`node research/embodied.js … --confirm` as preregistered.
+75 lineages per format, seeds 5000–5074, 1800 s lives, inversion at
+generation 4 (300 lineages in about 40 min on 18 cores, at commit `6c71c7c`),
+then `node research/embodied.js none=none.json verdict=verdict.json
+rule=rule.json evidence=evidence.json --confirm` as preregistered. Full output
+in [`research/results/game-confirm/confirmatory.md`](../../research/results/game-confirm/confirmatory.md).
+
+### Confirmatory: all three hypotheses supported
+
+Two-sided, Holm over three. 10 000 permutations put the smallest attainable
+p at 0.0001, so every Holm-adjusted p is 0.0003.
+
+| test | a − b | outcome | n | diff [95% CI] | dz | p (Holm) | lab diff |
+|---|---|---|---|---|---|---|---|
+| H1 reasons teach better in a steady world | verdict − rule | harmful bites / ant, gens 1–3 | 75 | 0.332 [0.243, 0.411] | 0.91 | 0.0003 | 0.224 |
+| H2a reasons have fewer survivors at an inversion | verdict − rule | survivors / ant, gen 4 | 75 | 0.223 [0.133, 0.317] | 0.54 | 0.0003 | 0.274 |
+| H3 reasons carry more myths into it | rule − verdict | myths / ant, end of gen 4 | 75 | 0.827 [0.630, 1.027] | 0.92 | 0.0003 | 0.863 |
+
+All three differences go in the direction the lab found, and the survival and
+myth gaps are of about the same size (0.22 against 0.27 survivors per ant;
+0.83 against 0.86 myths per ant). The steady-state teaching advantage of
+reasons is larger in the game (0.33 against 0.22 harmful bites per ant),
+from a higher baseline: ants in the game bite more of everything.
+
+In plain numbers (means per lineage):
+
+| format | harmful bites / ant, steady | survivors at the inversion | myths at the inversion |
+|---|---|---|---|
+| none | 1.95 | 81% | 0.10 |
+| verdict | 1.12 | **89%** | 0.59 |
+| rule | **0.79** | **67%** | 1.41 |
+| evidence | 0.82 | 81% | 0.93 |
+
+The preregistered claim about the model as a whole needed the lab and the game
+to agree in direction on H1, H2a and H3. They do: in both, passing on reasons
+is the better teacher while the world holds and, when it inverts, leaves
+22–27 percentage points fewer survivors than passing on verdicts, and the reason-lineages walk into
+the inversion carrying more myths than the verdict-lineages.
+
+### Exploratory (game)
+
+Not preregistered; every pair of formats and outcome in
+[`research/results/game-confirm/summary.md`](../../research/results/game-confirm/summary.md),
+Holm within each outcome. Read as description.
+
+- **Passing nothing on is costlier in the game than in the lab.** Untaught
+  ants bite about 2.5 times as much harm as rule-taught ones in a steady world,
+  and only 81% of them survive the generation of the inversion (96% in the
+  lab), against 89% for verdicts. Reasons still leave fewer survivors than
+  passing nothing on (none − rule 0.14 [0.05, 0.23]), the direction of the
+  lab's H2b, which was not tested in the game.
+- **Evidence** sits where it did in the lab, with smaller gaps: as good a
+  teacher as reasons in a steady world (rule − evidence −0.04 [−0.11, 0.03])
+  and better than verdicts (0.29 [0.20, 0.39]); fewer myths than reasons
+  (0.48 [0.20, 0.75], against 2.00 in the lab) and more survivors (0.14
+  [0.05, 0.23]), but not more than verdicts (verdict − evidence 0.08
+  [0.01, 0.16], Holm p 0.08).
+- **After the inversion** (generations 5–7), reason-lineages bite the least
+  harm again (0.74, against 1.20 for verdicts): the survivors relearn.
 
 **Deviation in how it is run, not in what.** The four preregistered
 `scripts/batch.js --runs 75` processes were killed at lineage 2 when the
