@@ -26,6 +26,7 @@ import { persistOnScent, persistFromMemory } from './decision/clues.js';
 import { earlyDirective, safeDirective } from './decision/directive.js';
 import { exploreRule } from './decision/explore.js';
 import { taste } from './decision/experiment.js';
+import { BASELINE } from './config.js';
 
 // Exported: the cortex uses it to know whether an external directive can
 // afford to ignore the emergency, or whether instinct has to take over.
@@ -79,6 +80,8 @@ export function decide(fagi, world, ctx, dt) {
 // Walks RULES in order; the first one that answers wins. If none
 // answers, explore.
 function firstToAnswer(fagi, world, ctx, dt) {
+  // The random baseline (BASELINE.policy, scripts/evaluate.js) decides nothing.
+  if (BASELINE.policy === 'random') return { intent: wander(fagi, world, dt), who: { tier: 'explore', rule: 'random' } };
   for (const [tier, name, rule] of RULES) {
     const intent = rule(fagi, world, ctx, dt);
     if (intent) return { intent, who: { tier: tier, rule: name } };
@@ -115,4 +118,17 @@ function thought(fagi, ctx, intent, who, newOnes) {
     tier: who.tier,
     rule: who.rule,
   };
+}
+
+// The random baseline: a random point of the map, then another when she gets
+// there or after a while. Drinking and eating what she touches happen anyway
+// (needs.js, feeding.js): any animal would.
+function wander(fagi, world, dt) {
+  fagi.wanderFor = (fagi.wanderFor ?? 0) - dt;
+  const w = fagi.wanderTo;
+  if (!w || fagi.wanderFor <= 0 || Math.hypot(w.x - fagi.x, w.y - fagi.y) < 12) {
+    fagi.wanderTo = { x: Math.random() * world.width, y: Math.random() * world.height };
+    fagi.wanderFor = 20;
+  }
+  return { action: 'explore', reason: { key: 'reason.explore' }, target: fagi.wanderTo, targetKind: 'point', trailKey: null };
 }

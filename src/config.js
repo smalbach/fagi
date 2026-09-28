@@ -185,6 +185,19 @@ export const RAIN = {
   puddleLifeRate: 0.3,
 };
 
+// Baselines for evaluation (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md §18.1,
+// scripts/evaluate.js). Nothing to do with how Fagi is: what she is compared
+// against. The defaults are Fagi as she is.
+//   policy : 'learner' (she decides, decision.js) or 'random' (she walks to a
+//            random point, then another; she still drinks and eats what she
+//            touches, as anything would)
+//   learn  : 0 = nothing she lives changes a belief, a trait or a rule
+//            (brain.js learn, learnSeen) nor a habit: her instinct is all she has
+export const BASELINE = {
+  policy: 'learner',
+  learn: 1,
+};
+
 // Instincts: what she's born with, without having learned it. Everything else
 // (what's good, what to avoid, what announces what) comes from experience. Setting
 // one to 0 turns it off and leaves the behavior entirely up to learning.

@@ -19,7 +19,7 @@
 // the factory value in config.js: learning a habit changes nothing until
 // there is a reason to.
 
-import { HABITS, CARRY, NEEDS, ENERGY, NEST, HUNGER, THIRST } from './config.js';
+import { HABITS, CARRY, NEEDS, ENERGY, NEST, HUNGER, THIRST, BASELINE } from './config.js';
 
 // safer: which way along `arms` is more cautious (-1 = toward the start).
 // factory: the config.js value it stands for while it has never moved.
@@ -62,7 +62,7 @@ export function habit(fagi, id) {
 // One rung toward caution ('safer') or boldness ('bolder'), with the reason.
 // Returns the move, or null if it was already at the end of the ladder.
 export function move(fagi, id, dir, why) {
-  if (!HABITS.enabled || !HABITS.learn) return null;
+  if (!HABITS.enabled || !HABITS.learn || !BASELINE.learn) return null;
   const spec = HABIT_SPECS[id];
   const h = fagi.brain.habits[id];
   const from = h.rung ?? startRung(spec);

@@ -1,7 +1,7 @@
 // Fagi's brain: she decides with what she remembers, and what she remembers lives in
 // memory.js. Here we only score: what she wants most out of everything she perceives.
 
-import { BRAIN, CUES, SOCIAL, MEMORY } from './config.js';
+import { BRAIN, CUES, SOCIAL, MEMORY, BASELINE } from './config.js';
 import { createMemory, recall, weight, curious, reinforce, reinforceSeen } from './memory.js';
 import { createRules } from './learned/rules.js';
 import { synthAfterLearn, synthCues, synthInduced, checkTold } from './learned/synth.js';
@@ -92,7 +92,16 @@ export function choose(brain, candidates) {
 // Learn from watching a sister eat `key` and feel `reward` (social.js). The
 // same paths as learn(), at SOCIAL.observe of the strength, without counting as
 // a try, and every rule it writes says where it came from: { kind: 'saw', from }.
+// With BASELINE.learn = 0 (a baseline that cannot learn, scripts/evaluate.js)
+// nothing changes and the change reported is none.
+function unchanged(brain, key) {
+  const r = recall(brain, key);
+  const snap = { value: r.value, confidence: r.confidence, stage: r.stage };
+  return { before: snap, after: { ...snap }, kind: 'none' };
+}
+
 export function learnSeen(brain, key, reward, now, from) {
+  if (!BASELINE.learn) return unchanged(brain, key);
   const change = reinforceSeen(brain, key, reward, now, BRAIN.learnRate * SOCIAL.observe, MEMORY.first * SOCIAL.observe);
   const because = [{ sense: 'saw', v: Math.round(reward * 100) / 100 }];
   brain.learningFrom = { kind: 'saw', from, at: Math.round(now * 10) / 10, trust: SOCIAL.observe };
@@ -113,6 +122,7 @@ export function learnSeen(brain, key, reward, now, from) {
 }
 
 export function learn(brain, key, reward, now, because = []) {
+  if (!BASELINE.learn) return unchanged(brain, key);
   const change = reinforce(brain, key, reward, now, BRAIN.learnRate);
   synthAfterLearn(brain, key, change, because, now);
   // Kept to point at later, when she explains herself (learned/explain.js).
