@@ -1692,6 +1692,7 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] La población se mantiene varias generaciones sin que el runner cree ninguna (§25.8).
 - [x] Fertilidad que decae con la edad y densodependencia gradual; en el juego, se sigue a la descendencia (§25.14).
 - [x] Salud como variable propia: daño, curación, cría y elección de pareja (§25.15).
+- [x] Se adapta a un cambio de mundo y conserva su diversidad, con protocolo congelado; la diversidad no es la causa (§25.19).
 
 **Fase 7: ciencia reproducible**
 - [x] Baselines: agente aleatorio y agente de reglas fijas sin aprendizaje (`BASELINE`).
@@ -2200,9 +2201,37 @@ La informante que sabe también trae sus propios mitos: 1,3 reglas falsas, de la
 
 **Criterio del §23: cumplido en su segunda mitad.** No adopta sistemáticamente información falsa: la corrige tres de cada cuatro veces, con lo que vive, sin que nadie le diga cuál era falsa. Que la use con provecho no queda demostrado en este mundo: con informante que sabe el efecto es pequeño y no significativo. Se publica así.
 
+### 25.19 Diversidad y cambio de mundo: resultado
+
+Protocolo congelado antes de correr: `docs/research/diversity-protocol.md`, commit `84c6e0a`. Mide el criterio del §23 «conserva diversidad suficiente para adaptarse a cambios», con la química invertida entre generaciones que pide el §15. Informe completo, generado por el propio código: `research/results/diversity/report.md`.
+
+**Montaje.** Cada población son 4 fundadoras en un mapa de 8 especies, con el organismo completo y la cría dentro del mundo. Vive 10 800 s sin que el runner cree a nadie. A los 5400 s la química se invierte: lo que alimentaba envenena, y al revés. Para entonces las fundadoras son viejas o han muerto, y quien vive nació, aprendió y fue seleccionada en el mundo anterior. Hay 40 poblaciones por condición, con semillas nunca usadas:
+
+| Condición | El cambio | Diversidad genética |
+|---|---|---|
+| `stable` | ninguno | sí |
+| `shift` | a los 5400 s | sí |
+| `clonal` | a los 5400 s | ninguna: sin mutación, todas comparten el genoma de las fundadoras |
+
+**Hipótesis confirmatorias** (unilaterales, pareadas, Holm):
+
+| | Predicción | Resultado | ¿Se sostiene? |
+|---|---|---|---|
+| D1 | tras el cambio, la población llega a juzgar el mundo nuevo mejor de lo que el cambio la dejó | 0,40 → 0,81, +0,41 [0,36, 0,46], dz 2,90 | sí |
+| D2 | y termina a menos de 0,1 de una población que nunca vio el cambio | 0,810 frente a 0,817, −0,007 [−0,041, 0,025] | sí |
+| D3 | sale del cambio con más diversidad genética de la que tenía al entrar | 0,152 → 0,189, +0,037 [0,013, 0,058] | sí |
+| D4 | sin diversidad genética, mueren más por veneno tras el cambio | 0,132 frente a 0,121, +0,011 [−0,021, 0,044], p = ,26 | **no** |
+
+**La población se adapta y conserva su diversidad.** El cambio le hunde el juicio a la mitad, y en unas generaciones vuelve al nivel de una población que nunca lo sufrió. Su diversidad genética no se estrecha: crece. El cambio se paga en muertes, con 130 por veneno frente a 68 en el mundo estable, y en extinciones: 8 de 40 frente a 5 de 40.
+
+**Pero la diversidad genética no es lo que la adapta.** Las poblaciones clonales se adaptan igual o algo mejor: juicio final 0,837 frente a 0,810, y 1 extinción de 40. El cambio de mundo es más rápido que una generación, y quien lo absorbe es lo que aprende cada individuo y lo que la madre le enseña, no la selección. Es lo esperable en un organismo que aprende. Los genes de esta simulación ajustan el cuerpo y los sesgos innatos, no qué fruta es buena. Para que la diversidad importase haría falta un cambio que el aprendizaje no pudiera cubrir: uno térmico o metabólico, o uno lento y persistente.
+
+**Criterio del §23: cumplido.** La población conserva diversidad y se adapta a un cambio de mundo. Que la diversidad sea la causa no queda demostrado (D4). Se publica así.
+
+**Nota de reproducción.** Una primera tanda se interrumpió con 8 piezas guardadas. El resto se corrió desde un worktree en `84c6e0a`, porque commits posteriores cambiaron la generación del mapa. Antes se comprobó que el worktree reproduce byte a byte una pieza ya guardada (`shift-4`).
+
 ### 25.3 Pendiente
 
-- §23, lo que falta por demostrar: que la población «conserva diversidad suficiente para adaptarse a cambios» (química invertida entre generaciones, §15), con protocolo congelado.
 - §23, primera mitad del criterio social: que la información social se use con provecho. Con una informante que sabe, el efecto fue pequeño y no significativo (§25.18).
 - Fase 8: saladeros (una fuente de sal fija, que aprender como el agua); venenos más fuertes o más frecuentes, donde escupir importe más.
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
@@ -2300,6 +2329,11 @@ node scripts/taste-lab.js --set MAPGEN.species=12
 # §25.18 información social falsa (protocolo congelado: docs/research/social-protocol.md)
 node research/social/run.js --jobs 16
 node research/social/analyze.js
+
+# §25.19 diversidad y cambio de mundo (protocolo congelado: docs/research/diversity-protocol.md)
+# desde un worktree en 84c6e0a: git worktree add --detach ../frozen 84c6e0a
+node research/diversity/run.js --jobs 16
+node research/diversity/analyze.js
 
 # §25.12 retención
 node scripts/retention.js
