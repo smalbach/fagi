@@ -15,7 +15,8 @@ import { createFagi } from './fagi.js';
 import { step } from './simulation.js';
 import { updateTrails } from './smell.js';
 import { render } from './render.js';
-import { createInput } from './input.js';
+import { createInput, INSPECT } from './input.js';
+import { createInspector, pickAt, pickFagiAt, markOf } from './inspect.js';
 import { createAskCard } from './ask.js';
 import { createColony, successorOf, swapInto } from './colony.js';
 import { createCamera, centerOn, fit } from './camera.js';
@@ -70,6 +71,31 @@ export function createGame({ onExit } = {}) {
   // Ask about the Fagi on screen: the live one, or the one being replayed.
   input.onAsk = (x, y) => (player ? ask.show(player.fagi, player.world, x, y) : ask.show(fagi, world, x, y));
   const ui = createUI(input, world, () => finishUp('user'));
+
+  // The inspector (inspect.js): whatever is clicked, on screen and live. It
+  // reads the world on screen: the live one, the replayed one, or the map
+  // being set up (no Fagi there yet).
+  const shown = () => (player ? { w: player.world, f: player.fagi } : { w: world, f: mode === 'setup' ? null : fagi });
+  const inspector = createInspector(document.getElementById('inspect-card'), {
+    canFollow: () => mode === 'play',
+    onFollow: (target) => followChosen(target),
+    onCenter: (x, y) => { camera.follow = false; centerOn(camera, canvas, shown().w, { x, y }); },
+    onAsk: (x, y) => input.onAsk(x, y),
+  });
+  // Small targets get some slack, less the closer the camera is.
+  const slack = () => 2 + 8 / camera.zoom;
+  input.onInspect = (x, y) => {
+    const { w, f } = shown();
+    const hit = pickAt(w, f, x, y, slack());
+    if (hit) inspector.select(hit); else inspector.clear();
+  };
+  input.pickFagi = (x, y) => {
+    if (mode !== 'play') return false;
+    const hit = pickFagiAt(world, fagi, x, y, slack());
+    if (hit) inspector.select(hit);
+    return Boolean(hit);
+  };
+  ui.onPick = (sel) => inspector.select(sel);
   // Which version is running: to know what's in production.
   const tagLabel = document.getElementById('app-version');
   if (tagLabel) { tagLabel.textContent = versionLabel(); tagLabel.title = versionTitle(); }
@@ -132,6 +158,7 @@ export function createGame({ onExit } = {}) {
   // --- setup ---
   function setup() {
     exitReplay();
+    inspector.clear();
     resetWorld(world);
     world.colony = null;
     generateMap(world);
@@ -167,6 +194,9 @@ export function createGame({ onExit } = {}) {
     world.rec = rec;
     rec.start({ config: configSnapshot(), learned });
     session = { id: s.id, rec, sink };
+    inspector.clear();
+    // Playing, a click shows what is there; placing is one click away in the palette.
+    ui.selectTool(INSPECT);
     setMode('play');
   }
 
@@ -195,6 +225,18 @@ export function createGame({ onExit } = {}) {
     console.reset();
   }
 
+  // The one you follow, by your choice (the inspector's "Follow her"): the
+  // same swap as when she dies (colony.js swapInto), recorded the same way.
+  function followChosen(target) {
+    if (mode !== 'play' || !session || session.rec.ended || target === fagi || !target?.alive) return;
+    const from = fagi.id;
+    swapInto(fagi, target);
+    resetCortex(fagi.cortex);
+    session.rec.follow(fagi, from);
+    followed(narrator, fagi, 'chosen', from);
+    console.reset();
+  }
+
   async function finishUp(reason) {
     if (mode !== 'play') return;
     const closing = closeRecording(reason);
@@ -218,6 +260,7 @@ export function createGame({ onExit } = {}) {
     Object.assign(replaying, { on: true, speed: 1, configSeq: -1, configBefore: configSnapshot(), logEpoch: -1 });
     player = createPlayer(eventList);
     player.seek(0);
+    inspector.clear();
     camera.follow = false;
     setMode('replay');
     return player;
@@ -241,7 +284,8 @@ export function createGame({ onExit } = {}) {
   // --- loop ---
   function frameSetup(dt) {
     updateTrails(world, dt);
-    render(ctx, world, null, camera);
+    render(ctx, world, null, camera, markOf(inspector.selection, world, null));
+    inspector.update(null, world, { live: false });
   }
 
   function framePlay(dt) {
@@ -252,8 +296,9 @@ export function createGame({ onExit } = {}) {
       if (!fagi.alive) followOrClose();
     }
     if (camera.follow) centerOn(camera, canvas, world, fagi);
-    render(ctx, world, fagi, camera);
+    render(ctx, world, fagi, camera, markOf(inspector.selection, world, fagi));
     ui.update(fagi, world);
+    inspector.update(fagi, world);
     console.update(fagi, lines);
     learnedPanel.update();
     brainMap.update(fagi, world);
@@ -271,8 +316,9 @@ export function createGame({ onExit } = {}) {
     }
     updateTrails(player.world, dt);
     if (camera.follow) centerOn(camera, canvas, player.world, player.fagi);
-    render(ctx, player.world, player.fagi, camera);
+    render(ctx, player.world, player.fagi, camera, markOf(inspector.selection, player.world, player.fagi));
     ui.update(player.fagi, player.world);
+    inspector.update(player.fagi, player.world, { live: false });
     // Going back leaves lines from the future in the console: repaint it whole.
     if (player.logEpoch !== replaying.logEpoch) {
       console.reset();

@@ -40,11 +40,13 @@ function hidden(fagi, world) {
   return fagi.alive && fagi.thought?.action === 'rest' && !!nestUnder(fagi, world);
 }
 
-export function render(ctx, world, fagi, camera) {
+// `mark`: { x, y, r } of what the inspector has selected (inspect.js), or null.
+export function render(ctx, world, fagi, camera, mark = null) {
   setDetail(detailOf(camera));
   applySets(ctx, camera, ctx.canvas);
   const rain = rainLook(world, performance.now());
   scene(ctx, world, fagi, camera, rain);
+  if (mark) drawMark(ctx, mark, camera.zoom);
   noCamera(ctx);
   // The drops fall between the camera and the ground: they don't grow with the zoom.
   if (rain > 0) drawRainDrops(ctx, world, performance.now());
@@ -153,6 +155,23 @@ function foreground(ctx, world, fagi, camera, inside) {
   if (!world.immersive) drawCoords(ctx, fagi, camera.zoom);
 }
 
+// The inspector's selection: a dashed ring that turns slowly, the same
+// thickness at every zoom.
+function drawMark(ctx, { x, y, r }, zoom) {
+  const t = performance.now() / 1000;
+  ctx.save();
+  ctx.lineWidth = 1.6 / zoom;
+  ctx.setLineDash([5 / zoom, 4 / zoom]);
+  ctx.lineDashOffset = -t * 12 / zoom;
+  ctx.strokeStyle = 'rgba(255,236,150,0.95)';
+  ctx.shadowColor = 'rgba(0,0,0,0.7)';
+  ctx.shadowBlur = 4;
+  ctx.beginPath();
+  ctx.arc(x, y, r + Math.sin(t * 3) * 1.2, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
 // Which sister it is, small, above her: 'Fagi 3' in the narration is this one.
 function drawSisterId(ctx, s) {
   ctx.save();
@@ -161,8 +180,9 @@ function drawSisterId(ctx, s) {
   ctx.fillStyle = 'rgba(230,232,238,0.85)';
   ctx.strokeStyle = 'rgba(20,22,28,0.8)';
   ctx.lineWidth = 3;
-  ctx.strokeText(String(s.id), s.x, s.y - 12);
-  ctx.fillText(String(s.id), s.x, s.y - 12);
+  const label = s.name ? `${s.name.given} · ${s.id}` : String(s.id);
+  ctx.strokeText(label, s.x, s.y - 12);
+  ctx.fillText(label, s.x, s.y - 12);
   ctx.restore();
 }
 

@@ -35,6 +35,7 @@ function newId(world) {
 // `from` is who placed it: the id of the tree it fell from, or 'user'.
 export function addPoint(world, x, y, type, from = null) {
   const p = { id: newId(world), x, y, type };
+  if (from != null) p.from = from;   // the tree it fell from, or 'user' (the inspector shows it)
   world.points.push(p);
   record(world, 'point_add', { id: p.id, what: type, x, y, from });
   return p;

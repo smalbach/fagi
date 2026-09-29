@@ -19,6 +19,7 @@
     </div>
     <canvas id="canvas"></canvas>
     <aside id="ask-card" hidden aria-live="polite"></aside>
+    <aside id="inspect-card" hidden aria-live="polite"></aside>
     <div id="setup-bar" class="stage-bar">
       <button id="btn-regen" data-i18n="setup.regen">↻ New map</button>
       <label><input id="chk-recover" type="checkbox"> <span data-i18n="setup.recover">Recover what it learned</span></label>
@@ -72,6 +73,15 @@
       <input id="tree-interval" type="range" min="2" max="30" step="1" value="8">
     </details>
 
+    <details id="identity-group" class="hud-group play-only" open>
+      <summary data-i18n="panel.identity">Identity and family</summary>
+      <div class="label"><span data-i18n="stat.name">Name</span><span id="name-val" class="hud-name">—</span></div>
+      <div class="label"><span data-i18n="stat.generation">Generation</span><span id="gen-val">—</span></div>
+      <div class="label"><span data-i18n="stat.lifespan">Lifespan</span><span id="lifespan-val">—</span></div>
+      <div id="family-box"></div>
+      <p class="help" data-i18n="ins.hint">Click a Fagi, a fruit or an object to see all its data</p>
+    </details>
+
     <details class="hud-group play-only" open>
       <summary data-i18n="panel.state">State</summary>
       <div class="label"><span data-i18n="stat.hunger">Hunger</span><span id="hunger-val">0%</span></div>
@@ -80,6 +90,14 @@
       <div class="bar"><i id="thirst-bar" style="background:#3d8fd9"></i></div>
       <div class="label" style="margin-top:8px"><span data-i18n="stat.energy">Energy</span><span id="energy-val">100%</span></div>
       <div class="bar"><i id="energy-bar" style="background:#8fd93d"></i></div>
+      <div id="health-row">
+        <div class="label" style="margin-top:8px"><span data-i18n="stat.health">Health</span><span id="health-val">100%</span></div>
+        <div class="bar"><i id="health-bar" style="background:#e05a5a"></i></div>
+      </div>
+      <div id="sodium-row">
+        <div class="label" style="margin-top:8px"><span data-i18n="stat.sodium">Sodium</span><span id="sodium-val">100%</span></div>
+        <div class="bar"><i id="sodium-bar" style="background:#e0d05a"></i></div>
+      </div>
       <div class="label" style="margin-top:8px"><span data-i18n="stat.age">Age</span><span id="age-val">0s</span></div>
       <div class="label"><span data-i18n="stat.eaten">Eaten</span><span id="eaten-val">0</span></div>
       <div class="label"><span data-i18n="stat.carrying">Carrying</span><span id="carry-val">nothing</span></div>

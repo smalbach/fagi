@@ -1,0 +1,59 @@
+/* --- the inspector (inspect.js): everything about what was clicked --- */
+#inspect-card {
+  position: absolute;
+  right: 22px;
+  top: 52px;
+  width: min(340px, calc(100% - 44px));
+  max-height: calc(100% - 120px);
+  display: flex;
+  flex-direction: column;
+  background: color-mix(in srgb, var(--panel) 95%, transparent);
+  border: 1px solid var(--line);
+  border-top: 3px solid #ffe08a;
+  border-radius: 10px;
+  box-shadow: 0 14px 36px rgba(0,0,0,.5);
+  font-size: 12px;
+  z-index: 6;
+  backdrop-filter: blur(4px);
+}
+#inspect-card[hidden] { display: none; }
+.ins-head { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px 6px; }
+.ins-dot { width: 12px; height: 12px; border-radius: 50%; flex: none; margin-top: 3px; box-shadow: 0 0 0 2px #0006; }
+.ins-title { flex: 1; min-width: 0; }
+.ins-title b { display: block; font-size: 14px; line-height: 1.25; }
+.ins-title b small { color: var(--muted); font-weight: 400; font-size: 11px; }
+.ins-title > small { color: var(--muted); font-size: 11px; }
+.ins-tag { background: #ffe08a22; color: #ffe08a; border: 1px solid #ffe08a55; border-radius: 8px; padding: 0 6px; }
+.ins-x { width: auto; padding: 0 6px; background: none; border: 0; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; }
+.ins-x:hover { color: var(--text); }
+.ins-actions { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px; }
+.ins-actions button { width: auto; padding: 4px 9px; font-size: 11.5px; }
+.ins-body { overflow-y: auto; padding: 0 12px 10px; overscroll-behavior: contain; }
+.ins-body details { border-top: 1px solid var(--line); padding: 4px 0; }
+.ins-body summary { cursor: pointer; font-size: 11px; letter-spacing: .6px; text-transform: uppercase; color: #cfd3dd; padding: 4px 0; }
+.ins-row { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; color: var(--muted); }
+.ins-row b { color: var(--text); font-weight: 500; text-align: right; }
+.ins-row.ins-wrap b { max-width: 70%; }
+.ins-bar { margin: 3px 0 5px; }
+.ins-bar .bar { height: 5px; }
+.ins-bar .bar i { display: block; height: 100%; border-radius: inherit; }
+.ins-sub { font-size: 10.5px; color: var(--muted); margin: -2px 0 4px; }
+.ins-note { font-size: 10.5px; color: var(--muted); margin: 6px 0 2px; font-style: italic; }
+.ins-none { color: var(--muted); font-size: 11px; font-style: italic; }
+.ins-dead { color: #d95b7e; font-style: normal; }
+.ins-fam h4 { margin: 6px 0 3px; font-size: 10.5px; color: var(--muted); font-weight: 600; }
+.ins-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.ins-chip {
+  width: auto; padding: 2px 8px; font-size: 11px; border-radius: 12px;
+  background: #2a2e3a; border: 1px solid var(--line); color: var(--text); cursor: pointer;
+}
+.ins-chip:hover { background: #343947; }
+.ins-chip i { color: var(--muted); font-style: normal; font-size: 10px; }
+/* The HUD's family lines */
+#family-box .fam-line { display: flex; gap: 8px; align-items: flex-start; margin-top: 5px; font-size: 12px; }
+#family-box .fam-line > span { color: var(--muted); flex: none; width: 58px; padding-top: 2px; }
+.hud-name { font-weight: 600; text-align: right; }
+#identity-group .help { font-size: 10.5px; color: var(--muted); margin: 8px 0 0; }
+@media (max-width: 720px) {
+  #inspect-card { right: 8px; left: 8px; top: auto; bottom: 8px; width: auto; max-height: 55%; }
+}

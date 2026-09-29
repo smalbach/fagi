@@ -10,6 +10,7 @@
 // run without the organism is the preregistered one to the last digit.
 
 import { ENERGY, SEX, GEN } from './config.js';
+import { givenName } from './names.js';
 
 export const SEXES = ['female', 'male'];
 export const BODY_TRAITS = ['speed', 'energyMax', 'metabolism', 'insulation'];
@@ -48,5 +49,6 @@ export function ensureBothSexes(ants) {
     last.sex = ants[0].sex === 'female' ? 'male' : 'female';
     last.body = bodyFor(last.sex, last.genome);
     last.energy = energyMax(last);   // she is just born: full
+    if (last.name) last.name = { ...last.name, given: givenName(last.sex) };
   }
 }

@@ -34,6 +34,7 @@ export function createReplayState() {
     mind: {},          // part -> value: the last thing recorded from her head
     mindSeq: 0,        // goes up with each rule change: the code panel repaints
     log: [],           // the console's latest lines
+    people: {},        // id -> { name, mother, father, generation, sex, bornAt } (names.js)
   };
 }
 
@@ -163,6 +164,9 @@ export function applyEvent(state, ev) {
       state.dead = null;
       state.followed = { t: ev.t, id: ev.id, from: ev.from };
       break;
+    case 'people':
+      Object.assign(state.people, ev.people);
+      break;
     case 'night_report':
       state.nights.push({ t: ev.t, report: ev.report });
       break;
@@ -263,7 +267,12 @@ export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
     const nights = state.nights ?? [];
     fagi.lastNightReport = nights.at(-1)?.report ?? null;
     fagi.consolidations = nights.length;
-    w.colony = sisterTrack.length ? { ants: putSisters(sisters, sisterTrack, time) } : null;
+    w.colony = sisterTrack.length ? { ants: putSisters(sisters, sisterTrack, time, state.people) } : null;
+    // Who is who: the family tree is the lineage the game kept.
+    w.lineage = state.people;
+    fagi.id = state.followed?.id ?? (sisterTrack.length ? 1 : undefined);
+    const me = state.people[fagi.id ?? 1];
+    if (me) Object.assign(fagi, { name: me.name, sex: me.sex ?? fagi.sex, generation: me.generation });
     putMind(fagi, state, time);
     return { world: w, fagi, time, config: state.config, configSeq: state.configSeq };
   }
@@ -283,7 +292,7 @@ export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
 }
 
 // Her sisters at moment t, between the two samples around it.
-function putSisters(sisters, samples, t) {
+function putSisters(sisters, samples, t, people = {}) {
   let lo = 0;
   let hi = samples.length - 1;
   while (hi - lo > 1) {
@@ -303,6 +312,8 @@ function putSisters(sisters, samples, t) {
     const ny = y + (n[2] - y) * k;
     f.stride += Math.hypot(nx - (f.x ?? nx), ny - (f.y ?? ny));
     Object.assign(f, { x: nx, y: ny, angle: angle + normalizeAngle(n[3] - angle) * k, alive: Boolean(alive), carrying: carrying ? { type: carrying } : null, lifeStage: stage ?? 'adult' });
+    const who = people[id];
+    if (who) Object.assign(f, { name: who.name, sex: who.sex, generation: who.generation });
     sisters.set(id, f);
     return f;
   });

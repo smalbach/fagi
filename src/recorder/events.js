@@ -55,7 +55,10 @@ export const EVENT_TYPES = {
   egg: ['id', 'mother', 'father'],
   hatch: ['id', 'egg'],
   egg_lost: ['id', 'reason'],
-  extinct: ['at'],   // what the night mind proposed and what was kept (night/)
+  extinct: ['at'],
+  // Who is who (names.js): id -> { name, mother, father, generation, sex, bornAt },
+  // sent once per individual, the first time the recording sees her.
+  people: ['people'],   // what the night mind proposed and what was kept (night/)
 };
 
 // Columns of each point in a `track` block, in this order.

@@ -230,6 +230,24 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     if (ants.length) emit('sisters', { ants });
   }
 
+  // Who each one is, once: her name and her parents, so a replay can tell
+  // who is who and draw the family tree.
+  const known = new Set();
+  function observePeople(fagi, colony) {
+    const fresh = {};
+    for (const f of colony?.ants ?? [fagi]) {
+      const id = f.id ?? 1;
+      if (known.has(id)) continue;
+      known.add(id);
+      const l = world.lineage?.[id];
+      fresh[id] = {
+        name: f.name ?? l?.name ?? null, sex: f.sex ?? l?.sex ?? null,
+        mother: l?.mother ?? null, father: l?.father ?? null, generation: l?.generation ?? f.generation ?? 0, bornAt: l?.bornAt ?? 0,
+      };
+    }
+    if (Object.keys(fresh).length) emit('people', { people: fresh });
+  }
+
   // Once per frame, after step(). `lines`: what narrate() returns.
   function observe(fagi, lines) {
     if (ended) return;
@@ -243,6 +261,7 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
       emit('wind', { angle: world.wind.angle, target: world.wind.target });
     }
     observeFagi(fagi);
+    observePeople(fagi, world.colony);
     observeSisters(world.colony);
     if (fagi.alive) sampleFagi(fagi);
     if (!fagi.alive && !deathNoted) {

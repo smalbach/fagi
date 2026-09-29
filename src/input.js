@@ -2,6 +2,8 @@
 //
 //   left click       → places the selected item. With Water chosen, it MOVES the
 //                      existing source instead of creating another (the map has one).
+//                      On a Fagi, or with Inspect chosen (always while replaying),
+//                      it shows everything about what is there (inspect.js).
 //   drag             → moves the map object underneath (nest, water,
 //                      tree, rock).
 //   right click      → deletes the map object underneath.
@@ -33,10 +35,14 @@ const PAN_KEYS = {
 
 // Not a type to place: the tool that asks Fagi what she thinks of a fruit (ask.js).
 export const ASK = 'ask';
+// Nor this one: the tool that shows everything about what is clicked (inspect.js).
+export const INSPECT = 'inspect';
 
 export function createInput(canvas, world, camera) {
-  // selected = a POINT_TYPES or OBJECT_TYPES key, or ASK.
+  // selected = a POINT_TYPES or OBJECT_TYPES key, ASK or INSPECT.
   // onAsk(x, y) = what to do when asking at a world point (main.js sets it).
+  // onInspect(x, y) = show what is there; pickFagi(x, y) = select a Fagi if
+  // one is there (true), so a click on her never drops food on her.
   const state = { selectedType: TYPE_KEYS[0], editable: true };
   const pressed = new Set();
 
@@ -92,10 +98,11 @@ export function createInput(canvas, world, camera) {
 
   canvas.addEventListener('click', (e) => {
     if (justDragged) { justDragged = false; return; }
-    // Asking changes nothing in the world: it works while replaying too.
+    // Asking and inspecting change nothing in the world: they work while replaying too.
     if (state.selectedType === ASK) { const p = worldPoint(e); state.onAsk?.(p.x, p.y); return; }
-    if (!state.editable) return;
+    if (state.selectedType === INSPECT || !state.editable) { const p = worldPoint(e); state.onInspect?.(p.x, p.y); return; }
     const { x, y } = worldPoint(e);
+    if (state.pickFagi?.(x, y)) return;
 
     // There's only one water and one nest: the click MOVES them instead of duplicating them.
     const uniques = { water: waterSource, nest: nestOf };

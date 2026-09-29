@@ -14,7 +14,13 @@ import { configIdOf } from './settings.js';
 import { setFruitInterval } from './trees.js';
 import { t, labelOf, onLangChange, formatDuration } from './i18n.js';
 import { recall } from './memory.js';
-import { ASK } from './input.js';
+import { ASK, INSPECT } from './input.js';
+import { HEALTH, TASTE } from './config.js';
+import { healthU } from './health.js';
+import { sodiumOf } from './taste.js';
+import { lifeAge } from './lifecycle.js';
+import { fullName } from './names.js';
+import { familyOf } from './family.js';
 
 // Short summary of what each type does, for the button.
 function hintOfFood(spec) {
@@ -48,12 +54,14 @@ function buildTypeButtons(foodBox, objectBox, input) {
   for (const key of TYPE_KEYS) make(key, POINT_TYPES[key], hintOfFood(POINT_TYPES[key]), foodBox);
   for (const key of OBJECT_KEYS) if (OBJECT_TYPES[key].palette !== false) make(key, OBJECT_TYPES[key], hintOfObject(OBJECT_TYPES[key]), objectBox);
   make(ASK, { color: '#b57bff' }, t('why.askHint'), objectBox);
+  make(INSPECT, { color: '#ffe08a' }, t('ins.toolHint'), objectBox);
 
   function select(key) {
     input.selectedType = key;
     for (const k of Object.keys(buttons)) buttons[k].classList.toggle('active', k === key);
   }
   select(input.selectedType);
+  return select;
 }
 
 // There's no longer a fixed list of "what can be believed": a type's bar
@@ -109,13 +117,33 @@ export function createUI(input, world, onReset) {
     nightsVal: document.getElementById('nights-val'),
     stageVal: document.getElementById('stage-val'),
     popVal: document.getElementById('pop-val'),
+    healthRow: document.getElementById('health-row'),
+    healthBar: document.getElementById('health-bar'),
+    healthVal: document.getElementById('health-val'),
+    sodiumRow: document.getElementById('sodium-row'),
+    sodiumBar: document.getElementById('sodium-bar'),
+    sodiumVal: document.getElementById('sodium-val'),
+    nameVal: document.getElementById('name-val'),
+    genVal: document.getElementById('gen-val'),
+    lifespanVal: document.getElementById('lifespan-val'),
+    family: document.getElementById('family-box'),
+    familyAt: 0,
+    familyHold: 0,
+    onPick: null,
   };
+  // A relative's chip inspects her (main.js sets onPick). A press holds the
+  // repaint so the click lands on the same element.
+  el.family?.addEventListener('pointerdown', () => { el.familyHold = performance.now() + 600; });
+  el.family?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-fagi]');
+    if (b) el.onPick?.({ kind: 'fagi', id: Number(b.dataset.fagi) });
+  });
 
   const foodBox = document.getElementById('type-buttons');
   const objectBox = document.getElementById('object-buttons');
   const beliefBox = document.getElementById('beliefs');
 
-  buildTypeButtons(foodBox, objectBox, input);
+  let selectTool = buildTypeButtons(foodBox, objectBox, input);
   // State of the belief bars: which keys are painted right now and with
   // which elements. It's rebuilt when a new key appears or on a language
   // switch.
@@ -124,7 +152,7 @@ export function createUI(input, world, onReset) {
 
   // On a language switch, whatever was built only once has to be redone.
   onLangChange(() => {
-    buildTypeButtons(foodBox, objectBox, input);
+    selectTool = buildTypeButtons(foodBox, objectBox, input);
     beliefs.bars = buildBeliefBars(beliefBox, beliefs.keys);
   });
 
@@ -144,7 +172,12 @@ export function createUI(input, world, onReset) {
   const sync = () => { slider.value = TREE.interval; paint(); };
   sync();
 
-  return { update: (fagi, w) => update(el, beliefBox, beliefs, fagi, w), sync: sync };
+  return {
+    update: (fagi, w) => update(el, beliefBox, beliefs, fagi, w),
+    sync,
+    selectTool: (key) => selectTool(key),
+    set onPick(fn) { el.onPick = fn; },
+  };
 }
 
 // A belief goes from -1 to +1 and the bar grows from the center. The bar's
@@ -244,10 +277,48 @@ function barEl(bar, val, value, max) {
   val.textContent = `${Math.round(pct)}%`;
 }
 
+// Who she is: her name, generation and lifespan, and her parents and
+// children as chips that open them in the inspector. A few times a second.
+const SEX_MARK = { female: '♀', male: '♂' };
+function chipOf(p) {
+  const dead = p.alive === false ? ' ✝' : '';
+  return `<button type="button" class="ins-chip" data-fagi="${p.id}">${SEX_MARK[p.sex] ?? ''} ${p.label}${dead}</button>`;
+}
+
+function paintIdentity(el, fagi, world) {
+  if (!el.nameVal) return;
+  el.nameVal.textContent = `${fullName(fagi)}${fagi.sex ? ` ${SEX_MARK[fagi.sex]}` : ''}`;
+  el.genVal.textContent = fagi.generation != null ? String(fagi.generation) : '—';
+  el.lifespanVal.textContent = fagi.lifespan
+    ? `${formatDuration(lifeAge(fagi))} / ${formatDuration(fagi.lifespan)}`
+    : '—';
+  const now = performance.now();
+  if (!el.family || now < el.familyHold || now - el.familyAt < 500) return;
+  el.familyAt = now;
+  if (!world.colony) { el.family.innerHTML = ''; return; }
+  const fam = familyOf(world, fagi, fagi.id ?? 1);
+  const parents = [fam.father, fam.mother].filter(Boolean);
+  const line = (label, list, empty) => `<div class="fam-line"><span>${label}</span>`
+    + `<div class="ins-chips">${list.length ? list.map(chipOf).join('') : `<i class="ins-none">${empty}</i>`}</div></div>`;
+  el.family.innerHTML = line(t('stat.parents'), parents, t(fagi.sex === 'male' ? 'fam.founderM' : 'fam.founder'))
+    + line(t('stat.children'), fam.children, t('fam.none'));
+}
+
 function update(el, beliefBox, beliefs, fagi, world) {
   barEl(el.hungerBar, el.hungerVal, fagi.hunger, HUNGER.max);
   barEl(el.thirstBar, el.thirstVal, fagi.thirst, THIRST.max);
   barEl(el.energyBar, el.energyVal, fagi.energy, energyMax(fagi));
+  // Health and sodium only exist with their blocks on (health.js, taste.js).
+  if (el.healthRow) {
+    el.healthRow.hidden = !HEALTH.enabled;
+    if (HEALTH.enabled) barEl(el.healthBar, el.healthVal, healthU(fagi), 1);
+  }
+  if (el.sodiumRow) {
+    const salt = Boolean(TASTE.enabled && TASTE.salt);
+    el.sodiumRow.hidden = !salt;
+    if (salt) barEl(el.sodiumBar, el.sodiumVal, sodiumOf(fagi), 1);
+  }
+  paintIdentity(el, fagi, world);
   paintOrganism(el, fagi, world);
 
   el.ageVal.textContent = formatDuration(fagi.age);
@@ -276,7 +347,7 @@ function update(el, beliefBox, beliefs, fagi, world) {
   for (const key of keys) paintBelief(beliefs.bars[key], recall(fagi.brain, key));
 
   el.status.textContent = fagi.alive
-    ? t(`action.${fagi.thought?.action ?? 'explore'}`)
+    ? (fagi.sleeping && fagi.thought?.action === 'rest' ? `${t('action.rest')} · 💤` : t(`action.${fagi.thought?.action ?? 'explore'}`))
     : t('status.died', { cause: t(`cause.${fagi.cause}`), age: { dur: fagi.age } });
   el.status.classList.toggle('dead', !fagi.alive);
 }

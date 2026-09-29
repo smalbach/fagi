@@ -80,12 +80,16 @@ export function anticipate(fagi, world, ctx) {
 // Sleep (sleep.js): in the dark, with enough pressure, she lies down, in the
 // nest if she can get there. Exhausted, she sleeps whatever the hour. She
 // wakes rested, or at daylight once the worst of it has gone.
+// A diurnal body (SLEEP.nightly) goes home at dark whatever her pressure and
+// stays asleep until daylight: the night is not hers. Only what presses (the
+// check above) gets her up, and back to bed after.
 export function sleep(fagi, world, ctx) {
   if (!SLEEP.enabled || pressing(ctx)) return null;
   const dark = Boolean(fagi.dark);
+  const nightly = Boolean(SLEEP.nightly);
   if (!fagi.sleeping) {
-    if (fagi.sleepPressure >= SLEEP.exhausted || (dark && fagi.sleepPressure >= SLEEP.drowsy)) fagi.sleeping = true;
-  } else if (fagi.sleepPressure <= SLEEP.wake || (!dark && fagi.sleepPressure < SLEEP.drowsy / 2)) {
+    if (fagi.sleepPressure >= SLEEP.exhausted || (dark && (nightly || fagi.sleepPressure >= SLEEP.drowsy))) fagi.sleeping = true;
+  } else if ((!nightly && fagi.sleepPressure <= SLEEP.wake) || (!dark && fagi.sleepPressure < SLEEP.drowsy / 2)) {
     fagi.sleeping = false;
   }
   if (!fagi.sleeping) return null;

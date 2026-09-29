@@ -35,6 +35,7 @@ import { nestWarmth } from './things.js';
 import { healthU } from './health.js';
 import { HEALTH } from './config.js';
 import { edibleCount } from './learned/rules.js';
+import { childName } from './names.js';
 
 const r2 = (v) => Math.round(v * 100) / 100;
 
@@ -56,7 +57,7 @@ export function foundPopulation(world, colony) {
     f.lifespan = drawLifespan();
     f.generation = 0;
     f.genome ??= createGenome();
-    world.lineage[f.id] = { mother: null, father: null, bornAt: 0, generation: 0, sex: f.sex };
+    world.lineage[f.id] = { mother: null, father: null, bornAt: 0, generation: 0, sex: f.sex, name: f.name };
   }
 }
 
@@ -117,7 +118,7 @@ function ready(f, world, nest, crowd = 1) {
   return true;
 }
 
-function nestTemperature(world) {
+export function nestTemperature(world) {
   if (!THERMAL.enabled || !CYCLE.enabled) return null;
   const sky = cycleAt(world.time);
   return THERMAL.nestBuffer * (THERMAL.nestTemp + nestWarmth(world)) + (1 - THERMAL.nestBuffer) * sky.ambient;
@@ -178,7 +179,9 @@ function matings(world, colony, nest) {
 
 function hatch(world, colony, nest, egg) {
   const mother = colony.ants.find((f) => f.id === egg.mother);
-  const child = createFagi({ sex: egg.sex, genome: egg.genome });
+  const father = colony.ants.find((f) => f.id === egg.father);
+  const name = childName(egg.sex, father?.name ?? world.lineage[egg.father]?.name, mother?.name ?? world.lineage[egg.mother]?.name);
+  const child = createFagi({ sex: egg.sex, genome: egg.genome, name });
   applyGenome(child, egg.genome);
   child.x = nest.x;
   child.y = nest.y;
@@ -190,12 +193,12 @@ function hatch(world, colony, nest, egg) {
   child.lifeStage = 'juvenile';
   if (GEN.culture && mother?.alive) teach(child, mother);
   colony.ants.push(child);
-  world.lineage[child.id] = { mother: egg.mother, father: egg.father, bornAt: world.time, generation: egg.generation, sex: egg.sex, inbreeding: egg.inbreeding };
+  world.lineage[child.id] = { mother: egg.mother, father: egg.father, bornAt: world.time, generation: egg.generation, sex: egg.sex, inbreeding: egg.inbreeding, name };
   colony.life.hatched += 1;
   colony.life.generations = Math.max(colony.life.generations, egg.generation);
   colony.life.peak = Math.max(colony.life.peak, living(colony));
   if (mother) mother.lastBrood = { n: (mother.lastBrood?.n ?? 0) + 1, child: child.id };
-  record(world, 'hatch', { id: child.id, egg: egg.id, sex: egg.sex ?? null, generation: egg.generation });
+  record(world, 'hatch', { id: child.id, egg: egg.id, sex: egg.sex ?? null, generation: egg.generation, mother: egg.mother, father: egg.father, name });
   return child;
 }
 

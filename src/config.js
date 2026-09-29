@@ -718,6 +718,9 @@ export const SLEEP = {
   drowsy: 0.6,        // at night, with this much pressure she goes to sleep
   exhausted: 1,       // with this much she sleeps wherever, day or night
   wake: 0.08,         // she wakes when it drops below this (or at dawn, under drowsy/2)
+  nightly: 0,         // 1 = a diurnal body: the dark sends her to sleep whatever her pressure,
+                      // and she sleeps until daylight (only a pressing need gets her up).
+                      // 0 = only pressure does, as measured in docs/research/
   minSleep: 15,       // seconds asleep in the nest before the night is consolidated
   consolidate: 1,     // 0 = she sleeps but sorts nothing (the ablation)
   salient: 6,         // episodes kept as the night's highlights

@@ -44,6 +44,7 @@ import { updateSleep } from './sleep.js';
 import { useThing } from './decision/things.js';
 import { updateHealth } from './health.js';
 import { updateSodium } from './taste.js';
+import { founderName } from './names.js';
 
 // `born`: what the birth already decided (sex, genome), for reproduction.
 // Without it the sex is drawn here, only when SEX is on.
@@ -59,6 +60,8 @@ export function createFagi(born = {}) {
     // the body (biology.js): sex and body genes, as multipliers worked out once
     sex,               // 'female' | 'male' | null (SEX off)
     body,
+    // given name + father's surname + mother's (names.js); a newborn's comes from her parents
+    name: born.name ?? founderName(sex),
     lifeStage: 'adult',
 
     // needs
