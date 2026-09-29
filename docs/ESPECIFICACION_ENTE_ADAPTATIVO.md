@@ -2011,6 +2011,18 @@ La población se regula antes de chocar con el techo. Hay más generaciones porq
 
 **En el juego, se sigue a la descendencia.** Cuando muere la Fagi que se sigue en una población que cría, el juego pasa a su descendiente viva más cercana (una cría antes que una nieta), y si no queda ninguna, a cualquiera de la población. La sesión solo termina con la última. La grabación sigue con un evento `follow`, y el replay la muestra viva de nuevo desde ese momento. La narración lo dice («Murió. Ahora sigues a su cría, #7»).
 
+### 25.15 Salud
+
+`health.js`, con el flag `HEALTH.enabled`, que forma parte del organismo. El hambre, la sed y el frío siguen matando por sí mismos; la salud es lo que queda después del daño:
+
+- **Quitan salud:** una picadura (12), un bocado venenoso (10 por fruta entera; un bocado de prueba, su parte) y el estrés térmico por encima de la mitad del letal.
+- **Se recupera** mientras nada aprieta, y tres veces más rápido descansando en el nido.
+- **Herida, camina más despacio:** por debajo de la mitad de su salud, hasta el 60 % de su velocidad.
+- **Afecta a la cría:** con menos de la mitad de su salud no cría (§10.1), y su salud visible cuenta en la elección de pareja (§10.2).
+- **A cero muere** de lo último que la hirió (`wounds`, `poison`, `heat` o `cold`).
+
+**Medido, con semillas de desarrollo.** En el mundo por defecto no cambia casi nada, ni en vidas sueltas (48 por clima) ni en poblaciones (4 mapas, 30 días). En clima templado las vidas son idénticas, y las poblaciones crían 13,75 frente a 13,5 por mapa. En frío y en calor la vida cambia un poco (1783 frente a 1837 s en frío; 2094 frente a 2107 s en calor). Nadie muere de heridas: el daño es raro y se recupera antes de que pese. Es el contrato del §9 cumplido y listo para mundos más duros (más cosas que pican, depredadores). En este mundo no hay casi nada que herir.
+
 ### 25.3 Pendiente
 
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
@@ -2095,6 +2107,10 @@ node research/organism2/analyze.js research/results/organism2
 # §25.14 frenos graduales (y sin ellos, como en el §25.8)
 node scripts/population.js --maps 8 --duration 10800
 node scripts/population.js --maps 8 --duration 10800 --set LIFE.gradual=0
+
+# §25.15 salud (con y sin)
+node scripts/population.js --maps 4 --duration 5400
+node scripts/population.js --maps 4 --duration 5400 --set HEALTH.enabled=0
 
 # §25.12 retención
 node scripts/retention.js
