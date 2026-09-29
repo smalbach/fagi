@@ -28,7 +28,7 @@
 
 import { addPoint, addObject, removeObject, nestOf, record } from './world.js';
 import { objectAt, radiusOf } from './obstacles.js';
-import { TYPE_KEYS, OBJECT_TYPES, CAMERA } from './config.js';
+import { OBJECT_TYPES, CAMERA } from './config.js';
 import { ripe, approach, move, fit, minZoom } from './camera.js';
 
 const SIZE_LIMITS = { min: 8, max: 800 };
@@ -58,12 +58,13 @@ export const ASK = 'ask';
 export const INSPECT = 'inspect';
 
 export function createInput(canvas, world, camera) {
-  // selected = a POINT_TYPES or OBJECT_TYPES key, ASK or INSPECT.
+  // selected = a POINT_TYPES or OBJECT_TYPES key, ASK, INSPECT or null
+  // (nothing chosen yet: a click only picks a map object to edit).
   // onAsk(x, y) = what to do when asking at a world point (main.js sets it).
   // onInspect(x, y) = show what is there; pickFagi(x, y) = select a Fagi if
   // one is there (true), so a click on her never drops food on her.
   // editing = the map object selected for editing (moved, resized, removed).
-  const state = { selectedType: TYPE_KEYS[0], editable: true, editing: null };
+  const state = { selectedType: null, editable: true, editing: null };
   const pressed = new Set();
 
   // The canvas may be shown scaled by CSS: this factor undoes that.
@@ -151,6 +152,8 @@ export function createInput(canvas, world, camera) {
     if (state.pickFagi?.(x, y)) return;
 
     const sel = state.selectedType;
+    // Nothing chosen: nothing is placed, a click on an object selects it.
+    if (!sel) { state.editing = objectAt(world, x, y); return; }
     const tree = sel.startsWith(TREE_PREFIX);
     const placesObject = tree || Boolean(OBJECT_TYPES[sel]);
     // With a map object chosen, a click on another one selects it for editing:

@@ -258,8 +258,8 @@ export function createUI(input, world, onReset) {
   el.rebuildPalette = () => {
     const still = input.selectedType;
     const known = [...TYPE_KEYS, ...customKeys()];
-    const gone = still.startsWith(TREE_PREFIX) ? !known.includes(still.slice(TREE_PREFIX.length)) : Boolean(POINT_TYPES[still]) === false && !OBJECT_TYPES[still] && ![ASK, INSPECT].includes(still);
-    if (gone) input.selectedType = TYPE_KEYS[0];
+    const gone = !still ? false : still.startsWith(TREE_PREFIX) ? !known.includes(still.slice(TREE_PREFIX.length)) : Boolean(POINT_TYPES[still]) === false && !OBJECT_TYPES[still] && ![ASK, INSPECT].includes(still);
+    if (gone) input.selectedType = null;
     selectTool = buildPalette(paletteTabs, paletteGrid, paletteHint, input);
     summaryAt = 0;
   };
