@@ -606,6 +606,22 @@ export const FORAGE = {
   patchMinNest: 200,  // px from the nest: not on her doorstep
 };
 
+// Food sites (phase 9 B, spec §12.11, sites.js): the places where she has
+// found food, each with what she expects to find there, learned from what
+// she does find when she goes back. Off, she remembers one tree, as before.
+export const SITES = {
+  enabled: 0,
+  max: 4,             // sites she can hold at once: the least trusted makes way
+  radius: 45,         // px: a find on open ground and what lies around it are one site
+  full: 3,            // edible fruit in sight that make a site as good as it gets
+  rate: 0.35,         // how far one visit moves what she expects (× the surprise)
+  first: 0.5,         // how much she trusts a site she has just found
+  gain: 0.3,          // trust gained on each visit
+  decay: 0.0008,      // trust lost per second away (~20 min: a few days)
+  minValue: 0.15,     // below this she no longer counts on a site
+  leave: 2,           // × its radius: how far she must go for coming back to count as a visit
+};
+
 // What happens to fruit nobody collects.
 // Rot doesn't stay forever either: when ITS life runs out
 // (POINT_TYPES.toxic.life) it falls apart and disappears from the map, plume included.

@@ -8,7 +8,7 @@ import {
   FAGI, HUNGER, THIRST, ENERGY, BRAIN, CARRY, NEST, EXPLORE, WIND, PLUME, PHERO, TREE, FRUIT, MEMORY,
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
   CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI, CONCEPT,
-  LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE,
+  LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES,
 } from './config.js';
 import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
@@ -307,6 +307,11 @@ const GROUPS = [
     n(FORAGE, 'rest', 'Seconds a bare tree rests', 'Segundos que descansa un árbol pelado', 10, 1200, 10),
     n(FORAGE, 'patchEvery', 'A ground patch every (seconds, 0 = none)', 'Una mancha en el suelo cada (segundos, 0 = ninguna)', 0, 1200, 10),
     n(FORAGE, 'patchSize', 'Fruit in a patch', 'Frutos en una mancha', 1, 30, 1),
+  ]},
+  { title: { en: 'Food sites', es: 'Sitios de comida' }, cat: 'world', fieldsOf: [
+    b(SITES, 'enabled', 'Remembers several food sites and learns what each gives', 'Recuerda varios sitios con comida y aprende qué da cada uno'),
+    n(SITES, 'max', 'Sites she can remember', 'Sitios que puede recordar', 1, 8, 1),
+    n(SITES, 'rate', 'How much one visit changes what she expects', 'Cuánto cambia una visita lo que espera', 0.05, 1, 0.05),
   ]},
   { title: { en: 'Map objects', es: 'Objetos del mapa' }, cat: 'world', fieldsOf: [
     // Four radii in one group: all but the rock's (the one recordings already

@@ -17,6 +17,7 @@
 import { WORLD, PHERO, LEARN, THERMAL } from './config.js';
 import { createBrain } from './brain.js';
 import { decayMemory } from './memory.js';
+import { decaySites } from './sites.js';
 import { decaySynapses, perceiveSynapses } from './synapses.js';
 import { createEffects, updateEffects } from './effects.js';
 import { resolveEpisodes, resolveTrail } from './episodes.js';
@@ -177,6 +178,7 @@ export function updateFagi(fagi, world, dt) {
   updateEffects(fagi, dt);
   resolveEpisodes(fagi, dt);     // is it known yet how the last thing she ate agreed with her?
   decayMemory(fagi.brain, dt);   // confidence drops on its own and places blur
+  decaySites(fagi, dt);          // and so do the food sites (SITES)
   tickLearnedCode(fagi, dt);     // and the learned code reflects it, once per second
   decaySynapses(fagi.brain.synapses, dt, fagi.age);   // and unused connections weaken
   markVisited(fagi.explored, fagi.x, fagi.y, dt);  // being in a place is knowing it

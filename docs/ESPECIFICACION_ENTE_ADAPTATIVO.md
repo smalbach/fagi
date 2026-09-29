@@ -920,7 +920,7 @@ Es el dilema entre explotar y explorar de cualquier animal que forrajea. Charnov
 **Diseño, por partes.**
 
 1. **Un mundo donde volver no siempre gane** (fase A). Hay árboles duraderos y árboles de temporada, que se vacían y descansan antes de volver a dar fruta. Hay también manchas efímeras de fruta en el suelo, que no se renuevan. `FORAGE.persistence` dice qué parte de los árboles son duraderos.
-2. **Memoria de sitios** (fase B). Varios lugares (3 a 5), árboles o manchas del suelo. De cada uno guarda posición (difusa), rendimiento esperado, cuánto hace que fue, cuántas veces volvió y cuántas lo halló vacío. El rendimiento se aprende por error de predicción: más de lo esperado sube el valor, un sitio vacío lo baja. Así emerge quedarse tras ganar y cambiar tras perder. El olvido baja la confianza, no borra (`memory.js`).
+2. **Memoria de sitios** (fase B). Varios lugares (4 por defecto), árboles o manchas del suelo. De cada uno guarda posición (difusa), rendimiento esperado, cuánto hace que fue, cuántas veces volvió y cuántas lo halló vacío. El rendimiento se aprende por error de predicción: más de lo esperado sube el valor, un sitio vacío lo baja. Así emerge quedarse tras ganar y cambiar tras perder. El olvido baja la confianza, no borra (`memory.js`).
 3. **La decisión, aprendida** (fase C). Al salir del nido, o cuando el sitio actual se agota, compara:
    - volver al sitio *i*: rendimiento esperado × probabilidad de que siga ahí − coste del viaje;
    - explorar: lo que explorar le ha rendido a ella.
@@ -1785,7 +1785,16 @@ Recoge lo implementado en las fases 0 a 8 y lo medido de cada una. Las secciones
 - [x] A. `PHERO.life` vuelve a 600 en `config.js`; el juego usa 60 (`organism-on.js`). Con todo lo nuevo apagado, `batch.js` da la misma salida byte a byte (simple, con organismo, colonia, generaciones y mundo variable), y la pieza `shift-4` del §25.19 se reproduce sin worktree.
 - [x] A. `batch.js` sigue a las crías de una colonia que cría: antes fallaba en cuanto nacía una.
 - [x] A. `FORAGE`, apagado por defecto: árboles de temporada, que sueltan su cosecha, quedan pelados y descansan (`FORAGE.persistence` dice qué parte da todo el año), y manchas efímeras de fruta en el suelo (`src/patches.js`). Eventos `tree_bare`, `tree_bears` y `patch` en la grabación; el árbol pelado se dibuja sin fruta; el inspector dice «una mancha en el suelo»; ajustes en «Explorar o volver». Pruebas en `test/forage.test.js`.
-- [ ] B a F.
+- [x] B. Memoria de sitios (`SITES`, `src/sites.js`), apagada por defecto y fuera de `--organism`:
+  - un sitio es donde vio fruta que comería: bajo un árbol es el árbol, en el suelo es ese punto;
+  - de cada uno guarda lo que espera encontrar, su confianza, cuánto hace que fue, visitas y visitas vacías;
+  - al volver, lo que ve contra lo que esperaba mueve el valor (`SITES.rate` × la sorpresa);
+  - guarda hasta `SITES.max`; un hallazgo nuevo solo desplaza al sitio en que menos confía si vale más;
+  - la confianza baja y la posición se difumina con el tiempo; no gasta números aleatorios;
+  - sin ver fruta, va al sitio en que más confía, aunque sea suelo; un árbol que aprendió que no da nada deja de atraerla;
+  - resumen `sites` en `batch.js` (solo con `SITES`), ajustes en «Sitios de comida» y pruebas en `test/sites.test.js`.
+  Resultado exploratorio en el §25.21.
+- [ ] C a F.
 
 **Fase 5: en batch (generaciones por lotes)**
 - [x] Recombinación de dos progenitores, mutación posterior y límites.
@@ -1847,7 +1856,7 @@ Preguntar de noche y probar de día hace que Fagi conozca casi el doble de espec
 
 ### 25.3 Pendiente
 
-- Fase 9 (§12.11): de la B a la F. La A está hecha (§25.1).
+- Fase 9 (§12.11): de la C a la F. La A y la B están hechas (§25.1).
 - §23, primera mitad del criterio social: que la información social se use con provecho. Con una informante que sabe, el efecto fue pequeño y no significativo (§25.18).
 - Fase 8: saladeros (una fuente de sal fija, que aprender como el agua); venenos más fuertes o más frecuentes, donde escupir importe más.
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
@@ -2433,4 +2442,32 @@ Commits `9054330` a `1ac1976`. Son del juego y de su interfaz, no del organismo,
 - **Nombres y familias** (`src/names.js`). Cada Fagi tiene nombre y dos apellidos, el primero del padre y el segundo de la madre. Se sacan de un flujo aleatorio propio, así que no alteran una corrida con semilla. Las grabaciones antiguas reciben nombres estables (`nameForId`).
 - **Inspector.** Al hacer clic en algo se muestra lo que es, incluida la familia de una Fagi y el árbol del que cayó una fruta.
 - **Paneles en vertical u horizontal** (`setSideBySide`).
+
+### 25.21 Memoria de sitios: resultado exploratorio
+
+Fase 9 B, antes de que la decisión entre volver y explorar se aprenda (fase C). Mundo con `FORAGE` (la mitad de los árboles de temporada, manchas en el suelo), 6 especies, colonia de 5 sin cría, 2400 s, los números del juego (`organism-on.js`). 40 mapas de desarrollo, pareados por mapa, con `SITES` apagado y encendido. Sin protocolo congelado: orienta, no confirma.
+
+**Aprende qué sitios dan.** Al final de la vida, lo que espera de cada sitio:
+
+| Sitio | Valor | Visitas | Vacías por visita |
+|---|---|---|---|
+| árbol que da todo el año | 0,80 | 5,0 | 0,08 |
+| árbol de temporada | 0,67 | 4,1 | 0,16 |
+| mancha en el suelo | 0,73 | 1,7 | 0,23 |
+
+Nadie le dice qué árbol es de temporada: lo distingue por haberlo encontrado vacío el doble de veces.
+
+**Cambia algo cómo busca, no cuánto come:**
+
+| | Sin sitios | Con sitios | Diferencia [IC 95 %] |
+|---|---|---|---|
+| duración de un viaje por comida | 78 s | 61 s | −17 s [−36, 0,4], p = ,07 |
+| tiempo del viaje explorando | 18,5 % | 21,9 % | +3,4 [0,5, 6,2], p = ,02 |
+| comidas | 14,0 | 13,7 | −0,3 [−1,7, 1,0] |
+| raciones guardadas | 8,0 | 8,5 | +0,5 [−0,2, 1,1] |
+| vivas al final | 0,80 | 0,83 | +0,02 [−0,04, 0,10] |
+
+Con sitios, los viajes son algo más cortos y explora algo más: deja de ir a un árbol que aprendió vacío, y lo que queda es explorar. No come ni vive más, y no tiene por qué: el criterio es el realismo (§25.5). Qué hacer cuando ningún sitio compensa sigue siendo la jerarquía fija; que eso se aprenda es la fase C.
+
+**Un fallo encontrado al medir.** La primera versión guardaba cada hallazgo nuevo y echaba al peor sitio, así que redescubría sin parar los que acababa de olvidar: unos 660 hallazgos por vida. Ahora un hallazgo solo entra si vale más que el sitio en que menos confía, y son unos 21.
 

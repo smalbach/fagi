@@ -14,6 +14,7 @@ import { isHarmful, isHelpful, ruleTruth } from '../../src/chemistry.js';
 import { explain, stance } from '../../src/learned/explain.js';
 import { habit, HABIT_IDS, habitsSnapshot, restoreHabits } from '../../src/habits.js';
 import { newOrganismFollow, noteOrganism, organismSummary } from './organism.js';
+import { sitesSummary } from '../../src/sites.js';
 
 const { WORLD } = CONFIG;
 
@@ -340,6 +341,8 @@ function runSummary(fagiSeed, fagi, world, s) {
     path: s.path,
     fingerprint: fingerprintOf(fagi, world),
     ...(s.organism ? { organism: organismSummary(s.organism, fagi) } : {}),
+    // Only with SITES on: every other run keeps its output byte for byte.
+    ...(CONFIG.SITES.enabled ? { sites: sitesSummary(fagi) } : {}),
   };
 }
 

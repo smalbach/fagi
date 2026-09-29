@@ -3,7 +3,7 @@
 // Gathers into ONE list everything chaseable: food seen, food smelled and the water.
 // Each candidate carries which sense it came in through, so whoever decides knows it.
 
-import { FAGI, BRAIN, THIRST, HUNGER, ENERGY, MEMORY, TREE, NEST, RAIN, CONCEPT, SOURCES } from './config.js';
+import { FAGI, BRAIN, THIRST, HUNGER, ENERGY, MEMORY, TREE, NEST, RAIN, CONCEPT, SOURCES, SITES } from './config.js';
 import { seenPoints, seesObject, viewRangeOf, distanceTo } from './vision.js';
 import { smelledPoints, smellsObject, aromaOf, scentStrengthOfObject } from './smell.js';
 import { isWater, isTree, radiusOf, waterZone } from './obstacles.js';
@@ -20,6 +20,7 @@ import { energyMax } from './biology.js';
 import { isThing, isDry } from './things.js';
 import { conceptsOf, noteSeen } from './concepts.js';
 import { saltUrge } from './taste.js';
+import { noteSites, bestSite, worthVisiting } from './sites.js';
 
 // The nearest visible pool. Water isn't learned: it's instinct.
 function nearestWater(fagi, world) {
@@ -109,7 +110,10 @@ function learnSources(fagi, world) {
 
 function rememberFoodSource(fagi, world) {
   const known = SOURCES.enabled ? learnSources(fagi, world) : null;
-  const isSource = known ? (o) => isTree(o) && Boolean(known[o.id]) : isTree;
+  if (SITES.enabled) noteSites(fagi, world);
+  const isKnownTree = known ? (o) => isTree(o) && Boolean(known[o.id]) : isTree;
+  // With SITES, a tree she has learned gives nothing now is not a source to her.
+  const isSource = SITES.enabled ? (o) => isKnownTree(o) && worthVisiting(fagi, o) : isKnownTree;
   const visible = nearestVisible(fagi, world, isSource);
   let smelled = null;
   let strength = 0;
@@ -119,6 +123,8 @@ function rememberFoodSource(fagi, world) {
     if (current > strength) { smelled = object; strength = current; }
   }
   if (visible) rememberPlace(fagi.brain, 'foodSource', visible, fagi.age);
+  // With SITES, what she goes back to unseen is the site she counts on most.
+  if (SITES.enabled) return { visible, source: visible ?? bestSite(fagi), smelled, strength };
   const place = recallPlace(fagi.brain, 'foodSource');
   if (place && !world.objects.includes(place.ref)) {
     forgetPlace(fagi.brain, 'foodSource');
@@ -187,7 +193,8 @@ function buildCandidates(fagi, world, {
   // when we're not already under its crown; there the actual fruits take over. What
   // pulls her there is her own hunger or the colony's, whichever is greater.
   if (source && forage > 0.15 && (!smelledSource || visibleSource)) {
-    const realOne = visibleSource ?? source.ref;
+    // A site on open ground (SITES) has no object behind it: it is its own spot.
+    const realOne = visibleSource ?? source.ref ?? source;
     const dist = Math.max(0, distanceTo(fagi, source) - radiusOf(realOne));
     if (dist > FAGI.eatRadius * 2) {
       const via = visibleSource ? 'sight' : 'memory';
