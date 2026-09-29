@@ -5,7 +5,9 @@ import { LIGHT, LX, LY, LICHEN, trunkCanvas } from './common.js';
 import { branchesOf, traceBranches } from './branches.js';
 import { paintFoot } from './base.js';
 
-export function paintTrunk(seedOf, R, dry) {
+// `form` (forms.js): a palm is a slender bole with no branches, a conifer a
+// straight one whose branches hide under its tiers.
+export function paintTrunk(seedOf, R, dry, form = 'broadleaf') {
   const { rnd, S, c, ctx, base } = trunkCanvas(seedOf, R);
   const cx = S / 2;
   const cy = S / 2;
@@ -28,7 +30,8 @@ export function paintTrunk(seedOf, R, dry) {
   // All the branches, behind the bole: that way the branches grow from inside
   // the trunk and do not cover the bark.
   const { tilts, secsOf, cross } = branchesOf(seedOf, R);
-  traceBranches(ctx, cx, cy, secsOf, clear, dark);
+  if (form === 'broadleaf' || form === 'willow') traceBranches(ctx, cx, cy, secsOf, clear, dark);
+  const slim = form === 'palm' ? 0.6 : form === 'conifer' ? 0.82 : 1;
 
   // Bole: thick at the bottom, a bit less at the crotch, and flaring into roots
   // where it meets the ground. It is the piece that tells how big the tree is.
@@ -38,8 +41,8 @@ export function paintTrunk(seedOf, R, dry) {
   // own bulge. Two clean, symmetric curves read as cardboard.
   const baseY = cy + R * 0.92;
   const tallY = cy + cross.y;
-  const w0 = R * 0.27;
-  const w1 = R * 0.15;
+  const w0 = R * 0.27 * slim;
+  const w1 = R * (form === 'palm' ? 0.11 : 0.15 * slim);
   const N = 7;
   const lumps = [[], []];
   for (const b of lumps) for (let i = 0; i <= N; i++) b.push((rnd() - 0.5) * 0.3);
@@ -105,6 +108,18 @@ export function paintTrunk(seedOf, R, dry) {
     ctx.moveTo(x, y0);
     ctx.quadraticCurveTo(x + (rnd() - 0.5) * R * 0.14, (y0 + y1) / 2, x + (rnd() - 0.5) * R * 0.1, y1);
     ctx.stroke();
+  }
+
+  // A palm's bole is ringed with the scars of its old fronds.
+  if (form === 'palm') {
+    for (let y = tallY + R * 0.05; y < baseY; y += R * 0.07) {
+      ctx.strokeStyle = 'rgba(20,12,6,0.35)';
+      ctx.lineWidth = Math.max(0.7, R * 0.014);
+      ctx.beginPath();
+      ctx.moveTo(cx - R * 0.5, y);
+      ctx.quadraticCurveTo(cx, y + R * 0.025, cx + R * 0.5, y);
+      ctx.stroke();
+    }
   }
 
   const scales = 14 + ((rnd() * 10) | 0);

@@ -444,6 +444,10 @@ export const PLUME = {
   radius: 34,         // how far from the thread the smell is perceived
   nodesPerAroma: 0.7, // max segments of the thread = aroma × this
   faint: 0.85,        // how much it dilutes from the source to the tip
+  // Drawing only: 1 = every trail on the map is drawn; 0 = a trail shows only
+  // while a Fagi is smelling it, and fades away when none does. With many trees
+  // and fruit, drawing them all buries the map under threads.
+  show: 0,
 };
 
 // Memory. A memory isn't a number: it's a value PLUS the confidence she has

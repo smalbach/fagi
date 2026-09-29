@@ -93,6 +93,8 @@
   width: 76px; flex: none; background: #2a2e3a; color: var(--text);
   border: 1px solid var(--line); border-radius: 5px; padding: 3px 6px; font: inherit;
 }
+#settings .field.toggle { cursor: pointer; }
+#settings .field.toggle input { width: 16px; height: 16px; padding: 0; accent-color: #e8a33d; cursor: pointer; }
 @media (max-width: 720px) {
   #settings-body { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
   #settings .set-nav { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 8px; }

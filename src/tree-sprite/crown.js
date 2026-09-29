@@ -5,10 +5,10 @@
 
 import { canvasOf, mix, seededRng, noise } from '../sprite-kit.js';
 import { CROWN_RISE, LX, LY } from './common.js';
+import { SAP, blossom } from './forms.js';
 
-const SAP = '#8a6b3a';       // what the leaves turn toward as they dry
-
-export function paintCrown(seedOf, R, color, dry) {
+// `color` is the leaf; `bloom`, if any, the fruit's color its flowers take.
+export function paintCrown(seedOf, R, color, dry, bloom = null) {
   const rnd = seededRng((seedOf ^ 0x51ed270b) >>> 0);
   const pad = Math.ceil(R * 0.36) + 5;
   const S = (R + pad) * 2;
@@ -154,6 +154,21 @@ export function paintCrown(seedOf, R, color, dry) {
     ctx.fill();
   }
   ctx.globalCompositeOperation = 'source-over';
+
+  // In bloom: flowers of the fruit's color scattered over the leaves, more on
+  // the lit side. A dry tree has few left.
+  if (bloom) {
+    const flowers = Math.round(R * 0.7 * (1 - dry * 0.8));
+    const petal = mix(bloom, SAP, dry * 0.6);
+    for (let i = 0; i < flowers; i++) {
+      const m = clusters[(rnd() * clusters.length) | 0];
+      const a = rnd() * Math.PI * 2;
+      const d = m.r * Math.sqrt(rnd()) * 0.85;
+      const x = m.x + Math.cos(a) * d + LX * m.r * 0.15;
+      const y = m.y + Math.sin(a) * d + LY * m.r * 0.15;
+      blossom(ctx, x, y, Math.max(1.2, R * (0.03 + rnd() * 0.02)), petal, rnd() * 6);
+    }
+  }
 
   // The crown shades itself underneath, on the side opposite the light.
   ctx.save();

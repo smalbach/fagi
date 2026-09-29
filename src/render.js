@@ -8,14 +8,14 @@
 // camera or with the font divided by the zoom, so it doesn't grow with it.
 
 import { cycleAt } from './cycle.js';
-import { FAGI, POINT_TYPES, OBJECT_TYPES, CYCLE } from './config.js';
+import { FAGI, POINT_TYPES, OBJECT_TYPES, CYCLE, PLUME } from './config.js';
 import { heading } from './compass.js';
 import { viewRangeOf, fovOf } from './vision.js';
 import { activeEffects } from './effects.js';
 import { isWater, isNest, isTree, radiusOf } from './obstacles.js';
 import { colorOf, toRGB } from './colors.js';
 import { drawFagi, drawFagiGlow, ellipse } from './fagi-sprite.js';
-import { scentSources } from './smell.js';
+import { scentSources, scentFromSourceAt } from './smell.js';
 import { drawRock } from './rock-sprite.js';
 import { drawThing } from './thing-sprite.js';
 import { drawNest, drawNestMouth } from './nest-sprite.js';
@@ -71,7 +71,14 @@ function scene(ctx, world, fagi, camera, rain) {
   // wide and soft, that makes height readable from afar.
   drawGroundShadows(ctx, world);
 
-  for (const { src, key } of scentSources(world)) {
+  const noses = smellers(world, fagi);
+  const fade = trailFade();
+  for (const source of scentSources(world)) {
+    const { src, key } = source;
+    // Hidden trails (PLUME.show = 0) show only while some Fagi smells them,
+    // fading in and out instead of blinking.
+    const alpha = trailAlpha(src, PLUME.show === 1 || noses.some((a) => scentFromSourceAt(a, source, a.x, a.y) > 0), fade);
+    if (alpha <= 0) continue;
     // The trail takes the source's color, and an overripe fruit drags its
     // smell toward the toxic one's even before it has fully rotted.
     // The tree is a special case: it advertises the fruit it bears, but it doesn't
@@ -79,7 +86,7 @@ function scene(ctx, world, fagi, camera, rain) {
     const color = POINT_TYPES[src.type] ? colorOf(src)
       : POINT_TYPES[key] ? POINT_TYPES[key].color
       : OBJECT_TYPES[key].color;
-    drawTrail(ctx, src, color);
+    drawTrail(ctx, src, color, alpha);
   }
 
   // Without Fagi (while setting up a session) only the map is drawn.
@@ -375,9 +382,41 @@ function drawObject(ctx, o, busy, wind, raining, time) {
   }
 }
 
+// Who can be smelling a trail: Fagi and her living sisters.
+function smellers(world, fagi) {
+  const out = [];
+  if (fagi?.alive && fagi.effects) out.push(fagi);
+  for (const s of world.colony?.ants ?? []) if (s.alive && s.effects && s !== fagi) out.push(s);
+  return out;
+}
+
+// How much of a trail shows, eased toward 1 while smelled and toward 0 after.
+// Kept per source, by drawing time: it's only the picture, never the world.
+const trailSeen = new WeakMap();
+const TRAIL_IN = 0.25;          // seconds to appear
+const TRAIL_OUT = 1.2;          // seconds to fade once no one smells it
+let lastTrailFrame = 0;
+
+function trailFade() {
+  const now = performance.now();
+  const dt = lastTrailFrame ? Math.min(0.25, (now - lastTrailFrame) / 1000) : 0;
+  lastTrailFrame = now;
+  return dt;
+}
+
+function trailAlpha(src, smelled, dt) {
+  const before = trailSeen.get(src) ?? (smelled ? 1 : 0);
+  const now = smelled
+    ? Math.min(1, before + dt / TRAIL_IN)
+    : Math.max(0, before - dt / TRAIL_OUT);
+  trailSeen.set(src, now);
+  return now;
+}
+
 // The scent thread: a single line that leaves the source and grows across the
 // map. It's drawn in segments so it fades as it moves away from the source.
-function drawTrail(ctx, src, color) {
+// `alpha` fades the whole thread in and out.
+function drawTrail(ctx, src, color, alpha = 1) {
   const nodes = src.trail?.nodes;
   if (!nodes || nodes.length < 2) return;
 
@@ -386,13 +425,13 @@ function drawTrail(ctx, src, color) {
   for (let i = 1; i < nodes.length; i++) {
     const t = i / nodes.length;
     ctx.lineWidth = 4.2;
-    ctx.strokeStyle = `rgba(${r},${g},${b},${(1 - t) * 0.16})`;
+    ctx.strokeStyle = `rgba(${r},${g},${b},${(1 - t) * 0.16 * alpha})`;
     ctx.beginPath();
     ctx.moveTo(nodes[i - 1].x, nodes[i - 1].y);
     ctx.lineTo(nodes[i].x, nodes[i].y);
     ctx.stroke();
     ctx.lineWidth = 1.8;
-    ctx.strokeStyle = `rgba(${r},${g},${b},${(1 - t) * 0.75})`;
+    ctx.strokeStyle = `rgba(${r},${g},${b},${(1 - t) * 0.75 * alpha})`;
     ctx.beginPath();
     ctx.moveTo(nodes[i - 1].x, nodes[i - 1].y);
     ctx.lineTo(nodes[i].x, nodes[i].y);

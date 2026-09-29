@@ -20,6 +20,8 @@ const SETTINGS_KEY = 'fagi.settings';
 
 // Each field carries its text in both languages: en, es.
 const n = (obj, key, en, es, min, max, step) => ({ obj, key, label: { en, es }, min, max, step });
+// An on/off setting: kept as 1 / 0 like the rest, shown as a checkbox.
+const b = (obj, key, en, es) => ({ ...n(obj, key, en, es, 0, 1, 1), toggle: true });
 
 function foodFields(key) {
   const spec = POINT_TYPES[key];
@@ -229,6 +231,7 @@ const GROUPS = [
     n(WIND, 'changeEvery.max', 'Changes at latest every', 'Cambia como tarde cada', 2, 120, 1),
   ]},
   { title: { en: 'Scent plumes', es: 'Estelas de olor' }, cat: 'world', fieldsOf: [
+    b(PLUME, 'show', 'Show every scent trail (off: only the ones a Fagi is smelling)', 'Mostrar todas las estelas (apagado: solo las que huele una Fagi)'),
     n(PLUME, 'step', 'Length of each segment', 'Largo de cada tramo', 4, 60, 1),
     n(PLUME, 'every', 'Seconds between segments', 'Segundos entre tramos', 0.02, 1, 0.02),
     n(PLUME, 'drift', 'How much it meanders', 'Cuánto serpentea', 0, 1.5, 0.05),
@@ -608,6 +611,24 @@ export function createSettings(world, getFagi) {
     el.title = `${field.min} – ${field.max}`;
     el.innerHTML = `<span>${field.label[getLang()] ?? field.label.en}</span>`;
     const input = document.createElement('input');
+    if (field.toggle) {
+      el.classList.add('toggle');
+      el.title = '';
+      input.type = 'checkbox';
+      input.checked = read(field) === 1;
+      input.addEventListener('change', () => {
+        const before = read(field);
+        const v = input.checked ? 1 : 0;
+        write(field, v);
+        if (before !== v) onChange?.(field.id, before, v, 'user');
+        el.classList.toggle('changed', changed(field));
+        saveSoon();
+        buildNav();
+      });
+      el.append(input);
+      inputs.push({ field, input, row: el });
+      return el;
+    }
     input.type = 'number';
     input.min = field.min; input.max = field.max; input.step = field.step;
     input.value = read(field);
@@ -673,7 +694,10 @@ export function createSettings(world, getFagi) {
   build();
   onLangChange(build);
   refresh = () => {
-    for (const { field, input, row: el } of inputs) { input.value = read(field); el.classList.toggle('changed', changed(field)); }
+    for (const { field, input, row: el } of inputs) {
+      if (field.toggle) input.checked = read(field) === 1; else input.value = read(field);
+      el.classList.toggle('changed', changed(field));
+    }
     buildNav();
   };
 
