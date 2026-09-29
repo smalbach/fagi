@@ -134,6 +134,22 @@ export function childName(sex, father, mother) {
   };
 }
 
+// A name that is always the same for this id: for someone a recording made
+// before names existed never named (a replay of an old session).
+export function nameForId(id, sex) {
+  let x = ((Number(id) || 0) * 0x9e3779b1 + 0x7f4a7c15) >>> 0;
+  const next = (list) => {
+    x = Math.imul(x ^ (x >>> 16), 0x45d9f3b) >>> 0;
+    x = (x ^ (x >>> 13)) >>> 0;
+    return list[x % list.length];
+  };
+  const given = next(sex === 'male' ? NAMES.male : sex === 'female' ? NAMES.female : (id % 2 ? NAMES.female : NAMES.male));
+  const first = next(NAMES.surnames);
+  let second = next(NAMES.surnames);
+  if (second === first) second = next(NAMES.surnames);
+  return { given, first, second };
+}
+
 // 'Ana Rossi Kaya'. Without a name, '#id' (or '—').
 export function fullName(fagi) {
   const n = fagi?.name;

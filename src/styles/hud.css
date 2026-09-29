@@ -11,7 +11,7 @@
   max-height: 100vh;
 }
 h1 { font-size: 18px; margin: 0; letter-spacing: 2px; }
-.hud-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: none; }
+.hud-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: none; flex-wrap: wrap; }
 .app-version { color: var(--muted); font-size: 10.5px; font-variant-numeric: tabular-nums; margin-right: auto; white-space: nowrap; }
 .hud-header-actions { display: flex; align-items: center; gap: 6px; flex: none; }
 #btn-toggle-groups { width: auto; padding: 4px 8px; font-size: 10.5px; flex: none; }
@@ -50,7 +50,29 @@ button.active { border-color: currentColor; }
 .dot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: none; }
 .hint { font-size: 11px; color: var(--muted); margin-left: auto; }
 .help { font-size: 11px; color: var(--muted); margin-top: 9px; line-height: 1.35; }
-#type-buttons, #object-buttons { display: flex; flex-direction: column; gap: 6px; }
+/* The palette of what can be placed (ui.js buildPalette): tabs and a grid. */
+.palette-tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+.palette-tab {
+  flex: 1 1 auto; min-width: 0; justify-content: center; gap: 3px; padding: 5px 5px; font-size: 10.5px;
+  background: #22262f; color: var(--muted); position: relative;
+}
+.palette-tab span:last-of-type { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.palette-tab.active { background: #2c3240; border-color: #4a5266; color: var(--text); }
+.palette-held { position: absolute; top: 3px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: #ffe08a; }
+.palette-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.palette-item { padding: 6px 7px; font-size: 12px; min-width: 0; }
+.palette-item .palette-name { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.palette-item.active { background: #2f3444; }
+.palette-hint { margin: 8px 0 0; font-size: 11px; color: var(--muted); line-height: 1.35; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.palette-hint b { color: var(--text); font-weight: 600; }
+.map-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.map-sub { margin: 6px 0 4px; }
+.map-chip {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted);
+  background: #22262f; border: 1px solid var(--line); border-radius: 10px; padding: 1px 7px;
+}
+.map-chip b { color: var(--text); font-weight: 600; }
+.controls-list { margin: 0; padding-left: 16px; font-size: 11px; color: var(--muted); line-height: 1.6; }
 .bar { height: 10px; background: #2a2e3a; border-radius: 5px; overflow: hidden; }
 .bar > i { display: block; height: 100%; width: 0; }
 .label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
@@ -61,3 +83,6 @@ button.active { border-color: currentColor; }
 #effects { display: flex; flex-direction: column; gap: 5px; font-size: 12px; }
 #effects .fx { display: flex; justify-content: space-between; }
 #effects .none { color: var(--muted); }
+/* The panel never scrolls sideways: whatever opens grows downwards. */
+#hud { overflow-x: hidden; }
+#hud-body > * { min-width: 0; }

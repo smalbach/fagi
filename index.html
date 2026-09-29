@@ -8,25 +8,40 @@
 </head>
 <body class="mode-idle">
   <div id="stage">
-    <div id="topbar">
-      <button id="btn-end" data-i18n="app.endSession">■ End session</button>
-      <button id="btn-settings" data-i18n="app.settings">⚙ Settings</button>
-      <button id="btn-visual" aria-pressed="false">🌿 Immersive</button>
-      <select id="lang" title="Idioma / Language">
-        <option value="en">EN</option>
-        <option value="es">ES</option>
-      </select>
-    </div>
+    <header id="strip">
+      <div id="strip-stats" class="play-only" aria-live="off"></div>
+      <div id="strip-setup">
+        <b data-i18n="setup.title">New session</b>
+        <span data-i18n="setup.sub">Shape the world, tune it, then start</span>
+      </div>
+      <div id="topbar">
+        <button id="btn-end" data-i18n="app.endSession">■ End session</button>
+        <button id="btn-settings" data-i18n="app.settings">⚙ Settings</button>
+        <div id="view-modes" class="view-modes" role="radiogroup">
+          <button type="button" data-view="observe" data-i18n="view.observe">Observe</button>
+          <button type="button" data-view="normal" data-i18n="view.normal">Normal</button>
+          <button type="button" data-view="deep" data-i18n="view.deep">Deep</button>
+        </div>
+        <select id="lang" title="Idioma / Language">
+          <option value="en">EN</option>
+          <option value="es">ES</option>
+        </select>
+      </div>
+    </header>
     <canvas id="canvas"></canvas>
     <aside id="ask-card" hidden aria-live="polite"></aside>
     <aside id="inspect-card" hidden aria-live="polite"></aside>
     <div id="setup-bar" class="stage-bar">
-      <button id="btn-regen" data-i18n="setup.regen">↻ New map</button>
-      <label><input id="chk-recover" type="checkbox"> <span data-i18n="setup.recover">Recover what it learned</span></label>
-      <button id="btn-setup-cancel" data-i18n="setup.cancel">Cancel</button>
-      <button id="btn-start" class="primary" data-i18n="setup.start">▶ Start session</button>
-      <span id="setup-error" role="alert"></span>
+      <div class="setup-side">
+        <button id="btn-regen" data-i18n="setup.regen">↻ New map</button>
+        <label><input id="chk-recover" type="checkbox"> <span data-i18n="setup.recover">Recover what it learned</span></label>
+      </div>
       <p class="help" data-i18n="setup.help">Click places · drag moves · right click removes · shift+wheel resizes</p>
+      <div class="setup-side setup-go">
+        <span id="setup-error" role="alert"></span>
+        <button id="btn-setup-cancel" data-i18n="setup.cancel">Cancel</button>
+        <button id="btn-start" class="primary" data-i18n="setup.start">▶ Start session</button>
+      </div>
     </div>
     <div id="replay-bar" class="stage-bar">
       <button id="rp-play">⏸</button>
@@ -57,23 +72,39 @@
     </div>
     <div id="hud-body">
     <p id="status" class="play-only"></p>
+    <section id="dock-inspect" data-dock="inspect" class="dock-section play-only">
+      <p class="help dock-empty" data-i18n="ins.hint">Click a Fagi, a fruit or an object to see all its data</p>
+    </section>
 
-    <details class="hud-group edit-only" open>
-      <summary data-i18n="panel.food">Food</summary>
-      <div id="type-buttons"></div>
+    <details data-dock="map" class="hud-group edit-only" open>
+      <summary data-i18n="panel.place">Place on the map</summary>
+      <div id="palette-tabs" class="palette-tabs" role="tablist"></div>
+      <div id="palette-grid" class="palette-grid"></div>
+      <p id="palette-hint" class="palette-hint"></p>
     </details>
 
-    <details class="hud-group edit-only" open>
-      <summary data-i18n="panel.map">Map</summary>
-      <div id="object-buttons"></div>
-      <p class="help" data-i18n="panel.camera">Camera · wheel zooms · middle button drags · arrows move · F follows Fagi · 0 resets</p>
+    <details data-dock="map" class="hud-group edit-only" open>
+      <summary data-i18n="panel.mapNow">This map</summary>
+      <div id="map-summary" class="map-summary"></div>
       <div class="label" style="margin-top:10px">
         <span data-i18n="panel.treeEvery">Tree drops fruit every</span><span id="tree-interval-val">8s</span>
       </div>
       <input id="tree-interval" type="range" min="2" max="30" step="1" value="8">
     </details>
 
-    <details id="identity-group" class="hud-group play-only" open>
+    <details data-dock="map" class="hud-group edit-only" open>
+      <summary data-i18n="panel.controls">Controls</summary>
+      <ul class="controls-list">
+        <li data-i18n="ctl.place">Click: places what is selected</li>
+        <li data-i18n="ctl.drag">Drag: moves an object</li>
+        <li data-i18n="ctl.remove">Right click: removes an object</li>
+        <li data-i18n="ctl.resize">Shift + wheel: resizes an object</li>
+        <li data-i18n="ctl.zoom">Wheel: zoom · middle button: pan</li>
+        <li data-i18n="ctl.keys">Arrows / WASD: move · F follows Fagi · 0 whole map</li>
+      </ul>
+    </details>
+
+    <details id="identity-group" data-dock="fagi" class="hud-group play-only" open>
       <summary data-i18n="panel.identity">Identity and family</summary>
       <div class="label"><span data-i18n="stat.name">Name</span><span id="name-val" class="hud-name">—</span></div>
       <div class="label"><span data-i18n="stat.generation">Generation</span><span id="gen-val">—</span></div>
@@ -82,7 +113,7 @@
       <p class="help" data-i18n="ins.hint">Click a Fagi, a fruit or an object to see all its data</p>
     </details>
 
-    <details class="hud-group play-only" open>
+    <details data-dock="fagi" class="hud-group play-only" open>
       <summary data-i18n="panel.state">State</summary>
       <div class="label"><span data-i18n="stat.hunger">Hunger</span><span id="hunger-val">0%</span></div>
       <div class="bar"><i id="hunger-bar" style="background:#d95b7e"></i></div>
@@ -104,7 +135,7 @@
       <div class="label"><span data-i18n="stat.body">Body</span><span id="body-val">dry</span></div>
     </details>
 
-    <details id="organism-group" class="hud-group play-only" open>
+    <details id="organism-group" data-dock="fagi" class="hud-group play-only" open>
       <summary data-i18n="panel.organism">Day and body</summary>
       <div class="label"><span data-i18n="stat.day">Day</span><span id="day-val">—</span></div>
       <div class="label"><span data-i18n="stat.light">Light</span><span id="light-val">—</span></div>
@@ -120,7 +151,7 @@
       <div class="label"><span data-i18n="stat.population">Population</span><span id="pop-val">—</span></div>
     </details>
 
-    <details class="hud-group play-only" open>
+    <details data-dock="fagi" class="hud-group play-only" open>
       <summary data-i18n="panel.heading">Heading</summary>
       <div class="label"><span data-i18n="stat.position">Position</span><span id="pos-val">x 0, y 0</span></div>
       <div class="label"><span data-i18n="stat.movingTo">Moving</span><span id="heading-val">→ right</span></div>
@@ -130,17 +161,17 @@
       <div class="label"><span data-i18n="stat.pressure">Pressure she feels</span><span id="pressure-val">normal</span></div>
     </details>
 
-    <details class="hud-group play-only" open>
+    <details data-dock="fagi" class="hud-group play-only" open>
       <summary data-i18n="panel.pantry">Nest pantry</summary>
       <div id="stock"></div>
     </details>
 
-    <details class="hud-group play-only" open>
+    <details data-dock="fagi" class="hud-group play-only" open>
       <summary data-i18n="panel.effects">Active effects</summary>
       <div id="effects"></div>
     </details>
 
-    <details class="hud-group play-only" open>
+    <details data-dock="fagi" class="hud-group play-only" open>
       <summary data-i18n="panel.learned">What it has learned</summary>
       <div id="beliefs"></div>
     </details>
@@ -230,6 +261,23 @@
     </div>
     </div>
   </section>
+  <div id="dock-resizer" class="resizer" role="separator" aria-orientation="vertical"></div>
+  <div id="bottom-resizer" class="resizer" role="separator" aria-orientation="horizontal"></div>
+  <nav id="rail" aria-label="Panels">
+    <button type="button" data-dock="fagi" data-i18n-title="rail.fagi" title="Fagi">🐜</button>
+    <button type="button" data-dock="map" data-i18n-title="rail.map" title="Map">🗺</button>
+    <button type="button" data-dock="inspect" data-i18n-title="rail.inspect" title="Inspector">🔍</button>
+    <button type="button" data-act="console" data-i18n-title="rail.console" title="Console">▤</button>
+    <button type="button" data-act="settings" data-i18n-title="rail.settings" title="Settings">⚙</button>
+    <span class="rail-gap"></span>
+    <button type="button" data-act="smaller" data-i18n-title="rail.smaller" title="Smaller text">A−</button>
+    <button type="button" data-act="bigger" data-i18n-title="rail.bigger" title="Bigger text">A+</button>
+    <button type="button" data-act="compact" data-i18n-title="rail.compact" title="Compact">◫</button>
+  </nav>
+  <div id="setup-tabs" role="tablist">
+    <button type="button" role="tab" data-setup="map" data-i18n="setup.tabMap">🗺 Map</button>
+    <button type="button" role="tab" data-setup="settings" data-i18n="setup.tabSettings">⚙ Settings</button>
+  </div>
   <div id="settings-overlay" hidden>
     <div id="settings">
       <header>

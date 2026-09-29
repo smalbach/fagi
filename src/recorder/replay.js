@@ -11,6 +11,7 @@
 import { OBJECT_TYPES, TREE, PHERO, WIND, RAIN } from '../config.js';
 import { createWorld } from '../world.js';
 import { createFagi } from '../fagi.js';
+import { nameForId } from '../names.js';
 import { normalizeAngle } from '../vision.js';
 import { MARKER_TYPES } from './events.js';
 import { modernize } from '../legacy.js';
@@ -272,7 +273,9 @@ export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
     w.lineage = state.people;
     fagi.id = state.followed?.id ?? (sisterTrack.length ? 1 : undefined);
     const me = state.people[fagi.id ?? 1];
-    if (me) Object.assign(fagi, { name: me.name, sex: me.sex ?? fagi.sex, generation: me.generation });
+    if (me) Object.assign(fagi, { name: me.name ?? fagi.name, sex: me.sex ?? fagi.sex, generation: me.generation });
+    // An old recording names no one: the same made-up name on every seek.
+    if (!me?.name) fagi.name = nameForId(fagi.id ?? 1, fagi.sex);
     putMind(fagi, state, time);
     return { world: w, fagi, time, config: state.config, configSeq: state.configSeq };
   }
@@ -313,7 +316,8 @@ function putSisters(sisters, samples, t, people = {}) {
     f.stride += Math.hypot(nx - (f.x ?? nx), ny - (f.y ?? ny));
     Object.assign(f, { x: nx, y: ny, angle: angle + normalizeAngle(n[3] - angle) * k, alive: Boolean(alive), carrying: carrying ? { type: carrying } : null, lifeStage: stage ?? 'adult' });
     const who = people[id];
-    if (who) Object.assign(f, { name: who.name, sex: who.sex, generation: who.generation });
+    if (who) Object.assign(f, { name: who.name ?? f.name, sex: who.sex, generation: who.generation });
+    f.name ??= nameForId(id, f.sex);
     sisters.set(id, f);
     return f;
   });

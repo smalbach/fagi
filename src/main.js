@@ -29,6 +29,7 @@ import { createConsole } from './console.js';
 import { createLearnedPanel } from './learned/panel.js';
 import { createBrainMap } from './brainmap.js';
 import { initPanelLayout, initHudGroups, initContainerToggle } from './panel-layout.js';
+import { initLayout } from './layout.js';
 import { save, snapshot, load, restore } from './learned/store.js';
 import { createBackend } from './backend/index.js';
 import { createCortex, resetCortex } from './cortex.js';
@@ -87,15 +88,15 @@ export function createGame({ onExit } = {}) {
   input.onInspect = (x, y) => {
     const { w, f } = shown();
     const hit = pickAt(w, f, x, y, slack());
-    if (hit) inspector.select(hit); else inspector.clear();
+    if (hit) { inspector.select(hit); layout.reveal(); } else inspector.clear();
   };
   input.pickFagi = (x, y) => {
     if (mode !== 'play') return false;
     const hit = pickFagiAt(world, fagi, x, y, slack());
-    if (hit) inspector.select(hit);
+    if (hit) { inspector.select(hit); layout.reveal(); }
     return Boolean(hit);
   };
-  ui.onPick = (sel) => inspector.select(sel);
+  ui.onPick = (sel) => { inspector.select(sel); layout.reveal(); };
   // Which version is running: to know what's in production.
   const tagLabel = document.getElementById('app-version');
   if (tagLabel) { tagLabel.textContent = versionLabel(); tagLabel.title = versionTitle(); }
@@ -105,26 +106,10 @@ export function createGame({ onExit } = {}) {
   const brainMap = createBrainMap(document.getElementById('brainmap'), document.getElementById('brainmap-status'), document.getElementById('brainmap-expand'));
   createSettings(world, () => fagi);
   bindDom();
-  initPanelLayout(document.getElementById('console'));
+  const panels = initPanelLayout(document.getElementById('console'));
   initHudGroups(document.getElementById('hud'), document.getElementById('btn-toggle-groups'));
   initContainerToggle(document.getElementById('btn-toggle-hud'), document.getElementById('hud-body'), 'fagi.hud-collapsed');
   initContainerToggle(document.getElementById('btn-toggle-console'), document.getElementById('console-body'), 'fagi.console-collapsed');
-
-  // Clean presentation by default; the simulation aids are still available
-  // without touching the world logic.
-  const visual = document.getElementById('btn-visual');
-  function updateVisualButton() {
-    visual.textContent = world.immersive ? t('app.immersive') : t('app.analysis');
-    visual.classList.toggle('active', !world.immersive);
-    visual.setAttribute('aria-pressed', String(!world.immersive));
-    document.body.classList.toggle('immersive', world.immersive);
-  }
-  visual.addEventListener('click', () => {
-    world.immersive = !world.immersive;
-    updateVisualButton();
-  });
-  onLangChange(updateVisualButton);
-  updateVisualButton();
 
   // --- session state ---
   let mode = 'idle';
@@ -132,11 +117,21 @@ export function createGame({ onExit } = {}) {
   let player = null;
   const replaying = { on: true, speed: 1, configSeq: -1, configBefore: null };
 
+  // Views, the dock, the console at the bottom (layout.js). The simulation
+  // aids are drawn in every view but observe.
+  const layout = initLayout(world, {
+    isSession: () => mode === 'play' || mode === 'replay',
+    isSetup: () => mode === 'setup',
+    onSettings: () => { document.getElementById('settings-overlay').hidden = false; },
+    onRelayout: (dock) => panels.setSideBySide(dock),
+  });
+
   function setMode(fresh) {
     mode = fresh;
     for (const m of ['idle', 'setup', 'play', 'replay']) document.body.classList.toggle(`mode-${m}`, m === fresh);
     input.editable = fresh === 'setup' || fresh === 'play';
     document.getElementById('settings-overlay').hidden = fresh !== 'setup';
+    layout.sync();
   }
 
   function newFagi() {
@@ -286,6 +281,7 @@ export function createGame({ onExit } = {}) {
     updateTrails(world, dt);
     render(ctx, world, null, camera, markOf(inspector.selection, world, null));
     inspector.update(null, world, { live: false });
+    ui.paintMap(world);
   }
 
   function framePlay(dt) {
@@ -298,6 +294,7 @@ export function createGame({ onExit } = {}) {
     if (camera.follow) centerOn(camera, canvas, world, fagi);
     render(ctx, world, fagi, camera, markOf(inspector.selection, world, fagi));
     ui.update(fagi, world);
+    ui.paintMap(world);
     inspector.update(fagi, world);
     console.update(fagi, lines);
     learnedPanel.update();
@@ -315,6 +312,7 @@ export function createGame({ onExit } = {}) {
       replaying.configSeq = player.configSeq;
     }
     updateTrails(player.world, dt);
+    player.world.immersive = world.immersive;   // the view's, not the recording's
     if (camera.follow) centerOn(camera, canvas, player.world, player.fagi);
     render(ctx, player.world, player.fagi, camera, markOf(inspector.selection, player.world, player.fagi));
     ui.update(player.fagi, player.world);

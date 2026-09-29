@@ -9,7 +9,7 @@ import { organismOn } from './organism.js';
 import { energyMax } from './biology.js';
 import { heading, verticalSense } from './compass.js';
 import { activeEffects } from './effects.js';
-import { nestOf, nestRipeness, record } from './world.js';
+import { nestOf, nestRipeness, record, stockCount } from './world.js';
 import { configIdOf } from './settings.js';
 import { setFruitInterval } from './trees.js';
 import { t, labelOf, onLangChange, formatDuration } from './i18n.js';
@@ -36,32 +36,119 @@ function hintOfObject(spec) {
   return t({ water: 'hint.water', nest: 'hint.nest', spawner: 'hint.tree' }[spec.kind] ?? 'hint.rock');
 }
 
-function buildTypeButtons(foodBox, objectBox, input) {
-  foodBox.innerHTML = '';
-  objectBox.innerHTML = '';
+// The palette of what can be placed, in three tabs: food, terrain and tools.
+// Compact buttons; the selected one's description goes under the grid.
+const PALETTE_TABS = [
+  { id: 'food', icon: '🍎', label: 'pal.food' },
+  { id: 'land', icon: '🌳', label: 'pal.land' },
+  { id: 'tools', icon: '🔧', label: 'pal.tools' },
+];
+const TAB_KEY = 'fagi.palette.tab';
+
+function paletteItems() {
+  const items = [];
+  for (const key of TYPE_KEYS) items.push({ key, tab: 'food', color: POINT_TYPES[key].color, hint: hintOfFood(POINT_TYPES[key]) });
+  for (const key of OBJECT_KEYS) {
+    if (OBJECT_TYPES[key].palette === false) continue;
+    items.push({ key, tab: 'land', color: OBJECT_TYPES[key].color, hint: hintOfObject(OBJECT_TYPES[key]) });
+  }
+  items.push({ key: INSPECT, tab: 'tools', color: '#ffe08a', hint: t('ins.toolHint') });
+  items.push({ key: ASK, tab: 'tools', color: '#b57bff', hint: t('why.askHint') });
+  return items;
+}
+
+function buildPalette(tabsBox, grid, hintBox, input) {
+  const items = paletteItems();
   const buttons = {};
+  let tab = (() => { try { return localStorage.getItem(TAB_KEY); } catch { return null; } })()
+    ?? items.find((i) => i.key === input.selectedType)?.tab ?? 'food';
 
-  const make = (key, spec, hint, container) => {
-    const btn = document.createElement('button');
-    btn.style.color = spec.color;
-    btn.innerHTML = `<span class="dot"></span><span style="color:var(--text)">${labelOf(key)}</span>`
-      + `<span class="hint">${hint}</span>`;
-    btn.addEventListener('click', () => select(key));
-    container.appendChild(btn);
-    buttons[key] = btn;
-  };
+  function paintTabs() {
+    tabsBox.innerHTML = '';
+    for (const tb of PALETTE_TABS) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.role = 'tab';
+      btn.className = 'palette-tab';
+      btn.classList.toggle('active', tb.id === tab);
+      // A dot on the tab that holds the selected item, when another tab is open.
+      const holds = items.find((i) => i.key === input.selectedType)?.tab === tb.id && tb.id !== tab;
+      btn.innerHTML = `<span>${tb.icon}</span><span>${t(tb.label)}</span>${holds ? '<i class="palette-held"></i>' : ''}`;
+      btn.addEventListener('click', () => {
+        tab = tb.id;
+        try { localStorage.setItem(TAB_KEY, tab); } catch { /* not remembered */ }
+        paintTabs();
+        paintGrid();
+      });
+      tabsBox.append(btn);
+    }
+  }
 
-  for (const key of TYPE_KEYS) make(key, POINT_TYPES[key], hintOfFood(POINT_TYPES[key]), foodBox);
-  for (const key of OBJECT_KEYS) if (OBJECT_TYPES[key].palette !== false) make(key, OBJECT_TYPES[key], hintOfObject(OBJECT_TYPES[key]), objectBox);
-  make(ASK, { color: '#b57bff' }, t('why.askHint'), objectBox);
-  make(INSPECT, { color: '#ffe08a' }, t('ins.toolHint'), objectBox);
+  function paintGrid() {
+    grid.innerHTML = '';
+    for (const k of Object.keys(buttons)) delete buttons[k];
+    for (const item of items.filter((i) => i.tab === tab)) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'palette-item';
+      btn.style.color = item.color;
+      btn.title = item.hint;
+      btn.innerHTML = `<span class="dot"></span><span class="palette-name">${labelOf(item.key)}</span>`;
+      btn.addEventListener('click', () => select(item.key));
+      grid.append(btn);
+      buttons[item.key] = btn;
+    }
+    mark();
+  }
+
+  function mark() {
+    for (const [k, btn] of Object.entries(buttons)) btn.classList.toggle('active', k === input.selectedType);
+    const item = items.find((i) => i.key === input.selectedType);
+    hintBox.innerHTML = item
+      ? `<span class="dot" style="color:${item.color}"></span><b>${labelOf(item.key)}</b> · ${item.hint}`
+      : '';
+  }
 
   function select(key) {
     input.selectedType = key;
-    for (const k of Object.keys(buttons)) buttons[k].classList.toggle('active', k === key);
+    const item = items.find((i) => i.key === key);
+    if (item && item.tab !== tab) { tab = item.tab; paintGrid(); }
+    paintTabs();
+    mark();
   }
-  select(input.selectedType);
+
+  paintTabs();
+  paintGrid();
   return select;
+}
+
+// What this map holds, at a glance: repainted a couple of times a second.
+function paintMapSummary(box, world) {
+  if (!box) return;
+  const count = (test) => world.objects.filter(test).length;
+  const trees = count((o) => OBJECT_TYPES[o.type]?.kind === 'spawner');
+  const rocks = count((o) => OBJECT_TYPES[o.type]?.kind === 'block');
+  const things = count((o) => OBJECT_TYPES[o.type]?.kind === 'thing');
+  const water = count((o) => o.type === 'water');
+  const puddles = count((o) => o.type === 'puddle');
+  const nestObj = nestOf(world);
+  const byType = {};
+  for (const p of world.points) byType[p.type] = (byType[p.type] ?? 0) + 1;
+  const species = new Set(world.objects.filter((o) => o.fruit && POINT_TYPES[o.fruit]?.species).map((o) => o.fruit)).size;
+  const chip = (icon, n, label) => `<span class="map-chip">${icon} ${label} <b>${n}</b></span>`;
+  const fruit = Object.entries(byType).sort((a, b) => b[1] - a[1]).map(([k, n]) =>
+    `<span class="map-chip" style="border-color:${specOf(k)?.color ?? 'var(--line)'}"><span class="dot" style="color:${specOf(k)?.color}"></span>${labelOf(k)} <b>${n}</b></span>`).join('');
+  box.innerHTML = `<div class="map-chips">`
+    + chip('🌳', trees, t('map.trees'))
+    + chip('🪨', rocks, t('map.rocks'))
+    + chip('💧', water, t('map.water'))
+    + (puddles ? chip('💦', puddles, t('map.puddles')) : '')
+    + (things ? chip('◆', things, t('map.things')) : '')
+    + (species ? chip('🧬', species, t('map.species')) : '')
+    + (nestObj ? chip('🏠', stockCount(nestObj.stock), t('map.stored')) : `<span class="map-chip">🏠 ${t('map.noNest')}</span>`)
+    + `</div>`
+    + `<div class="map-sub">${chip('🍎', world.points.length, t('map.fruit'))}</div>`
+    + (fruit ? `<div class="map-chips">${fruit}</div>` : '');
 }
 
 // There's no longer a fixed list of "what can be believed": a type's bar
@@ -127,6 +214,8 @@ export function createUI(input, world, onReset) {
     genVal: document.getElementById('gen-val'),
     lifespanVal: document.getElementById('lifespan-val'),
     family: document.getElementById('family-box'),
+    strip: document.getElementById('strip-stats'),
+    stripAt: 0,
     familyAt: 0,
     familyHold: 0,
     onPick: null,
@@ -139,11 +228,14 @@ export function createUI(input, world, onReset) {
     if (b) el.onPick?.({ kind: 'fagi', id: Number(b.dataset.fagi) });
   });
 
-  const foodBox = document.getElementById('type-buttons');
-  const objectBox = document.getElementById('object-buttons');
+  const paletteTabs = document.getElementById('palette-tabs');
+  const paletteGrid = document.getElementById('palette-grid');
+  const paletteHint = document.getElementById('palette-hint');
+  const mapSummary = document.getElementById('map-summary');
   const beliefBox = document.getElementById('beliefs');
 
-  let selectTool = buildTypeButtons(foodBox, objectBox, input);
+  let selectTool = buildPalette(paletteTabs, paletteGrid, paletteHint, input);
+  let summaryAt = 0;
   // State of the belief bars: which keys are painted right now and with
   // which elements. It's rebuilt when a new key appears or on a language
   // switch.
@@ -152,7 +244,8 @@ export function createUI(input, world, onReset) {
 
   // On a language switch, whatever was built only once has to be redone.
   onLangChange(() => {
-    selectTool = buildTypeButtons(foodBox, objectBox, input);
+    selectTool = buildPalette(paletteTabs, paletteGrid, paletteHint, input);
+    summaryAt = 0;
     beliefs.bars = buildBeliefBars(beliefBox, beliefs.keys);
   });
 
@@ -176,6 +269,13 @@ export function createUI(input, world, onReset) {
     update: (fagi, w) => update(el, beliefBox, beliefs, fagi, w),
     sync,
     selectTool: (key) => selectTool(key),
+    // The map's summary (setup and play): cheap, but not every frame.
+    paintMap: (w) => {
+      const now = performance.now();
+      if (now - summaryAt < 500) return;
+      summaryAt = now;
+      paintMapSummary(mapSummary, w);
+    },
     set onPick(fn) { el.onPick = fn; },
   };
 }
@@ -304,7 +404,37 @@ function paintIdentity(el, fagi, world) {
     + line(t('stat.children'), fam.children, t('fam.none'));
 }
 
+// The strip over the map: who she is, her needs as small bars, the day and
+// the population. It stays in every view, so the map can have the rest.
+function paintStrip(el, fagi, world) {
+  if (!el.strip) return;
+  const now = performance.now();
+  if (now - el.stripAt < 200) return;
+  el.stripAt = now;
+  const mini = (label, u, color) => `<span class="sb" title="${label} ${Math.round(u * 100)}%"><span class="sb-l">${label}</span>`
+    + `<span class="sb-bar"><i style="width:${Math.max(0, Math.min(1, u)) * 100}%;background:${color}"></i></span>`
+    + `<span class="sb-v">${Math.round(u * 100)}</span></span>`;
+  const parts = [
+    `<b class="sb-name">${fullName(fagi)}${fagi.sex ? ` ${SEX_MARK[fagi.sex]}` : ''}</b>`,
+    mini(t('stat.hunger'), fagi.hunger / HUNGER.max, '#d95b7e'),
+    mini(t('stat.thirst'), fagi.thirst / THIRST.max, '#3d8fd9'),
+    mini(t('stat.energy'), fagi.energy / energyMax(fagi), '#8fd93d'),
+    HEALTH.enabled ? mini(t('stat.health'), healthU(fagi), '#e05a5a') : '',
+    fagi.sleepPressure != null && organismOn() ? mini(t('stat.sleepPressure'), fagi.sleepPressure, '#8f7fd0') : '',
+  ];
+  const sky = cycleAt(world.time);
+  if (sky.on) parts.push(`<span class="sb-t">${t('strip.day', { d: sky.day })} · ${t(phaseName(sky))}</span>`);
+  const c = LIFE.enabled && world.colony?.life ? census(world, world.colony) : null;
+  if (c) parts.push(`<span class="sb-t">${t('strip.pop', { n: c.alive })}${c.eggs ? ` · 🥚${c.eggs}` : ''}</span>`);
+  const doing = fagi.alive
+    ? (fagi.sleeping && fagi.thought?.action === 'rest' ? `${t('action.rest')} 💤` : t(`action.${fagi.thought?.action ?? 'explore'}`))
+    : t('status.died', { cause: t(`cause.${fagi.cause || 'unknown'}`), age: { dur: fagi.age } });
+  parts.push(`<span class="sb-doing${fagi.alive ? '' : ' dead'}">${doing}</span>`);
+  el.strip.innerHTML = parts.join('');
+}
+
 function update(el, beliefBox, beliefs, fagi, world) {
+  paintStrip(el, fagi, world);
   barEl(el.hungerBar, el.hungerVal, fagi.hunger, HUNGER.max);
   barEl(el.thirstBar, el.thirstVal, fagi.thirst, THIRST.max);
   barEl(el.energyBar, el.energyVal, fagi.energy, energyMax(fagi));

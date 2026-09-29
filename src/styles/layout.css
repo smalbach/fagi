@@ -1,0 +1,239 @@
+/* --- the layout (layout.js): strip, dock, console at the bottom, rail --- */
+
+/* The stage is a column: the strip on top, the map under it. */
+#stage { flex-direction: column; justify-content: flex-start; gap: 8px; }
+#canvas { margin: auto; }
+#strip {
+  display: flex; align-items: center; gap: 6px 10px; width: 100%; flex: none; flex-wrap: wrap;
+  min-height: 34px; zoom: var(--ui-zoom, 1);
+}
+#strip #topbar {
+  position: static; transform: none; left: auto; top: auto; margin-left: auto;
+  flex-wrap: nowrap; justify-content: flex-end; flex: none;
+}
+#strip #topbar button, #strip #topbar select { padding: 5px 10px; font-size: 12.5px; box-shadow: none; }
+body.mode-setup #strip, body.mode-idle #strip { justify-content: center; }
+body.mode-setup #strip #topbar { margin: 0 auto; }
+#canvas { max-height: calc(100vh - 40px - var(--strip-h, 36px)); }
+
+.view-modes { display: flex; border: 1px solid #474d5e; border-radius: 6px; overflow: hidden; }
+#strip .view-modes button {
+  border: 0; border-radius: 0; background: #2a2e3ae6; color: var(--muted); padding: 5px 9px;
+}
+#strip .view-modes button + button { border-left: 1px solid #474d5e; }
+#strip .view-modes button.active { background: #3a4152; color: var(--text); }
+/* Setting up there is no view to choose: the panels are needed. */
+body.mode-setup .view-modes, body.mode-idle .view-modes { display: none; }
+
+#strip-stats {
+  display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; min-width: 0; overflow: hidden;
+  white-space: nowrap; font-size: 12px; color: var(--muted); flex: 1 1 420px;
+}
+#strip-stats .sb-name { color: var(--text); font-weight: 600; font-size: 13px; }
+#strip-stats .sb { display: inline-flex; align-items: center; gap: 5px; }
+#strip-stats .sb-l { font-size: 11px; }
+#strip-stats .sb-bar { width: 46px; height: 6px; background: #2a2e3a; border-radius: 3px; overflow: hidden; }
+#strip-stats .sb-bar i { display: block; height: 100%; }
+#strip-stats .sb-v { color: var(--text); font-variant-numeric: tabular-nums; min-width: 18px; font-size: 11.5px; }
+#strip-stats .sb-t { color: #cfd3dd; }
+#strip-stats .sb-doing { color: var(--text); font-style: italic; }
+#strip-stats .sb-doing.dead { color: #d95b7e; }
+body.immersive #strip-stats { opacity: .85; }
+
+/* Text size (A− A+) and compact mode: the panels, never the map. */
+#hud, #console, #inspect-card { zoom: var(--ui-zoom, 1); }
+body.compact #hud { padding: 10px; gap: 8px; }
+body.compact #hud-body { gap: 9px; }
+body.compact .label { margin-top: 3px !important; }
+body.compact .hud-group summary { margin-bottom: 3px; }
+body.compact #console { padding: 8px 10px; gap: 6px; }
+
+#rail, .resizer { display: none; }
+.dock-section .dock-empty { margin: 0; }
+#dock-inspect:has(#inspect-card:not([hidden])) .dock-empty { display: none; }
+
+@media (min-width: 861px) {
+  body.layout-dock {
+    display: grid; height: 100vh; overflow: hidden;
+    --dock-cur: var(--dock-w, 340px);
+    --bottom-cur: var(--bottom-h, 270px);
+    grid-template-columns: minmax(0, 1fr) var(--dock-cur) 46px;
+    grid-template-rows: minmax(0, 1fr) var(--bottom-cur);
+    grid-template-areas: "stage dock rail" "bottom bottom rail";
+  }
+  body.layout-dock.view-deep { --dock-cur: var(--dock-w, 44vw); --bottom-cur: var(--bottom-h, 46vh); }
+  body.layout-dock.dock-closed { grid-template-columns: minmax(0, 1fr) 0 46px; }
+  body.layout-dock.dock-closed #hud, body.layout-dock.dock-closed #dock-resizer { display: none; }
+  body.layout-dock:has(#console-body.collapsed) { grid-template-rows: minmax(0, 1fr) auto; }
+  body.layout-dock:has(#console-body.collapsed) #bottom-resizer { display: none; }
+
+  body.layout-dock #stage { grid-area: stage; min-width: 0; min-height: 0; padding: 10px 14px; }
+  body.layout-dock #canvas { max-height: calc(100vh - var(--bottom-cur) - 30px - var(--strip-h, 36px)); }
+  body.layout-dock:has(#console-body.collapsed) #canvas { max-height: calc(100vh - 80px - var(--strip-h, 36px)); }
+
+  body.layout-dock #hud {
+    grid-area: dock; width: auto; max-height: none; min-height: 0; min-width: 0;
+    border-left: 1px solid var(--line);
+  }
+  body.layout-dock #console {
+    grid-area: bottom; width: auto; max-height: none; min-height: 0;
+    border-left: 0; border-top: 1px solid var(--line); padding: 8px 14px 10px;
+  }
+  body.layout-dock #rail {
+    grid-area: rail; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 10px 0; background: #15171e; border-left: 1px solid var(--line);
+  }
+  #rail button {
+    width: 34px; height: 34px; justify-content: center; padding: 0; font-size: 16px;
+    background: transparent; border: 1px solid transparent; color: var(--muted);
+  }
+  #rail button:hover { background: #262a35; color: var(--text); }
+  #rail button.active { background: #2c3240; border-color: #4a5266; color: var(--text); }
+  #rail button[data-act="smaller"], #rail button[data-act="bigger"] { font-size: 12px; font-weight: 600; }
+  #rail .rail-gap { flex: 1; }
+
+  body.layout-dock .resizer { display: block; z-index: 8; touch-action: none; }
+  body.layout-dock #dock-resizer { grid-area: dock; justify-self: start; width: 7px; margin-left: -4px; cursor: col-resize; }
+  body.layout-dock #bottom-resizer { grid-area: bottom; align-self: start; height: 7px; margin-top: -4px; cursor: row-resize; }
+  body.layout-dock .resizer:hover, body.resizing .resizer { background: #6e748655; }
+  body.resizing { user-select: none; }
+
+  /* Normal view: the dock shows the section chosen on the rail. */
+  body.layout-dock.view-normal[data-dock="fagi"] #hud-body > [data-dock]:not([data-dock="fagi"]),
+  body.layout-dock.view-normal[data-dock="map"] #hud-body > [data-dock]:not([data-dock="map"]),
+  body.layout-dock.view-normal[data-dock="inspect"] #hud-body > [data-dock]:not([data-dock="inspect"]) { display: none; }
+  body.layout-dock.view-normal:not([data-dock="fagi"]) #status,
+  body.layout-dock.view-normal:not([data-dock="fagi"]) #btn-reset { display: none; }
+
+  /* The inspector inside the dock: a section, not a card over the map. */
+  body.layout-dock #inspect-card {
+    position: static; width: auto; max-height: none; box-shadow: none;
+    background: #20242d; backdrop-filter: none;
+  }
+  body.layout-dock #inspect-card .ins-body { overflow: visible; }
+
+  /* The console at the bottom: its halves side by side. */
+  body.layout-dock .console-header h2 { font-size: 11px; }
+  .split-pane.side-by-side { display: flex; flex-direction: row; }
+  .split-pane.side-by-side .pane { min-width: 0; }
+  .split-pane.side-by-side .pane-head { border-top: 0; }
+  .gutter-horizontal { cursor: col-resize; }
+  .gutter-horizontal::before {
+    content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px;
+    transform: translateX(-50%); background: var(--line); border-radius: 2px;
+  }
+  .gutter-horizontal:hover::before { background: #6e7486; }
+  body.layout-dock #console-tabs { max-width: 480px; }
+
+  /* Deep view: every dock section at once, in columns; the brain map tall. */
+  body.layout-dock.view-deep #hud-body {
+    /* A grid (not CSS columns: those spill sideways when a group opens). */
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+    gap: 16px 18px; align-items: start; align-content: start;
+  }
+  body.layout-dock.view-deep #hud-body > * { min-width: 0; }
+  body.layout-dock.view-deep #dock-inspect { grid-column: 1 / -1; }
+  body.layout-dock.view-deep #dock-inspect:not(:has(#inspect-card:not([hidden]))) { display: none; }
+  body.layout-dock.view-deep #brainmap { min-height: 320px; }
+}
+
+/* Narrow screens: the strip's stats and buttons wrap instead of spilling. */
+@media (max-width: 860px) {
+  #strip #topbar { flex-wrap: wrap; justify-content: center; margin: 0 auto; }
+  #strip-stats { flex-wrap: wrap; white-space: normal; row-gap: 4px; flex-basis: 100%; }
+  #strip .view-modes button { padding: 5px 7px; }
+}
+
+/* --- setting up a session (layout.js): the map large, one wide panel with
+   two tabs beside it, the buttons to start at the map's foot --- */
+#strip-setup, #setup-tabs { display: none; }
+body.mode-setup #strip-setup {
+  display: flex; align-items: baseline; gap: 10px; min-width: 0; margin-right: auto;
+}
+body.mode-setup #strip-setup b { font-size: 15px; letter-spacing: .3px; }
+body.mode-setup #strip-setup span { font-size: 12px; color: var(--muted); }
+body.mode-setup #strip { justify-content: space-between; }
+body.mode-setup #strip #topbar { margin: 0 0 0 auto; }
+
+#setup-bar .setup-side { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+#setup-bar .setup-go { margin-left: auto; flex-wrap: nowrap; }
+#setup-bar .setup-side label, #setup-bar button { white-space: nowrap; }
+/* Nobody lives there yet: no stats (the id outranks .play-only). */
+body.mode-setup #strip-stats, body.mode-idle #strip-stats { display: none; }
+#setup-bar #btn-start { padding: 8px 18px; font-weight: 600; }
+#setup-error:empty { display: none; }
+
+@media (min-width: 861px) {
+  body.layout-setup {
+    display: grid; height: 100vh; overflow: hidden;
+    --setup-cur: var(--dock-w, clamp(400px, 34vw, 560px));
+    grid-template-columns: minmax(0, 1fr) var(--setup-cur);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "stage tabs" "stage dock";
+  }
+  body.layout-setup #stage {
+    grid-area: stage; min-width: 0; min-height: 0; padding: 12px 18px 14px; gap: 10px;
+  }
+  body.layout-setup.immersive #stage { padding: 12px 18px 14px; }
+  body.layout-setup #canvas,
+  body.layout-setup.immersive #canvas {
+    max-width: 100%; max-height: calc(100vh - 90px - var(--strip-h, 36px) - var(--setupbar-h, 54px));
+    border-radius: 8px;
+  }
+
+  /* The start bar: a footer under the map, not a card over it. */
+  body.layout-setup #setup-bar {
+    position: static; transform: none; width: 100%; max-width: none; flex: none;
+    flex-wrap: nowrap; justify-content: space-between; padding: 10px 14px;
+    box-shadow: none; background: #1d2029;
+  }
+  body.layout-setup #setup-bar .help {
+    width: auto; flex: 1 1 auto; min-width: 0; text-align: center;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* One panel, two tabs. */
+  body.layout-setup #setup-tabs {
+    grid-area: tabs; display: flex; gap: 4px; padding: 10px 12px 0;
+    background: var(--panel); border-left: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  }
+  #setup-tabs button {
+    flex: 1; justify-content: center; padding: 9px 10px; font-size: 13px;
+    background: none; border: 1px solid transparent; border-bottom: 0; border-radius: 8px 8px 0 0;
+    color: var(--muted); margin-bottom: -1px;
+  }
+  #setup-tabs button:hover { color: var(--text); background: #232733; }
+  #setup-tabs button.active {
+    background: #22262f; color: var(--text); border-color: var(--line);
+    box-shadow: inset 0 2px 0 #5fae6e;
+  }
+
+  body.layout-setup #hud,
+  body.layout-setup #settings-overlay {
+    grid-area: dock; width: auto; min-width: 0; min-height: 0; max-height: none;
+    border-left: 1px solid var(--line);
+  }
+  body.layout-setup[data-setup="map"] #settings-overlay,
+  body.layout-setup[data-setup="settings"] #hud { display: none; }
+  body.layout-setup #hud { padding: 16px 18px; overflow-y: auto; }
+  body.layout-setup #hud .hud-header { display: none; }
+  body.layout-setup #hud-body { gap: 18px; }
+
+  /* The settings fill the panel: the category nav across the top. */
+  body.layout-setup #settings { height: 100%; max-height: none; border: 0; }
+  body.layout-setup #settings header h2 { display: none; }
+  body.layout-setup #settings header { flex-wrap: wrap; padding: 10px 14px; }
+  body.layout-setup #settings .set-nav { gap: 6px; padding: 10px 14px; }
+  body.layout-setup #settings .set-cat { padding: 6px 10px; }
+  body.layout-setup #settings .set-count { display: inline; }
+  body.layout-setup #settings .set-groups { grid-template-columns: minmax(0, 1fr); padding: 4px 14px 18px; }
+  body.layout-setup #settings .field input { width: 90px; }
+
+  /* The panel's width is dragged from its left edge. */
+  body.layout-setup #dock-resizer {
+    display: block; grid-area: 1 / 2 / 3 / 3; justify-self: start; width: 7px; margin-left: -4px;
+    cursor: col-resize; z-index: 8; touch-action: none;
+  }
+  body.layout-setup #dock-resizer:hover { background: #6e748655; }
+}
+body.layout-setup .palette-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }

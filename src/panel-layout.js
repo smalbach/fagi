@@ -100,11 +100,14 @@ function createController(split, state) {
   b.querySelector('.pane-toggle').addEventListener('click', () => toggleSplit(b, a, 1));
 
   return {
-    // Only called on desktop: here there is a gutter to drag.
-    mount() {
+    // Only called on desktop: here there is a gutter to drag. `direction`:
+    // 'vertical' (stacked, the side console) or 'horizontal' (side by side,
+    // the console at the bottom: layout.js).
+    mount(direction = 'vertical') {
       if (instance) return;
+      split.classList.toggle('side-by-side', direction === 'horizontal');
       instance = Split([a, b], {
-        direction: 'vertical',
+        direction,
         sizes: sizesOf,
         minSize: HEADER_HEIGHT,
         gutterSize: 8,
@@ -127,18 +130,33 @@ function createController(split, state) {
 // `root` is the #console section: without it (a page that only tests
 // something else) there's nothing to organize.
 export function initPanelLayout(root) {
-  if (!root) return;
+  if (!root) return { setSideBySide() {} };
   const state = readState();
   initTabs(root, state);
 
   const controllers = [...root.querySelectorAll('.split-pane')].map((sp) => createController(sp, state));
 
   const mq = window.matchMedia(DESKTOP_MEDIA);
+  let direction = 'vertical';
   const sync = () => {
-    for (const c of controllers) (mq.matches ? c.mount() : c.unmount());
+    for (const c of controllers) (mq.matches ? c.mount(direction) : c.unmount());
   };
   mq.addEventListener('change', sync);
   sync();
+  return {
+    // The console moved (layout.js): its halves go side by side at the bottom.
+    setSideBySide(on) {
+      const next = on ? 'horizontal' : 'vertical';
+      if (next === direction) return;
+      direction = next;
+      for (const c of controllers) c.unmount();
+      for (const sp of root.querySelectorAll('.split-pane')) {
+        sp.classList.toggle('side-by-side', on);
+        for (const pane of sp.querySelectorAll(':scope > .pane')) pane.style.removeProperty('width'), pane.style.removeProperty('height');
+      }
+      sync();
+    },
+  };
 }
 
 // One button to open or close ALL the HUD sections (Food, Map, State...) at

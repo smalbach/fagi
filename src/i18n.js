@@ -144,6 +144,10 @@ export function bindDom() {
     for (const el of document.querySelectorAll('[data-i18n]')) {
       el.textContent = t(el.dataset.i18n);
     }
+    for (const el of document.querySelectorAll('[data-i18n-title]')) {
+      el.title = t(el.dataset.i18nTitle);
+      el.setAttribute('aria-label', el.title);
+    }
   };
   const selector = document.getElementById('lang');
   if (selector) {

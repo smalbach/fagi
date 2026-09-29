@@ -141,3 +141,34 @@ test('a replay knows who is who: names and parents come back from the recording'
   assert.equal(fam.mother.id, 1);
   assert.equal(fam.father.id, 2);
 });
+
+test('an old recording without names still names everyone, the same on every seek', async () => {
+  const { nameForId } = await import('../src/names.js');
+  assert.deepEqual(nameForId(3, 'female'), nameForId(3, 'female'));
+  assert.notDeepEqual(nameForId(3, 'female'), nameForId(4, 'female'));
+  assert.ok(NAMES.male.includes(nameForId(5, 'male').given));
+  const { createColony } = await import('../src/colony.js');
+  const { createRecorder } = await import('../src/recorder/recorder.js');
+  const { createPlayer } = await import('../src/recorder/replay.js');
+  const { step } = await import('../src/simulation.js');
+  const { generateMap } = await import('../src/mapgen.js');
+  const world = createWorld();
+  generateMap(world);
+  const fagi = createFagi();
+  world.colony = createColony(3, fagi);
+  const events = [];
+  const rec = createRecorder(world, { send: (batch) => events.push(...batch) });
+  world.rec = rec;
+  rec.start({ config: {} });
+  for (let i = 0; i < 20; i++) { step(world, fagi, 0.05); rec.observe(fagi); }
+  rec.end('test', fagi);
+  // As it was before names: no 'people'.
+  const old = events.filter((e) => e.type !== 'people');
+  const player = createPlayer(old);
+  player.seek(player.duration);
+  const names = player.world.colony.ants.map((s) => fullName(s));
+  assert.ok(names.every((n) => !n.startsWith('#')));
+  player.seek(0);
+  player.seek(player.duration);
+  assert.deepEqual(player.world.colony.ants.map((s) => fullName(s)), names);
+});
