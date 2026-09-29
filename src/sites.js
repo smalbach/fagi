@@ -30,6 +30,7 @@ import { SITES, SOURCES, MEMORY } from './config.js';
 import { seenPoints, distanceTo } from './vision.js';
 import { isTree, radiusOf } from './obstacles.js';
 import { verdict } from './learned/rules.js';
+import { forageGene, priorOf } from './generations.js';
 
 // Evidence: every visit adds one observation, split between found and not.
 const observe = (site, y) => { site.a += y; site.b += 1 - y; };
@@ -65,7 +66,7 @@ function discover(fagi, world, p, seen) {
   const site = {
     id: 0,
     x, y, r, ref: tree, fruit: p.type,
-    value: yieldOf(n), confidence: SITES.first, error: 0, a: 1, b: 1,
+    value: yieldOf(n), confidence: SITES.first, error: 0, ...priorOf(forageGene(fagi, 'site')),
     found: fagi.age, lastAt: fagi.age, visits: 0, empties: 0, lastYield: n,
     inside: distanceTo(fagi, { x, y }) <= r,
   };
@@ -128,10 +129,12 @@ export function noteSites(fagi, world) {
 // Time passes: she trusts a site less and remembers less exactly where it is.
 export function decaySites(fagi, dt) {
   if (!SITES.enabled || !fagi.brain.sites) return;
-  const fade = Math.max(0, 1 - MEMORY.decayMedium * dt);
+  // Evidence fades toward what she was born believing, at her memory's inherited pace.
+  const fade = Math.max(0, 1 - MEMORY.decayMedium * Math.exp(forageGene(fagi, 'memory')) * dt);
+  const born = priorOf(forageGene(fagi, 'site'));
   for (const s of fagi.brain.sites) {
-    s.a = 1 + (s.a - 1) * fade;
-    s.b = 1 + (s.b - 1) * fade;
+    s.a = born.a + (s.a - born.a) * fade;
+    s.b = born.b + (s.b - born.b) * fade;
     s.confidence = Math.max(0, s.confidence - SITES.decay * dt);
     s.error = Math.min(MEMORY.placeErrorMax, s.error + MEMORY.placeDrift * dt);
   }

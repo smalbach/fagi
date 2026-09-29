@@ -1816,6 +1816,7 @@ Recoge lo implementado en las fases 0 a 8 y lo medido de cada una. Las secciones
   - **narración (etiqueta ELIGE)**: recuerda un sitio, vuelve y lo encuentra lleno o vacío, decide volver o explorar (con los valores y la probabilidad), explorando encuentra comida o nada, el nido estaba lleno y qué hizo, la despensa estaba más llena o más vacía de lo que creía;
   - todo se dibuja con `choiceView` y `larderView`, que leen sin sortear: pintar no cambia el azar de la simulación (probado).
 - [x] Vía 1 (§25.25): la elección sale de su propia incertidumbre (`CHOICE.mode = 1`, por defecto). Desaparecen el ruido puesto a mano, su parte innata, el valor previo de explorar, la tasa de aprendizaje y la duda. El modo anterior sigue como `CHOICE.mode = 0`.
+- [x] Vía 2 (§25.26): lo que queda de innato en la elección se hereda: cuatro genes de forrajeo (`explore`, `site`, `memory`, `patience`), a 0 en las fundadoras, que mutan y pasan a las crías. Solo existen con la elección aprendida encendida.
 - [ ] F. Protocolo redactado y pilotado dos veces (`docs/research/forage-protocol.md`, `research/forage/`; §25.24, §25.25), sin congelar todavía.
 
 **Fase 5: en batch (generaciones por lotes)**
@@ -2631,4 +2632,37 @@ El protocolo de la F está redactado en `docs/research/forage-protocol.md`, con 
 - **Hermanas que nacen iguales en su forma de elegir se vuelven distintas por lo que viven.** Es la hipótesis central de la fase, y ahora aparece sin que nadie ponga la diferencia.
 - **Pero la ventaja de elegir se pierde.** Aprendiendo ya no come más que las políticas fijas. Tampoco explora más donde las fuentes son efímeras: explora algo menos. Con la evidencia se asienta pronto y explora poco en la segunda mitad de su vida (8 % frente a 38 % en la primera). En un mundo pobre, explorar también rinde poco.
 - **No se ajusta nada para recuperar la F1 ni la F2.** Serían números elegidos para que gane. Si al congelar no se sostienen, se publica así.
+
+### 25.26 Vía 2: lo innato se hereda
+
+**Qué cambia** (`src/generations.js` `FORAGE_GENES`, `CHOICE.genes`). Lo que la vía 1 dejaba de innato en la elección ya no lo fija nadie: se hereda.
+
+| Gen | Qué hace |
+|---|---|
+| `explore` | su creencia de nacimiento en que explorar da comida: como si ya hubiera visto hasta dos búsquedas salir bien (> 0) o mal (< 0) |
+| `site` | lo mismo, para volver a un sitio donde encontró comida |
+| `memory` | a qué ritmo se le borra lo vivido: × e^gen sobre `MEMORY.decayMedium` |
+| `patience` | cuánto busca antes de dar una búsqueda por fallida: × e^gen sobre `CHOICE.exploreWindow` |
+
+- Cada gen va de −1 a 1. Las fundadoras llevan 0, que es exactamente la elección de la vía 1. Mutan como el resto del genoma (`GEN.mutation`) y solo quien vive y cría decide qué valores siguen.
+- La evidencia olvidada vuelve a la creencia de nacimiento, no a «no sé nada».
+- Solo existen con la elección aprendida encendida (`CHOICE` con `mode` 1 y `SITES`). Cualquier otra ejecución sortea los mismos números que antes, y `batch.js` da la misma salida byte a byte. Pruebas en `test/forage-genes.test.js`.
+
+**F5, poblaciones que crían** (`research/forage/population.js`). 4 fundadoras con todos los genes a 0 y 10 800 s en su mundo, sin que el runner cree a nadie. Piloto con semillas de desarrollo, 20 poblaciones por mundo:
+
+| | Mundo duradero | Mundo efímero |
+|---|---|---|
+| extinguidas | 25 % | 75 % |
+| vivas al final | 9,9 | 1,7 |
+| generaciones | 5,8 | 3,6 |
+| gen `explore` de las vivas | +0,06 | −0,07 |
+| cuánto exploran | 21 % | 27 % (+0,06 [0,03, 0,10]) |
+
+**Lo que dice.**
+
+- **La conducta sí se adapta al mundo, los genes todavía no.** En el mundo efímero exploran más, pero es por lo que aprende cada una, no por lo que heredan.
+- **Domina la deriva.** Con unas 10 Fagis y 4–6 generaciones, el gen `explore` va de −0,36 a +0,61 de una población a otra. El azar de quién cría pesa más que la selección, y así pasa en poblaciones reales así de pequeñas.
+- **El mundo efímero es demasiado duro para medir genes.** Tres de cada cuatro poblaciones se extinguen, y en las demás quedan menos de dos Fagis.
+
+Para que la F5 pueda responder hacen falta más generaciones y un mundo efímero en el que la población sobreviva. Hay que decidirlo por viabilidad, antes de correr nada confirmatorio, y no por el sentido del resultado.
 

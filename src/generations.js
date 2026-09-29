@@ -23,7 +23,7 @@
 // Nothing here runs in a normal game: batch --generations uses it
 // (scripts/batch/generations.js).
 
-import { GEN } from './config.js';
+import { GEN, CHOICE, SITES } from './config.js';
 import { TRAITS } from './chemistry.js';
 import { pass } from './social.js';
 import { restoreHabits, habitsSnapshot } from './habits.js';
@@ -42,6 +42,28 @@ export function createGenome() {
   return { cues: {} };
 }
 
+// Foraging genes (phase 9, way 2; spec §12.11). What is still innate in how
+// she chooses between going back and exploring is inherited, not set:
+//   explore   her starting belief that exploring finds food: > 0 hopeful, < 0 wary
+//   site      the same, for going back to a place where she once found food
+//   memory    how fast what she lived fades: > 0 faster, < 0 slower
+//   patience  how long she searches before calling a search fruitless
+// Each is a number in [-1, 1]; founders carry 0, which is exactly the choice
+// of way 1. They mutate like the rest, and only who lives and breeds decides
+// which values go on. They exist only with the learned choice on (CHOICE,
+// SITES): every other run draws the same random numbers as before.
+export const FORAGE_GENES = ['explore', 'site', 'memory', 'patience'];
+export const forageGenesOn = () => Boolean(CHOICE.enabled && SITES.enabled && CHOICE.genes && CHOICE.mode === 1);
+
+// The gene's value in her, 0 if she has none (a founder, or genes off).
+export const forageGene = (fagi, k) => (forageGenesOn() ? fagi.genome?.forage?.[k] ?? 0 : 0);
+
+// A starting belief from a gene: two counts ≥ 1, as if she had already seen
+// up to two cases go one way (Beta prior).
+export function priorOf(g) {
+  return { a: 1 + Math.max(0, 2 * g), b: 1 + Math.max(0, -2 * g) };
+}
+
 // Box-Muller: a normal step from two uniform numbers.
 const gauss = (rnd) => Math.sqrt(-2 * Math.log(1 - rnd())) * Math.cos(2 * Math.PI * rnd());
 
@@ -54,7 +76,10 @@ export function mutate(genome, rnd = Math.random) {
     const w = clamp((genome.cues[c] ?? 0) + g * GEN.mutation);
     if (Math.abs(w) >= 0.01) cues[c] = round(w);
   }
-  return { cues };
+  if (!forageGenesOn()) return { cues };
+  const forage = {};
+  for (const k of FORAGE_GENES) forage[k] = round(clamp((genome.forage?.[k] ?? 0) + gauss(rnd) * GEN.mutation));
+  return { cues, forage };
 }
 
 // A child's genome from two parents: recombined first, mutated after, and
@@ -74,7 +99,17 @@ export function recombine(mother, father, rnd = Math.random, parents = null) {
     const mid = ((mother.body?.[k] ?? 1) + (father.body?.[k] ?? 1)) / 2;
     body[k] = round(Math.max(lo, Math.min(hi, mid + gauss(rnd) * GEN.bodyMutation)));
   }
-  return parents ? { cues, body, parents } : { cues, body };
+  const out = { cues, body };
+  if (forageGenesOn()) {
+    out.forage = {};
+    for (const k of FORAGE_GENES) {
+      const m = mother.forage?.[k] ?? 0;
+      const f = father.forage?.[k] ?? 0;
+      const allele = GEN.blend ? (m + f) / 2 : (rnd() < 0.5 ? m : f);
+      out.forage[k] = round(clamp(allele + gauss(rnd) * GEN.mutation));
+    }
+  }
+  return parents ? { ...out, parents } : out;
 }
 
 // How different two genomes are: mean absolute gap over every bias and body

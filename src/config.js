@@ -630,6 +630,7 @@ export const CHOICE = {
   enabled: 0,
   mode: 1,            // 1 = from her own uncertainty: guesses drawn from her evidence, food per second (choice.js); 0 = values, a set softmax noise (as first measured, spec §25.22)
   policy: 0,          // 0 = learned; the fixed ones to compare with: 1 = always back to her best site, 2 = always explore
+  genes: 1,           // mode 1: her starting beliefs, her memory's pace and her patience are inherited (generations.js FORAGE_GENES); founders carry 0, the values above
   explorePrior: 0.4,  // what she expects of exploring before she has tried it
   rate: 0.25,         // how far one search moves what she expects of exploring (× the surprise)
   cost: 0.3,          // value a site loses per MEMORY.travelRange of walk

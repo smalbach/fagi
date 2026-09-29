@@ -41,6 +41,7 @@ import { CHOICE, SITES, MEMORY, HUNGER, NEST, FAGI } from './config.js';
 import { distanceTo } from './vision.js';
 import { habit } from './habits.js';
 import { pantryEstimate } from './larder.js';
+import { forageGene, priorOf } from './generations.js';
 
 const LOG_MAX = 40;
 const EARLY = 5;
@@ -48,7 +49,7 @@ const EARLY = 5;
 function stateOf(fagi) {
   return (fagi.brain.choice ??= {
     exploreValue: CHOICE.explorePrior,
-    explore: { a: 1, b: 1 },   // mode 1: her evidence that exploring finds food
+    explore: priorOf(forageGene(fagi, 'explore')),   // mode 1: her evidence that exploring finds food, from her inborn belief
     exploreTime: null,      // mode 1: what her explorations have taken, on average
     explorations: 0,
     innate: null,           // mode 0: her own share of the noise, drawn the first time she chooses
@@ -266,7 +267,8 @@ export function updateChoice(fagi, seen) {
     else if ((c.plan.spent ?? 0) > CHOICE.planMax) resolve(fagi, 'gave up', null);
   } else if (c.plan?.kind === 'explore') {
     const found = seen.length > 0;
-    const long = (c.plan.spent ?? 0) > CHOICE.exploreWindow;
+    // How long she searches before calling it fruitless: inherited (patience).
+    const long = (c.plan.spent ?? 0) > CHOICE.exploreWindow * Math.exp(forageGene(fagi, 'patience'));
     if (found || long) {
       const got = found ? Math.min(1, seen.length / SITES.full) : 0;
       if (CHOICE.mode === 1) {
@@ -286,10 +288,12 @@ export function updateChoice(fagi, seen) {
   }
 
   // Mode 1: what she learned of exploring fades like the rest of her memory.
+  // It fades toward what she was born believing, at her memory's inherited pace.
   if (CHOICE.mode === 1 && dt > 0) {
-    const fade = Math.max(0, 1 - MEMORY.decayMedium * dt);
-    c.explore.a = 1 + (c.explore.a - 1) * fade;
-    c.explore.b = 1 + (c.explore.b - 1) * fade;
+    const fade = Math.max(0, 1 - MEMORY.decayMedium * Math.exp(forageGene(fagi, 'memory')) * dt);
+    const born = priorOf(forageGene(fagi, 'explore'));
+    c.explore.a = born.a + (c.explore.a - born.a) * fade;
+    c.explore.b = born.b + (c.explore.b - born.b) * fade;
   }
 
   if (!c.plan && busy && seen.length === 0) {

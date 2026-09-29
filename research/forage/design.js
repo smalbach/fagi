@@ -46,6 +46,18 @@ export const COLONIES = 120;
 export const SEED = 26000;
 export const mapSeed = (i) => 1400000 + 43 * i;
 
+// F5: populations that breed in their world (LIFE on, LIFE.founders founders
+// whose foraging genes are all 0), for POP_SECONDS, in a lasting or an
+// ephemeral world. What the genes become is up to who lives and breeds.
+export const POP_SECONDS = 10800;
+export const POPULATIONS = 40;
+export const POP_SEED = 27000;
+export const popMapSeed = (i) => 1500000 + 47 * i;
+export const POP_CONDITIONS = {
+  popDurable: { ...DURABLE, 'LIFE.enabled': 1 },
+  popEphemeral: { ...EPHEMERAL, 'LIFE.enabled': 1 },
+};
+
 // The confirmatory hypotheses, written after the pilot (see the protocol) and
 // before any confirmatory run. Paired ones: one-sided (a + shift) - b > 0 over
 // colonies, each side [condition, outcome]. `within`: the correlation of x and

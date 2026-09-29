@@ -10,7 +10,7 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { mean, bootstrapCI, paired, holm } from '../stats.js';
 import { rng } from '../../scripts/batch/random.js';
-import { CONDITIONS, HYPOTHESES } from './design.js';
+import { CONDITIONS, HYPOTHESES, POP_CONDITIONS } from './design.js';
 
 const DIR = process.argv[2] ?? 'research/results/forage';
 const data = {};
@@ -27,7 +27,8 @@ const ok = (v) => v != null && !Number.isNaN(v);
 
 // A colony's outcome: the mean over its sisters, or its own field.
 function colonyValue(row, outcome) {
-  if (outcome in row && typeof row[outcome] === 'number') return row[outcome];
+  if (outcome in row) return row[outcome];   // a colony's own field, or a population's
+  if (!row.sisters) return null;
   const xs = row.sisters.map((s) => s[outcome]).filter(ok);
   return xs.length ? mean(xs) : null;
 }
@@ -112,7 +113,7 @@ say();
 say(`| condition | n | ${OUTCOMES.join(' | ')} | deaths |`);
 say(`|---|---|${OUTCOMES.map(() => '---').join('|')}|---|`);
 for (const c of Object.keys(CONDITIONS)) {
-  const rows = data[c] ?? [];
+  const rows = (data[c] ?? []).filter((r) => r.sisters);
   if (!rows.length) continue;
   const cells = OUTCOMES.map((o) => {
     const m = mean(rows.map((r) => colonyValue(r, o)).filter(ok));
@@ -126,6 +127,29 @@ for (const c of Object.keys(CONDITIONS)) {
   say(`| ${c} | ${rows.length} | ${cells.join(' | ')} | ${Object.entries(causes).map(([k, n]) => `${k} ${n}`).join(', ') || '–'} |`);
 }
 say();
+const POP_OUTCOMES = ['extinct', 'alive', 'generations', 'hatched', 'explore', 'site', 'memory', 'patience', 'exploreShare'];
+if (Object.keys(POP_CONDITIONS).some((c) => data[c]?.length)) {
+  say('## Exploratory: populations that breed (F5)');
+  say();
+  say('Population means; the foraging genes are the mean over the living at the end (founders carry 0). In brackets, the paired difference with `popDurable`.');
+  say();
+  say(`| condition | n | ${POP_OUTCOMES.join(' | ')} |`);
+  say(`|---|---|${POP_OUTCOMES.map(() => '---').join('|')}|`);
+  for (const c of Object.keys(POP_CONDITIONS)) {
+    const rows = data[c] ?? [];
+    if (!rows.length) continue;
+    const cells = POP_OUTCOMES.map((o) => {
+      const m = mean(rows.map((r) => r[o]).filter(ok));
+      if (c === 'popDurable') return f3(m);
+      const [a, b] = pair([c, o], ['popDurable', o]);
+      const d = a.map((x, i) => x - b[i]);
+      return d.length ? `${f3(m)} (${f3(mean(d))} ${ci(bootstrapCI(d, { seed: 3 }))})` : f3(m);
+    });
+    say(`| ${c} | ${rows.length} | ${cells.join(' | ')} |`);
+  }
+  say();
+}
+
 say('## Exploratory: individuality');
 say();
 for (const c of ['learn', 'softmax']) {
