@@ -566,7 +566,7 @@ export const ATTENTION = {
 
 // Her own pheromone: the path she marks when returning loaded to the nest.
 export const PHERO = {
-  life: 600,          // seconds for a mark to evaporate (Lasius niger: ~47 min half-life)
+  life: 60,           // seconds for a mark to evaporate: long enough to come back for more, short enough that an old path clears
   every: 0.1,         // how often she leaves a mark while carrying: ~7 px, a continuous trail
   sense: 12,          // at what distance she detects a mark: what the antennae reach (~6 mm)
   // Following the trail is learned like anything else: if within learnWindow

@@ -19,7 +19,10 @@ export const FRUIT_PREFIX = 'fruit-';
 
 // What a fruit can do on top of feeding, and the range each multiplier makes sense in.
 export const FX_STATS = ['speed', 'viewRange', 'fovDeg', 'smell', 'hungerRate'];
-export const SHAPES = TRAITS.shape;
+// The crystal is gone from the fruit the person makes: the editor no longer
+// offers it and a saved one is dropped. Recorded sessions still carry theirs
+// (cleanFruit keeps any real shape), so their replays look as they did.
+export const SHAPES = TRAITS.shape.filter((s) => s !== 'crystal');
 export const SMELLS = TRAITS.smell;
 export { TASTES };
 
@@ -79,7 +82,7 @@ export function cleanFruit(raw) {
     id: /^[a-z0-9]{1,12}$/.test(raw.id ?? '') ? raw.id : d.id,
     name: String(raw.name ?? '').slice(0, 40),
     color: /^#[0-9a-fA-F]{6}$/.test(raw.color ?? '') ? raw.color : d.color,
-    shape: SHAPES.includes(raw.shape) ? raw.shape : d.shape,
+    shape: TRAITS.shape.includes(raw.shape) ? raw.shape : d.shape,
     smell: SMELLS.includes(raw.smell) ? raw.smell : d.smell,
     aroma: clamp(raw.aroma, 0, 400, d.aroma),
     radius: clamp(raw.radius, 3, 14, d.radius),
@@ -147,16 +150,14 @@ export function saveFruits() {
 }
 
 // Some starting fruit, so a first map has more than nectar to learn about.
-// Each teaches something different: a filling one, a juicy one that quenches,
-// one that sharpens the senses and a tempting one that makes her sick.
+// Each teaches something different: a filling one, a juicy one that quenches
+// and one that sharpens the senses.
 export function starterFruits() {
   return [
     { ...blankFruit('Baya dulce'), color: '#e2c84a', shape: 'round', smell: 'sweet', hunger: -30, taste: { sweet: 0.8 } },
     { ...blankFruit('Gota jugosa'), color: '#4cc9f0', shape: 'drop', smell: 'sour', hunger: -8, thirst: -25, taste: { sour: 0.5, sweet: 0.3 } },
     { ...blankFruit('Orbe amargo'), color: '#b57bff', shape: 'orb', smell: 'musky', hunger: -5, taste: { bitter: 0.4, umami: 0.4 },
       effects: [{ stat: 'viewRange', mult: 1.6, sec: 12 }, { stat: 'smell', mult: 1.5, sec: 12 }] },
-    { ...blankFruit('Cristal picante'), color: '#d9504f', shape: 'crystal', smell: 'sharp', hunger: 20, taste: { spicy: 0.7, sweet: 0.3 },
-      effects: [{ stat: 'speed', mult: 1.5, sec: 6 }] },
   ].map((d) => ({ ...d, id: newId() }));
 }
 
@@ -164,7 +165,8 @@ export function starterFruits() {
 export function loadFruits() {
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(STORE_KEY) ?? 'null'); } catch { saved = null; }
-  return registerFruits(Array.isArray(saved) ? saved : starterFruits());
+  const kept = Array.isArray(saved) ? saved.filter((d) => d?.shape !== 'crystal') : null;
+  return registerFruits(kept ?? starterFruits());
 }
 
 // The fruit the game used to have before the person made their own. Sessions

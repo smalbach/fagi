@@ -13,18 +13,28 @@ export function createPheromone() {
 }
 
 export function dropPheromone(world, x, y, dNest) {
-  world.pheromone.push({ x, y, dNest, life: PHERO.life });
+  world.pheromone.push({ x, y, dNest, born: world.time ?? 0, wet: 0, life: PHERO.life });
   record(world, 'phero_drop', { x, y, dNest });
 }
 
-// Evaporates. Called once per frame.
+// Evaporates. Called once per frame. Its life is counted from when it was left,
+// not by subtracting each frame: that way the replay (recorder/replay.js), which
+// only knows when it was left, gets exactly the same number.
 export function updatePheromone(world, dt) {
   const marksOf = world.pheromone;
+  const now = world.time ?? 0;
   // Rain washes the trail away: it fades RAIN.washPhero times faster.
-  const step = dt * (world.rain?.on ? RAIN.washPhero : 1);
+  const raining = Boolean(world.rain?.on);
   for (let i = marksOf.length - 1; i >= 0; i--) {
-    marksOf[i].life -= step;
-    if (marksOf[i].life <= 0) marksOf.splice(i, 1);
+    const m = marksOf[i];
+    if (m.born === undefined) {
+      // A mark from an older save: it keeps counting down frame by frame.
+      m.life -= dt * (raining ? RAIN.washPhero : 1);
+    } else {
+      if (raining) m.wet += dt;
+      m.life = PHERO.life - (now - m.born) - (RAIN.washPhero - 1) * m.wet;
+    }
+    if (m.life <= 0) marksOf.splice(i, 1);
   }
 }
 
