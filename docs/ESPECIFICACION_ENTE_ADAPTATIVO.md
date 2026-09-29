@@ -882,6 +882,19 @@ El veneno sigue siendo el de siempre: el hambre sube y el cuerpo va lento. Casi 
 - **Métricas.** El aspecto ya no decide el efecto, así que el juicio sobre el catálogo de 96 aspectos no tiene verdad. Con sabores, el juicio se mide sobre las especies del mapa.
 - **Evaluaciones congeladas.** Apagan `TASTE`, como las demás piezas posteriores.
 
+### 12.10 Los objetos del mapa: qué es innato y qué no
+
+El §12.1 pedía que el agua, el nido, los árboles y las rocas dejaran de ser categorías que Fagi conoce de nacimiento. Al revisarlo con el criterio de realismo, no todo lo innato es una trampa: los animales reales traen de nacimiento capacidades perceptivo-motoras, no conocimiento del mundo. Queda así:
+
+| Objeto | Qué es innato | Qué aprende | Motivo |
+|---|---|---|---|
+| roca | verla como obstáculo y rodearla | nada | esquivar lo que se ve es visomotor e innato en los animales (flujo óptico) |
+| agua | reconocerla (brillo, humedad) y beber | si beber le sienta bien (`water`), dónde está, que los charcos se secan y que el agua honda atrapa | muchos animales encuentran el agua por señales innatas; lo demás ya se aprendía |
+| nido | volver a casa (integración de trayecto) | que la protege del frío (`refuge`), su despensa, forrarlo | la vuelta al nido es innata en los insectos sociales |
+| árbol | verlo como un objeto grande | **que da fruta, y cuál** (`SOURCES`) | no hay motivo para saber de nacimiento que un árbol concreto da de comer, ni qué da |
+
+**Árboles aprendidos** (`SOURCES`, parte del organismo). Sin él, cualquier árbol era para ella una fuente de comida desde el primer vistazo, y sabía qué fruta daba antes de ver ninguna: una fuga del mismo tipo que las del §12.7. Con él, un árbol es solo un objeto grande. La primera vez que ve fruta caída a su alrededor (dentro de `SOURCES.near` veces su radio), aprende que ahí cae comida y cuál. Desde entonces lo recuerda como fuente y vuelve cuando tiene hambre, como los animales con sus sitios de comida. El olor que el viento trae de un árbol sigue siendo el de su fruta: eso sí se percibe.
+
 ## 13. Memoria propuesta
 
 ### 13.1 Memoria episódica
@@ -2110,12 +2123,25 @@ La población se regula antes de chocar con el techo. Hay más generaciones porq
 
 El sabor añade realismo, porque el mundo ya no es una tabla de tipos, y añade una protección innata. En este mundo casi todo se aprende antes por la vista. Pesaría más en un mundo donde lo que se ve engaña (especies iguales por fuera y distintas por dentro) o con venenos más fuertes. Eso queda anotado como siguiente paso de esta fase.
 
+### 25.17 Árboles como fuentes aprendidas: resultado
+
+48 vidas de desarrollo por condición, el organismo completo (con sabores, así que el juicio es sobre las especies del mapa):
+
+| Clima | Fuentes | Vida | Vivas | Juicio | Especies buenas halladas |
+|---|---|---|---|---|---|
+| templado | innatas | 2354 s | 0,98 | 0,916 | 0,85 |
+| templado | aprendidas | 2330 s | 0,96 | 0,900 | 0,83 |
+| frío | innatas | 2016 s | 0,77 | — | 0,74 |
+| frío | aprendidas | 1921 s | 0,71 | — | 0,73 |
+
+Aprender que los árboles dan fruta cuesta poco: unos segundos de vida en clima templado y algo más en frío, donde cada viaje en falso pesa. Tiene que descubrir cada fuente viendo fruta debajo. Es el coste esperado de no saberlo de nacimiento, y no un artefacto.
+
 ### 25.3 Pendiente
 
 - Fase 8: un mundo donde la vista engañe (especies de aspecto igual y composición distinta, mimetismo) y donde el sabor sea lo que decide; apetito por la sal según la necesidad.
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
 - Fase 6, lo que queda del §12.3:
-  - que el agua, el nido, los árboles y las rocas dejen de ser categorías innatas (hoy solo las cosas lo son);
+  - (resuelto en §12.10: roca, agua y nido quedan como capacidades innatas, con lo que se aprende de cada uno; los árboles pasan a aprenderse)
   - combinaciones más ricas que forrar el nido: una cosa que solo sirve junto a otra fuera de casa (romper una contra otra, por ejemplo), con transporte y acción propios.
 
 **Decidido y descartado**, con su motivo:
@@ -2126,7 +2152,7 @@ El sabor añade realismo, porque el mundo ya no es una tabla de tipos, y añade 
 
 ### 25.4 Cómo reproducir
 
-Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas. Todas las tablas anteriores al §25.11 se midieron sin cosas ni conceptos y con el reflejo térmico antiguo: a los comandos de `batch.js`, `sleep-lab.js`, `autopsy.js` y `population.js` hay que añadirles `--set TASTE.enabled=0 --set HEALTH.enabled=0 --set CONCEPT.enabled=0 --set THERMAL.voluntary=0 --set SLEEP.askAlways=0 --set SLEEP.replay=4`; la del §25.11, solo las tres últimas; las del §25.12, `--set SLEEP.askAlways=0 --set SLEEP.replay=4`. A `population.js` y a todo lo que cría antes del §25.14, además, `--set LIFE.gradual=0`. Las evaluaciones congeladas y la batería de sexos ya lo hacen solas. `LIFE` solo afecta a quien pertenece a una población que se reproduce, así que no cambia las vidas individuales; en cualquier ejecución con colonia (`--colony`, `--generations`) sí la pone a criar.
+Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas. Todas las tablas anteriores al §25.11 se midieron sin cosas ni conceptos y con el reflejo térmico antiguo: a los comandos de `batch.js`, `sleep-lab.js`, `autopsy.js` y `population.js` hay que añadirles `--set SOURCES.enabled=0 --set TASTE.enabled=0 --set HEALTH.enabled=0 --set CONCEPT.enabled=0 --set THERMAL.voluntary=0 --set SLEEP.askAlways=0 --set SLEEP.replay=4`; la del §25.11, solo las tres últimas; las del §25.12, `--set SLEEP.askAlways=0 --set SLEEP.replay=4`. A `population.js` y a todo lo que cría antes del §25.14, además, `--set LIFE.gradual=0`. Las evaluaciones congeladas y la batería de sexos ya lo hacen solas. `LIFE` solo afecta a quien pertenece a una población que se reproduce, así que no cambia las vidas individuales; en cualquier ejecución con colonia (`--colony`, `--generations`) sí la pone a criar.
 
 ```text
 npm test
@@ -2199,6 +2225,8 @@ node scripts/population.js --maps 8 --duration 10800 --set LIFE.gradual=0
 # §25.15 salud (con y sin)
 node scripts/population.js --maps 4 --duration 5400
 node scripts/population.js --maps 4 --duration 5400 --set HEALTH.enabled=0
+
+# §25.17 fuentes aprendidas: node test/sources.test.js; vidas con --set SOURCES.enabled=0 para comparar
 
 # §25.16 sabores (12 especies; y con --set TASTE.learn=0 / TASTE.innate=0)
 node scripts/taste-lab.js --set MAPGEN.species=12

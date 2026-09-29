@@ -59,6 +59,7 @@ if (argv[0] === '--piece') {
     CONFIG.SLEEP.replay = 4;      // with replay on
     CONFIG.HEALTH.enabled = 0;      // and health did not exist
     CONFIG.TASTE.enabled = 0;       // nor tastes
+    CONFIG.SOURCES.enabled = 0;     // and trees were food sources from birth
   }
   CONFIG.MAPGEN.species = SPECIES;
   for (const [path, value] of Object.entries(SCENARIOS[scenario])) {

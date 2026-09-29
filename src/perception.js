@@ -3,7 +3,7 @@
 // Gathers into ONE list everything chaseable: food seen, food smelled and the water.
 // Each candidate carries which sense it came in through, so whoever decides knows it.
 
-import { FAGI, BRAIN, THIRST, HUNGER, ENERGY, MEMORY, TREE, NEST, RAIN, CONCEPT } from './config.js';
+import { FAGI, BRAIN, THIRST, HUNGER, ENERGY, MEMORY, TREE, NEST, RAIN, CONCEPT, SOURCES } from './config.js';
 import { seenPoints, seesObject, viewRangeOf, distanceTo } from './vision.js';
 import { smelledPoints, smellsObject, aromaOf, scentStrengthOfObject } from './smell.js';
 import { isWater, isTree, radiusOf, waterZone } from './obstacles.js';
@@ -92,8 +92,24 @@ function rememberWater(fagi, world, visible, range) {
   return { pool: visible ?? placeOf, place: placeOf };
 }
 
+// With SOURCES a tree is a food source to her only once she has seen fruit
+// lying around it: then she remembers it, and which fruit it was.
+function learnSources(fagi, world) {
+  const known = (fagi.brain.sources ??= {});
+  for (const { point } of seenPoints(fagi, world.points, world)) {
+    for (const o of world.objects) {
+      if (!isTree(o) || Math.hypot(o.x - point.x, o.y - point.y) > radiusOf(o) * SOURCES.near) continue;
+      if (!known[o.id]) fagi.brain.lastSource = { n: (fagi.brain.lastSource?.n ?? 0) + 1, id: o.id, fruit: point.type };
+      known[o.id] = { fruit: point.type, x: o.x, y: o.y, at: fagi.age };
+    }
+  }
+  return known;
+}
+
 function rememberFoodSource(fagi, world) {
-  const visible = nearestVisible(fagi, world, isTree);
+  const known = SOURCES.enabled ? learnSources(fagi, world) : null;
+  const isSource = known ? (o) => isTree(o) && Boolean(known[o.id]) : isTree;
+  const visible = nearestVisible(fagi, world, isSource);
   let smelled = null;
   let strength = 0;
   for (const object of world.objects) {
@@ -113,7 +129,10 @@ function rememberFoodSource(fagi, world) {
 // What pushes a worker to go out for food: her hunger or what the pantry
 // is missing as she remembers it (fagi.pantry), whichever is greater.
 // What a tree drops: its own species on a map with chemistry, nectar otherwise.
-const fruitOf = (tree) => tree?.fruit ?? TREE.fruit;
+// With SOURCES, what she has seen lying under it.
+const fruitOf = (tree, fagi = null) => (SOURCES.enabled && fagi
+  ? fagi.brain.sources?.[tree?.id]?.fruit ?? tree?.fruit ?? TREE.fruit
+  : tree?.fruit ?? TREE.fruit);
 
 function forageNeed(fagi, hungerU) {
   const missing = 1 - Math.min(1, edibleCount(fagi, fagi.pantry) / habit(fagi, 'reserve'));
@@ -171,7 +190,7 @@ function buildCandidates(fagi, world, {
     if (dist > FAGI.eatRadius * 2) {
       const via = visibleSource ? 'sight' : 'memory';
       const doubt = via === 'memory' ? (source.error ?? 0) / MEMORY.placeErrorMax : 0;
-      const fruit = fruitOf(realOne);
+      const fruit = fruitOf(realOne, fagi);
       add({
         key: fruit, kind: 'food', ref: source, dist, cues: perceivedCues(fruit, via),
         range: via === 'sight' ? range : MEMORY.travelRange,

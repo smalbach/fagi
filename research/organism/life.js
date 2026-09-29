@@ -31,9 +31,14 @@ import { rng, withRng } from '../../scripts/batch/random.js';
 const CATALOGUE = [];
 for (const color of TRAITS.color) for (const shape of TRAITS.shape) for (const smell of TRAITS.smell) CATALOGUE.push({ color, shape, smell });
 
+// With tastes (TASTE, chemistry.js) a look no longer decides what a fruit does:
+// only the map's own species have a truth, so the judgment is over them.
 export function judgment(f, chem) {
   let hit = 0; let miss = 0; let fa = 0; let ok = 0;
-  for (const t of CATALOGUE) {
+  const looks = chem?.taste
+    ? Object.keys(chem.compositions).map((k) => { const [color, shape, smell] = k.split('-'); return { color, shape, smell }; })
+    : CATALOGUE;
+  for (const t of looks) {
     const key = speciesKey(t);
     const cues = cuesOfTraits(t);
     const avoids = verdict(f, 'pursue', key, { traits: cues }) === 'avoid' || aversive(f, key, cues);

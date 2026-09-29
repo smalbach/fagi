@@ -41,6 +41,7 @@ function configure(settings) {
   CONFIG.SLEEP.replay = 4;        // and rehearsed the remembered fruit four rounds
   CONFIG.HEALTH.enabled = 0;      // and health did not exist
   CONFIG.TASTE.enabled = 0;       // nor tastes
+  CONFIG.SOURCES.enabled = 0;     // and trees were food sources from birth
   CONFIG.MAPGEN.species = SPECIES;
   for (const [path, value] of Object.entries(settings)) {
     const [block, key] = path.split('.');

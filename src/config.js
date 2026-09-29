@@ -965,3 +965,13 @@ export const TASTE = {
   learn: 1,
 };
 
+// Food sources are learned, not recognized (perception.js; spec §12.10). A tree
+// is a big object like any other; that fruit falls around it, and which fruit,
+// she learns by seeing fruit lying there. Part of the organism, off by default
+// (off: every tree is a food source to her from birth, and she knows its fruit).
+//   near : fruit within the tree's radius × this is taken as that tree's
+export const SOURCES = {
+  enabled: 0,
+  near: 2.1,
+};
+
