@@ -16,6 +16,7 @@
 // the parts that changed, and each console line in a `log` event: with that
 // the replay paints the same panels that were seen live.
 
+import { customFruits } from '../custom-fruits.js';
 import { TRACK_FIELDS } from './events.js';
 import { normalizeAngle } from '../vision.js';
 
@@ -74,7 +75,7 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     // rock), but without them the replay wouldn't look like what was seen.
     emit('session_start', {
       config, learned,
-      world: { width: world.width, height: world.height, seed: world.seed ?? null, species: world.species ?? [] },
+      world: { width: world.width, height: world.height, seed: world.seed ?? null, species: world.species ?? [], fruits: customFruits() },
     });
     emit('wind', { angle: world.wind.angle, target: world.wind.target });
     prev.windTarget = world.wind.target;

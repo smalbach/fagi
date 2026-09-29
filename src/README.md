@@ -35,6 +35,7 @@ scent plumes → pheromone → Fagi.
 | `percept.js` | what she perceives of a thing as opposed to what it is: by smell alone only the smell; the API reads traits, never names |
 | `taste.js` + `chemistry.js` (`TASTE`) | a wild fruit as a hidden mix of compounds the tongue reads as seven tastes, only in the mouth; innate liking, spitting out, acquired tastes and taste-consequence learning |
 | `health.js` | the harm her body has taken and not yet mended: stings, poison, heat and cold; it slows her, gates breeding and kills at zero |
+| `custom-fruits.js` + `fruit-editor.js` | fruit the person makes per session (name, color, shape, smell, tastes, what it does to the body, and its tree), registered in `POINT_TYPES` like any other fruit; the setup panel that edits them and sets the map's size, ponds and rocks |
 | `things.js` + `concepts.js` | things with no inborn category: only a look (color, shape, texture), and a hidden per-map chemistry of what they afford (sap, cool, warm, sting, nothing). She touches and nibbles them (`decision/things.js`), groups what she felt into concepts that predict new kinds and are retired when they do not, and doubts everything for a while after a surprise |
 | `night/` | the night mind: a model (local, or a server over HTTP) proposes rules, doubts and questions while she sleeps; a gate checks each against the grammar and against her own memory, and keeps only what what she lived backs |
 | `learned/` | the code Fagi writes on her own from what she learns (see below) |
@@ -133,7 +134,7 @@ entry point (it exports the usual things and keeps the caches) and the pieces go
 | entry point | pieces |
 |---|---|
 | `fagi-sprite.js` | `fagi-sprite/`: `entity` (mantle, core, filaments, membranes, sensory stalks, cargo), `palette`, `light` and `stroke.js` (ellipse, dot) |
-| `fruit-sprite.js` | `fruit-sprite/`: one painter per fruit (`berry`, `spark`, `eye`, `resin`, `rotten`) and what they share in `common.js` |
+| `fruit-sprite.js` | `fruit-sprite/`: one painter per shape (`berry` round, `resin` drop, `spark` crystal, `eye` orb) plus `rotten`, and what they share in `common.js` |
 | `tree-sprite.js` | `tree-sprite/`: `trunk`, `branches`, `base`, `crown`, `realistic-crown`, `wind`, `fruits`; trunk and high branches share `trunkCanvas` (in `common.js`) |
 | `rock-sprite.js` | `rock-sprite/`: `realistic`, `materials`, `shape`, `surface`, `paint` |
 | `terrain.js` | `terrain/`: baked ground (`ground`, `relief`), loose `details`, `near` and `shore` layers |
@@ -166,9 +167,9 @@ in WORLD coordinates by cells with their own seed, only in what is visible and
 only past a certain zoom. Since the seed belongs to the cell and not to the
 pass, the ground does not boil when the camera moves.
 
-And what you see tells what the thing does. Each fruit has the shape of its
-effect —the spark is glass, the eye looks, the resin drips— and shows how
-overripe it is before it rots. The tree shows its fruit ripening in the crown
+And what you see tells what the thing is. Each fruit is drawn by its shape
+—a berry, a drop, a crystal, an orb— in its own color, and shows how overripe
+it is before it rots. The tree shows its fruit ripening in the crown
 instead of carrying a counter above it, and it leans with the wind, which is what
 carries the smells. `fagi-preview.html`, `flora-preview.html` and
 `water-preview.html` are for looking at those drawings up close without playing a

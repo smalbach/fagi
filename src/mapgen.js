@@ -1,11 +1,14 @@
 // Generates the map: pools and rocks scattered at random, without overlapping each other
 // and leaving free the spot where Fagi spawns.
 
-import { WORLD, MAPGEN, OBJECT_TYPES, CONCEPT } from './config.js';
+import { WORLD, MAPGEN, OBJECT_TYPES, CONCEPT, POINT_TYPES } from './config.js';
 import { addObject, record } from './world.js';
 import { createChemistry, createSpecies, registerSpecies } from './chemistry.js';
 import { radiusOf } from './obstacles.js';
 import { placeThings } from './things.js';
+
+// How many base maps fit in this one (MAPGEN.size² on a scaled map).
+export const areaOf = (world) => Math.max(1, (world.width * world.height) / (WORLD.baseWidth * WORLD.baseHeight));
 
 function fits(world, x, y, r) {
   for (const o of world.objects) {
@@ -106,6 +109,22 @@ function placeSpecies(world, nest, chemistry = null) {
   });
 }
 
+// The trees of the fruit the person made (custom-fruits.js): as many of each
+// as they asked for, anywhere on the map. There are none outside the game.
+function placeCustomTrees(world) {
+  for (const [key, spec] of Object.entries(POINT_TYPES)) {
+    if (!spec.custom) continue;
+    for (let i = 0; i < (spec.tree?.count ?? 0); i++) {
+      const before = world.objects.length;
+      place(world, 'tree', 1);
+      if (world.objects.length === before) break;
+      const tree = world.objects.at(-1);
+      tree.fruit = key;
+      record(world, 'obj_fruit', { id: tree.id, what: key });
+    }
+  }
+}
+
 export function generateMap(world, { chemistry = null } = {}) {
   // The nest goes first and close to where Fagi spawns: it's her starting point.
   const cx = WORLD.width / 2;
@@ -113,7 +132,10 @@ export function generateMap(world, { chemistry = null } = {}) {
   const ang = Math.random() * Math.PI * 2;
   const nest = addObject(world, cx + Math.cos(ang) * 90, cy + Math.sin(ang) * 90, 'nest', undefined, 'map');
 
-  placeNearSpawn(world, 'water', MAPGEN.pools, 175, 240);
+  // One water source close enough to find before dying of thirst; any
+  // others anywhere, of assorted sizes.
+  placeNearSpawn(world, 'water', Math.min(1, MAPGEN.pools), 175, 240);
+  place(world, 'water', Math.max(0, MAPGEN.pools - 1), [0.45, 1.6]);
   if (MAPGEN.species > 0) {
     placeSpecies(world, nest, chemistry);
   } else {
@@ -125,7 +147,9 @@ export function generateMap(world, { chemistry = null } = {}) {
       MAPGEN.treeMinNestDistance, MAPGEN.treeMaxNestDistance, ang + Math.PI,
     );
   }
-  place(world, 'rock', MAPGEN.rocks, MAPGEN.rockScale);
+  placeCustomTrees(world);
+  // A bigger map keeps the same rocks per square pixel.
+  place(world, 'rock', Math.round(MAPGEN.rocks * areaOf(world)), MAPGEN.rockScale);
   // Last, so that with CONCEPT on the rest of the map is the same one.
   if (CONCEPT.enabled) placeThings(world);
 }

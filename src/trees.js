@@ -1,7 +1,7 @@
 // Trees: they drop fruit around their crown every so often.
 // It's the only way food shows up without the player placing it.
 
-import { TREE } from './config.js';
+import { TREE, POINT_TYPES } from './config.js';
 import { addPoint, removeObject } from './world.js';
 import { drawVariant } from './chemistry.js';
 import { isTree, radiusOf, waterZone } from './obstacles.js';
@@ -11,6 +11,12 @@ export function treesOf(world) {
 }
 
 // How much of its fruit is still on the ground, so as not to fill the map.
+// A tree bearing a fruit the person made keeps that fruit's own pace
+// (custom-fruits.js); every other tree, the map's (TREE).
+const fruitOf = (tree) => tree.fruit ?? TREE.fruit;
+export const intervalOf = (tree) => POINT_TYPES[fruitOf(tree)]?.tree?.interval ?? TREE.interval;
+export const maxNearOf = (tree) => POINT_TYPES[fruitOf(tree)]?.tree?.maxNear ?? TREE.maxNear;
+
 function fruitNear(world, tree) {
   const scope = radiusOf(tree) * TREE.dropRadius + 20;
   let n = 0;
@@ -32,9 +38,11 @@ export function updateTrees(world, dt) {
 
     tree.timer -= dt;
     if (tree.timer > 0) continue;
-    tree.timer = TREE.interval;
+    // Its fruit was a made one the person has since deleted: it bears nothing.
+    if (!POINT_TYPES[fruitOf(tree)]) { tree.timer = TREE.interval; continue; }
+    tree.timer = intervalOf(tree);
 
-    if (fruitNear(world, tree) >= TREE.maxNear) continue;
+    if (fruitNear(world, tree) >= maxNearOf(tree)) continue;
 
     // It falls at a random point in the crown, never at the center of the trunk.
     const r = radiusOf(tree);
@@ -54,7 +62,7 @@ export function updateTrees(world, dt) {
 // Changing the interval from the panel also affects the ones already placed.
 export function setFruitInterval(world, seconds) {
   TREE.interval = seconds;
-  for (const tree of treesOf(world)) tree.timer = Math.min(tree.timer, seconds);
+  for (const tree of treesOf(world)) tree.timer = Math.min(tree.timer, intervalOf(tree));
 }
 
 // How much of a tree's life has gone by, from 0 (just planted) to 1 (dry).

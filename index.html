@@ -92,6 +92,38 @@
       <input id="tree-interval" type="range" min="2" max="30" step="1" value="8">
     </details>
 
+    <details data-dock="map" class="hud-group setup-only" open>
+      <summary data-i18n="panel.mapSize">Map size and water</summary>
+      <div class="map-size-row">
+        <label><span data-i18n="map.size">Size</span>
+          <select id="map-size">
+            <option value="1">×1</option>
+            <option value="1.5">×1.5</option>
+            <option value="2">×2</option>
+            <option value="3">×3</option>
+            <option value="4">×4</option>
+          </select>
+        </label>
+        <label><span data-i18n="map.pools">Ponds</span>
+          <input id="map-pools" type="number" min="1" max="30" step="1" value="1">
+        </label>
+        <label><span data-i18n="map.rocksN">Rocks</span>
+          <input id="map-rocks" type="number" min="0" max="40" step="1" value="9">
+        </label>
+      </div>
+      <p class="help" data-i18n="map.sizeHelp">Changing these makes a new map. A bigger map zooms out to fit.</p>
+    </details>
+
+    <details data-dock="map" class="hud-group setup-only" open>
+      <summary data-i18n="panel.fruits">Fruits and trees</summary>
+      <div id="fruit-list" class="fruit-list"></div>
+      <div class="fruit-actions">
+        <button id="btn-fruit-new" type="button" data-i18n="fruit.new">＋ New fruit</button>
+        <button id="btn-fruit-starters" type="button" data-i18n="fruit.starters">↺ Examples</button>
+      </div>
+      <p class="help" data-i18n="fruit.help">Each fruit comes with its own tree in “Place on the map → Terrain”. She does not know what they do: she finds out by eating.</p>
+    </details>
+
     <details data-dock="map" class="hud-group edit-only" open>
       <summary data-i18n="panel.controls">Controls</summary>
       <ul class="controls-list">
@@ -290,6 +322,54 @@
       </header>
       <div id="settings-body"></div>
     </div>
+  </div>
+  <div id="fruit-overlay" hidden>
+    <form id="fruit-editor" autocomplete="off">
+      <header>
+        <canvas id="fruit-preview" width="72" height="72"></canvas>
+        <div class="fe-title">
+          <input id="fe-name" maxlength="40" required>
+          <span id="fe-seen" class="fe-seen"></span>
+        </div>
+        <button type="button" id="fe-close" class="fe-x" aria-label="Close">✕</button>
+      </header>
+      <div class="fe-body">
+        <section>
+          <h3 data-i18n="fe.look">Look and smell</h3>
+          <label class="fe-row"><span data-i18n="fe.color">Color</span><input id="fe-color" type="color"></label>
+          <label class="fe-row"><span data-i18n="fe.shape">Shape</span><select id="fe-shape"></select></label>
+          <label class="fe-row"><span data-i18n="fe.radius">Size</span><input id="fe-radius" type="range" min="3" max="14" step="1"><output></output></label>
+          <label class="fe-row"><span data-i18n="fe.smell">Smell</span><select id="fe-smell"></select></label>
+          <label class="fe-row"><span data-i18n="fe.aroma">Scent strength</span><input id="fe-aroma" type="range" min="0" max="400" step="5"><output></output></label>
+        </section>
+        <section>
+          <h3 data-i18n="fe.tastes">Tastes (what the tongue reads)</h3>
+          <div id="fe-tastes"></div>
+        </section>
+        <section>
+          <h3 data-i18n="fe.body">What it does to the body</h3>
+          <label class="fe-row"><span data-i18n="fe.hunger">Nourishment</span><input id="fe-hunger" type="range" min="-80" max="60" step="1"><output></output></label>
+          <p class="fe-scale"><span data-i18n="fe.feeds">← feeds</span><span data-i18n="fe.poisons">poisons →</span></p>
+          <label class="fe-row"><span data-i18n="fe.thirst">Thirst</span><input id="fe-thirst" type="range" min="-50" max="50" step="1"><output></output></label>
+          <p class="fe-scale"><span data-i18n="fe.quenches">← quenches</span><span data-i18n="fe.dries">makes thirsty →</span></p>
+          <label class="fe-row"><span data-i18n="fe.life">Rots after (s, 0 = never)</span><input id="fe-life" type="number" min="0" max="900" step="5"></label>
+          <h4 data-i18n="fe.effects">Effects for a while after eating</h4>
+          <div id="fe-effects"></div>
+        </section>
+        <section>
+          <h3 data-i18n="fe.tree">Its tree</h3>
+          <label class="fe-row"><span data-i18n="fe.interval">One fruit every (s)</span><input id="fe-interval" type="number" min="1" max="120" step="1"></label>
+          <label class="fe-row"><span data-i18n="fe.maxNear">Fruit on the ground before it stops</span><input id="fe-maxnear" type="number" min="1" max="30" step="1"></label>
+          <label class="fe-row"><span data-i18n="fe.trees">Trees of it on the new map</span><input id="fe-count" type="number" min="0" max="20" step="1"></label>
+        </section>
+      </div>
+      <footer>
+        <button type="button" id="fe-delete" class="fe-danger" data-i18n="fe.delete">Delete</button>
+        <span class="fe-gap"></span>
+        <button type="button" id="fe-cancel" data-i18n="setup.cancel">Cancel</button>
+        <button type="submit" class="primary" data-i18n="fe.save">Save</button>
+      </footer>
+    </form>
   </div>
   <div id="screen" hidden></div>
   <script type="module" src="/src/app/boot.js"></script>

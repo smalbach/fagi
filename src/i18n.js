@@ -44,7 +44,9 @@ export function onLangChange(fn) {
 // t('reason.memory', { sec: { dur: 1.4, precise: true } })
 //   ->  'lost sight of it, insists 1.4s more'
 export function t(key, params) {
-  const txt = DICT[lang][key] ?? DICT.en[key]
+  // A fruit the person made (custom-fruits.js) is called what they called it.
+  const own = key.startsWith('type.') ? POINT_TYPES[key.slice(5)]?.custom && POINT_TYPES[key.slice(5)].name : null;
+  const txt = (own || null) ?? DICT[lang][key] ?? DICT.en[key]
     ?? (key.startsWith('type.') ? traitLabel(key.slice(5)) : null) ?? key;
   if (!params) return txt;
   return txt.replace(/\{(\w+)\}/g, (_, k) => {

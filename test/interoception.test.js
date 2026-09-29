@@ -5,6 +5,12 @@ import { POINT_TYPES, FEEL } from '../src/config.js';
 import { createFagi } from '../src/fagi.js';
 import { eat } from '../src/feeding.js';
 import { snapshotBody, feel } from '../src/interoception.js';
+import { registerFruits, keyOf, blankFruit } from '../src/custom-fruits.js';
+
+// A fruit made in the editor that barely feeds and gives speed (custom-fruits.js).
+const quick = { ...blankFruit('quick'), id: 'quick', hunger: -5, taste: {}, effects: [{ stat: 'speed', mult: 1.8, sec: 8 }] };
+registerFruits([quick]);
+const QUICK = keyOf(quick);
 
 // Nothing on the food's sheet says whether it is good or bad: physics only.
 test('the food sheet carries physics only, no verdict', () => {
@@ -38,7 +44,7 @@ test('toxic fruit feels bad from what it does to the body: more hunger and slowe
 test('a speed buff feels good even though it barely feeds', () => {
   const fagi = createFagi();
   fagi.hunger = 50;
-  eat(fagi, 'spark');
+  eat(fagi, QUICK);
   assert.ok(fagi.lastMeal.reward > 0.3, `reward ${fagi.lastMeal.reward}`);
   assert.ok(fagi.lastMeal.sensations.some((s) => s.sense === 'speed' && s.v > 1));
 });
@@ -46,10 +52,10 @@ test('a speed buff feels good even though it barely feeds', () => {
 test('refreshing an effect that is already active is not felt as a change', () => {
   const fagi = createFagi();
   fagi.hunger = 50;
-  eat(fagi, 'spark');
+  eat(fagi, QUICK);
   const first = fagi.lastMeal.reward;
   fagi.hunger = 50;
-  eat(fagi, 'spark');
+  eat(fagi, QUICK);
   const second = fagi.lastMeal.reward;
   assert.ok(second < first);
   assert.equal(fagi.lastMeal.sensations.some((s) => s.sense === 'speed'), false);

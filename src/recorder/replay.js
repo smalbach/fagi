@@ -16,6 +16,7 @@ import { normalizeAngle } from '../vision.js';
 import { MARKER_TYPES } from './events.js';
 import { modernize } from '../legacy.js';
 import { addSpecies } from '../chemistry.js';
+import { addFruits, addRetired } from '../custom-fruits.js';
 import { modernWhen } from '../learned/dsl.js';
 
 // --- the state: a world with the same shape as the real one ---
@@ -53,6 +54,9 @@ export function applyEvent(state, ev) {
       if (ev.world?.seed != null) w.seed = ev.world.seed;
       // The map's wild species, so their fruit can be drawn.
       if (ev.world?.species?.length) addSpecies(ev.world.species);
+      // The fruit the person made for that session, and the size of its map.
+      if (ev.world?.fruits?.length) addFruits(ev.world.fruits);
+      if (ev.world?.width) { w.width = ev.world.width; w.height = ev.world.height; }
       break;
     case 'config':
       state.config[ev.id] = ev.to;
@@ -69,6 +73,7 @@ export function applyEvent(state, ev) {
       break;
     }
     case 'obj_fruit': {
+      addRetired(ev.what);
       const o = w.objects.find((x) => x.id === ev.id);
       if (o) o.fruit = ev.what;
       break;
@@ -111,6 +116,7 @@ export function applyEvent(state, ev) {
       break;
     }
     case 'point_add':
+      addRetired(ev.what);   // a fruit from before the person made their own
       w.points.push({ id: ev.id, x: ev.x, y: ev.y, type: ev.what, born: ev.t, from: ev.from ?? null });
       break;
     case 'point_rot': {

@@ -78,9 +78,13 @@ function paintMicrotexture(ctx, w, h, seedOf) {
   ctx.restore();
 }
 
+// The detail counts are for the base map: a bigger map gets as many per
+// square pixel, not the same few spread thinner.
+export const areaOf = (w, h) => Math.max(1, (w * h) / (WORLD.baseWidth * WORLD.baseHeight));
+
 // Specks of dirt: the smallest thing, beneath everything else.
 function paintSpecks(ctx, w, h, rnd) {
-  for (let i = 0; i < TERRAIN.specks; i++) {
+  for (let i = 0; i < TERRAIN.specks * areaOf(w, h); i++) {
     const x = rnd() * w;
     const y = rnd() * h;
     ctx.fillStyle = rnd() < 0.45
@@ -94,7 +98,8 @@ function paintSpecks(ctx, w, h, rnd) {
 // `wants` returns 0..1 and is compared with a die roll, so the detail doesn't appear
 // abruptly at a border: it thins out gradually.
 function sow(w, h, n, rnd, wants, put) {
-  for (let i = 0; i < n; i++) {
+  const count = n * areaOf(w, h);
+  for (let i = 0; i < count; i++) {
     const x = rnd() * w;
     const y = rnd() * h;
     if (rnd() < wants(x, y)) put(x, y);

@@ -1,4 +1,5 @@
 // The camera: which piece of the world is visible and at what magnification.
+// On a map bigger than the view, zoom goes below 1 so the whole of it fits.
 //
 // The world doesn't change size when zooming: what changes is the window you
 // look through. All of the game's drawing goes through a single transform
@@ -25,9 +26,15 @@ function limit(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
+// The farthest out the camera goes: the whole map on screen. On the base map
+// that's CAMERA.min; on a bigger one, lower, as far as it takes to fit it.
+export function minZoom(canvas, world) {
+  return Math.min(CAMERA.min, canvas.width / world.width, canvas.height / world.height);
+}
+
 // Keeps the center where the view still falls entirely inside the world.
 export function fit(cam, canvas, world) {
-  cam.zoom = limit(cam.zoom, CAMERA.min, CAMERA.max);
+  cam.zoom = limit(cam.zoom, minZoom(canvas, world), CAMERA.max);
   const vw = canvas.width / cam.zoom;
   const vh = canvas.height / cam.zoom;
   cam.x = vw >= world.width ? world.width / 2 : limit(cam.x, vw / 2, world.width - vw / 2);
@@ -60,7 +67,7 @@ export function ripe(cam, canvas, sx, sy) {
 // you're looking, not toward the center of the screen.
 export function approach(cam, canvas, world, sx, sy, factor) {
   const before = ripe(cam, canvas, sx, sy);
-  cam.zoom = limit(cam.zoom * factor, CAMERA.min, CAMERA.max);
+  cam.zoom = limit(cam.zoom * factor, minZoom(canvas, world), CAMERA.max);
   cam.x = before.x - (sx - canvas.width / 2) / cam.zoom;
   cam.y = before.y - (sy - canvas.height / 2) / cam.zoom;
   fit(cam, canvas, world);

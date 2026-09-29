@@ -11,6 +11,7 @@ import { sameScent, lookOf, unnamed } from '../src/percept.js';
 import { observe } from '../src/observation.js';
 import { perceive } from '../src/perception.js';
 import { createWorld } from '../src/world.js';
+import { registerFruits, keyOf, blankFruit } from '../src/custom-fruits.js';
 
 function seeded(s) {
   let x = s >>> 0;
@@ -58,13 +59,18 @@ test('rules about one species do not reach a fruit she only smells', () => {
 });
 
 test('following a scent, she follows the smell, whatever gives it off', () => {
+  // Two fruit made in the editor, different in every way but the smell.
+  const a = { ...blankFruit('a'), id: 'musky1', color: '#b57bff', shape: 'orb', smell: 'musky' };
+  const b = { ...blankFruit('b'), id: 'musky2', color: '#e8903d', shape: 'drop', smell: 'musky' };
+  registerFruits([a, b]);
   PERCEPT.enabled = 0;
-  assert.equal(sameScent('eye', 'resin'), false);
+  assert.equal(sameScent(keyOf(a), keyOf(b)), false);
   PERCEPT.enabled = 1;
-  assert.equal(sameScent('eye', 'resin'), true, 'both musky');
-  assert.equal(sameScent('eye', 'nectar'), false);
+  assert.equal(sameScent(keyOf(a), keyOf(b)), true, 'both musky');
+  assert.equal(sameScent(keyOf(a), 'nectar'), false);
   assert.equal(sameScent('water', 'water'), true);
   PERCEPT.enabled = 0;
+  registerFruits([]);
 });
 
 test('the API reads what she perceives, never the names of the classic fruit', () => {

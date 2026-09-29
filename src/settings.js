@@ -299,6 +299,8 @@ const GROUPS = [
     { ...n(OBJECT_TYPES.tree, 'radius', 'Size of new tree', 'Tamaño del árbol nuevo', 10, 120, 2), id: 'tree.radius' },
     n(OBJECT_TYPES.rock, 'radius', 'Size of new rock', 'Tamaño de la roca nueva', 8, 150, 2),
     n(MAPGEN, 'trees', 'Trees when generating a map', 'Árboles al generar mapa', 0, 20, 1),
+    n(MAPGEN, 'size', 'Map size (× each side, new maps)', 'Tamaño del mapa (× cada lado, mapas nuevos)', 1, 4, 0.5),
+    n(MAPGEN, 'pools', 'Ponds when generating a map', 'Estanques al generar mapa', 1, 30, 1),
     n(MAPGEN, 'species', 'Wild species with hidden chemistry (0 = classic map)', 'Especies silvestres con química oculta (0 = mapa clásico)', 0, 12, 1),
     n(MAPGEN, 'treeMinNestDistance', 'Minimum tree distance from nest', 'Distancia mínima del árbol al nido', 100, 900, 10),
     n(MAPGEN, 'treeMaxNestDistance', 'Maximum tree distance from nest', 'Distancia máxima del árbol al nido', 100, 1000, 10),
@@ -455,6 +457,20 @@ export function organismOffConfig() {
 export function configIdOf(obj, key) {
   for (const [id, field] of BY_ID) if (field.obj === obj && field.key === key) return id;
   return null;
+}
+
+// A setting changed from outside the dialog (the setup panel's map size):
+// written, told, saved and repainted as if typed in its field.
+export function setSetting(obj, key, value) {
+  const id = configIdOf(obj, key);
+  const field = id ? BY_ID.get(id) : null;
+  if (!field || !Number.isFinite(value)) return;
+  const before = read(field);
+  const v = bound(field, value);
+  write(field, v);
+  if (before !== v) onChange?.(id, before, v, 'user');
+  saveSoon();
+  refresh?.();
 }
 
 // Whoever wants to hear about every change made by hand (the recorder).

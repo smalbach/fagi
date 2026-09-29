@@ -2,10 +2,9 @@
 // card drawn out, so you can read at a glance what eating it does.
 //
 //   nectar : fleshy berry with stalk and leaf. Real food, the filling kind.
-//   spark  : glass shard, edges and glints. Gives speed.
-//   eye    : an eye that looks. Gives sight.
-//   resin  : thick drop of amber, dripping. Stretches what was eaten.
 //   toxic  : mushy mass, mold and fumes. The rotten one.
+// Every other fruit (the person's own, custom-fruits.js, or a wild species)
+// is drawn by its shape: berry (round), resin (drop), spark (crystal), eye (orb).
 //
 // And ripeness shows in the drawing, not only in the color: before rotting the
 // fruit gets spotted, sags and loses its shine. Whoever looks at the map can
@@ -32,17 +31,19 @@ const sprites = new Map();     // key: type|radius|variant|ripeness step
 const STEPS = 12;              // how many steps ripeness is rounded to
 const VARIANTS = 4;           // distinct pieces per type: no two alike side by side
 
-const PAINTERS = { nectar: berry, spark, eye, resin, toxic: rotten };
-// A wild species (chemistry.js) names its painter by its shape.
+const PAINTERS = { nectar: berry, toxic: rotten };
+// Any other fruit names its painter by its shape (chemistry.js SHAPE_PAINTER).
 const BY_SHAPE = { berry, spark, eye, resin };
 
 export function drawFruit(ctx, p) {
   const z = detail();
-  const r = Math.max(2, Math.round(POINT_TYPES[p.type].radius * z));
+  const spec = POINT_TYPES[p.type];
+  const r = Math.max(2, Math.round(spec.radius * z));
   const step = Math.round(ripeness(p) * STEPS);
+  // Color and painter are in the key: a fruit the person edits repaints.
   const img = cacheSprite(
     sprites,
-    `${p.type}|${r}|${seedFor(p) % VARIANTS}|${step}`,
+    `${p.type}|${spec.color}|${spec.painter ?? ''}|${r}|${seedFor(p) % VARIANTS}|${step}`,
     () => paint(p.type, r, seedFor(p) % VARIANTS, step / STEPS),
     600
   );
@@ -63,4 +64,12 @@ function paint(type, r, variant, ripenessOf) {
   const ctx = c.getContext('2d');
   (PAINTERS[type] ?? BY_SHAPE[POINT_TYPES[type]?.painter] ?? berry)(ctx, S / 2, S / 2, r, base, rnd, past);
   return c;
+}
+
+// A fruit that is not on the map yet (the fruit editor's preview): painted
+// straight from its spec, fresh, at radius `r` and centered on (cx, cy).
+export function paintFruitPreview(ctx, spec, cx, cy, r) {
+  const painter = BY_SHAPE[spec.painter] ?? berry;
+  const rnd = seededRng(0x5eed);
+  painter(ctx, cx, cy, r, spec.color, rnd, 0);
 }

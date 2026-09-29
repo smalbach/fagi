@@ -110,7 +110,9 @@ export function placeThings(world) {
   world.thingChemistry = chem;
   const kinds = drawKinds(chem, CONCEPT.kinds);
   world.thingKinds = kinds.map(lookKey);
-  scatter(world, kinds, CONCEPT.things);
+  // A bigger map keeps the same things per square pixel.
+  const area = Math.max(1, (world.width * world.height) / (WORLD.baseWidth * WORLD.baseHeight));
+  scatter(world, kinds, Math.round(CONCEPT.things * area));
 }
 
 // Later in her life new kinds sprout (CONCEPT.lateAt): looks never on the map

@@ -31,7 +31,7 @@ import { ripeness } from './food.js';
 import { specOfFruit } from './chemistry.js';
 import { affordanceOf, isThing } from './things.js';
 import { nestTemperature, eggPace } from './reproduction.js';
-import { treeAge } from './trees.js';
+import { treeAge, intervalOf, maxNearOf } from './trees.js';
 
 const L = (en, es) => (getLang() === 'es' ? es : en);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -340,6 +340,7 @@ function paintPoint(p, world, main) {
   const age = p.age ?? 0;
   const rotten = p.type === FRUIT.rot;
   const sub = [rotten ? L('rotten', 'podrido') : null, spec.species ? L('wild species', 'especie silvestre') : null,
+    spec.custom ? L('made by you', 'creado por ti') : null,
     p.variant === 'twin' ? L('look-alike', 'doble') : null].filter(Boolean).join(' · ');
   const actions = `<button type="button" data-act="center">⦿ ${L('Center', 'Centrar')}</button>`
     + (main ? `<button type="button" data-act="ask">? ${L(`What does ${esc(fullName(main))} think?`, `¿Qué piensa ${esc(fullName(main))}?`)}</button>` : '');
@@ -347,6 +348,7 @@ function paintPoint(p, world, main) {
   const hunger = spec.hunger ?? 0;
   const what = [
     row(L('Hunger', 'Hambre'), hunger < 0 ? `${L('removes', 'quita')} ${-hunger}` : hunger > 0 ? `${L('adds', 'suma')} ${hunger}` : '0'),
+    spec.thirst ? row(L('Thirst', 'Sed'), spec.thirst < 0 ? `${L('removes', 'quita')} ${-spec.thirst}` : `${L('adds', 'suma')} ${spec.thirst}`) : '',
     (spec.effects ?? []).length ? row(L('Effects', 'Efectos'), spec.effects.map((e) => `${t(`fx.${e.stat}`)} ×${e.mult} · ${e.sec}s`).join(', '), 'ins-wrap') : '',
     row(L('Looks, smells', 'Aspecto, olor'), traitsText(spec.traits), 'ins-wrap'),
     row(L('Aroma (plume length)', 'Aroma (largo de estela)'), spec.aroma != null ? String(spec.aroma) : null),
@@ -405,9 +407,9 @@ function paintObject(o, world, main) {
     body = section('what', L('Fruit', 'Fruto'), [
       row(L('Fruit it drops', 'Fruto que da'), `<span style="color:${fspec?.color}">●</span> ${esc(labelOf(fruit))}`),
       row(L('Looks, smells', 'Aspecto, olor'), traitsText(fspec?.traits), 'ins-wrap'),
-      row(L('One fruit every', 'Un fruto cada'), dur(TREE.interval)),
+      row(L('One fruit every', 'Un fruto cada'), dur(intervalOf(o))),
       row(L('Next fruit in', 'Próximo fruto en'), o.timer != null ? formatDuration(Math.max(0, o.timer), { precise: true }) : null),
-      bar(L('Its fruit on the ground', 'Sus frutos en el suelo'), near / TREE.maxNear, `${near} / ${TREE.maxNear}${near >= TREE.maxNear ? ` · ${L('stopped', 'parado')}` : ''}`, fspec?.color ?? '#5bd97e'),
+      bar(L('Its fruit on the ground', 'Sus frutos en el suelo'), near / maxNearOf(o), `${near} / ${maxNearOf(o)}${near >= maxNearOf(o) ? ` · ${L('stopped', 'parado')}` : ''}`, fspec?.color ?? '#5bd97e'),
       row(L('Fruit dropped', 'Frutos tirados'), o.lastDrop != null ? String(o.lastDrop) : null),
       row(L('Falls within', 'Cae hasta'), `${Math.round(r * TREE.dropRadius)} px`),
     ].join(''))

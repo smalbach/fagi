@@ -14,13 +14,16 @@ import { configIdOf } from './settings.js';
 import { setFruitInterval } from './trees.js';
 import { t, labelOf, onLangChange, formatDuration } from './i18n.js';
 import { recall } from './memory.js';
-import { ASK, INSPECT } from './input.js';
+import { ASK, INSPECT, TREE_PREFIX } from './input.js';
+import { customKeys } from './custom-fruits.js';
 import { HEALTH, TASTE } from './config.js';
 import { healthU } from './health.js';
 import { sodiumOf } from './taste.js';
 import { lifeAge } from './lifecycle.js';
 import { fullName } from './names.js';
 import { familyOf } from './family.js';
+
+const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Short summary of what each type does, for the button.
 function hintOfFood(spec) {
@@ -47,10 +50,18 @@ const TAB_KEY = 'fagi.palette.tab';
 
 function paletteItems() {
   const items = [];
-  for (const key of TYPE_KEYS) items.push({ key, tab: 'food', color: POINT_TYPES[key].color, hint: hintOfFood(POINT_TYPES[key]) });
+  const foods = [...TYPE_KEYS, ...customKeys()];
+  for (const key of foods) items.push({ key, tab: 'food', color: POINT_TYPES[key].color, hint: hintOfFood(POINT_TYPES[key]) });
   for (const key of OBJECT_KEYS) {
     if (OBJECT_TYPES[key].palette === false) continue;
     items.push({ key, tab: 'land', color: OBJECT_TYPES[key].color, hint: hintOfObject(OBJECT_TYPES[key]) });
+    // A tree for each fruit the person made: it bears that one.
+    if (key === 'tree') {
+      for (const f of customKeys()) {
+        items.push({ key: `${TREE_PREFIX}${f}`, tab: 'land', color: POINT_TYPES[f].color,
+          label: `${labelOf('tree')} · ${labelOf(f)}`, hint: t('hint.treeOf', { fruit: labelOf(f) }) });
+      }
+    }
   }
   items.push({ key: INSPECT, tab: 'tools', color: '#ffe08a', hint: t('ins.toolHint') });
   items.push({ key: ASK, tab: 'tools', color: '#b57bff', hint: t('why.askHint') });
@@ -93,7 +104,7 @@ function buildPalette(tabsBox, grid, hintBox, input) {
       btn.className = 'palette-item';
       btn.style.color = item.color;
       btn.title = item.hint;
-      btn.innerHTML = `<span class="dot"></span><span class="palette-name">${labelOf(item.key)}</span>`;
+      btn.innerHTML = `<span class="dot"></span><span class="palette-name">${esc(item.label ?? labelOf(item.key))}</span>`;
       btn.addEventListener('click', () => select(item.key));
       grid.append(btn);
       buttons[item.key] = btn;
@@ -105,7 +116,7 @@ function buildPalette(tabsBox, grid, hintBox, input) {
     for (const [k, btn] of Object.entries(buttons)) btn.classList.toggle('active', k === input.selectedType);
     const item = items.find((i) => i.key === input.selectedType);
     hintBox.innerHTML = item
-      ? `<span class="dot" style="color:${item.color}"></span><b>${labelOf(item.key)}</b> · ${item.hint}`
+      ? `<span class="dot" style="color:${item.color}"></span><b>${esc(item.label ?? labelOf(item.key))}</b> · ${esc(item.hint)}`
       : '';
   }
 
@@ -137,7 +148,7 @@ function paintMapSummary(box, world) {
   const species = new Set(world.objects.filter((o) => o.fruit && POINT_TYPES[o.fruit]?.species).map((o) => o.fruit)).size;
   const chip = (icon, n, label) => `<span class="map-chip">${icon} ${label} <b>${n}</b></span>`;
   const fruit = Object.entries(byType).sort((a, b) => b[1] - a[1]).map(([k, n]) =>
-    `<span class="map-chip" style="border-color:${specOf(k)?.color ?? 'var(--line)'}"><span class="dot" style="color:${specOf(k)?.color}"></span>${labelOf(k)} <b>${n}</b></span>`).join('');
+    `<span class="map-chip" style="border-color:${specOf(k)?.color ?? 'var(--line)'}"><span class="dot" style="color:${specOf(k)?.color}"></span>${esc(labelOf(k))} <b>${n}</b></span>`).join('');
   box.innerHTML = `<div class="map-chips">`
     + chip('🌳', trees, t('map.trees'))
     + chip('🪨', rocks, t('map.rocks'))
@@ -242,6 +253,16 @@ export function createUI(input, world, onReset) {
   const beliefs = { keys: [], bars: {} };
   document.getElementById('btn-reset').addEventListener('click', onReset);
 
+  // The fruit the person made changed (fruit-editor.js): the palette follows.
+  el.rebuildPalette = () => {
+    const still = input.selectedType;
+    const known = [...TYPE_KEYS, ...customKeys()];
+    const gone = still.startsWith(TREE_PREFIX) ? !known.includes(still.slice(TREE_PREFIX.length)) : Boolean(POINT_TYPES[still]) === false && !OBJECT_TYPES[still] && ![ASK, INSPECT].includes(still);
+    if (gone) input.selectedType = TYPE_KEYS[0];
+    selectTool = buildPalette(paletteTabs, paletteGrid, paletteHint, input);
+    summaryAt = 0;
+  };
+
   // On a language switch, whatever was built only once has to be redone.
   onLangChange(() => {
     selectTool = buildPalette(paletteTabs, paletteGrid, paletteHint, input);
@@ -269,6 +290,7 @@ export function createUI(input, world, onReset) {
     update: (fagi, w) => update(el, beliefBox, beliefs, fagi, w),
     sync,
     selectTool: (key) => selectTool(key),
+    rebuildPalette: () => el.rebuildPalette(),
     // The map's summary (setup and play): cheap, but not every frame.
     paintMap: (w) => {
       const now = performance.now();

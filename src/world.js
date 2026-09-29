@@ -1,6 +1,6 @@
 // World state: the food points and the map objects.
 
-import { WORLD, FAGI, NEST, OBJECT_TYPES, POINT_TYPES, TREE } from './config.js';
+import { WORLD, FAGI, NEST, OBJECT_TYPES, POINT_TYPES, TREE, MAPGEN } from './config.js';
 import { createWind } from './wind.js';
 import { createPheromone } from './pheromone.js';
 import { createRain } from './rain.js';
@@ -178,12 +178,23 @@ export function removeObject(world, obj, source = 'sim') {
 // pointing at it.
 export function resetWorld(world) {
   clearWorld(world);
+  sizeWorld(world);
   world.nextId = 1;
   world.time = 0;
   world.day = null;   // the next step records day 1 again (simulation.js)
   world.rec = null;
   world.wind = createWind();
   world.rain = createRain();
+}
+
+// The map's size (MAPGEN.size × the base patch on each side). WORLD holds it
+// too, because movement, exploring and map-making read it from there.
+export function sizeWorld(world, size = MAPGEN.size) {
+  const k = Math.max(1, size || 1);
+  WORLD.width = Math.round(WORLD.baseWidth * k);
+  WORLD.height = Math.round(WORLD.baseHeight * k);
+  world.width = WORLD.width;
+  world.height = WORLD.height;
 }
 
 export function clearWorld(world) {

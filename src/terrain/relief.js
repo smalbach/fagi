@@ -1,7 +1,7 @@
 // The terrain before the details: the noise fields that decide everything, the
 // color and light that come out of them, the grain and the sunny clearings.
 
-import { TERRAIN } from '../config.js';
+import { TERRAIN, WORLD } from '../config.js';
 import { canvasOf, noise } from '../sprite-kit.js';
 import { LIGHT, LX, LY, SOIL, DRY_TONE, MOSS, GRAVEL } from './palette.js';
 
@@ -121,7 +121,7 @@ export function paintGrain(ctx, w, h, rnd) {
 export function paintClearings(ctx, w, h, rnd, moisture) {
   ctx.save();
   ctx.globalCompositeOperation = 'soft-light';
-  for (let i = 0; i < TERRAIN.clearings; i++) {
+  for (let i = 0; i < TERRAIN.clearings * Math.max(1, (w * h) / (WORLD.baseWidth * WORLD.baseHeight)); i++) {
     const x = rnd() * w;
     const y = rnd() * h;
     const r = 24 + rnd() * 90;

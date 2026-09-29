@@ -21,6 +21,8 @@ import { createAskCard } from './ask.js';
 import { createColony, successorOf, swapInto } from './colony.js';
 import { createCamera, centerOn, fit } from './camera.js';
 import { createUI } from './ui.js';
+import { loadFruits } from './custom-fruits.js';
+import { createFruitEditor } from './fruit-editor.js';
 import { versionLabel, versionTitle } from './version.js';
 import { createSettings, loadSettings, configSnapshot, applyConfig, onConfigChange, organismOffConfig } from './settings.js';
 import { bindDom, t, onLangChange, formatDuration } from './i18n.js';
@@ -44,6 +46,8 @@ export function createGame({ onExit } = {}) {
   // Saved settings go before anything else: some numbers are only read when
   // creating the world and Fagi, not on every frame.
   loadSettings();
+  // The fruit the person made (custom-fruits.js), before any map asks for them.
+  loadFruits();
 
   const canvas = document.getElementById('canvas');
   canvas.width = WORLD.width;
@@ -105,6 +109,11 @@ export function createGame({ onExit } = {}) {
   const learnedPanel = createLearnedPanel(fagi, { onBackendChange: mountBackend });
   const brainMap = createBrainMap(document.getElementById('brainmap'), document.getElementById('brainmap-status'), document.getElementById('brainmap-expand'));
   createSettings(world, () => fagi);
+  // Fruit the person makes, and the map's size and water (setup only).
+  const fruitEditor = createFruitEditor(world, {
+    onFruitsChanged: () => ui.rebuildPalette(),
+    onMapChanged: () => { if (mode === 'setup') regenerate(); },
+  });
   bindDom();
   const panels = initPanelLayout(document.getElementById('console'));
   initHudGroups(document.getElementById('hud'), document.getElementById('btn-toggle-groups'));
@@ -159,13 +168,21 @@ export function createGame({ onExit } = {}) {
     generateMap(world);
     newFagi();
     camera.follow = false;
+    // The map may have changed size (MAPGEN.size): the whole of it on screen.
+    camera.zoom = 0;
+    fit(camera, canvas, world);
     ui.sync();
+    fruitEditor.sync();
     setMode('setup');
   }
 
   function regenerate() {
+    const size = world.width;
     resetWorld(world);
     generateMap(world);
+    input.editing = null;
+    if (world.width !== size) { camera.zoom = 0; camera.follow = false; }
+    fit(camera, canvas, world);
   }
 
   // --- play ---
@@ -279,7 +296,7 @@ export function createGame({ onExit } = {}) {
   // --- loop ---
   function frameSetup(dt) {
     updateTrails(world, dt);
-    render(ctx, world, null, camera, markOf(inspector.selection, world, null));
+    render(ctx, world, null, camera, markOf(inspector.selection, world, null), input.editing);
     inspector.update(null, world, { live: false });
     ui.paintMap(world);
   }
@@ -292,7 +309,7 @@ export function createGame({ onExit } = {}) {
       if (!fagi.alive) followOrClose();
     }
     if (camera.follow) centerOn(camera, canvas, world, fagi);
-    render(ctx, world, fagi, camera, markOf(inspector.selection, world, fagi));
+    render(ctx, world, fagi, camera, markOf(inspector.selection, world, fagi), input.editing);
     ui.update(fagi, world);
     ui.paintMap(world);
     inspector.update(fagi, world);

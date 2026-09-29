@@ -1,0 +1,76 @@
+/* --- the fruit editor and the map-size panel (fruit-editor.js) --- */
+body:not(.mode-setup) .setup-only { display: none; }
+
+.map-size-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.map-size-row label { display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; color: var(--muted); }
+.map-size-row select, .map-size-row input {
+  width: 100%; background: #2a2e3a; color: var(--text); border: 1px solid var(--line);
+  border-radius: 6px; padding: 5px 6px; font: inherit; font-size: 12.5px;
+}
+
+.fruit-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.fruit-chip {
+  display: flex; align-items: center; gap: 8px; text-align: left; padding: 5px 8px;
+  width: 100%; min-width: 0;
+}
+.fruit-chip canvas { flex: none; width: 28px; height: 28px; }
+.fruit-chip span { display: flex; flex-direction: column; min-width: 0; }
+.fruit-chip b { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fruit-chip small { font-size: 10.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fruit-actions { display: flex; gap: 6px; }
+.fruit-actions button { flex: 1; }
+
+#fruit-overlay {
+  position: fixed; inset: 0; background: rgba(8,9,12,.72); z-index: 60;
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+#fruit-overlay[hidden] { display: none; }
+#fruit-editor {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  width: min(760px, 100%); max-height: 92vh; display: flex; flex-direction: column;
+  box-shadow: 0 24px 70px rgba(0,0,0,.5);
+}
+#fruit-editor header {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line);
+}
+#fruit-preview { width: 72px; height: 72px; flex: none; background: radial-gradient(circle, #3a3f33 0%, #23261f 70%); border-radius: 10px; }
+.fe-title { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+#fe-name {
+  background: #2a2e3a; color: var(--text); border: 1px solid var(--line); border-radius: 6px;
+  padding: 7px 10px; font: inherit; font-size: 16px; font-weight: 600; width: 100%;
+}
+.fe-seen { font-size: 11.5px; color: var(--muted); }
+.fe-x { width: auto; padding: 4px 10px; }
+.fe-body {
+  overflow-y: auto; padding: 12px 14px; display: grid; gap: 12px 18px;
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); align-items: start;
+}
+.fe-body section { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: #22262f; min-width: 0; }
+.fe-body h3 { margin: 0 0 6px; font-size: 12.5px; color: #cfd3dd; }
+.fe-body h4 { margin: 10px 0 4px; font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.fe-row { display: grid; grid-template-columns: 1fr 1.2fr auto; gap: 8px; align-items: center; font-size: 12px; margin: 4px 0; }
+.fe-row > span { color: #cfd3dd; }
+.fe-row input[type=range] { width: 100%; }
+.fe-row output { font-size: 11px; color: var(--muted); min-width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+.fe-row select, .fe-row input[type=number] {
+  grid-column: 2 / 4; background: #2a2e3a; color: var(--text); border: 1px solid var(--line);
+  border-radius: 6px; padding: 4px 6px; font: inherit; font-size: 12px; width: 100%;
+}
+.fe-row input[type=color] { grid-column: 2 / 4; width: 100%; height: 28px; background: none; border: 1px solid var(--line); border-radius: 6px; padding: 1px; }
+.fe-scale { display: flex; justify-content: space-between; margin: -2px 0 4px; font-size: 10.5px; color: var(--muted); }
+.fe-fx { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 6px; align-items: center; font-size: 12px; margin: 3px 0; opacity: .55; }
+.fe-fx.on { opacity: 1; }
+.fe-fx input[type=number] {
+  width: 60px; background: #2a2e3a; color: var(--text); border: 1px solid var(--line);
+  border-radius: 6px; padding: 3px 5px; font: inherit; font-size: 12px;
+}
+#fruit-editor footer { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); }
+#fruit-editor footer button { width: auto; padding: 7px 14px; }
+.fe-gap { flex: 1; }
+.fe-danger { color: #f08a8a; border-color: #7a3b3b; }
+.fe-danger[hidden] { display: none; }
+
+@media (max-width: 560px) {
+  .fe-row { grid-template-columns: 1fr 1fr auto; }
+  .fe-fx { grid-template-columns: 1fr; }
+}

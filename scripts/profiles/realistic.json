@@ -17,15 +17,6 @@
     },
     "toxic": {
       "life": 180
-    },
-    "spark": {
-      "life": 240
-    },
-    "eye": {
-      "life": 240
-    },
-    "resin": {
-      "life": 320
     }
   },
   "FAGI": {

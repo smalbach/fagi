@@ -8,9 +8,15 @@
 // and pheromone run in real time. Only biology (thirst, hunger, forgetting, what
 // rots) is compressed: 1 s of game = ~8 min of her life, keeping the real
 // proportions between one thing and another.
+//
+// width/height are the map now; baseWidth/baseHeight the original patch. A
+// bigger map (MAPGEN.size) multiplies both sides: the view stays the same
+// size and zooms out to fit it (camera.js).
 export const WORLD = {
   width: 1280,
   height: 860,
+  baseWidth: 1280,
+  baseHeight: 860,
   bgColor: '#222630',
 };
 
@@ -52,7 +58,7 @@ export const TERRAIN = {
 // Raising it gives cleaner edges up close and costs memory and a
 // repaint per step, so three is the reasonable deal.
 export const CAMERA = {
-  min: 1,
+  min: 1,             // on a bigger map it goes lower, down to what fits it whole (camera.js)
   max: 4,
   step: 1.18,        // how much each wheel notch zooms in
   maxDetail: 3,
@@ -360,7 +366,9 @@ export const BRAIN = {
                       // Without this she'd go to the water with zero thirst, just because she likes it.
 };
 
-// The five points the player can place.
+// The classic fruit: nectar, and what any fruit becomes when it rots. The
+// rest are made by the person, per session (custom-fruits.js), and the wild
+// species by each map's chemistry (chemistry.js); all of them land here.
 //
 //   hunger  : how much it adds (+) to or subtracts (-) from hunger when eaten.
 //   effects : temporary buffs. stat = what it multiplies, mult = factor, sec = duration.
@@ -381,39 +389,6 @@ export const POINT_TYPES = {
     effects: [],
     traits: { color: 'green', shape: 'round', smell: 'sweet' },
     taste: { sweet: 0.9 },   // what the tongue says of it (TASTE only)
-  },
-  spark: {
-    color: '#4cc9f0',
-    radius: 5,
-    aroma: 85,
-    life: 240,
-    hunger: -5,
-    effects: [{ stat: 'speed', mult: 1.8, sec: 8 }],
-    traits: { color: 'blue', shape: 'crystal', smell: 'sharp' },
-    taste: { sour: 0.5, spicy: 0.6 },   // what the tongue says of it (TASTE only)
-  },
-  eye: {
-    color: '#b57bff',
-    radius: 5,
-    aroma: 85,
-    life: 240,
-    hunger: -5,
-    effects: [
-      { stat: 'viewRange', mult: 1.6, sec: 10 },
-      { stat: 'fovDeg', mult: 1.4, sec: 10 },
-    ],
-    traits: { color: 'purple', shape: 'orb', smell: 'musky' },
-    taste: { bitter: 0.6 },   // what the tongue says of it (TASTE only)
-  },
-  resin: {
-    color: '#e8a33d',
-    radius: 6,
-    aroma: 145,
-    life: 320,
-    hunger: -10,
-    effects: [{ stat: 'hungerRate', mult: 0.5, sec: 14 }],
-    traits: { color: 'orange', shape: 'drop', smell: 'musky' },
-    taste: { sweet: 0.4, astringent: 0.6 },   // what the tongue says of it (TASTE only)
   },
   toxic: {
     color: '#d95b7e',
@@ -617,7 +592,8 @@ export const FRUIT = {
 };
 
 export const MAPGEN = {
-  pools: 1,           // a single water source on the whole map
+  size: 1,            // × the base map on each side (1 = 64 x 43 cm). Read when a map is made
+  pools: 1,           // water sources: the first near the spawn, the rest anywhere
   nests: 1,           // one nest
   trees: 1,           // a single renewable source forces her to locate its trail
   treeMinNestDistance: 430, // the tree spawns far from the nest

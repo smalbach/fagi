@@ -41,12 +41,14 @@ function hidden(fagi, world) {
 }
 
 // `mark`: { x, y, r } of what the inspector has selected (inspect.js), or null.
-export function render(ctx, world, fagi, camera, mark = null) {
+// `editing`: the map object selected for editing (input.js), or null.
+export function render(ctx, world, fagi, camera, mark = null, editing = null) {
   setDetail(detailOf(camera));
   applySets(ctx, camera, ctx.canvas);
   const rain = rainLook(world, performance.now());
   scene(ctx, world, fagi, camera, rain);
   if (mark) drawMark(ctx, mark, camera.zoom);
+  if (editing && world.objects.includes(editing)) drawEditing(ctx, editing, camera.zoom);
   noCamera(ctx);
   // The drops fall between the camera and the ground: they don't grow with the zoom.
   if (rain > 0) drawRainDrops(ctx, world, performance.now());
@@ -169,6 +171,37 @@ function drawMark(ctx, { x, y, r }, zoom) {
   ctx.beginPath();
   ctx.arc(x, y, r + Math.sin(t * 3) * 1.2, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.restore();
+}
+
+// The object being edited: a solid ring at its edge and, on the right, the
+// handle that resizes it, with its radius beside it. Screen-sized at any zoom.
+function drawEditing(ctx, obj, zoom) {
+  const r = radiusOf(obj);
+  ctx.save();
+  ctx.lineWidth = 1.4 / zoom;
+  ctx.strokeStyle = 'rgba(140,210,255,0.9)';
+  ctx.shadowColor = 'rgba(0,0,0,0.7)';
+  ctx.shadowBlur = 4;
+  ctx.beginPath();
+  ctx.arc(obj.x, obj.y, r, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(obj.x, obj.y);
+  ctx.lineTo(obj.x + r, obj.y);
+  ctx.setLineDash([3 / zoom, 3 / zoom]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#8cd2ff';
+  ctx.strokeStyle = '#10202c';
+  ctx.beginPath();
+  ctx.arc(obj.x + r, obj.y, 6 / zoom, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.font = `600 ${(11 / zoom).toFixed(2)}px system-ui, sans-serif`;
+  ctx.fillStyle = 'rgba(230,240,250,0.95)';
+  ctx.fillText(`r ${Math.round(r)}`, obj.x + r + 10 / zoom, obj.y - 8 / zoom);
   ctx.restore();
 }
 
