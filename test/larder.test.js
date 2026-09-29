@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { LARDER, HABITS, HUNGER } from '../src/config.js';
 import { createFagi } from '../src/fagi.js';
 import { useNest } from '../src/nest.js';
+import { tryPickOrEat } from '../src/feeding.js';
 import { addObject, createWorld, storeInNest, takeFromNest, stockCount } from '../src/world.js';
 import { pantryEstimate, larderSummary, roomAtHome } from '../src/larder.js';
 import { habit } from '../src/habits.js';
@@ -63,14 +64,25 @@ test('loaded to a full nest and hungry, she eats what she carried', () => withLa
 
 test('a nest full of what she avoids: she carries one out and stores hers', () => withLarder(() => {
   const { world, fagi, nest } = home(0);
-  for (let i = 0; i < LARDER.capacity; i++) storeInNest(nest, 'toxic');
-  fagi.brain.rules.list.push({ id: 'r1', on: ['eat'], when: { key: 'toxic' }, verdict: 'avoid', weight: -1 });
-  fagi.carrying = { type: 'nectar', age: 0 };
+  for (let i = 0; i < LARDER.capacity; i++) storeInNest(nest, 'nectar');
+  fagi.brain.rules.list.push({ id: 'r1', on: ['eat'], when: { key: 'nectar' }, verdict: 'avoid', weight: -1 });
+  fagi.carrying = { type: 'toxic', age: 0 };
   useNest(fagi, world);
   assert.equal(fagi.lastNestFull?.did, 'cleared');
-  assert.equal(nest.stock.nectar, 1, 'hers is in');
-  assert.equal(nest.stock.toxic, LARDER.capacity - 1, 'one refuse out');
-  assert.equal(world.points.find((p) => p.from === 'nest')?.type, 'toxic', 'at the door');
+  assert.equal(nest.stock.toxic, 1, 'hers is in');
+  assert.equal(nest.stock.nectar, LARDER.capacity - 1, 'one refuse out');
+  assert.equal(world.points.find((p) => p.from === 'nest')?.type, 'nectar', 'at the door');
+
+  // A sister who doesn't avoid it won't carry the refuse back in: it smells of the heap.
+  const refuse = world.points.find((p) => p.from === 'nest');
+  assert.equal(refuse.refuse, true);
+  const sister = createFagi();
+  sister.x = refuse.x; sister.y = refuse.y; sister.hunger = 0;
+  tryPickOrEat(sister, world);
+  assert.equal(sister.carrying, null);
+  refuse.refuse = false;   // the same fruit without the smell of the heap: she would
+  tryPickOrEat(sister, world);
+  assert.equal(sister.carrying?.type, 'nectar');
 }));
 
 test('a nest found full of good food: she does not haul food home while she predicts it that full', () => withLarder(() => {

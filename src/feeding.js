@@ -51,7 +51,7 @@ export function tryPickOrEat(fagi, world) {
     // `aversive` below). She leaves it where it is and stops treating it as a target.
     release();
     return;
-  } else if (!fagi.carrying && pantryEstimate(fagi) < habit(fagi, 'reserve') && roomAtHome(fagi) && !aversive(fagi, p.type)) {
+  } else if (!fagi.carrying && !p.refuse && pantryEstimate(fagi) < habit(fagi, 'reserve') && roomAtHome(fagi) && !aversive(fagi, p.type)) {
     // The fruit keeps the age it already had: storing it preserves it, it doesn't
     // make it younger.
     fagi.carrying = { type: p.type, age: p.age ?? 0, ...(p.variant ? { variant: p.variant } : {}) };

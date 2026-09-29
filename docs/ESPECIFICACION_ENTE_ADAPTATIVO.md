@@ -1815,7 +1815,7 @@ Recoge lo implementado en las fases 0 a 8 y lo medido de cada una. Las secciones
   - **inspector, sección «Explorar o volver»**: cada sitio con su valor, confianza y visitas; lo que le vale explorar; con qué probabilidad elegiría cada opción; su ruido; sus decisiones; la despensa que cree y su ritmo;
   - **narración (etiqueta ELIGE)**: recuerda un sitio, vuelve y lo encuentra lleno o vacío, decide volver o explorar (con los valores y la probabilidad), explorando encuentra comida o nada, el nido estaba lleno y qué hizo, la despensa estaba más llena o más vacía de lo que creía;
   - todo se dibuja con `choiceView` y `larderView`, que leen sin sortear: pintar no cambia el azar de la simulación (probado).
-- [ ] F. Antes, fijar el mundo (§25.23).
+- [ ] F. Protocolo redactado y pilotado (`docs/research/forage-protocol.md`, `research/forage/`; §25.24), sin congelar todavía.
 
 **Fase 5: en batch (generaciones por lotes)**
 - [x] Recombinación de dos progenitores, mutación posterior y límites.
@@ -1877,7 +1877,7 @@ Preguntar de noche y probar de día hace que Fagi conozca casi el doble de espec
 
 ### 25.3 Pendiente
 
-- Fase 9 (§12.11): la F. De la A a la E están hechas (§25.1). En el mundo por defecto elegir no cambia cuánto come (§25.22); en uno más escaso, sí empieza a cambiarlo (§25.23). Antes de congelar la F hay que fijar ese mundo.
+- Fase 9 (§12.11): congelar y correr el protocolo de la F (§25.24). De la A a la E están hechas (§25.1). En el mundo por defecto elegir no cambia cuánto come (§25.22); en uno más escaso, sí empieza a cambiarlo (§25.23). Antes de congelar la F hay que fijar ese mundo.
 - §23, primera mitad del criterio social: que la información social se use con provecho. Con una informante que sabe, el efecto fue pequeño y no significativo (§25.18).
 - Fase 8: saladeros (una fuente de sal fija, que aprender como el agua); venenos más fuertes o más frecuentes, donde escupir importe más.
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
@@ -1977,6 +1977,10 @@ node scripts/taste-lab.js --set MAPGEN.species=12
 # §25.18 información social falsa (protocolo congelado: docs/research/social-protocol.md)
 node research/social/run.js --jobs 16
 node research/social/analyze.js
+
+# §25.24 fase 9, explorar o volver (protocolo: docs/research/forage-protocol.md)
+node research/forage/run.js --jobs 16
+node research/forage/analyze.js
 
 # §25.19 diversidad y cambio de mundo (protocolo congelado: docs/research/diversity-protocol.md)
 # desde un worktree en 84c6e0a: git worktree add --detach ../frozen 84c6e0a
@@ -2564,4 +2568,33 @@ Fase 9 D. Mismo montaje que el §25.22, con la elección aprendida encendida en 
 | vivas al final | 0,74 | 0,69 | 0,76 | +0,05 | −0,02 |
 
 Es la primera señal de que la F1 puede sostenerse. Donde las fuentes escasean, aprender come más que cualquiera de las dos políticas fijas. La comida por minuto de vida aún no se distingue. Es exploratorio y con 80 mapas: la confirmación es la F, con protocolo congelado y semillas nuevas.
+
+### 25.24 Protocolo F: mundo, piloto y otro bucle
+
+El protocolo de la F está redactado en `docs/research/forage-protocol.md`, con su código en `research/forage/`, y todavía no está congelado.
+
+- **El mundo** es el escaso del §25.23, con nido de 12, colonia de 5 hermanas sin cría, 2400 s y los números del juego.
+- **Diez condiciones:**
+  - la elección aprendida y sus dos políticas fijas (siempre volver, siempre explorar);
+  - la elección sin diferencias innatas de ruido;
+  - un mundo duradero, uno efímero y uno que pasa de duradero a efímero a mitad de vida;
+  - tres ablaciones: sin sitios, sin predicción de la despensa y sin feromona.
+- **120 colonias por condición**, con semillas nunca usadas.
+- **Seis hipótesis confirmatorias** (F1a–F4) con Holm.
+- **Instrumentación en el runner.** Registra cada plan, cada resolución, cada recogida y cada almacenamiento sin tocar el código de Fagi.
+
+**Otro bucle, encontrado en el piloto.** Dos hermanas con creencias opuestas se pasaban la misma ración unas 1 170 veces por vida. Una la sacaba del nido lleno como desecho; la otra, que no la evitaba, la volvía a meter. Ahora lo que se saca huele al basurero, como en las hormigas: se puede comer, pero nadie lo vuelve a llevar a casa (`p.refuse`). Hay una prueba con su control: la misma fruta sin esa marca sí la recogería.
+
+**El piloto,** con el código corregido (24 colonias por condición, semillas de desarrollo):
+
+| | Resultado |
+|---|---|
+| F1a, aprender frente a siempre volver | +2,0 comidas [0,6, 3,6] |
+| F1b, aprender frente a siempre explorar | +0,9 [−0,8, 2,6] |
+| F2a, efímero frente a duradero | explora +0,04 [0,02, 0,06] |
+| F2b, tras volverse efímero frente a duradero | +0,03 [−0,01, 0,06] |
+| F3, dentro de la colonia | r = −0,10: sus primeras experiencias no predicen cuánto explora después |
+| F4, tras el nido lleno | tarda 1 023 s en volver a recoger, frente a 171 s tras guardar |
+
+**La individualidad que parecía venir de la experiencia no viene de ella.** La r ≈ 0,4 del §25.22 mezclaba colonias de mapas distintos. Dentro de una colonia, lo que predice cuánto explora cada hermana es su ruido innato (r = 0,21), no lo que vivió al principio. Aun así, la F3 se conserva en el protocolo, porque es la pregunta central de la fase. Las hipótesis se escribieron después de ver el piloto; son confirmatorias solo porque se prueban con semillas nuevas.
 

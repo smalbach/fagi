@@ -102,7 +102,8 @@ export function nestFull(fagi, world, nestObj) {
   l.full += 1;
   const out = refuse(fagi, nestObj);
   if (out) {
-    atTheDoor(fagi, world, nestObj, out.type, out.age);
+    // Refuse smells of the refuse heap: nobody carries it home again (feeding.js).
+    atTheDoor(fagi, world, nestObj, out.type, out.age).refuse = true;
     l.cleared += 1;
     record(world, 'nest_full', { what: fagi.carrying.type, did: 'cleared', out: out.type });
     fagi.lastNestFull = { n: (fagi.lastNestFull?.n ?? 0) + 1, what: fagi.carrying.type, did: 'cleared', out: out.type };
