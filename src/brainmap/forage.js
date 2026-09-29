@@ -38,7 +38,10 @@ export function paintForage(brushes, fagi, y) {
     options.forEach((o, i) => {
       const yo = y + (i + 0.5) * step;
       const chosen = plan && plan.kind === o.kind && (o.kind === 'explore' || plan.id === o.id);
-      const value = o.kind === 'site' ? o.site?.value ?? o.u : o.u;
+      // What she expects of it: her belief's mean (mode 1), or her value (mode 0).
+      const value = view?.mode === 1
+        ? (o.kind === 'site' ? (o.site.a ?? 1) / ((o.site.a ?? 1) + (o.site.b ?? 1)) : view.exploreValue)
+        : (o.kind === 'site' ? o.site?.value ?? o.u : o.u);
       g.beginPath();
       g.moveTo(x1, yNeed);
       g.bezierCurveTo((x1 + x2) / 2, yNeed, (x1 + x2) / 2, yo, x2, yo);
@@ -73,12 +76,15 @@ export function paintForage(brushes, fagi, y) {
   }
 
   if (view) {
-    // Her noise, and where it comes from.
-    text(t('brainmap.forage.temper', {
-      t: view.temperature.toFixed(2),
-      innate: (view.innate ?? 1).toFixed(2),
-      surprise: Math.round(view.volatility * 100),
-    }), pad, y, { size: 9, color: DIM, maxW: W - pad * 2 });
+    // Her noise, and where it comes from: her own evidence (mode 1), or a set
+    // temperature with an innate share (mode 0).
+    text(view.mode === 1
+      ? t('brainmap.forage.guess', { n: Math.round(view.exploreEvidence), secs: Math.round(view.exploreTime) })
+      : t('brainmap.forage.temper', {
+        t: view.temperature.toFixed(2),
+        innate: (view.innate ?? 1).toFixed(2),
+        surprise: Math.round(view.volatility * 100),
+      }), pad, y, { size: 9, color: DIM, maxW: W - pad * 2 });
     y += lineH;
     // Her last decisions and how they went.
     let x = pad;

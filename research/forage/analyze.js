@@ -128,7 +128,7 @@ for (const c of Object.keys(CONDITIONS)) {
 say();
 say('## Exploratory: individuality');
 say();
-for (const c of ['learn', 'same']) {
+for (const c of ['learn', 'softmax']) {
   const w1 = withinCorr(c, 'early', 'laterShare');
   const w2 = withinCorr(c, 'innate', 'laterShare');
   say(`- \`${c}\`: early experience vs later exploring r = ${f3(w1.r)} (p ${pv(w1.p)}, ${w1.n} sisters); innate noise vs later exploring r = ${f3(w2.r)} (p ${pv(w2.p)}).`);

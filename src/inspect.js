@@ -310,7 +310,9 @@ function paintFagi(f, world, main, isMain, canFollow) {
     view ? bar(L('Exploring is worth', 'Explorar le vale'), view.exploreValue, num(view.exploreValue, 2), '#7f869a') : '',
     view ? row(L('Now she would', 'Ahora elegiría'), view.options.slice().sort((a, b) => b.p - a.p)
       .map((o) => `${o.kind === 'explore' ? L('explore', 'explorar') : `#${o.id}`} ${Math.round(o.p * 100)}%`).join(' · '), 'ins-wrap') : '',
-    view ? row(L('Noise when choosing', 'Ruido al elegir'), `${num(view.temperature, 2)} (${L('innate', 'innato')} ×${num(view.innate ?? 1, 2)})`) : '',
+    view && view.mode === 1 ? row(L('How she chooses', 'Cómo elige'), L(`a guess from her evidence (${num(view.exploreEvidence, 1)} explorations weigh; one takes her ${num(view.exploreTime, 0)} s)`,
+      `una apuesta según lo vivido (pesan ${num(view.exploreEvidence, 1)} exploraciones; una le lleva ${num(view.exploreTime, 0)} s)`), 'ins-wrap') : '',
+    view && view.mode !== 1 ? row(L('Noise when choosing', 'Ruido al elegir'), `${num(view.temperature, 2)} (${L('innate', 'innato')} ×${num(view.innate ?? 1, 2)})`) : '',
     view ? row(L('Decisions', 'Decisiones'), `${view.counts.site} ${L('back', 'volver')} · ${view.counts.explore} ${L('explore', 'explorar')}`) : '',
     view?.recent.length ? row(L('Last ones', 'Últimas'), view.recent.map(outcome).join(' · '), 'ins-wrap') : '',
     larder ? row(L('Pantry she believes', 'Despensa que cree'), `${num(larder.predicted, 1)} / ${larder.capacity} (${L('saw', 'vio')} ${larder.seen}, ${dur(larder.ago)})`) : '',

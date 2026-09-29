@@ -157,8 +157,8 @@ export function narrate(narr, fagi) {
   const plan = fagi.brain.lastPlan;
   if (plan && plan.n !== p.plan) {
     push(narr, fagi, 'forage', { key: `log.choice.${plan.kind}`, params: { id: plan.id } },
-      { key: 'log.choice.sub', params: {
-        site: plan.site == null ? '—' : plan.site.toFixed(2), explore: plan.explore.toFixed(2), p: Math.round(plan.p * 100),
+      { key: plan.p == null ? 'log.choice.subGuess' : 'log.choice.sub', params: {
+        site: plan.site == null ? '—' : plan.site.toFixed(2), explore: plan.explore.toFixed(2), p: Math.round((plan.p ?? 0) * 100),
       } });
     p.plan = plan.n;
   }

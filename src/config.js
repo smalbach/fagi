@@ -628,6 +628,7 @@ export const SITES = {
 // with a noise of her own. Needs SITES. Off, the fixed hierarchy decides.
 export const CHOICE = {
   enabled: 0,
+  mode: 1,            // 1 = from her own uncertainty: guesses drawn from her evidence, food per second (choice.js); 0 = values, a set softmax noise (as first measured, spec §25.22)
   policy: 0,          // 0 = learned; the fixed ones to compare with: 1 = always back to her best site, 2 = always explore
   explorePrior: 0.4,  // what she expects of exploring before she has tried it
   rate: 0.25,         // how far one search moves what she expects of exploring (× the surprise)

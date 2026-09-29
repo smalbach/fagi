@@ -1815,7 +1815,8 @@ Recoge lo implementado en las fases 0 a 8 y lo medido de cada una. Las secciones
   - **inspector, sección «Explorar o volver»**: cada sitio con su valor, confianza y visitas; lo que le vale explorar; con qué probabilidad elegiría cada opción; su ruido; sus decisiones; la despensa que cree y su ritmo;
   - **narración (etiqueta ELIGE)**: recuerda un sitio, vuelve y lo encuentra lleno o vacío, decide volver o explorar (con los valores y la probabilidad), explorando encuentra comida o nada, el nido estaba lleno y qué hizo, la despensa estaba más llena o más vacía de lo que creía;
   - todo se dibuja con `choiceView` y `larderView`, que leen sin sortear: pintar no cambia el azar de la simulación (probado).
-- [ ] F. Protocolo redactado y pilotado (`docs/research/forage-protocol.md`, `research/forage/`; §25.24), sin congelar todavía.
+- [x] Vía 1 (§25.25): la elección sale de su propia incertidumbre (`CHOICE.mode = 1`, por defecto). Desaparecen el ruido puesto a mano, su parte innata, el valor previo de explorar, la tasa de aprendizaje y la duda. El modo anterior sigue como `CHOICE.mode = 0`.
+- [ ] F. Protocolo redactado y pilotado dos veces (`docs/research/forage-protocol.md`, `research/forage/`; §25.24, §25.25), sin congelar todavía.
 
 **Fase 5: en batch (generaciones por lotes)**
 - [x] Recombinación de dos progenitores, mutación posterior y límites.
@@ -2597,4 +2598,37 @@ El protocolo de la F está redactado en `docs/research/forage-protocol.md`, con 
 | F4, tras el nido lleno | tarda 1 023 s en volver a recoger, frente a 171 s tras guardar |
 
 **La individualidad que parecía venir de la experiencia no viene de ella.** La r ≈ 0,4 del §25.22 mezclaba colonias de mapas distintos. Dentro de una colonia, lo que predice cuánto explora cada hermana es su ruido innato (r = 0,21), no lo que vivió al principio. Aun así, la F3 se conserva en el protocolo, porque es la pregunta central de la fase. Las hipótesis se escribieron después de ver el piloto; son confirmatorias solo porque se prueban con semillas nuevas.
+
+### 25.25 Vía 1: que el ruido nazca de su propia incertidumbre
+
+**Por qué.** El piloto del §25.24 mostró que lo que diferenciaba a las hermanas era un ruido innato sorteado por nosotros (`CHOICE.temperSpread`), no lo que vivían. Muchos números de la mente estaban puestos a mano: el ruido, su parte innata, lo que espera de explorar antes de probarlo, cuánto mueve cada sorpresa y cuánto duda. Los números del mundo (árboles, cosechas, nido) son el entorno y es legítimo fijarlos. Los de la mente deberían salir de lo que vive o de lo que hereda (vía 2, pendiente).
+
+**Qué cambia** (`CHOICE.mode = 1`, `src/choice.js`, `src/sites.js`):
+
+- **Su creencia es su evidencia.** De cada sitio, y de explorar, guarda dos cuentas: lo que encontró y lo que no. Es una creencia Beta.
+- **Elige apostando.** Saca una apuesta de cada creencia y se queda con la que más comida da por segundo (Charnov):
+  - llegar a un sitio le lleva la distancia a su paso;
+  - explorar le lleva lo que le han llevado sus exploraciones;
+  - antes de haber explorado nunca, lo que ha tardado en su vida en descubrir sitios.
+- **Con poca evidencia prueba; con mucha se asienta.** Es el muestreo de Thompson.
+- **Lo viejo pesa menos.** La evidencia vuelve hacia «no sé nada» al ritmo de su memoria media (`MEMORY.decayMedium`), un número que ya existía y no se ajustó para esto. Por eso un árbol vacío vuelve a parecer posible con el tiempo, como pasa con los árboles de temporada.
+- **No se le ofrece volver al sitio en el que ya está.** Sin esto se quedaba en un árbol vacío.
+- **Desaparecen** `CHOICE.temper`, `temperSpread`, `surpriseHeat`, `surpriseMemory`, `explorePrior`, `rate`, `cost` y `doubt`. Quedan `exploreWindow`, cuánto buscar antes de dar una búsqueda por fallida, y `planMax`.
+
+**El piloto repetido** (24 colonias por condición, semillas de desarrollo; `softmax` es la versión anterior):
+
+| | Con el ruido puesto a mano (§25.24) | Con su propia incertidumbre |
+|---|---|---|
+| F3: dentro de la colonia, sus primeras exploraciones predicen cuánto explora después | r = −0,10 | **r = 0,35, p < ,001** |
+| ruido innato frente a cuánto explora después | r = 0,21 | no existe |
+| F1a: aprender frente a siempre volver | +2,0 comidas | −0,4 [−2,0, 1,1] |
+| F1b: aprender frente a siempre explorar | +0,9 | +0,2 [−1,3, 1,7] |
+| F2a: explora más con fuentes efímeras | +0,04 | −0,03 [−0,05, −0,00] |
+| F4: tras el nido lleno tarda más en volver a recoger | 1 023 s frente a 171 s | 859 s frente a 163 s |
+
+**Lo que dice.**
+
+- **Hermanas que nacen iguales en su forma de elegir se vuelven distintas por lo que viven.** Es la hipótesis central de la fase, y ahora aparece sin que nadie ponga la diferencia.
+- **Pero la ventaja de elegir se pierde.** Aprendiendo ya no come más que las políticas fijas. Tampoco explora más donde las fuentes son efímeras: explora algo menos. Con la evidencia se asienta pronto y explora poco en la segunda mitad de su vida (8 % frente a 38 % en la primera). En un mundo pobre, explorar también rinde poco.
+- **No se ajusta nada para recuperar la F1 ni la F2.** Serían números elegidos para que gane. Si al congelar no se sostienen, se publica así.
 

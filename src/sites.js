@@ -14,6 +14,15 @@
 // (its crown is where fruit falls), anywhere else it is that spot. What she
 // knows of it is only what she saw and when.
 //
+// Alongside what she expects (value, moved by the surprise at SITES.rate), each
+// site keeps her evidence about it as two counts, a Beta belief: `a` grows
+// with what she found there, `b` with what she didn't. The choice (choice.js,
+// CHOICE.mode 1) samples from that belief, so the less she has seen of a
+// site the more her guesses about it vary: her doubt is her own history, not
+// a number set by hand. Evidence fades back toward knowing nothing at the
+// pace of her middle-term memory (MEMORY.decayMedium), so an old lesson
+// weighs less than a fresh one.
+//
 // No randomness is drawn here: with SITES on or off, the streams batch
 // replays stay the same until her behaviour itself differs.
 
@@ -21,6 +30,9 @@ import { SITES, SOURCES, MEMORY } from './config.js';
 import { seenPoints, distanceTo } from './vision.js';
 import { isTree, radiusOf } from './obstacles.js';
 import { verdict } from './learned/rules.js';
+
+// Evidence: every visit adds one observation, split between found and not.
+const observe = (site, y) => { site.a += y; site.b += 1 - y; };
 
 const sitesOf = (fagi) => (fagi.brain.sites ??= []);
 const worth = (s) => s.value * s.confidence;
@@ -53,7 +65,7 @@ function discover(fagi, world, p, seen) {
   const site = {
     id: 0,
     x, y, r, ref: tree, fruit: p.type,
-    value: yieldOf(n), confidence: SITES.first, error: 0,
+    value: yieldOf(n), confidence: SITES.first, error: 0, a: 1, b: 1,
     found: fagi.age, lastAt: fagi.age, visits: 0, empties: 0, lastYield: n,
     inside: distanceTo(fagi, { x, y }) <= r,
   };
@@ -65,6 +77,7 @@ function discover(fagi, world, p, seen) {
     if (worth(site) <= worth(least)) return null;
     sites.splice(sites.indexOf(least), 1);
   }
+  observe(site, site.value);
   site.id = fagi.brain.siteN = (fagi.brain.siteN ?? 0) + 1;
   sites.push(site);
   fagi.brain.lastSite = { n: (fagi.brain.lastSite?.n ?? 0) + 1, id: site.id, what: 'found', value: site.value, seen: n, tree: Boolean(tree) };
@@ -76,6 +89,7 @@ function visit(fagi, site, seen) {
   const n = seen.filter(({ point }) => Math.hypot(point.x - site.x, point.y - site.y) <= site.r).length;
   const surprise = yieldOf(n) - site.value;
   site.value += SITES.rate * surprise;
+  observe(site, yieldOf(n));
   site.visits += 1;
   if (n === 0) site.empties += 1;
   // Kept apart from the sites: one she has since dropped still counts.
@@ -114,7 +128,10 @@ export function noteSites(fagi, world) {
 // Time passes: she trusts a site less and remembers less exactly where it is.
 export function decaySites(fagi, dt) {
   if (!SITES.enabled || !fagi.brain.sites) return;
+  const fade = Math.max(0, 1 - MEMORY.decayMedium * dt);
   for (const s of fagi.brain.sites) {
+    s.a = 1 + (s.a - 1) * fade;
+    s.b = 1 + (s.b - 1) * fade;
     s.confidence = Math.max(0, s.confidence - SITES.decay * dt);
     s.error = Math.min(MEMORY.placeErrorMax, s.error + MEMORY.placeDrift * dt);
   }

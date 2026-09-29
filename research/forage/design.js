@@ -21,7 +21,7 @@ export const BASE = {
   'MAPGEN.species': SPECIES,
   'FORAGE.enabled': 1, 'FORAGE.persistence': 0.3, 'FORAGE.crop': 6, 'FORAGE.rest': 400, 'FORAGE.patchEvery': 200,
   'SITES.enabled': 1,
-  'CHOICE.enabled': 1, 'CHOICE.policy': 0,
+  'CHOICE.enabled': 1, 'CHOICE.mode': 1, 'CHOICE.policy': 0,
   'LARDER.enabled': 1, 'LARDER.capacity': NEST_CAPACITY,
 };
 
@@ -29,10 +29,10 @@ const DURABLE = { 'FORAGE.persistence': 1, 'FORAGE.patchEvery': 0 };
 export const EPHEMERAL = { 'FORAGE.persistence': 0, 'FORAGE.crop': 4, 'FORAGE.rest': 900, 'FORAGE.patchEvery': 60 };
 
 export const CONDITIONS = {
-  learn: {},                                   // the learned choice
+  learn: {},                                   // the learned choice: guesses from her own evidence
   back: { 'CHOICE.policy': 1 },                // fixed: always back to her best site
   explore: { 'CHOICE.policy': 2 },             // fixed: always explore
-  same: { 'CHOICE.temperSpread': 0 },          // no innate difference in noise (F3)
+  softmax: { 'CHOICE.mode': 0 },               // the first version: values and a noise set by hand, part innate
   durable: DURABLE,                            // F2
   ephemeral: EPHEMERAL,                        // F2
   shift: { ...DURABLE, shift: 1 },             // durable, ephemeral from SHIFT_AT (F2)
@@ -55,6 +55,6 @@ export const HYPOTHESES = [
   { id: 'F1b', a: ['learn', 'eaten'], b: ['explore', 'eaten'], shift: 0, says: 'and more than always exploring' },
   { id: 'F2a', a: ['ephemeral', 'exploreShare'], b: ['durable', 'exploreShare'], shift: 0, says: 'where food sources are ephemeral she explores more than where they last' },
   { id: 'F2b', a: ['shift', 'shareAfter'], b: ['durable', 'shareAfter'], shift: 0, says: 'when a lasting world turns ephemeral, she then explores more than in a world that stayed lasting' },
-  { id: 'F3', kind: 'within', condition: 'same', x: 'early', y: 'laterShare', says: 'sisters born with the same noise, on the same map: the one whose first searches paid explores more afterwards' },
+  { id: 'F3', kind: 'within', condition: 'learn', x: 'early', y: 'laterShare', says: 'sisters born alike in how they choose, on the same map: the one whose first searches paid explores more afterwards' },
   { id: 'F4', a: ['learn', 'gapAfterFull'], b: ['learn', 'gapAfterStore'], shift: 0, says: 'after finding the nest full of good food she takes longer to fetch for home again than after storing' },
 ];

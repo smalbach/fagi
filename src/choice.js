@@ -18,11 +18,26 @@
 // enough without luck. Bringing food home ends a plan without judging it:
 // the next time she needs food she chooses again.
 //
+// How she weighs them (CHOICE.mode):
+//   1 — from her own uncertainty (the default). What she believes of each
+//       option is her evidence: found / not found, two counts (a Beta
+//       belief; sites.js keeps them for each site, here for exploring). Each
+//       time she chooses she draws a guess from each belief and takes the
+//       option whose guess, per second it would take, is best: food per
+//       second, as a forager would (Charnov). Walking to a site takes its
+//       distance at her pace; exploring takes what her own explorations have
+//       taken. Little evidence, guesses that vary a lot: she tries things.
+//       Much evidence, she settles. Nobody sets her noise, her prior for
+//       exploring or how fast she learns: they are what she has lived
+//       (Thompson sampling). Evidence fades at her memory's own pace.
+//   0 — as first built (spec §25.22): values moved by the surprise at a set
+//       rate, and a softmax with a set noise, part of it innate.
+//
 // The choice only decides which remembered site, if any, is offered to the
 // "provide" tier (decision/provide.js); the fixed hierarchy — survive,
 // endure — stays her safety net. Draws randomness only while choosing.
 
-import { CHOICE, SITES, MEMORY, HUNGER, NEST } from './config.js';
+import { CHOICE, SITES, MEMORY, HUNGER, NEST, FAGI } from './config.js';
 import { distanceTo } from './vision.js';
 import { habit } from './habits.js';
 import { pantryEstimate } from './larder.js';
@@ -33,7 +48,10 @@ const EARLY = 5;
 function stateOf(fagi) {
   return (fagi.brain.choice ??= {
     exploreValue: CHOICE.explorePrior,
-    innate: null,           // her own share of the noise, drawn the first time she chooses
+    explore: { a: 1, b: 1 },   // mode 1: her evidence that exploring finds food
+    exploreTime: null,      // mode 1: what her explorations have taken, on average
+    explorations: 0,
+    innate: null,           // mode 0: her own share of the noise, drawn the first time she chooses
     volatility: 0,          // running size of her recent surprises
     plan: null,
     lastSiteN: fagi.brain.lastSite?.n ?? 0,
@@ -45,15 +63,66 @@ function stateOf(fagi) {
   });
 }
 
-// A normal draw (Box-Muller), for the innate spread.
-function gauss() {
-  const u = Math.max(1e-12, Math.random());
-  const v = Math.random();
+// A normal draw (Box-Muller). `rnd`: the simulation's own, unless drawing.
+function gauss(rnd = Math.random) {
+  const u = Math.max(1e-12, rnd());
+  const v = rnd();
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
-// How much noise she chooses with now.
+// A guess from a Beta(a, b) belief, both ≥ 1 (Marsaglia-Tsang gammas).
+function gamma(k, rnd) {
+  const d = k - 1 / 3;
+  const c = 1 / Math.sqrt(9 * d);
+  for (;;) {
+    let x; let v;
+    do { x = gauss(rnd); v = 1 + c * x; } while (v <= 0);
+    v = v * v * v;
+    const u = rnd();
+    if (u < 1 - 0.0331 * x ** 4 || Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
+  }
+}
+function betaDraw(a, b, rnd) {
+  const x = gamma(a, rnd);
+  return x / (x + gamma(b, rnd));
+}
+const betaMean = (a, b) => a / (a + b);
+
+// A small stream of its own, for drawing her chances in the brain map and the
+// inspector without touching the simulation's.
+function viewStream(seed) {
+  let s = seed >>> 0;
+  return () => {
+    s = (s + 0x6D2B79F5) >>> 0;
+    let t = Math.imul(s ^ (s >>> 15), s | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Mode 1: seconds each option would take her. Before she has ever explored on
+// purpose, what finding food takes her is what it has taken her so far: her
+// life over the sites she has found.
+const walkTime = (fagi, s) => 1 + distanceTo(fagi, s) / FAGI.speed;
+const exploreTimeOf = (fagi, c) => c.exploreTime ?? Math.max(1, fagi.age / Math.max(1, fagi.brain.siteN ?? 0));
+
+// Mode 1: each option as food per second, from a guess (`guess(a, b)`) of her belief.
+function rates(fagi, guess) {
+  const c = stateOf(fagi);
+  const out = [{ kind: 'explore', u: guess(c.explore.a, c.explore.b) / exploreTimeOf(fagi, c) }];
+  for (const s of fagi.brain.sites ?? []) {
+    // Going back to where she already stands, and sees no food, is no option.
+    if (s.confidence <= 0 || s.inside) continue;
+    out.push({ kind: 'site', id: s.id, u: guess(s.a ?? 1, s.b ?? 1) / walkTime(fagi, s) });
+  }
+  return out;
+}
+
+const bestOf = (options) => options.reduce((x, y) => (y.u > x.u ? y : x));
+
+// How much noise she chooses with now (mode 0; mode 1 has none set).
 export function temperatureOf(fagi) {
+  if (CHOICE.mode === 1) return null;
   const c = stateOf(fagi);
   return CHOICE.temper * (c.innate ?? 1) * (1 + CHOICE.surpriseHeat * c.volatility);
 }
@@ -88,6 +157,23 @@ export function optionsOf(fagi, noisy = true) {
 export function choiceView(fagi) {
   const c = fagi.brain.choice;
   if (!CHOICE.enabled || !SITES.enabled || !c) return null;
+  if (CHOICE.mode === 1) {
+    // Her chances: how often each option would win among many guesses.
+    const rnd = viewStream(fagi.id * 7919 + (fagi.brain.lastPlan?.n ?? 0));
+    const means = rates(fagi, betaMean);
+    const wins = means.map(() => 0);
+    const N = 300;
+    for (let k = 0; k < N; k++) {
+      const guess = rates(fagi, (a, b) => betaDraw(a, b, rnd));
+      wins[guess.indexOf(bestOf(guess))] += 1;
+    }
+    return {
+      options: means.map((o, i) => ({ ...o, p: wins[i] / N, site: o.kind === 'site' ? fagi.brain.sites.find((s) => s.id === o.id) : null })),
+      plan: c.plan, exploreValue: betaMean(c.explore.a, c.explore.b), exploreEvidence: c.explore.a + c.explore.b - 2,
+      exploreTime: exploreTimeOf(fagi, c), temperature: null, innate: null, volatility: null, mode: 1,
+      counts: c.counts, recent: c.log.slice(-5),
+    };
+  }
   const options = optionsOf(fagi, false);
   const t = Math.max(1e-6, temperatureOf(fagi));
   const top = Math.max(...options.map((o) => o.u));
@@ -98,6 +184,19 @@ export function choiceView(fagi) {
     plan: c.plan, exploreValue: c.exploreValue, temperature: t, innate: c.innate, volatility: c.volatility,
     counts: c.counts, recent: c.log.slice(-5),
   };
+}
+
+// Mode 1: fixed policies weigh what she expects; the learned one, a guess.
+function pickSampled(fagi) {
+  if (CHOICE.policy === 2) return { kind: 'explore', u: null, options: [] };
+  const means = rates(fagi, betaMean);
+  if (CHOICE.policy === 1) {
+    const sites = means.filter((o) => o.kind === 'site');
+    return { ...(sites.length ? bestOf(sites) : means[0]), options: means };
+  }
+  const guess = rates(fagi, (a, b) => betaDraw(a, b, Math.random));
+  const chosen = guess.indexOf(bestOf(guess));
+  return { ...means[chosen], options: means };
 }
 
 function pick(fagi, options) {
@@ -146,7 +245,8 @@ export function updateChoice(fagi, seen) {
   // A plan's clock runs only while she is after food: asleep, resting or
   // sated, she isn't failing at it.
   const busy = wantsFood(fagi) && !fagi.sleeping;
-  if (plan && busy) plan.spent = (plan.spent ?? 0) + Math.max(0, fagi.age - (c.lastAge ?? fagi.age));
+  const dt = Math.max(0, fagi.age - (c.lastAge ?? fagi.age));
+  if (plan && busy) plan.spent = (plan.spent ?? 0) + dt;
   c.lastAge = fagi.age;
 
   // She brought food home: whatever the plan was, it's over, unjudged.
@@ -169,22 +269,54 @@ export function updateChoice(fagi, seen) {
     const long = (c.plan.spent ?? 0) > CHOICE.exploreWindow;
     if (found || long) {
       const got = found ? Math.min(1, seen.length / SITES.full) : 0;
-      const surprise = got - c.exploreValue;
-      c.exploreValue += CHOICE.rate * surprise;
-      resolve(fagi, found ? 'found' : 'nothing', surprise);
+      if (CHOICE.mode === 1) {
+        const surprise = got - betaMean(c.explore.a, c.explore.b);
+        c.explore.a += got;
+        c.explore.b += 1 - got;
+        c.explorations += 1;
+        c.exploreTime = (c.exploreTime ?? 0) + ((c.plan.spent ?? 0) - (c.exploreTime ?? 0)) / c.explorations;
+        c.exploreValue = betaMean(c.explore.a, c.explore.b);
+        resolve(fagi, found ? 'found' : 'nothing', surprise);
+      } else {
+        const surprise = got - c.exploreValue;
+        c.exploreValue += CHOICE.rate * surprise;
+        resolve(fagi, found ? 'found' : 'nothing', surprise);
+      }
     }
   }
 
+  // Mode 1: what she learned of exploring fades like the rest of her memory.
+  if (CHOICE.mode === 1 && dt > 0) {
+    const fade = Math.max(0, 1 - MEMORY.decayMedium * dt);
+    c.explore.a = 1 + (c.explore.a - 1) * fade;
+    c.explore.b = 1 + (c.explore.b - 1) * fade;
+  }
+
   if (!c.plan && busy && seen.length === 0) {
-    c.innate ??= Math.exp(CHOICE.temperSpread * gauss());
-    const options = optionsOf(fagi);
-    const chosen = pick(fagi, options);
+    let chosen;
+    let options;
+    if (CHOICE.mode === 1) {
+      chosen = pickSampled(fagi);
+      options = chosen.options;
+    } else {
+      c.innate ??= Math.exp(CHOICE.temperSpread * gauss());
+      options = optionsOf(fagi);
+      chosen = pick(fagi, options);
+    }
     c.plan = { kind: chosen.kind, id: chosen.id, p: chosen.p ?? 1, at: fagi.age,
-      options: options.map((o) => ({ kind: o.kind, id: o.id ?? null, u: Math.round(o.u * 100) / 100 })) };
+      options: options.map((o) => ({ kind: o.kind, id: o.id ?? null, u: Math.round(o.u * 1000) / 1000 })) };
     c.counts[chosen.kind] += 1;
     const best = Math.max(...options.filter((o) => o.kind === 'site').map((o) => o.u), -Infinity);
-    fagi.brain.lastPlan = { n: (fagi.brain.lastPlan?.n ?? 0) + 1, kind: chosen.kind, id: chosen.id ?? null, p: chosen.p ?? 1,
-      explore: c.exploreValue, site: chosen.kind === 'site' ? chosen.u : (Number.isFinite(best) ? best : null) };
+    // What she expected of the site she took (or of her best one) and of exploring.
+    const siteOf = (id) => (fagi.brain.sites ?? []).find((s) => s.id === id);
+    const bestSite = CHOICE.mode === 1
+      ? (fagi.brain.sites ?? []).reduce((x, s) => (!x || betaMean(s.a ?? 1, s.b ?? 1) > betaMean(x.a ?? 1, x.b ?? 1) ? s : x), null)
+      : null;
+    const siteExpect = CHOICE.mode === 1
+      ? (() => { const s = chosen.kind === 'site' ? siteOf(chosen.id) : bestSite; return s ? betaMean(s.a ?? 1, s.b ?? 1) : null; })()
+      : chosen.kind === 'site' ? chosen.u : (Number.isFinite(best) ? best : null);
+    fagi.brain.lastPlan = { n: (fagi.brain.lastPlan?.n ?? 0) + 1, kind: chosen.kind, id: chosen.id ?? null,
+      p: CHOICE.mode === 1 ? null : chosen.p ?? 1, explore: c.exploreValue, site: siteExpect };
   }
 
   if (c.plan?.kind !== 'site') return null;
@@ -202,7 +334,9 @@ export function choiceSummary(fagi) {
     explore: c.counts.explore,
     exploreShare: n ? r2(c.counts.explore / n) : null,
     exploreValue: r2(c.exploreValue),
-    temperature: r2(temperatureOf(fagi)),
+    exploreEvidence: r2(c.explore.a + c.explore.b - 2),
+    exploreTime: c.exploreTime == null ? null : r2(c.exploreTime),
+    temperature: temperatureOf(fagi) == null ? null : r2(temperatureOf(fagi)),
     innate: c.innate == null ? null : r2(c.innate),
     volatility: r2(c.volatility),
     outcomes: c.outcomes,
