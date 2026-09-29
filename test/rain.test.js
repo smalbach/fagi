@@ -11,6 +11,7 @@ import { dropPheromone } from '../src/pheromone.js';
 import { recallPlace, recall, weight } from '../src/memory.js';
 import { verdict } from '../src/learned/rules.js';
 import { perceive } from '../src/perception.js';
+import { rng, withRng } from '../scripts/batch/random.js';
 
 const rainNow = (world) => { world.rain.timer = 0; updateRain(world, 0.01); };
 
@@ -68,7 +69,11 @@ test('the air pressure drops before the rain, stays low while it rains and recov
   assert.ok(rain.drop < 0.6 && rain.drop > 0.4, `recovering: ${rain.drop}`);
 });
 
-test('a naive ant with some thirst keeps working in the rain; getting soaked teaches her to shelter', () => {
+// Seeded: unseeded, about one run in ten she has already reached the nest on
+// the last step (sheltering inside is 'rest') or stands drinking from a puddle.
+// Both are fine behavior; the rule is learned either way. The seed keeps the
+// last step comparable.
+test('a naive ant with some thirst keeps working in the rain; getting soaked teaches her to shelter', () => withRng(rng(1), () => {
   const world = createWorld();
   const fagi = createFagi();
   addObject(world, fagi.x + 300, fagi.y, 'nest');
@@ -83,7 +88,7 @@ test('a naive ant with some thirst keeps working in the rain; getting soaked tea
   assert.equal(verdict(fagi, 'pursue', 'rain'), 'avoid', 'and she writes it as a rule');
   step(world, fagi, 0.05);
   assert.equal(fagi.thought.action, 'shelter', 'now she shelters even with some thirst');
-});
+}));
 
 test('a pressure drop means nothing until it has come before the rain; then she heads home early', () => {
   const world = createWorld();
