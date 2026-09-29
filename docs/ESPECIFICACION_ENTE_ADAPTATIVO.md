@@ -1699,6 +1699,7 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] Protocolo congelado antes de correr (`docs/research/organism-protocol.md`, commit `c181469`), semillas nunca usadas, un solo comando.
 - [x] Resultados negativos publicados, datos brutos conservados (`research/results/organism/`) e informe automático (§25.9).
 - [x] Protocolo de seguimiento: replay, rigidez de la consolidación y memoria episódica como ablación propia (§25.13). El replay queda apagado por defecto.
+- [x] Protocolo de información social falsa (§23, §15): la corrige, pero la que es verdad apenas ayuda (§25.18).
 
 **Fase 8: sabores y química nutricional** (§12.9, §25.16)
 - [x] Composición oculta y efectos derivados de ella; siete sabores, solo en la boca.
@@ -2164,8 +2165,45 @@ El sabor añade realismo, porque el mundo ya no es una tabla de tipos, y añade 
 
 Aprender que los árboles dan fruta cuesta poco: unos segundos de vida en clima templado y algo más en frío, donde cada viaje en falso pesa. Tiene que descubrir cada fuente viendo fruta debajo. Es el coste esperado de no saberlo de nacimiento, y no un artefacto.
 
+### 25.18 Información social falsa: resultado
+
+Protocolo congelado antes de correr: `docs/research/social-protocol.md`, commit `0fa727f`. Mide el criterio del §23 «utiliza información social sin adoptar sistemáticamente información falsa», y el entorno del §15 «otros agentes con información incompleta o incorrecta».
+
+**Montaje.** Una colonia de 5 hermanas vive 2400 s con el organismo completo, en un mapa de 8 especies y sin cría. La hermana 1 es la informante. Antes vive una vida entera sola en el mismo mapa y llega con lo que creyó allí: sus reglas, lo que significaba cada rasgo y las frutas que probó.
+
+| Informante | Su vida anterior |
+|---|---|
+| `none` | ninguna: es tan novata como las demás |
+| `true` | en la química del mapa |
+| `false` | en la química invertida: lo que allí alimentaba aquí envenena, y al revés |
+
+Se mide en las otras 4 hermanas. Son 120 colonias por condición, con semillas nunca usadas antes, en pruebas pareadas por signo con corrección de Holm.
+
+| Hipótesis | Resultado | ¿Se sostiene? |
+|---|---|---|
+| S1: una informante que conoce el mapa reduce el veneno de las demás | 1,59 → 1,52 frutas, −0,07 [−0,19, 0,07], p = ,16 | **no** |
+| S2: una informante equivocada no empeora su juicio en más de 0,05 | 0,813 → 0,800, −0,013 [−0,031, 0,004], p < ,001 | sí |
+| S3: de las reglas falsas que adoptan de ella, quedan en pie menos de la mitad | 26 % [23 %, 29 %] en pie al final, p < ,001 | sí |
+
+**No adoptan sistemáticamente lo falso.** La informante equivocada llega con unas 13 reglas, 4,3 de ellas falsas sobre comida aquí, y cada hermana adopta esas 4,3. Al final solo le quedan 1,1: lo que prueban las contradice y `checkTold` las retira, o su propia experiencia rehace la regla. Su juicio sobre el mapa baja apenas 0,013, y su veneno no sube (−0,05 [−0,17, 0,06]).
+
+- **Lo que se queda son mitos.** Terminan con 0,54 [0,26, 0,84] reglas falsas vivas más que sin informante. Son sobre todo evitaciones: una regla de «evita esto» sobre algo bueno no se pone a prueba, porque nunca lo come. Así pasa en los animales reales: una aversión aprendida de otro se sostiene sola.
+- **Quien sí lo paga es la informante.** Con creencias invertidas, su juicio aquí es 0,67 frente a 0,81, y solo sigue viva el 47 % frente al 89 %. Come lo que cree bueno y aquí envenena. A las demás no las arrastra: muere antes de que su error se note en ellas.
+
+**Una informante que sabe tampoco ayuda de forma apreciable.** Las hermanas adoptan de ella casi 15 reglas y el juicio sube apenas (+0,011 [−0,006, 0,028]), pero el veneno no baja de forma significativa. Tres motivos probables, sin medir por separado:
+
+1. **Sin informante también aprenden unas de otras**, al comer juntas y contarse lo vivido, así que la condición de comparación ya es social.
+2. **Una regla contada pesa poco** (`SOCIAL.trust` 0,6). Lo nuevo sigue probándolo cada una.
+3. **Casi todo el veneno entra en bocados de prueba**, que pocas reglas evitan.
+
+La informante que sabe también trae sus propios mitos: 1,3 reglas falsas, de las que queda en pie el 39 %. Lo verdadero y lo falso viajan juntos.
+
+**Criterio del §23: cumplido en su segunda mitad.** No adopta sistemáticamente información falsa: la corrige tres de cada cuatro veces, con lo que vive, sin que nadie le diga cuál era falsa. Que la use con provecho no queda demostrado en este mundo: con informante que sabe el efecto es pequeño y no significativo. Se publica así.
+
 ### 25.3 Pendiente
 
+- §23, lo que falta por demostrar: que la población «conserva diversidad suficiente para adaptarse a cambios» (química invertida entre generaciones, §15), con protocolo congelado.
+- §23, primera mitad del criterio social: que la información social se use con provecho. Con una informante que sabe, el efecto fue pequeño y no significativo (§25.18).
 - Fase 8: saladeros (una fuente de sal fija, que aprender como el agua); venenos más fuertes o más frecuentes, donde escupir importe más.
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
 - Fase 6, lo que queda del §12.3:
@@ -2258,6 +2296,10 @@ node scripts/population.js --maps 4 --duration 5400 --set HEALTH.enabled=0
 
 # §25.16 sabores (12 especies; y con --set TASTE.learn=0 / TASTE.innate=0)
 node scripts/taste-lab.js --set MAPGEN.species=12
+
+# §25.18 información social falsa (protocolo congelado: docs/research/social-protocol.md)
+node research/social/run.js --jobs 16
+node research/social/analyze.js
 
 # §25.12 retención
 node scripts/retention.js
