@@ -227,7 +227,7 @@ body.mode-setup #strip-stats, body.mode-idle #strip-stats { display: none; }
   body.layout-setup #settings .set-cat { padding: 6px 10px; }
   body.layout-setup #settings .set-count { display: inline; }
   body.layout-setup #settings .set-groups { grid-template-columns: minmax(0, 1fr); padding: 4px 14px 18px; }
-  body.layout-setup #settings .field input { width: 90px; }
+  body.layout-setup #settings .field .ns-box { width: 72px; }
 
   /* The panel's width is dragged from its left edge. */
   body.layout-setup #dock-resizer {

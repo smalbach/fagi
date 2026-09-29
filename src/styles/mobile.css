@@ -44,7 +44,7 @@
   body.mode-setup #settings-body { overflow: visible; }
   /* 16px: with less, iOS zooms in when the field is tapped and doesn't undo it. */
   #settings .field { font-size: 13px; padding: 5px 0; }
-  #settings .field input { font-size: 16px; width: 96px; padding: 6px 8px; }
+  #settings .field .ns-box { font-size: 16px; width: 84px; padding: 5px 8px; }
   #settings summary { font-size: 14px; padding: 8px 0; }
   /* The lists (sessions, users) become cards: no sideways scroll
      and with the buttons in view. */

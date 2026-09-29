@@ -1,29 +1,25 @@
 /* --- shared controls (controls.js): switches, sliders with a box, choices --- */
 
 /* Every checkbox is an on/off switch: a pill track and a round knob that
-   slides across (stretching a little while pressed). */
+   slides across. The knob is a background gradient, not a ::before: Safari
+   draws no pseudo-elements on an <input>. */
 input[type=checkbox] {
   appearance: none; -webkit-appearance: none;
-  --w: 36px; --h: 20px; --pad: 2px; --knob: calc(var(--h) - 2 * var(--pad));
-  flex: none; position: relative; margin: 0; vertical-align: middle;
-  width: var(--w); height: var(--h); border: 0; border-radius: 999px;
-  background: #3a3f4d;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04);
-  cursor: pointer; transition: background .2s ease, box-shadow .2s ease;
+  flex: none; margin: 0; vertical-align: middle;
+  width: 34px; height: 20px; padding: 0; border: 0; border-radius: 999px;
+  background-color: #3a3f4d;
+  background-image:
+    radial-gradient(circle 8px at center, #f4f5f8 7.25px, rgba(0,0,0,.28) 8px, transparent 9.5px);
+  background-size: 20px 20px;
+  background-position: left center;
+  background-repeat: no-repeat;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.05);
+  cursor: pointer;
+  transition: background-position .2s cubic-bezier(.3,.7,.4,1), background-color .2s ease;
 }
-input[type=checkbox]::before {
-  content: ''; position: absolute; top: var(--pad); left: var(--pad);
-  width: var(--knob); height: var(--knob); border-radius: 999px;
-  background: #f4f5f8;
-  box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.25);
-  transition: left .22s cubic-bezier(.3,.7,.4,1.2), width .15s ease;
-}
-input[type=checkbox]:hover { background: #454b5b; }
-input[type=checkbox]:checked { background: var(--accent); box-shadow: inset 0 1px 2px rgba(0,0,0,.2); }
-input[type=checkbox]:checked:hover { background: color-mix(in srgb, var(--accent) 88%, white); }
-input[type=checkbox]:checked::before { left: calc(var(--w) - var(--knob) - var(--pad)); }
-input[type=checkbox]:active::before { width: calc(var(--knob) + 5px); }
-input[type=checkbox]:checked:active::before { left: calc(var(--w) - var(--knob) - 5px - var(--pad)); }
+input[type=checkbox]:hover { background-color: #474d5d; }
+input[type=checkbox]:checked { background-color: var(--accent); background-position: right center; }
+input[type=checkbox]:checked:hover { background-color: color-mix(in srgb, var(--accent) 88%, white); }
 input[type=checkbox]:disabled { opacity: .45; cursor: default; }
 input[type=checkbox]:focus-visible, .ns-range:focus-visible, .seg button:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent) 70%, white); outline-offset: 2px;
