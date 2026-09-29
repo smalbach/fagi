@@ -365,10 +365,10 @@ function paintPoint(p, world, main) {
   ].join('');
 
   const nest = nestOf(world);
-  const tree = p.from != null && p.from !== 'user' && p.from !== 'patch' ? world.objects.find((o) => o.id === p.from) : null;
+  const tree = p.from != null && p.from !== 'user' && p.from !== 'patch' && p.from !== 'nest' ? world.objects.find((o) => o.id === p.from) : null;
   const origin = [
     row(L('Fell from', 'Cayó de'), tree ? `<button type="button" class="ins-chip" data-obj="${tree.id}">${labelOf('tree')} #${tree.id}</button>`
-      : p.from === 'user' ? L('placed by you', 'puesto por ti') : p.from === 'patch' ? L('a patch on the ground', 'una mancha en el suelo') : p.from != null ? `${labelOf('tree')} #${p.from} (${L('gone', 'ya no está')})` : null),
+      : p.from === 'user' ? L('placed by you', 'puesto por ti') : p.from === 'patch' ? L('a patch on the ground', 'una mancha en el suelo') : p.from === 'nest' ? L('left at the door of a full nest', 'dejado a la puerta del nido lleno') : p.from != null ? `${labelOf('tree')} #${p.from} (${L('gone', 'ya no está')})` : null),
     row(L('Where', 'Dónde'), `x ${Math.round(p.x)}, y ${Math.round(p.y)}`),
     nest ? row(L('From the nest', 'Del nido'), `${Math.round(Math.hypot(p.x - nest.x, p.y - nest.y))} px`) : '',
     row(L('Who is after it', 'Quién va a por él'), whoIsAfter(world, main, p), 'ins-wrap'),

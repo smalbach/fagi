@@ -1801,7 +1801,15 @@ Recoge lo implementado en las fases 0 a 8 y lo medido de cada una. Las secciones
   - políticas fijas para la F1: siempre volver (`CHOICE.policy = 1`) y siempre explorar (`2`);
   - resumen `choice` en `batch.js`, con sus primeras cinco decisiones para la F3; ajustes en «Explorar o volver: la elección»; pruebas en `test/choice.test.js`.
   Resultado exploratorio en el §25.22: **en este mundo, elegir no cambia cuánto come ni cuánto vive.**
-- [ ] D a F.
+- [x] D. Despensa (`LARDER`, `src/larder.js`), apagada por defecto:
+  - el nido tiene tope (`LARDER.capacity`, 20). Llegar cargada a un nido lleno es una sorpresa que solo tiene al llegar, y decide sola:
+    - si lo llenan raciones que ella evita, saca una a la puerta, como el basurero de las hormigas, y guarda la suya;
+    - si lo llena comida buena y tiene hambre, se come la carga; si no, la deja a la puerta.
+  - en ese último caso recuerda hasta dónde llegaba, y no recoge fruta para casa mientras prediga que sigue así de lleno. La sorpresa le baja un peldaño el hábito de reserva;
+  - entre visitas predice la despensa: lo último que vio menos el ritmo al que cree que se vacía. Cada visita corrige ese ritmo por la sorpresa, y puede salir negativo: sus hermanas la llenan mientras está fuera. Su impulso de salir por comida sigue a la predicción (`pantryEstimate`) y no a la última foto;
+  - evento `nest_full`, fruta «dejada a la puerta del nido lleno» en el inspector, ajustes en «Despensa», resumen `larder` en `batch.js` y pruebas en `test/larder.test.js`.
+  Resultado exploratorio en el §25.23.
+- [ ] E y F.
 
 **Fase 5: en batch (generaciones por lotes)**
 - [x] Recombinación de dos progenitores, mutación posterior y límites.
@@ -1863,7 +1871,7 @@ Preguntar de noche y probar de día hace que Fagi conozca casi el doble de espec
 
 ### 25.3 Pendiente
 
-- Fase 9 (§12.11): de la D a la F. La A, la B y la C están hechas (§25.1), pero en el mundo actual elegir no cambia cuánto come (§25.22): antes de la F hay que decidir un mundo donde elegir importe.
+- Fase 9 (§12.11): la E y la F. De la A a la D están hechas (§25.1). En el mundo por defecto elegir no cambia cuánto come (§25.22); en uno más escaso, sí empieza a cambiarlo (§25.23). Antes de congelar la F hay que fijar ese mundo.
 - §23, primera mitad del criterio social: que la información social se use con provecho. Con una informante que sabe, el efecto fue pequeño y no significativo (§25.18).
 - Fase 8: saladeros (una fuente de sal fija, que aprender como el agua); venenos más fuertes o más frecuentes, donde escupir importe más.
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
@@ -2519,4 +2527,35 @@ Fase 9 C, mismo montaje que el §25.21 (40 mapas de desarrollo, `FORAGE`, `SITES
 En los 40 primeros mapas, B había salido anormalmente alta. Una colonia es caótica: cualquier cambio, aunque sea un número aleatorio de más al elegir, desvía toda la trayectoria. 40 mapas no bastan para distinguir supervivencias. El veneno mata, además, al hacer desbordar un hambre que ya estaba al límite (`hungerCause`); en el tiempo con hambre extrema no hubo diferencias (1,2 % frente a 1,4 %).
 
 **Lo que queda.** En este mundo da igual cómo elija: volver, explorar o aprender rinden lo mismo. Así que la F1 no puede sostenerse aquí, por mucho que se ajuste la elección. Lo que falta es un mundo donde elegir bien importe: fuentes más escasas o más lejanas, explorar más caro, o un coste por volver a un sitio vacío. La fase D (tope del nido) añade uno. Antes de congelar la F hay que decidir ese mundo, y decidirlo por realismo, no porque haga ganar a la elección.
+
+### 25.23 Despensa y mundo escaso: resultado exploratorio
+
+Fase 9 D. Mismo montaje que el §25.22, con la elección aprendida encendida en todas las condiciones. 80 mapas nuevos de desarrollo (semillas de mapa 1500–1579). Sin protocolo congelado.
+
+**Un bucle encontrado al medir.** La primera versión tenía un artefacto. La despensa se llenaba de raciones que ella evita, así que creía que le faltaban raciones comestibles. Salía a por fruta, encontraba el nido lleno, la dejaba a la puerta y la volvía a recoger: unas 240 veces por vida. Ningún animal haría esto. Ahora saca a la puerta una ración de las que evita y guarda la suya, como el basurero de las hormigas. Y si el nido está lleno de comida buena, no recoge fruta para casa mientras prediga que sigue lleno. Con eso, encontrar el nido lleno pasa 1,4 veces por vida.
+
+**La despensa, en el mundo por defecto:**
+
+| | Sin despensa | Con despensa | Sin aprender el ritmo | Con − sin [IC 95 %] |
+|---|---|---|---|---|
+| viajes por comida | 5,2 | 6,0 | 5,9 | +0,8 [0,4, 1,3] |
+| raciones guardadas | 8,6 | 9,1 | 9,0 | +0,5 [0,0, 1,0] |
+| comida por minuto | 0,66 | 0,68 | 0,66 | +0,02 [−0,01, 0,04] |
+| vivas al final | 0,79 | 0,79 | 0,77 | 0,00 [−0,04, 0,05] |
+
+- **El nido se llena de lo que evitan, no de comida buena.** Todas las veces que lo encontró lleno había algo que sacar; nunca tuvo que comerse ni dejar su carga.
+- **Aprende que las hermanas llenan la despensa.** El ritmo que aprende sale negativo, unas −0,017 raciones por segundo: espera encontrarla más llena de lo que la dejó.
+- **Pero predecirla no cambia nada medible.** Con y sin aprender el ritmo, los resultados no se distinguen.
+- **Queda sin probar la F4** (tras encontrar el nido lleno, tarda más en volver a salir): con tope 20, el nido nunca se llena de comida buena.
+
+**La F1 en un mundo más escaso** (30 % de árboles duraderos, cosechas de 6 frutos, 400 s de descanso, una mancha cada 200 s):
+
+| | Aprende | Siempre volver | Siempre explorar | Aprende − volver | Aprende − explorar |
+|---|---|---|---|---|---|
+| comidas | 13,6 | 12,5 | 12,9 | +1,1 [0,2, 1,9], p = ,02 | +0,7 [0,1, 1,4], p = ,03 |
+| raciones guardadas | 8,5 | 7,9 | 8,4 | +0,6 [0,1, 1,1], p = ,03 | 0,0 |
+| comida por minuto | 0,62 | 0,61 | 0,61 | +0,01 | +0,01 |
+| vivas al final | 0,74 | 0,69 | 0,76 | +0,05 | −0,02 |
+
+Es la primera señal de que la F1 puede sostenerse. Donde las fuentes escasean, aprender come más que cualquiera de las dos políticas fijas. La comida por minuto de vida aún no se distingue. Es exploratorio y con 80 mapas: la confirmación es la F, con protocolo congelado y semillas nuevas.
 

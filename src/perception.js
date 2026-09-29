@@ -11,7 +11,6 @@ import { fearsDeep } from './swim.js';
 import { choose, learn } from './brain.js';
 import { perceivedCues } from './learned/cues.js';
 import { nestOf } from './world.js';
-import { edibleCount } from './learned/rules.js';
 import { habit } from './habits.js';
 import { followPheromone } from './pheromone.js';
 import { nestUnder } from './nest.js';
@@ -22,6 +21,7 @@ import { conceptsOf, noteSeen } from './concepts.js';
 import { saltUrge } from './taste.js';
 import { noteSites, bestSite, worthVisiting } from './sites.js';
 import { updateChoice } from './choice.js';
+import { pantryEstimate } from './larder.js';
 
 // The nearest visible pool. Water isn't learned: it's instinct.
 function nearestWater(fagi, world) {
@@ -147,7 +147,7 @@ const fruitOf = (tree, fagi = null) => (SOURCES.enabled && fagi
   : tree?.fruit ?? TREE.fruit);
 
 function forageNeed(fagi, hungerU) {
-  const missing = 1 - Math.min(1, edibleCount(fagi, fagi.pantry) / habit(fagi, 'reserve'));
+  const missing = 1 - Math.min(1, pantryEstimate(fagi) / habit(fagi, 'reserve'));
   return Math.max(hungerU, NEST.forageDrive * missing);
 }
 

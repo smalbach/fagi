@@ -16,6 +16,7 @@ import { habit, HABIT_IDS, habitsSnapshot, restoreHabits } from '../../src/habit
 import { newOrganismFollow, noteOrganism, organismSummary } from './organism.js';
 import { sitesSummary } from '../../src/sites.js';
 import { choiceSummary } from '../../src/choice.js';
+import { larderSummary } from '../../src/larder.js';
 
 const { WORLD } = CONFIG;
 
@@ -345,6 +346,7 @@ function runSummary(fagiSeed, fagi, world, s) {
     // Only with SITES on: every other run keeps its output byte for byte.
     ...(CONFIG.SITES.enabled ? { sites: sitesSummary(fagi) } : {}),
     ...(CONFIG.CHOICE.enabled ? { choice: choiceSummary(fagi) } : {}),
+    ...(CONFIG.LARDER.enabled ? { larder: larderSummary(fagi), reserve: habit(fagi, 'reserve') } : {}),
   };
 }
 

@@ -8,7 +8,7 @@ import {
   FAGI, HUNGER, THIRST, ENERGY, BRAIN, CARRY, NEST, EXPLORE, WIND, PLUME, PHERO, TREE, FRUIT, MEMORY,
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
   CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI, CONCEPT,
-  LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES, CHOICE,
+  LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES, CHOICE, LARDER,
 } from './config.js';
 import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
@@ -318,6 +318,12 @@ const GROUPS = [
     c(CHOICE, 'policy', 'How she chooses', 'Cómo elige', [['learned', 'aprendido'], ['always go back', 'siempre volver'], ['always explore', 'siempre explorar']]),
     n(CHOICE, 'temper', 'Noise when choosing', 'Ruido al elegir', 0.01, 1, 0.01),
     n(CHOICE, 'temperSpread', 'How much that noise differs between individuals', 'Cuánto difiere ese ruido entre individuos', 0, 1.5, 0.05),
+  ]},
+  { title: { en: 'Larder', es: 'Despensa' }, cat: 'colony', fieldsOf: [
+    b(LARDER, 'enabled', 'The nest fills up, and she predicts the pantry between visits', 'El nido se llena, y ella predice la despensa entre visitas'),
+    n(LARDER, 'capacity', 'Rations the nest holds', 'Raciones que caben en el nido', 4, 60, 1),
+    n(LARDER, 'eatIfHunger', 'Hunger from which she eats a load that does not fit', 'Hambre desde la que se come la carga que no cabe', 0, 1, 0.05),
+    b(LARDER, 'learn', 'She learns how fast the pantry empties', 'Aprende a qué ritmo se vacía la despensa'),
   ]},
   { title: { en: 'Map objects', es: 'Objetos del mapa' }, cat: 'world', fieldsOf: [
     // Four radii in one group: all but the rock's (the one recordings already

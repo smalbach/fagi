@@ -642,6 +642,20 @@ export const CHOICE = {
   planMax: 180,       // seconds a plan to go back holds before she reconsiders
 };
 
+// The larder (phase 9 D, spec §12.11, larder.js): a nest that fills up, and
+// a pantry she predicts between visits. Off, the nest takes all she brings and
+// she remembers the pantry as she last saw it.
+export const LARDER = {
+  enabled: 0,
+  capacity: 20,       // rations the nest holds; loaded to a full nest, she has to decide
+  eatIfHunger: 0.3,   // hunger (fraction) from which she eats the load she can't store; below, she leaves it at the door
+  learn: 1,           // 1 = she predicts the pantry and learns from the surprise; 0 = the last look, as before
+  prior: 0.005,       // rations per second she expects it to lose before she has seen it change
+  rate: 0.3,          // how far one visit moves that rate (× the surprise)
+  maxRate: 0.1,       // cap either way (rations per second)
+  minGap: 5,          // seconds between looks for the second to teach anything
+};
+
 // What happens to fruit nobody collects.
 // Rot doesn't stay forever either: when ITS life runs out
 // (POINT_TYPES.toxic.life) it falls apart and disappears from the map, plume included.

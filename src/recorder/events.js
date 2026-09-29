@@ -63,6 +63,8 @@ export const EVENT_TYPES = {
   tree_bare: ['id'],
   tree_bears: ['id'],
   patch: ['x', 'y', 'what', 'n'],
+  // Loaded to a full nest (LARDER, larder.js): what she did with her load.
+  nest_full: ['what', 'did'],
   people: ['people'],   // what the night mind proposed and what was kept (night/)
 };
 

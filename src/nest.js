@@ -10,6 +10,7 @@ import { storedHarm, spoiledRations } from './habits.js';
 import { canEat } from './appetite.js';
 import { lineNest } from './things.js';
 import { drawVariant } from './chemistry.js';
+import { lookInLarder, larderFull, nestFull } from './larder.js';
 
 export function nestUnder(fagi, world) {
   const nestObj = nestOf(world);
@@ -24,6 +25,12 @@ export function useNest(fagi, world) {
   if (!nestObj) return null;
 
   if (fagi.hauling) lineNest(fagi, world, nestObj);   // a thing for the lining (things.js)
+
+  // What she sees on coming in, against what she expected (LARDER).
+  lookInLarder(fagi, nestObj);
+
+  // Loaded to a full nest (LARDER): she finds out only now, and decides.
+  if (fagi.carrying && larderFull(nestObj)) nestFull(fagi, world, nestObj);
 
   if (fagi.carrying) {
     const t = fagi.carrying.type;

@@ -9,10 +9,11 @@ import { pointTouching, removePoint } from './world.js';
 import { applyEffects } from './effects.js';
 import { snapshotBody } from './interoception.js';
 import { openEpisode } from './episodes.js';
-import { verdict, edibleCount } from './learned/rules.js';
+import { verdict } from './learned/rules.js';
 import { onAgenda, answered } from './experiment.js';
 import { canEat, afterBite, aversive } from './appetite.js';
 import { EXPERIMENT } from './config.js';
+import { pantryEstimate, roomAtHome } from './larder.js';
 
 // When hungry she eats it on the spot. When not hungry she picks it up and takes it to the nest:
 // that's the difference between eating and working. And with the pantry stocked she doesn't even
@@ -50,7 +51,7 @@ export function tryPickOrEat(fagi, world) {
     // `aversive` below). She leaves it where it is and stops treating it as a target.
     release();
     return;
-  } else if (!fagi.carrying && edibleCount(fagi, fagi.pantry) < habit(fagi, 'reserve') && !aversive(fagi, p.type)) {
+  } else if (!fagi.carrying && pantryEstimate(fagi) < habit(fagi, 'reserve') && roomAtHome(fagi) && !aversive(fagi, p.type)) {
     // The fruit keeps the age it already had: storing it preserves it, it doesn't
     // make it younger.
     fagi.carrying = { type: p.type, age: p.age ?? 0, ...(p.variant ? { variant: p.variant } : {}) };

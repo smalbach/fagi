@@ -3,8 +3,9 @@
 
 import { NEEDS, CARRY } from '../config.js';
 import { habit } from '../habits.js';
-import { verdict, edibleCount } from '../learned/rules.js';
+import { verdict } from '../learned/rules.js';
 import { canEat } from '../appetite.js';
+import { pantryEstimate } from '../larder.js';
 
 export const pct = (u) => `${Math.round(u * 100)}%`;
 
@@ -23,7 +24,7 @@ export const stillInWorld = (world, ref) => world.points.includes(ref) || world.
 // she used to end up orbiting a fruit she could no longer pick up.
 export function pantryDone(fagi, ctx) {
   if (fagi.hunger >= CARRY.eatBelow || fagi.carrying) return false;
-  return Boolean(ctx.nest) && edibleCount(fagi, fagi.pantry) >= habit(fagi, 'reserve');
+  return Boolean(ctx.nest) && pantryEstimate(fagi) >= habit(fagi, 'reserve');
 }
 
 export function pantryIntent(fagi, ctx) {

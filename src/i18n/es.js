@@ -584,6 +584,7 @@ export default {
   'habit.why.emptyPantry': 'y la despensa estaba vacía',
   'habit.why.storedHarm': 'había guardado {what} sin probarlo, y le hace daño',
   'habit.why.spoiled': 'se estropearon {n} ración(es) en la despensa',
+  'habit.why.nestFull': 'llegó cargada y el nido estaba lleno',
   'habit.why.calm': '{sec} sin sustos',
   'habit.why.died': 'murió {cause}',
   'habit.short.tasteAt': 'probar desde hambre', 'habit.short.hungerAt': 'comida al', 'habit.short.thirstAt': 'agua al',

@@ -24,8 +24,8 @@
 
 import { CHOICE, SITES, MEMORY, HUNGER, NEST } from './config.js';
 import { distanceTo } from './vision.js';
-import { edibleCount } from './learned/rules.js';
 import { habit } from './habits.js';
+import { pantryEstimate } from './larder.js';
 
 const LOG_MAX = 40;
 const EARLY = 5;
@@ -99,7 +99,7 @@ function pick(fagi, options) {
 // Does she want food now? Her hunger or what the pantry lacks as she remembers it.
 function wantsFood(fagi) {
   const hunger = fagi.hunger / HUNGER.max;
-  const missing = 1 - Math.min(1, edibleCount(fagi, fagi.pantry) / habit(fagi, 'reserve'));
+  const missing = 1 - Math.min(1, pantryEstimate(fagi) / habit(fagi, 'reserve'));
   return !fagi.carrying && Math.max(hunger, NEST.forageDrive * missing) > 0.15;
 }
 

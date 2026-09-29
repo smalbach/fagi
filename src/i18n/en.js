@@ -582,6 +582,7 @@ export default {
   'habit.why.emptyPantry': 'and the pantry was empty',
   'habit.why.storedHarm': 'she had stored {what} without tasting it, and it harms her',
   'habit.why.spoiled': '{n} ration(s) spoiled in the pantry',
+  'habit.why.nestFull': 'she came home loaded and the nest was full',
   'habit.why.calm': '{sec} without a scare',
   'habit.why.died': 'she died {cause}',
   'habit.short.tasteAt': 'taste from hunger', 'habit.short.hungerAt': 'food at', 'habit.short.thirstAt': 'water at',
