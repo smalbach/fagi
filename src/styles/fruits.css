@@ -1,9 +1,9 @@
 /* --- the fruit editor and the map-size panel (fruit-editor.js) --- */
 body:not(.mode-setup) .setup-only { display: none; }
 
-.map-size-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-.map-size-row label { display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; color: var(--muted); }
-.map-size-row select, .map-size-row input {
+.map-size-row { display: flex; flex-direction: column; gap: 6px; }
+.map-size-row label { display: grid; grid-template-columns: 70px 1fr; gap: 8px; align-items: center; font-size: 11.5px; color: var(--muted); }
+.map-size-row select {
   width: 100%; background: #2a2e3a; color: var(--text); border: 1px solid var(--line);
   border-radius: 6px; padding: 5px 6px; font: inherit; font-size: 12.5px;
 }
@@ -50,20 +50,19 @@ body:not(.mode-setup) .setup-only { display: none; }
 .fe-body h4 { margin: 10px 0 4px; font-size: 11.5px; color: var(--muted); font-weight: 600; }
 .fe-row { display: grid; grid-template-columns: 1fr 1.2fr auto; gap: 8px; align-items: center; font-size: 12px; margin: 4px 0; }
 .fe-row > span { color: #cfd3dd; }
-.fe-row input[type=range] { width: 100%; }
-.fe-row output { font-size: 11px; color: var(--muted); min-width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
-.fe-row select, .fe-row input[type=number] {
+.fe-row .ns { grid-column: 2 / 4; }
+.fe-row select {
   grid-column: 2 / 4; background: #2a2e3a; color: var(--text); border: 1px solid var(--line);
   border-radius: 6px; padding: 4px 6px; font: inherit; font-size: 12px; width: 100%;
 }
 .fe-row input[type=color] { grid-column: 2 / 4; width: 100%; height: 28px; background: none; border: 1px solid var(--line); border-radius: 6px; padding: 1px; }
 .fe-scale { display: flex; justify-content: space-between; margin: -2px 0 4px; font-size: 10.5px; color: var(--muted); }
-.fe-fx { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 6px; align-items: center; font-size: 12px; margin: 3px 0; opacity: .55; }
-.fe-fx.on { opacity: 1; }
-.fe-fx input[type=number] {
-  width: 60px; background: #2a2e3a; color: var(--text); border: 1px solid var(--line);
-  border-radius: 6px; padding: 3px 5px; font: inherit; font-size: 12px;
-}
+.fe-fx { font-size: 12px; margin: 4px 0; padding: 4px 0; border-top: 1px solid #2b2f3a; }
+.fe-fx:first-child { border-top: 0; }
+.fe-fx-name { display: flex; align-items: center; gap: 8px; color: var(--muted); cursor: pointer; }
+.fe-fx.on .fe-fx-name { color: #cfd3dd; }
+.fe-fx-vals { padding-left: 42px; }
+.fe-fx:not(.on) .fe-fx-vals { display: none; }
 #fruit-editor footer { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); }
 #fruit-editor footer button { width: auto; padding: 7px 14px; }
 .fe-gap { flex: 1; }
@@ -72,5 +71,5 @@ body:not(.mode-setup) .setup-only { display: none; }
 
 @media (max-width: 560px) {
   .fe-row { grid-template-columns: 1fr 1fr auto; }
-  .fe-fx { grid-template-columns: 1fr; }
+  .fe-fx-vals { padding-left: 0; }
 }

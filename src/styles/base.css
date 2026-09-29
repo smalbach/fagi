@@ -5,6 +5,7 @@
   --text: #e6e8ee;
   --muted: #8a90a2;
   --line: #3a3f4e;
+  --accent: #5fb36a;
 }
 * { box-sizing: border-box; }
 body {

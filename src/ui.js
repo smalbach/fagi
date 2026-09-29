@@ -12,6 +12,7 @@ import { activeEffects } from './effects.js';
 import { nestOf, nestRipeness, record, stockCount } from './world.js';
 import { configIdOf } from './settings.js';
 import { setFruitInterval } from './trees.js';
+import { sliderize } from './controls.js';
 import { t, labelOf, onLangChange, formatDuration } from './i18n.js';
 import { recall } from './memory.js';
 import { ASK, INSPECT, TREE_PREFIX } from './input.js';
@@ -272,18 +273,16 @@ export function createUI(input, world, onReset) {
 
   // How often the trees drop fruit. Applies to the ones already placed too.
   const slider = document.getElementById('tree-interval');
-  const sliderVal = document.getElementById('tree-interval-val');
-  const paint = () => { sliderVal.textContent = formatDuration(Number(slider.value)); };
+  sliderize(slider, { suffix: 's' });
   slider.addEventListener('input', () => {
     const before = TREE.interval;
     const v = Number(slider.value);
     setFruitInterval(world, v);
     if (before !== v) record(world, 'config', { id: configIdOf(TREE, 'interval'), from: before, to: v, source: 'user' });
-    paint();
   });
   // The slider shows what's there, it doesn't impose it: the saved settings or
   // the session's ones rule.
-  const sync = () => { slider.value = TREE.interval; paint(); };
+  const sync = () => { slider.value = TREE.interval; };
   sync();
 
   return {

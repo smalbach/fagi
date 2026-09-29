@@ -84,17 +84,22 @@
 #settings summary > span:first-child { flex: 1; }
 #settings .set-where { font-size: 10.5px; color: var(--muted); }
 #settings .field {
-  display: flex; align-items: center; gap: 8px; justify-content: space-between;
-  font-size: 11.5px; color: var(--muted); padding: 3px 0;
+  display: flex; flex-direction: column; gap: 2px;
+  font-size: 11.5px; color: var(--muted); padding: 5px 0;
 }
-#settings .field.changed span { color: #f0c070; }
-#settings .field.changed input { border-color: #e8a33d99; }
-#settings .field input {
-  width: 76px; flex: none; background: #2a2e3a; color: var(--text);
-  border: 1px solid var(--line); border-radius: 5px; padding: 3px 6px; font: inherit;
+#settings .field + .field { border-top: 1px solid #2b2f3a; }
+#settings .field-top { display: flex; align-items: center; gap: 6px; min-height: 22px; }
+#settings .field-name { flex: 1; min-width: 0; }
+#settings .field.changed .field-name { color: #f0c070; }
+#settings .field.changed .ns-box { border-color: #e8a33d99; }
+#settings .field-reset {
+  width: auto; flex: none; padding: 0 5px; line-height: 18px; font-size: 12px;
+  background: none; border: 1px solid transparent; color: #f0c070;
 }
+#settings .field-reset:hover { border-color: #e8a33d66; background: #e8a33d1a; }
+#settings .field-reset[hidden] { display: none; }
 #settings .field.toggle { cursor: pointer; }
-#settings .field.toggle input { width: 16px; height: 16px; padding: 0; accent-color: #e8a33d; cursor: pointer; }
+#settings .field.choice .seg { display: flex; width: 100%; margin-top: 2px; }
 @media (max-width: 720px) {
   #settings-body { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
   #settings .set-nav { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 8px; }

@@ -34,7 +34,7 @@
     <div id="setup-bar" class="stage-bar">
       <div class="setup-side">
         <button id="btn-regen" data-i18n="setup.regen">↻ New map</button>
-        <label><input id="chk-recover" type="checkbox"> <span data-i18n="setup.recover">Recover what it learned</span></label>
+        <label class="switch-row"><input id="chk-recover" type="checkbox"> <span data-i18n="setup.recover">Recover what it learned</span></label>
       </div>
       <p class="help" data-i18n="setup.help">Click places · drag moves · right click removes · shift+wheel resizes</p>
       <div class="setup-side setup-go">
@@ -86,10 +86,10 @@
     <details data-dock="map" class="hud-group edit-only" open>
       <summary data-i18n="panel.mapNow">This map</summary>
       <div id="map-summary" class="map-summary"></div>
-      <div class="label" style="margin-top:10px">
-        <span data-i18n="panel.treeEvery">Tree drops fruit every</span><span id="tree-interval-val">8s</span>
-      </div>
-      <input id="tree-interval" type="range" min="2" max="30" step="1" value="8">
+      <label class="label tree-every" style="margin-top:10px">
+        <span data-i18n="panel.treeEvery">Tree drops fruit every</span>
+        <input id="tree-interval" type="range" min="2" max="30" step="1" value="8">
+      </label>
     </details>
 
     <details data-dock="map" class="hud-group setup-only" open>
@@ -338,9 +338,9 @@
           <h3 data-i18n="fe.look">Look and smell</h3>
           <label class="fe-row"><span data-i18n="fe.color">Color</span><input id="fe-color" type="color"></label>
           <label class="fe-row"><span data-i18n="fe.shape">Shape</span><select id="fe-shape"></select></label>
-          <label class="fe-row"><span data-i18n="fe.radius">Size</span><input id="fe-radius" type="range" min="3" max="14" step="1"><output></output></label>
+          <label class="fe-row"><span data-i18n="fe.radius">Size</span><input id="fe-radius" type="range" min="3" max="14" step="1"></label>
           <label class="fe-row"><span data-i18n="fe.smell">Smell</span><select id="fe-smell"></select></label>
-          <label class="fe-row"><span data-i18n="fe.aroma">Scent strength</span><input id="fe-aroma" type="range" min="0" max="400" step="5"><output></output></label>
+          <label class="fe-row"><span data-i18n="fe.aroma">Scent strength</span><input id="fe-aroma" type="range" min="0" max="400" step="5"></label>
         </section>
         <section>
           <h3 data-i18n="fe.tastes">Tastes (what the tongue reads)</h3>
@@ -348,9 +348,9 @@
         </section>
         <section>
           <h3 data-i18n="fe.body">What it does to the body</h3>
-          <label class="fe-row"><span data-i18n="fe.hunger">Nourishment</span><input id="fe-hunger" type="range" min="-80" max="60" step="1"><output></output></label>
+          <label class="fe-row"><span data-i18n="fe.hunger">Nourishment</span><input id="fe-hunger" type="range" min="-80" max="60" step="1"></label>
           <p class="fe-scale"><span data-i18n="fe.feeds">← feeds</span><span data-i18n="fe.poisons">poisons →</span></p>
-          <label class="fe-row"><span data-i18n="fe.thirst">Thirst</span><input id="fe-thirst" type="range" min="-50" max="50" step="1"><output></output></label>
+          <label class="fe-row"><span data-i18n="fe.thirst">Thirst</span><input id="fe-thirst" type="range" min="-50" max="50" step="1"></label>
           <p class="fe-scale"><span data-i18n="fe.quenches">← quenches</span><span data-i18n="fe.dries">makes thirsty →</span></p>
           <label class="fe-row"><span data-i18n="fe.life">Rots after (s, 0 = never)</span><input id="fe-life" type="number" min="0" max="900" step="5"></label>
           <h4 data-i18n="fe.effects">Effects for a while after eating</h4>

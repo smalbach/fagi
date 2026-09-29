@@ -15,13 +15,20 @@ import { startRain } from './rain.js';
 import { removeAllTrees } from './trees.js';
 import { wipe } from './learned/store.js';
 import { t, labelOf, getLang, onLangChange } from './i18n.js';
+import { makeSlider, makeChoice } from './controls.js';
 
 const SETTINGS_KEY = 'fagi.settings';
 
 // Each field carries its text in both languages: en, es.
 const n = (obj, key, en, es, min, max, step) => ({ obj, key, label: { en, es }, min, max, step });
-// An on/off setting: kept as 1 / 0 like the rest, shown as a checkbox.
+// An on/off setting: kept as 1 / 0 like the rest, shown as a switch.
 const b = (obj, key, en, es) => ({ ...n(obj, key, en, es, 0, 1, 1), toggle: true });
+// A setting with a few named values 0, 1, 2...: shown as a segmented choice.
+// `options`: [[en, es], ...] in value order.
+const c = (obj, key, en, es, options) => ({
+  ...n(obj, key, en, es, 0, options.length - 1, 1),
+  choices: options.map(([oen, oes]) => ({ en: oen, es: oes })),
+});
 
 function foodFields(key) {
   const spec = POINT_TYPES[key];
@@ -59,7 +66,7 @@ const GROUPS = [
   // The organism (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md). One group per
   // block: their ids ('Day and night.enabled'...) are what a recording keeps.
   { title: { en: 'Day and night', es: 'Día y noche' }, cat: 'world', fieldsOf: [
-    n(CYCLE, 'enabled', 'Day and night (1 = yes)', 'Día y noche (1 = sí)', 0, 1, 1),
+    b(CYCLE, 'enabled', 'Day and night', 'Día y noche'),
     n(CYCLE, 'seconds', 'Seconds in a day', 'Segundos que dura un día', 30, 1800, 10),
     n(CYCLE, 'start', 'Hour the session starts (0 midnight, 0.5 noon)', 'Hora a la que empieza (0 medianoche, 0.5 mediodía)', 0, 0.99, 0.01),
     n(CYCLE, 'minLight', 'Light at night', 'Luz de noche', 0, 1, 0.02),
@@ -70,7 +77,7 @@ const GROUPS = [
     n(CYCLE, 'swing', 'Swing between day and night (± °C)', 'Oscilación entre día y noche (± °C)', 0, 30, 1),
   ]},
   { title: { en: 'Body temperature', es: 'Temperatura corporal' }, cat: 'body', fieldsOf: [
-    n(THERMAL, 'enabled', 'Body temperature (1 = yes)', 'Temperatura corporal (1 = sí)', 0, 1, 1),
+    b(THERMAL, 'enabled', 'Body temperature', 'Temperatura corporal'),
     n(THERMAL, 'safeMin', 'Cold below (°C)', 'Frío por debajo de (°C)', -10, 30, 1),
     n(THERMAL, 'safeMax', 'Heat above (°C)', 'Calor por encima de (°C)', 20, 50, 1),
     n(THERMAL, 'exchange', 'How fast the body follows the air', 'Rapidez con que el cuerpo sigue al aire', 0.005, 0.5, 0.005),
@@ -81,14 +88,14 @@ const GROUPS = [
     n(THERMAL, 'voluntaryMax', 'Body °C from which she runs from the heat', '°C del cuerpo desde los que huye del calor', 30, 45, 0.5),
     n(THERMAL, 'voluntaryMin', 'Body °C under which she runs from the cold', '°C del cuerpo bajo los que huye del frío', 0, 20, 0.5),
     n(THERMAL, 'reflex', 'Stress (fraction) that sends her home no matter what', 'Estrés (fracción) que la manda al nido pase lo que pase', 0.1, 1, 0.05),
-    n(THERMAL, 'behave', 'Acts on the cold and heat (1 = yes)', 'Actúa frente al frío y el calor (1 = sí)', 0, 1, 1),
+    b(THERMAL, 'behave', 'Acts on the cold and heat', 'Actúa frente al frío y el calor'),
   ]},
   { title: { en: 'Sex', es: 'Sexo' }, cat: 'body', fieldsOf: [
-    n(SEX, 'enabled', 'Sexes with different bodies (1 = yes, new sessions)', 'Sexos con cuerpos distintos (1 = sí, sesiones nuevas)', 0, 1, 1),
+    b(SEX, 'enabled', 'Sexes with different bodies (new sessions)', 'Sexos con cuerpos distintos (sesiones nuevas)'),
   ]},
   { title: { en: 'Sleep', es: 'Sueño' }, cat: 'body', fieldsOf: [
-    n(SLEEP, 'enabled', 'Sleep (1 = yes)', 'Sueño (1 = sí)', 0, 1, 1),
-    n(SLEEP, 'nightly', 'Diurnal: sleeps the whole night (1 = yes)', 'Diurna: duerme toda la noche (1 = sí)', 0, 1, 1),
+    b(SLEEP, 'enabled', 'Sleep', 'Sueño'),
+    b(SLEEP, 'nightly', 'Diurnal: sleeps the whole night', 'Diurna: duerme toda la noche'),
     n(SLEEP, 'rise', 'Sleepiness per second awake', 'Sueño que acumula por segundo despierta', 0, 0.1, 0.001),
     n(SLEEP, 'nightRise', 'Sleepiness builds × faster in the dark', 'El sueño sube × más rápido a oscuras', 1, 5, 0.1),
     n(SLEEP, 'fall', 'Sleepiness lost per second asleep in the nest', 'Sueño que pierde por segundo dormida en el nido', 0, 0.2, 0.005),
@@ -97,21 +104,21 @@ const GROUPS = [
     n(SLEEP, 'exhausted', 'Sleepiness at which she sleeps anywhere, day or night', 'Sueño con el que duerme donde sea, de día o de noche', 0.1, 1, 0.05),
     n(SLEEP, 'wake', 'Sleepiness under which she wakes (not diurnal)', 'Sueño bajo el cual despierta (no diurna)', 0, 0.5, 0.01),
     n(SLEEP, 'minSleep', 'Seconds asleep before sorting the day', 'Segundos dormida antes de ordenar el día', 0, 120, 1),
-    n(SLEEP, 'consolidate', 'Sort the day while asleep (1 = yes)', 'Ordenar el día al dormir (1 = sí)', 0, 1, 1),
+    b(SLEEP, 'consolidate', 'Sort the day while asleep', 'Ordenar el día al dormir'),
     n(SLEEP, 'boost', 'Confidence a replayed belief gains', 'Confianza que gana una creencia repasada', 0, 1, 0.05),
     n(SLEEP, 'replay', 'Rounds of replay of the remembered fruit', 'Rondas de repaso de la fruta recordada', 0, 20, 1),
   ]},
   { title: { en: 'Night mind', es: 'Mente nocturna' }, cat: 'mind', fieldsOf: [
-    n(NIGHTAI, 'enabled', 'A model proposes hypotheses at night (1 = yes)', 'Un modelo propone hipótesis de noche (1 = sí)', 0, 1, 1),
+    b(NIGHTAI, 'enabled', 'A model proposes hypotheses at night', 'Un modelo propone hipótesis de noche'),
     n(NIGHTAI, 'minSupport', 'Fruit she tasted that must back a proposal', 'Frutas probadas que deben respaldar una propuesta', 1, 6, 1),
     n(NIGHTAI, 'trust', 'Trust in a kept proposal', 'Confianza en una propuesta aceptada', 0.1, 1, 0.05),
   ]},
   { title: { en: 'Perception', es: 'Percepción' }, cat: 'mind', fieldsOf: [
-    n(PERCEPT, 'enabled', 'By smell alone she knows only the smell (1 = yes)', 'Por el olor solo conoce el olor (1 = sí)', 0, 1, 1),
+    b(PERCEPT, 'enabled', 'By smell alone she knows only the smell', 'Por el olor solo conoce el olor'),
   ]},
   { title: { en: 'Things and concepts', es: 'Cosas y conceptos' }, cat: 'mind', fieldsOf: [
-    n(CONCEPT, 'enabled', 'Things with no inborn category on the map (1 = yes, new sessions)', 'Cosas sin categoría innata en el mapa (1 = sí, sesiones nuevas)', 0, 1, 1),
-    n(CONCEPT, 'generalize', 'Groups what she learns into concepts (1 = yes)', 'Agrupa lo que aprende en conceptos (1 = sí)', 0, 1, 1),
+    b(CONCEPT, 'enabled', 'Things with no inborn category on the map (new sessions)', 'Cosas sin categoría innata en el mapa (sesiones nuevas)'),
+    b(CONCEPT, 'generalize', 'Groups what she learns into concepts', 'Agrupa lo que aprende en conceptos'),
     n(CONCEPT, 'things', 'Things on the map (new sessions)', 'Cosas en el mapa (sesiones nuevas)', 0, 60, 1),
     n(CONCEPT, 'kinds', 'Different looks (new sessions)', 'Aspectos distintos (sesiones nuevas)', 1, 30, 1),
     n(CONCEPT, 'sap', 'Thirst a nibble of sap takes away', 'Sed que quita un mordisco de savia', 0, 100, 1),
@@ -119,13 +126,13 @@ const GROUPS = [
     n(CONCEPT, 'sting', 'Energy a sting costs', 'Energía que cuesta un pinchazo', 0, 60, 1),
   ]},
   { title: { en: 'Appetite', es: 'Apetito' }, cat: 'body', fieldsOf: [
-    n(APPETITE, 'enabled', 'Bites take time and a bad one puts her off food (1 = yes)', 'Comer lleva tiempo y un mal bocado le quita el apetito (1 = sí)', 0, 1, 1),
+    b(APPETITE, 'enabled', 'Bites take time and a bad one puts her off food', 'Comer lleva tiempo y un mal bocado le quita el apetito'),
     n(APPETITE, 'handling', 'Seconds between bites', 'Segundos entre bocados', 0, 20, 0.5),
     n(APPETITE, 'malaise', 'Seconds of malaise after a bad bite', 'Segundos de malestar tras un mal bocado', 0, 300, 5),
     n(APPETITE, 'searchWater', 'Thirst from which she looks for unknown water', 'Sed desde la que busca agua que no conoce', 0, 1, 0.05),
   ]},
   { title: { en: 'Experiments', es: 'Experimentos' }, cat: 'mind', fieldsOf: [
-    n(EXPERIMENT, 'enabled', 'Tries what the night asked (1 = yes)', 'Prueba lo que se preguntó de noche (1 = sí)', 0, 1, 1),
+    b(EXPERIMENT, 'enabled', 'Tries what the night asked', 'Prueba lo que se preguntó de noche'),
     n(EXPERIMENT, 'portion', 'Size of a trial bite (share of a fruit)', 'Tamaño del mordisco de prueba (fracción de fruta)', 0.05, 1, 0.05),
     n(EXPERIMENT, 'maxWary', 'Wariness above which she does not try', 'Cautela por encima de la cual no prueba', 0, 1, 0.05),
   ]},
@@ -153,24 +160,24 @@ const GROUPS = [
     n(LEARN, 'avoidUntil', 'Weight below which "avoid X" is retired', 'Peso por debajo del cual retira "evitar X"', 0, 1, 0.02),
     n(LEARN, 'preferFrom', 'Belief weight that writes "prefer X"', 'Peso de creencia que escribe "preferir X"', 0.02, 1, 0.02),
     n(LEARN, 'preferUntil', 'Weight below which "prefer X" is retired', 'Peso por debajo del cual retira "preferir X"', 0, 1, 0.02),
-    n(CUES, 'enabled', 'Learn from traits (1 = yes)', 'Aprender de los rasgos (1 = sí)', 0, 1, 1),
+    b(CUES, 'enabled', 'Learn from traits', 'Aprender de los rasgos'),
     n(CUES, 'rate', 'How fast a trait learns', 'Qué tan rápido aprende un rasgo', 0.02, 1, 0.02),
     n(CUES, 'wary', 'Predicted harm that kills curiosity', 'Daño previsto que apaga la curiosidad', 0.05, 1, 0.05),
-    n(CUES, 'induce', 'Trait rules: 0 by weight, 1 induced, 2 both', 'Reglas de rasgos: 0 por peso, 1 inducidas, 2 ambas', 0, 2, 1),
+    c(CUES, 'induce', 'Trait rules', 'Reglas de rasgos', [['By weight', 'Por peso'], ['Induced', 'Inducidas'], ['Both', 'Ambas']]),
     n(CUES, 'induceMin', 'Species that must agree to generalize', 'Especies que deben coincidir para generalizar', 2, 6, 1),
     n(CUES, 'ruleEvidence', 'Experiences before a one-trait rule', 'Experiencias antes de una regla de un rasgo', 1, 10, 1),
-    n(LEARN, 'autosave', 'Keep a recoverable copy (1 = yes)', 'Guardar copia recuperable (1 = sí)', 0, 1, 1),
+    b(LEARN, 'autosave', 'Keep a recoverable copy', 'Guardar copia recuperable'),
     n(LEARN, 'autosaveEvery', 'Seconds between copies', 'Segundos entre copias', 1, 120, 1),
   ]},
   { title: { en: 'Colony (new sessions)', es: 'Colonia (sesiones nuevas)' }, cat: 'colony', fieldsOf: [
     n(SOCIAL, 'size', 'Individuals in the colony (1 = Fagi alone)', 'Individuos en la colonia (1 = Fagi sola)', 1, 8, 1),
-    n(SOCIAL, 'share', 'Tell each other rules in the nest (1 = yes)', 'Contarse reglas en el nido (1 = sí)', 0, 1, 1),
+    b(SOCIAL, 'share', 'Tell each other rules in the nest', 'Contarse reglas en el nido'),
     n(SOCIAL, 'observe', 'Learning from watching a sister eat', 'Aprender de ver comer a una hermana', 0, 1, 0.05),
     n(SOCIAL, 'trust', 'Trust in a rule told', 'Confianza en una regla contada', 0.1, 1, 0.05),
   ]},
   { title: { en: 'External decision API', es: 'API de decisión externa' }, cat: 'system', fieldsOf: [
-    n(BACKEND, 'enabled', 'Ask the API (1 = yes)', 'Consultar la API (1 = sí)', 0, 1, 1),
-    n(BACKEND, 'authority', 'Authority: 0 safe, 1 full', 'Autoridad: 0 segura, 1 plena', 0, 1, 1),
+    b(BACKEND, 'enabled', 'Ask the API', 'Consultar la API'),
+    c(BACKEND, 'authority', 'Authority', 'Autoridad', [['Safe', 'Segura'], ['Full', 'Plena']]),
     n(BACKEND, 'minInterval', 'Seconds between queries', 'Segundos entre consultas', 0.2, 60, 0.1),
     n(BACKEND, 'timeout', 'Seconds before giving up', 'Segundos antes de rendirse', 0.2, 30, 0.1),
     n(BACKEND, 'ttl', 'Seconds a directive stays valid', 'Segundos que vale una directiva', 1, 60, 1),
@@ -315,7 +322,7 @@ const GROUPS = [
     n(NEEDS, 'shelterMargin', 'Seconds of cushion leaving shelter for water', 'Segundos de margen al salir del refugio a por agua', 0, 60, 1),
   ]},
   { title: { en: 'Health', es: 'Salud' }, cat: 'body', fieldsOf: [
-    n(HEALTH, 'enabled', 'Health and wounds (1 = yes)', 'Salud y heridas (1 = sí)', 0, 1, 1),
+    b(HEALTH, 'enabled', 'Health and wounds', 'Salud y heridas'),
     n(HEALTH, 'sting', 'Health a sting takes', 'Salud que quita un pinchazo', 0, 100, 1),
     n(HEALTH, 'poison', 'Health a poisonous fruit takes', 'Salud que quita un fruto venenoso', 0, 100, 1),
     n(HEALTH, 'thermalFrom', 'Thermal stress (fraction) from which it harms', 'Estrés térmico (fracción) desde el que hace daño', 0, 1, 0.05),
@@ -327,13 +334,13 @@ const GROUPS = [
     n(HEALTH, 'breed', 'Health (fraction) needed to breed', 'Salud (fracción) necesaria para criar', 0, 1, 0.05),
   ]},
   { title: { en: 'Habits', es: 'Hábitos' }, cat: 'mind', fieldsOf: [
-    n(HABITS, 'enabled', 'Tunes her thresholds from experience (1 = yes)', 'Ajusta sus umbrales por experiencia (1 = sí)', 0, 1, 1),
+    b(HABITS, 'enabled', 'Tunes her thresholds from experience', 'Ajusta sus umbrales por experiencia'),
     n(HABITS, 'scare', 'Hunger or thirst (fraction) that counts as a scare', 'Hambre o sed (fracción) que cuenta como susto', 0.3, 1, 0.05),
-    n(HABITS, 'relax', 'A long calm makes her bolder (1 = yes)', 'Una calma larga la hace más atrevida (1 = sí)', 0, 1, 1),
+    b(HABITS, 'relax', 'A long calm makes her bolder', 'Una calma larga la hace más atrevida'),
     n(HABITS, 'calm', 'Seconds of calm before relaxing a habit', 'Segundos de calma antes de relajar un hábito', 30, 3600, 30),
   ]},
   { title: { en: 'Life and breeding', es: 'Vida y crianza' }, cat: 'colony', fieldsOf: [
-    n(LIFE, 'enabled', 'Life cycle and breeding (1 = yes)', 'Ciclo de vida y crianza (1 = sí)', 0, 1, 1),
+    b(LIFE, 'enabled', 'Life cycle and breeding', 'Ciclo de vida y crianza'),
     n(LIFE, 'founders', 'Founders (new sessions)', 'Fundadores (sesiones nuevas)', 2, 16, 1),
     n(LIFE, 'maxPopulation', 'Nest capacity, eggs included', 'Capacidad del nido, huevos incluidos', 2, 60, 1),
     n(LIFE, 'adultAt', 'Age at which a juvenile becomes adult (s)', 'Edad a la que una juvenil se hace adulta (s)', 30, 3600, 10),
@@ -354,28 +361,28 @@ const GROUPS = [
     n(LIFE, 'eggWarm', 'Nest °C at which it develops at full pace', '°C del nido con los que se desarrolla a pleno ritmo', 0, 40, 1),
     n(LIFE, 'eggStarve', 'Seconds a ready egg waits for food before dying', 'Segundos que un huevo listo espera comida antes de morir', 10, 1800, 10),
     n(LIFE, 'kinLimit', 'Relatedness from which two do not mate', 'Parentesco desde el que dos no se aparean', 0, 1, 0.05),
-    n(LIFE, 'gradual', 'Fertility fades with age and crowding (1 = yes)', 'La fertilidad baja con la edad y el hacinamiento (1 = sí)', 0, 1, 1),
+    b(LIFE, 'gradual', 'Fertility fades with age and crowding', 'La fertilidad baja con la edad y el hacinamiento'),
   ]},
   { title: { en: 'Inheritance', es: 'Herencia' }, cat: 'colony', fieldsOf: [
-    n(GEN, 'culture', 'Mother teaches her rules to the newborn (1 = yes)', 'La madre enseña sus reglas a la cría (1 = sí)', 0, 1, 1),
+    b(GEN, 'culture', 'Mother teaches her rules to the newborn', 'La madre enseña sus reglas a la cría'),
     n(GEN, 'cultureTrust', 'Trust in a rule taught', 'Confianza en una regla enseñada', 0.1, 1, 0.05),
-    n(GEN, 'habits', 'Habits are taught too (1 = yes)', 'También se enseñan los hábitos (1 = sí)', 0, 1, 1),
-    n(GEN, 'genes', 'Born with inherited trait biases (1 = yes)', 'Nace con sesgos heredados (1 = sí)', 0, 1, 1),
+    b(GEN, 'habits', 'Habits are taught too', 'También se enseñan los hábitos'),
+    b(GEN, 'genes', 'Born with inherited trait biases', 'Nace con sesgos heredados'),
     n(GEN, 'mutation', 'Mutation of each bias', 'Mutación de cada sesgo', 0, 1, 0.01),
-    n(GEN, 'blend', 'Biases averaged from both parents (1 = yes)', 'Sesgos promediados de ambos padres (1 = sí)', 0, 1, 1),
+    b(GEN, 'blend', 'Biases averaged from both parents', 'Sesgos promediados de ambos padres'),
     n(GEN, 'bodyMutation', 'Mutation of each body gene', 'Mutación de cada gen del cuerpo', 0, 0.3, 0.005),
   ]},
   { title: { en: 'Tastes', es: 'Sabores' }, cat: 'food', fieldsOf: [
-    n(TASTE, 'enabled', 'Tastes and hidden chemistry (1 = yes)', 'Sabores y química oculta (1 = sí)', 0, 1, 1),
+    b(TASTE, 'enabled', 'Tastes and hidden chemistry', 'Sabores y química oculta'),
     n(TASTE, 'hedonic', 'Weight of how a bite tastes', 'Peso de cómo sabe un bocado', 0, 2, 0.05),
     n(TASTE, 'spitBelow', 'Liking under which she spits it out', 'Gusto bajo el cual lo escupe', -1, 1, 0.05),
     n(TASTE, 'spitPortion', 'Share she swallows of what she spits', 'Parte que traga de lo que escupe', 0, 1, 0.05),
     n(TASTE, 'learnWeight', 'How fast learning overrides innate liking', 'Rapidez con que lo aprendido pisa el gusto innato', 0, 5, 0.1),
     n(TASTE, 'burn', 'Health a very spicy bite takes', 'Salud que quita un bocado muy picante', 0, 30, 0.5),
     n(TASTE, 'salience', 'Blame a taste takes vs a look (×)', 'Culpa que se lleva un sabor frente a un aspecto (×)', 0.5, 5, 0.1),
-    n(TASTE, 'innate', 'Born liking and disliking tastes (1 = yes)', 'Nace con gustos y aversiones (1 = sí)', 0, 1, 1),
-    n(TASTE, 'learn', 'Tastes teach (1 = yes)', 'Los sabores enseñan (1 = sí)', 0, 1, 1),
-    n(TASTE, 'salt', 'Sodium is a need (1 = yes)', 'El sodio es una necesidad (1 = sí)', 0, 1, 1),
+    b(TASTE, 'innate', 'Born liking and disliking tastes', 'Nace con gustos y aversiones'),
+    b(TASTE, 'learn', 'Tastes teach', 'Los sabores enseñan'),
+    b(TASTE, 'salt', 'Sodium is a need', 'El sodio es una necesidad'),
     n(TASTE, 'saltLoss', 'Sodium lost per second (1 = full)', 'Sodio que pierde por segundo (1 = lleno)', 0, 0.01, 0.0001),
     n(TASTE, 'saltGain', 'Sodium a salty bite restores (×)', 'Sodio que repone un bocado salado (×)', 0, 2, 0.05),
     n(TASTE, 'saltCraving', 'Extra liking for salt when lacking it', 'Gusto extra por la sal cuando le falta', 0, 2, 0.05),
@@ -384,7 +391,7 @@ const GROUPS = [
     n(TASTE, 'twinShare', 'Share of their fruit that is the look-alike', 'Parte de sus frutos que es el doble', 0, 1, 0.05),
   ]},
   { title: { en: 'Food sources', es: 'Fuentes de comida' }, cat: 'food', fieldsOf: [
-    n(SOURCES, 'enabled', 'Learns which tree feeds her (1 = yes)', 'Aprende qué árbol la alimenta (1 = sí)', 0, 1, 1),
+    b(SOURCES, 'enabled', 'Learns which tree feeds her', 'Aprende qué árbol la alimenta'),
     n(SOURCES, 'near', 'Fruit within × a tree\'s radius is its fruit', 'La fruta a × el radio de un árbol es suya', 1, 5, 0.1),
   ]},
   ...TYPE_KEYS.map((key) => ({
@@ -604,51 +611,80 @@ export function createSettings(world, getFagi) {
     }
   }
 
+  // One setting: its name, a ↺ back to factory when changed, and its control
+  // (a switch, a segmented choice, or a slider with a box to type in).
   function row(field) {
-    const el = document.createElement('label');
-    el.className = 'field';
-    el.classList.toggle('changed', changed(field));
-    el.title = `${field.min} – ${field.max}`;
-    el.innerHTML = `<span>${field.label[getLang()] ?? field.label.en}</span>`;
-    const input = document.createElement('input');
-    if (field.toggle) {
-      el.classList.add('toggle');
-      el.title = '';
-      input.type = 'checkbox';
-      input.checked = read(field) === 1;
-      input.addEventListener('change', () => {
-        const before = read(field);
-        const v = input.checked ? 1 : 0;
-        write(field, v);
-        if (before !== v) onChange?.(field.id, before, v, 'user');
-        el.classList.toggle('changed', changed(field));
-        saveSoon();
-        buildNav();
-      });
-      el.append(input);
-      inputs.push({ field, input, row: el });
-      return el;
-    }
-    input.type = 'number';
-    input.min = field.min; input.max = field.max; input.step = field.step;
-    input.value = read(field);
-    input.inputMode = 'decimal';
-    input.addEventListener('input', () => {
-      // Empty field (being cleared to type another number): it's not 0.
-      if (input.value.trim() === '') return;
-      const v = bound(field, Number(input.value));
-      if (!Number.isFinite(v)) return;
+    const lang = getLang();
+    const el = document.createElement(field.toggle ? 'label' : 'div');
+    el.className = `field ${field.toggle ? 'toggle' : field.choices ? 'choice' : 'slider'}`;
+    const top = document.createElement('div');
+    top.className = 'field-top';
+    const name = document.createElement('span');
+    name.className = 'field-name';
+    name.textContent = field.label[lang] ?? field.label.en;
+    const reset = document.createElement('button');
+    reset.type = 'button';
+    reset.className = 'field-reset';
+    reset.textContent = '↺';
+    top.append(name, reset);
+    el.append(top);
+
+    const mark = () => {
+      const off = changed(field);
+      el.classList.toggle('changed', off);
+      reset.hidden = !off;
+      const factory = FACTORY.get(field);
+      const shown = field.toggle ? L(factory ? 'on' : 'off', factory ? 'encendido' : 'apagado')
+        : field.choices ? field.choices[factory]?.[lang] ?? factory : factory;
+      reset.title = L(`Back to factory (${shown})`, `Volver al de fábrica (${shown})`);
+    };
+    // `settled`: the change is done (not mid-drag), the counts catch up.
+    const set = (v, settled) => {
       const before = read(field);
       write(field, v);
       if (before !== v) onChange?.(field.id, before, v, 'user');
-      el.classList.toggle('changed', changed(field));
+      mark();
       saveSoon();
+      if (settled) buildNav();
+    };
+
+    let paint;
+    if (field.toggle) {
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      // Named, or a click on the text would press the ↺ (the label's first control).
+      input.id = `set-${field.id.replace(/\W+/g, '-')}`;
+      el.htmlFor = input.id;
+      input.addEventListener('change', () => set(input.checked ? 1 : 0, true));
+      top.append(input);
+      paint = (v) => { input.checked = v === 1; };
+    } else if (field.choices) {
+      const choice = makeChoice({
+        options: field.choices.map((o, i) => ({ value: field.min + i, label: o[lang] ?? o.en })),
+        value: read(field),
+        onInput: (v) => set(v, true),
+      });
+      el.append(choice.el);
+      paint = choice.set;
+    } else {
+      const s = makeSlider({
+        min: field.min, max: field.max, step: field.step, value: read(field),
+        onInput: (v) => set(bound(field, v), false),
+        onCommit: () => buildNav(),
+      });
+      top.append(s.box);
+      el.append(s.range);
+      paint = s.set;
+    }
+    reset.addEventListener('click', (e) => {
+      e.preventDefault();
+      const v = FACTORY.get(field);
+      set(v, true);
+      paint(v);
     });
-    // On leaving the field it shows what really stuck (clamped, or the
-    // previous one if left empty), and the counts catch up.
-    input.addEventListener('change', () => { input.value = read(field); buildNav(); });
-    el.append(input);
-    inputs.push({ field, input, row: el });
+    paint(read(field));
+    mark();
+    inputs.push({ field, paint, mark });
     return el;
   }
 
@@ -694,9 +730,9 @@ export function createSettings(world, getFagi) {
   build();
   onLangChange(build);
   refresh = () => {
-    for (const { field, input, row: el } of inputs) {
-      if (field.toggle) input.checked = read(field) === 1; else input.value = read(field);
-      el.classList.toggle('changed', changed(field));
+    for (const { field, paint, mark } of inputs) {
+      paint(read(field));
+      mark();
     }
     buildNav();
   };

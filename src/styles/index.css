@@ -4,6 +4,7 @@
    (mobile.css, with the narrow-screen @media, always goes last). */
 @import './base.css';
 @import './hud.css';
+@import './controls.css';
 @import './console.css';
 @import './settings.css';
 @import './immersive.css';

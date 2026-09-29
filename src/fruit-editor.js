@@ -14,6 +14,7 @@ import { paintFruitPreview } from './fruit-sprite.js';
 import { removePoint } from './world.js';
 import { setSetting } from './settings.js';
 import { t, getLang, onLangChange } from './i18n.js';
+import { sliderize } from './controls.js';
 
 const L = (en, es) => (getLang() === 'es' ? es : en);
 const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -70,6 +71,14 @@ export function createFruitEditor(world, { onFruitsChanged, onMapChanged }) {
     smell: $('fe-smell'), aroma: $('fe-aroma'), hunger: $('fe-hunger'), thirst: $('fe-thirst'),
     life: $('fe-life'), interval: $('fe-interval'), maxNear: $('fe-maxnear'), count: $('fe-count'),
   };
+  sliderize(fields.radius, { suffix: 'px' });
+  sliderize(fields.aroma);
+  sliderize(fields.hunger);
+  sliderize(fields.thirst);
+  sliderize(fields.life, { suffix: 's' });
+  sliderize(fields.interval, { suffix: 's' });
+  sliderize(fields.maxNear);
+  sliderize(fields.count);
   const tastesBox = $('fe-tastes');
   const effectsBox = $('fe-effects');
   const preview = $('fruit-preview');
@@ -78,19 +87,25 @@ export function createFruitEditor(world, { onFruitsChanged, onMapChanged }) {
   function buildChoices() {
     fields.shape.innerHTML = SHAPES.map((v) => `<option value="${v}">${esc(t(`trait.${v}`))}</option>`).join('');
     fields.smell.innerHTML = SMELLS.map((v) => `<option value="${v}">${esc(t(`trait.${v}`))}</option>`).join('');
+    // Tastes in percent on screen, 0-1 in the fruit.
     tastesBox.innerHTML = TASTES.map((k) => `<label class="fe-row"><span>${esc(t(`taste.${k}`))}</span>`
-      + `<input type="range" min="0" max="1" step="0.05" data-taste="${k}"><output></output></label>`).join('');
+      + `<input type="number" min="0" max="100" step="5" data-taste="${k}"></label>`).join('');
     effectsBox.innerHTML = FX_STATS.map((k) => `<div class="fe-fx" data-fx="${k}">`
-      + `<label><input type="checkbox"> ${esc(t(`fx.${k}`))}</label>`
-      + `<label>× <input type="number" min="0.1" max="4" step="0.05" data-part="mult"></label>`
-      + `<label><input type="number" min="1" max="120" step="1" data-part="sec"> s</label></div>`).join('');
+      + `<label class="fe-fx-name"><input type="checkbox"> ${esc(t(`fx.${k}`))}</label>`
+      + `<div class="fe-fx-vals"><label class="fe-row"><span>${esc(L('Strength', 'Fuerza'))}</span>`
+      + `<input type="number" min="0.1" max="4" step="0.05" data-part="mult"></label>`
+      + `<label class="fe-row"><span>${esc(L('Lasts', 'Dura'))}</span>`
+      + `<input type="number" min="1" max="120" step="1" data-part="sec"></label></div></div>`).join('');
+    for (const input of tastesBox.querySelectorAll('[data-taste]')) sliderize(input, { suffix: '%' });
+    for (const input of effectsBox.querySelectorAll('[data-part=mult]')) sliderize(input, { suffix: '×' });
+    for (const input of effectsBox.querySelectorAll('[data-part=sec]')) sliderize(input, { suffix: 's' });
     fields.name.placeholder = L('Fruit name', 'Nombre del fruto');
   }
 
   // The dialog's values as a definition, clean.
   function read() {
     const taste = {};
-    for (const input of tastesBox.querySelectorAll('[data-taste]')) taste[input.dataset.taste] = Number(input.value);
+    for (const input of tastesBox.querySelectorAll('[data-taste]')) taste[input.dataset.taste] = Number(input.value) / 100;
     const effects = [];
     for (const row of effectsBox.querySelectorAll('[data-fx]')) {
       if (!row.querySelector('input[type=checkbox]').checked) continue;
@@ -118,7 +133,7 @@ export function createFruitEditor(world, { onFruitsChanged, onMapChanged }) {
     fields.interval.value = def.tree.interval;
     fields.maxNear.value = def.tree.maxNear;
     fields.count.value = def.tree.count;
-    for (const input of tastesBox.querySelectorAll('[data-taste]')) input.value = def.taste[input.dataset.taste] ?? 0;
+    for (const input of tastesBox.querySelectorAll('[data-taste]')) input.value = Math.round((def.taste[input.dataset.taste] ?? 0) * 100);
     for (const row of effectsBox.querySelectorAll('[data-fx]')) {
       const e = def.effects.find((x) => x.stat === row.dataset.fx);
       row.querySelector('input[type=checkbox]').checked = Boolean(e);
@@ -129,14 +144,9 @@ export function createFruitEditor(world, { onFruitsChanged, onMapChanged }) {
     live();
   }
 
-  // What changes as the person moves a control: the numbers beside the
-  // sliders, the preview, and what she will perceive of it.
+  // What changes as the person moves a control: the effects shown, the
+  // preview, and what she will perceive of it.
   function live() {
-    for (const out of form.querySelectorAll('output')) {
-      const input = out.previousElementSibling;
-      const v = Number(input.value);
-      out.textContent = input.dataset.taste ? `${Math.round(v * 100)}%` : input === fields.hunger || input === fields.thirst ? (v > 0 ? `+${v}` : String(v)) : String(v);
-    }
     for (const row of effectsBox.querySelectorAll('[data-fx]')) row.classList.toggle('on', row.querySelector('input[type=checkbox]').checked);
     const def = read();
     const spec = specOfDef(def);
@@ -213,6 +223,8 @@ export function createFruitEditor(world, { onFruitsChanged, onMapChanged }) {
   const size = $('map-size');
   const pools = $('map-pools');
   const rocks = $('map-rocks');
+  sliderize(pools);
+  sliderize(rocks);
   function syncMap() {
     size.value = String(MAPGEN.size);
     pools.value = MAPGEN.pools;

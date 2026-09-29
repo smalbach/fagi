@@ -1,0 +1,89 @@
+/* --- shared controls (controls.js): switches, sliders with a box, choices --- */
+
+/* Every checkbox is an on/off switch: a pill track and a round knob that
+   slides across (stretching a little while pressed). */
+input[type=checkbox] {
+  appearance: none; -webkit-appearance: none;
+  --w: 36px; --h: 20px; --pad: 2px; --knob: calc(var(--h) - 2 * var(--pad));
+  flex: none; position: relative; margin: 0; vertical-align: middle;
+  width: var(--w); height: var(--h); border: 0; border-radius: 999px;
+  background: #3a3f4d;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04);
+  cursor: pointer; transition: background .2s ease, box-shadow .2s ease;
+}
+input[type=checkbox]::before {
+  content: ''; position: absolute; top: var(--pad); left: var(--pad);
+  width: var(--knob); height: var(--knob); border-radius: 999px;
+  background: #f4f5f8;
+  box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.25);
+  transition: left .22s cubic-bezier(.3,.7,.4,1.2), width .15s ease;
+}
+input[type=checkbox]:hover { background: #454b5b; }
+input[type=checkbox]:checked { background: var(--accent); box-shadow: inset 0 1px 2px rgba(0,0,0,.2); }
+input[type=checkbox]:checked:hover { background: color-mix(in srgb, var(--accent) 88%, white); }
+input[type=checkbox]:checked::before { left: calc(var(--w) - var(--knob) - var(--pad)); }
+input[type=checkbox]:active::before { width: calc(var(--knob) + 5px); }
+input[type=checkbox]:checked:active::before { left: calc(var(--w) - var(--knob) - 5px - var(--pad)); }
+input[type=checkbox]:disabled { opacity: .45; cursor: default; }
+input[type=checkbox]:focus-visible, .ns-range:focus-visible, .seg button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, white); outline-offset: 2px;
+}
+
+/* A slider plus a box to type the exact number. */
+.ns { display: flex; align-items: center; gap: 8px; min-width: 0; width: 100%; }
+.ns-range {
+  appearance: none; -webkit-appearance: none;
+  flex: 1; min-width: 60px; width: auto; height: 18px; margin: 0;
+  background: transparent; cursor: pointer;
+}
+.ns-range::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 2px;
+  background: linear-gradient(to right, var(--accent) var(--fill, 0%), #3a3f4e var(--fill, 0%));
+}
+.ns-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; margin-top: -5px; border-radius: 50%;
+  background: #eef0f4; border: 2px solid var(--accent);
+  box-shadow: 0 1px 4px rgba(0,0,0,.5); transition: transform .12s;
+}
+.ns-range:hover::-webkit-slider-thumb, .ns-range:active::-webkit-slider-thumb { transform: scale(1.18); }
+.ns-range::-moz-range-track { height: 4px; border-radius: 2px; background: #3a3f4e; }
+.ns-range::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--accent); }
+.ns-range::-moz-range-thumb {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #eef0f4; border: 2px solid var(--accent); box-shadow: 0 1px 4px rgba(0,0,0,.5);
+}
+.ns-box {
+  flex: none; width: 64px; padding: 3px 6px;
+  background: #2a2e3a; color: var(--text); border: 1px solid var(--line); border-radius: 5px;
+  font: inherit; font-size: 12px; text-align: right; font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield; appearance: textfield;
+}
+.ns-box::-webkit-inner-spin-button, .ns-box::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.ns-box:focus { outline: none; border-color: var(--accent); }
+.ns-unit { flex: none; margin-left: -4px; font-size: 11px; color: var(--muted); }
+
+/* A choice between a few named values: equal segments in one row, the
+   chosen one raised. */
+.seg {
+  display: inline-flex; gap: 2px; padding: 3px; max-width: 100%;
+  background: #252933; border-radius: 8px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04);
+}
+.seg button {
+  flex: 1 1 0; min-width: 0; width: auto; padding: 4px 10px;
+  border: 0; border-radius: 6px; background: none;
+  color: var(--muted); font-size: 11.5px; font-weight: 500;
+  justify-content: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.seg button:hover:not(.on) { color: var(--text); background: rgba(255,255,255,.04); }
+.seg button.on {
+  background: #3b4152; color: var(--text); font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,.4), inset 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* A switch with its text beside it. */
+.switch-row { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+/* The HUD's "tree drops fruit every": name on top, slider below. */
+.label.tree-every { flex-direction: column; gap: 4px; }
