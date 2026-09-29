@@ -9,9 +9,11 @@ export function createEffects() {
 
 // `portion` below 1 (a trial bite): the multiplier that much closer to 1, for
 // that share of the time.
-export function applyEffects(fagi, typeKey, portion = 1) {
+// `effects`: what this very fruit carries, when it is not what its kind usually
+// does (a look-alike, TASTE).
+export function applyEffects(fagi, typeKey, portion = 1, effects = null) {
   const spec = POINT_TYPES[typeKey];
-  for (const e of spec.effects) {
+  for (const e of effects ?? spec.effects) {
     const mult = portion === 1 ? e.mult : Math.round(e.mult ** portion * 1000) / 1000;
     fagi.effects[e.stat] = {
       mult,

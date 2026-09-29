@@ -86,3 +86,26 @@ test('salt makes her thirsty', () => {
   delete POINT_TYPES.test_salt;
   TASTE.enabled = 0;
 });
+
+test('a look-alike: the same look, another mix; only the tongue tells, and it tastes wrong', async () => {
+  const { specOfFruit, drawVariant } = await import('../src/chemistry.js');
+  const { tastesWrong } = await import('../src/taste.js');
+  TASTE.enabled = 1;
+  POINT_TYPES.test_mimic = {
+    color: '#888', radius: 6, aroma: 100, life: 100, hunger: -30, effects: [], taste: { sweet: 0.9 },
+    traits: { color: 'red', shape: 'drop', smell: 'sweet' },
+    twin: { share: 1, hunger: 25, thirst: 0, burn: 0, effects: [{ stat: 'speed', mult: 0.6, sec: 5 }], taste: { bitter: 0.8 } },
+  };
+  assert.equal(drawVariant('test_mimic'), 'twin');
+  assert.equal(specOfFruit('test_mimic', 'twin').hunger, 25);
+  assert.equal(specOfFruit('test_mimic').hunger, -30);
+  const fagi = createFagi();
+  eat(fagi, 'test_mimic');                        // the good one: she learns it is good
+  assert.ok(fagi.brain.facts.test_mimic.value > 0);
+  assert.equal(tastesWrong(fagi, 'test_mimic', { bitter: 0.8 }), true);
+  eat(fagi, 'test_mimic', { variant: 'twin' });   // same look, bitter: she spits it out
+  assert.equal(fagi.lastSpit?.variant, 'twin');
+  assert.ok(fagi.brain.cues['taste:bitter'].w < 0, 'what the bitter one did, the bitter taste learns');
+  delete POINT_TYPES.test_mimic;
+  TASTE.enabled = 0;
+});

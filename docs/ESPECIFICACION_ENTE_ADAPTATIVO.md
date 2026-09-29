@@ -2119,6 +2119,25 @@ La población se regula antes de chocar con el techo. Hay más generaciones porq
 - **Aprender del sabor mejora un poco el juicio** (+0,02 a +0,03), pero no reduce el veneno. Al contrario, sube algo (0,94 frente a 0,84): lo aprendido vence a veces al disgusto innato, y no todo lo amargo es inofensivo.
 - **Sabores adquiridos, sí, pero por especie.** Llega a comer entera un tercio de la fruta que de nacimiento escupiría. Casi siempre es porque el bocado escupido le enseñó que esa especie alimenta. Pocas veces porque lo aprendido del sabor se extienda a una especie nueva (0,04–0,08 por vida). La saliencia del sabor (Garcia) no cambia esto: juicio 0,851 con saliencia 1, 0,854 con 2 y 0,857 con 3.
 
+**Mimetismo: cuando la vista engaña** (`TASTE.mimics`). En cada mapa, 2 especies nutritivas tienen una gemela venenosa idéntica por fuera. Una parte de sus frutos (`TASTE.twinShare`, 35 %) es la gemela, que casi siempre sabe amarga y a veces no sabe a nada raro. Se resuelve por fruto, no por especie: su memoria está indexada por el aspecto, y separarlas por un nombre sería una fuga. Solo la lengua lo nota. Si algo que conoce como bueno le sabe a un sabor que nunca notó en esa fruta, ya no se fía de lo que sabía de ella y decide por el gusto: la escupe. La despensa no guarda qué gemela era: al comer de ella, el azar es el del árbol.
+
+Medido con 96 vidas pareadas, 12 especies (pruebas pareadas por signo, sin corregir, exploratorio):
+
+| | Completo | Sin aprender del sabor − completo | Sin gusto innato − completo |
+|---|---|---|---|
+| veneno (frutas) | 1,30 | −0,09 [−0,24, 0,05] | +0,10 [−0,05, 0,25] |
+| veneno de gemelas | 0,38 | −0,07 [−0,18, 0,04] | +0,05 [−0,07, 0,16] |
+| juicio | 0,80 | −0,015 [−0,034, 0,002] | +0,009 [−0,009, 0,027] |
+| sabores adquiridos en especies nuevas | 0,115 | −0,07 [−0,16, 0] | −0,12 [−0,20, −0,05] |
+
+**Ni aprender del sabor ni el gusto innato cambian de forma apreciable cuánto veneno toma**, ni siquiera con gemelas que solo el sabor delata. Tres motivos:
+
+1. **Lo amargo es ambiguo.** En cada mapa hay amargos inofensivos, y lo que aprende de «amargo» queda a medio camino.
+2. **Casi todo lo nuevo lo prueba con un bocado pequeño**, así que escupir ahorra poco.
+3. **La gemela solo «sabe raro» si la primera vez comió la buena.** Si la primera vez comió la gemela, lo amargo pasa a ser lo normal de esa fruta.
+
+El sabor cambia cómo come (escupe, adquiere sabores, desconfía de lo que sabe raro), pero no cuánto veneno toma. Con 48 vidas parecía que el gusto innato salvaba vidas; con 96 no se sostiene. Se publica así.
+
 **Criterio de salida: a medias.** Sí llega a comer lo amargo inofensivo y lo picante nutritivo que su gusto innato rechazaba (un tercio de ello). No aprende a comer con menos veneno que con el gusto innato solo.
 
 El sabor añade realismo, porque el mundo ya no es una tabla de tipos, y añade una protección innata. En este mundo casi todo se aprende antes por la vista. Pesaría más en un mundo donde lo que se ve engaña (especies iguales por fuera y distintas por dentro) o con venenos más fuertes. Eso queda anotado como siguiente paso de esta fase.
@@ -2138,7 +2157,7 @@ Aprender que los árboles dan fruta cuesta poco: unos segundos de vida en clima 
 
 ### 25.3 Pendiente
 
-- Fase 8: un mundo donde la vista engañe (especies de aspecto igual y composición distinta, mimetismo) y donde el sabor sea lo que decide; apetito por la sal según la necesidad.
+- Fase 8: apetito por la sal según la necesidad (el sodio como necesidad propia, que sube la valencia de lo salado cuando falta; Richter); venenos más fuertes o más frecuentes, donde escupir importe más.
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
 - Fase 6, lo que queda del §12.3:
   - (resuelto en §12.10: roca, agua y nido quedan como capacidades innatas, con lo que se aprende de cada uno; los árboles pasan a aprenderse)

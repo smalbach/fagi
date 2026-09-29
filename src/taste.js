@@ -5,7 +5,9 @@
 // is born with, corrected by what she has learned those tastes lead to (the
 // 'taste:*' cues, learned/cues.js). Disliking it enough, she spits it out and
 // swallows only a mouthful, unless she is starving (need beats disgust) or
-// already knows this very fruit does her good (an acquired taste).
+// already knows this very fruit does her good (an acquired taste), unless it
+// tastes of something she never tasted in that fruit before: then it tastes
+// wrong, and what she knew of the fruit does not vouch for it (a look-alike).
 
 import { TASTE, HUNGER, NEEDS } from './config.js';
 import { POINT_TYPES } from './config.js';
@@ -16,8 +18,8 @@ import { weight } from './memory.js';
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
 
 // How much she likes it by birth alone (-1..1).
-export function innateLiking(key) {
-  const t = POINT_TYPES[key]?.taste;
+export function innateLiking(key, taste = null) {
+  const t = taste ?? POINT_TYPES[key]?.taste;
   if (!t || !TASTE.innate) return 0;
   let v = 0;
   for (const [taste, amount] of Object.entries(t)) v += (TASTE.valence[taste] ?? 0) * amount;
@@ -25,17 +27,17 @@ export function innateLiking(key) {
 }
 
 // The taste that stands out most, to say what it tasted of.
-export function dominantTaste(key) {
-  const t = POINT_TYPES[key]?.taste;
+export function dominantTaste(key, taste = null) {
+  const t = taste ?? POINT_TYPES[key]?.taste;
   if (!t) return null;
   return Object.entries(t).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 }
 
 // How much she likes it now: her innate liking, overridden as she learns what
 // these tastes lead to.
-export function liking(fagi, key) {
-  const innate = innateLiking(key);
-  const cues = tasteCuesOf(key);
+export function liking(fagi, key, taste = null) {
+  const innate = innateLiking(key, taste);
+  const cues = tasteCuesOf(key, taste);
   if (!cues.length) return innate;
   const learned = predict(fagi.brain.cues ?? {}, cues);
   const c = Math.min(1, learned.confidence * TASTE.learnWeight);
@@ -44,13 +46,27 @@ export function liking(fagi, key) {
 
 // At the mouth: how much of the bite she swallows. `portion` is what she meant
 // to eat (a trial bite is already small: she swallows it).
-export function atMouth(fagi, key, portion) {
-  if (!TASTE.enabled || !POINT_TYPES[key]?.taste) return { portion, spat: false, innate: null };
-  const innate = innateLiking(key);
+// Does it taste of something she never tasted in this fruit?
+export function tastesWrong(fagi, key, taste = null) {
+  const known = fagi.brain.flavors?.[key];
+  if (!known) return false;
+  return tasteCuesOf(key, taste).some((c) => !known.includes(c));
+}
+
+// What she has tasted in each fruit, to notice when one tastes wrong.
+export function noteFlavor(fagi, key, taste = null) {
+  const known = ((fagi.brain.flavors ??= {})[key] ??= []);
+  for (const c of tasteCuesOf(key, taste)) if (!known.includes(c)) known.push(c);
+}
+
+export function atMouth(fagi, key, portion, taste = null) {
+  const t = taste ?? POINT_TYPES[key]?.taste;
+  if (!TASTE.enabled || !t) return { portion, spat: false, innate: null };
+  const innate = innateLiking(key, t);
   if (portion < 1) return { portion, spat: false, innate };
   const starving = fagi.hunger / HUNGER.max >= NEEDS.critical;
-  const knownGood = (fagi.brain.facts[key]?.tries ?? 0) > 0 && weight(fagi.brain, key) > 0;
-  if (!starving && !knownGood && liking(fagi, key) < TASTE.spitBelow) {
+  const knownGood = (fagi.brain.facts[key]?.tries ?? 0) > 0 && weight(fagi.brain, key) > 0 && !tastesWrong(fagi, key, t);
+  if (!starving && !knownGood && liking(fagi, key, t) < TASTE.spitBelow) {
     return { portion: TASTE.spitPortion, spat: true, innate };
   }
   return { portion, spat: false, innate };

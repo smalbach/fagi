@@ -1,7 +1,8 @@
 // Eating and carrying. The rule is simple: when hungry you eat, when not hungry you work.
 
 import { HUNGER, THIRST, CARRY, POINT_TYPES, HEALTH, TASTE } from './config.js';
-import { atMouth, dominantTaste } from './taste.js';
+import { atMouth, dominantTaste, noteFlavor } from './taste.js';
+import { specOfFruit, tasteCuesOf } from './chemistry.js';
 import { hurt } from './health.js';
 import { habit } from './habits.js';
 import { pointTouching, removePoint } from './world.js';
@@ -37,11 +38,11 @@ export function tryPickOrEat(fagi, world) {
   const mayEat = canEat(fagi, p.type);
   // One of last night's questions, and she came for it: a trial bite.
   if (fagi.target === p && mayEat && fagi.thought?.action === 'taste' && onAgenda(fagi, p.type)) {
-    eat(fagi, p.type, { portion: EXPERIMENT.portion });
+    eat(fagi, p.type, { portion: EXPERIMENT.portion, variant: p.variant });
     answered(fagi, p.type);
     removePoint(world, p, 'tasted');
   } else if (hungry && mayEat) {
-    eat(fagi, p.type);
+    eat(fagi, p.type, { variant: p.variant });
     removePoint(world, p, 'eaten');
   } else if (verdict(fagi, 'store', p.type) === 'avoid') {
     // Trying it out of curiosity is one thing; filling the pantry with what she believes
@@ -52,7 +53,7 @@ export function tryPickOrEat(fagi, world) {
   } else if (!fagi.carrying && edibleCount(fagi, fagi.pantry) < habit(fagi, 'reserve') && !aversive(fagi, p.type)) {
     // The fruit keeps the age it already had: storing it preserves it, it doesn't
     // make it younger.
-    fagi.carrying = { type: p.type, age: p.age ?? 0 };
+    fagi.carrying = { type: p.type, age: p.age ?? 0, ...(p.variant ? { variant: p.variant } : {}) };
     fagi.picked = (fagi.picked ?? 0) + 1;
     removePoint(world, p, 'picked');
   } else {
@@ -67,10 +68,10 @@ export function tryPickOrEat(fagi, world) {
 // looking for another. In an emergency she tries it, just as she would with food on the ground.
 export function eatCarried(fagi) {
   if (!fagi.carrying) return false;
-  const { type } = fagi.carrying;
+  const { type, variant } = fagi.carrying;
   if (!POINT_TYPES[type] || !canEat(fagi, type)) return false;
   fagi.carrying = null;
-  eat(fagi, type);
+  eat(fagi, type, { variant });
   return true;
 }
 
@@ -82,11 +83,12 @@ export function eatCarried(fagi) {
 // noisy outcomes: the same fruit does not always do the same).
 // `portion` below 1 is a trial bite (experiment.js): that share of the hunger,
 // and each effect that much weaker and shorter.
-export function eat(fagi, type, { hunger = null, portion: meant = 1 } = {}) {
-  const spec = POINT_TYPES[type];
+export function eat(fagi, type, { hunger = null, portion: meant = 1, variant = null } = {}) {
+  // This very fruit: its kind, or a look-alike of it (TASTE; same look, another mix).
+  const spec = specOfFruit(type, variant);
   const before = snapshotBody(fagi);
   // In the mouth (TASTE, taste.js): she may spit most of it out.
-  const mouth = atMouth(fagi, type, meant);
+  const mouth = atMouth(fagi, type, meant, spec.taste);
   const portion = mouth.portion;
   const added = (hunger ?? spec.hunger) * portion;
   fagi.hunger = Math.min(HUNGER.max, Math.max(0, fagi.hunger + added));
@@ -95,14 +97,18 @@ export function eat(fagi, type, { hunger = null, portion: meant = 1 } = {}) {
     if (spec.thirst) fagi.thirst = Math.min(THIRST.max, Math.max(0, fagi.thirst + spec.thirst * portion));
     if (spec.burn) hurt(fagi, TASTE.burn * spec.burn * portion, 'burn');
   }
-  applyEffects(fagi, type, portion);
-  if (mouth.spat) fagi.lastSpit = { n: (fagi.lastSpit?.n ?? 0) + 1, key: type, taste: dominantTaste(type) };
+  applyEffects(fagi, type, portion, variant ? spec.effects : null);
+  if (mouth.spat) fagi.lastSpit = { n: (fagi.lastSpit?.n ?? 0) + 1, key: type, taste: dominantTaste(type, spec.taste), variant };
+  // What she learns from this bite, she learns of the tastes it really had.
+  if (TASTE.enabled && spec.taste) fagi.brain.tasting = tasteCuesOf(type, spec.taste);
   const ep = openEpisode(fagi, { action: 'eat', key: type, before, portion, taste: mouth.innate });
+  fagi.brain.tasting = null;
+  if (TASTE.enabled && spec.taste) noteFlavor(fagi, type, spec.taste);
   fagi.eaten += 1;
   afterBite(fagi, ep.reward, added, type);
   if (added > 0) hurt(fagi, HEALTH.poison * portion, 'poison');   // poison harms her too (health.js)
   fagi.lastMeal = {
-    n: fagi.eaten, type,
+    n: fagi.eaten, type, variant,
     beliefBefore: ep.change.before.value,
     beliefAfter: ep.change.after.value,
     kind: ep.change.kind,

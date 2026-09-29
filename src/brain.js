@@ -134,7 +134,7 @@ export function learn(brain, key, reward, now, because = []) {
   logBite(brain, key, reward, now, because.some((s) => s.sense === 'peril'));
   // The same experience teaches about each trait of what she ate, and, with
   // TASTE, about each taste she felt in her mouth (taste.js).
-  const traits = CUES.enabled ? [...cuesOf(key), ...(TASTE.enabled && TASTE.learn ? tasteCuesOf(key) : [])] : [];
+  const traits = CUES.enabled ? [...cuesOf(key), ...(TASTE.enabled && TASTE.learn ? brain.tasting ?? tasteCuesOf(key) : [])] : [];
   if (traits.length) {
     learnCues(brain.cues, traits, reward, now, CUES.rate, TASTE.enabled ? tasteSalience : null);
     // Rules about traits: induced from whole species (learned/induce.js), or

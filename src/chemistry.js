@@ -234,6 +234,7 @@ export function createTasteChemistry(rnd = Math.random) {
     taste: true,
     color: { [colors[0]]: 'speed', [colors[1]]: 'sight', [colors[2]]: 'metabolism' },
     compositions: {},
+    twins: {},
     inverted: false,
   };
 }
@@ -257,17 +258,26 @@ export function tasteEffect(chem, comp) {
   };
 }
 
+// What one composition does, as the fields of a fruit spec.
+function bodyOf(chem, comp, buff) {
+  const fx = tasteEffect(chem, comp);
+  return {
+    hunger: fx.hunger, thirst: fx.thirst, burn: fx.burn, taste: { ...comp.taste },
+    effects: [...(fx.feed === 'poison' ? POISON_EFFECTS : []), ...(buff ? BUFFS[buff] : [])],
+  };
+}
+
 function tasteSpeciesUnder(chem, traits) {
   const key = speciesKey(traits);
-  const comp = chem.compositions[key];
-  const fx = tasteEffect(chem, comp);
   const buff = chem.color[traits.color];
+  const twin = chem.twins?.[key];
   return {
     key,
     spec: {
       color: COLOR_HEX[traits.color], radius: 6, aroma: 130, life: 200,
-      hunger: fx.hunger, thirst: fx.thirst, burn: fx.burn, taste: { ...comp.taste },
-      effects: [...(fx.feed === 'poison' ? POISON_EFFECTS : []), ...(buff ? BUFFS[buff] : [])],
+      ...bodyOf(chem, chem.compositions[key], buff),
+      // Its poisonous look-alike: the same look, another mix (TASTE.mimics).
+      ...(twin ? { twin: { share: TASTE.twinShare, ...bodyOf(chem, twin, buff) } } : {}),
       traits, painter: SHAPE_PAINTER[traits.shape], species: true,
     },
   };
@@ -300,14 +310,40 @@ function createTasteSpecies(chem, count, rnd) {
       break;
     }
   }
+  // Look-alikes: some nourishing species get a poisonous twin with the same
+  // look. Mostly it tastes bitter; now and then of nothing unusual (TASTE.toxicBitter).
+  let mimics = 0;
+  for (const s of out) {
+    if (mimics >= TASTE.mimics) break;
+    if (tasteEffect(chem, chem.compositions[s.key]).feed !== 'nourishing') continue;
+    const base = chem.compositions[s.key].taste;
+    const taste = rnd() < TASTE.toxicBitter
+      ? { bitter: r2(0.5 + 0.5 * rnd()) }
+      : { ...base };
+    chem.twins[s.key] = { taste, toxic: true };
+    Object.assign(s, tasteSpeciesUnder(chem, s.spec.traits));
+    mimics += 1;
+  }
   return out;
 }
 
 // The tastes of a fruit type (what the tongue says), as cues: 'taste:bitter'.
 // Only what is there enough to notice.
-export function tasteCuesOf(key) {
-  const t = POINT_TYPES[key]?.taste;
+export function tasteCuesOf(key, taste = null) {
+  const t = taste ?? POINT_TYPES[key]?.taste;
   return t ? Object.entries(t).filter(([, v]) => v >= 0.3).map(([k]) => `taste:${k}`) : [];
+}
+
+// The fruit that falls from a species with a look-alike: this one or its twin.
+export function drawVariant(key, rnd = Math.random) {
+  const twin = TASTE.enabled ? POINT_TYPES[key]?.twin : null;
+  return twin && rnd() < twin.share ? 'twin' : null;
+}
+
+// What this very fruit is: its kind's spec, or its look-alike's.
+export function specOfFruit(key, variant = null) {
+  const spec = POINT_TYPES[key];
+  return variant === 'twin' && spec?.twin ? { ...spec, ...spec.twin } : spec;
 }
 
 // Species are part of the map: a new map drops the old ones.

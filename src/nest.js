@@ -9,6 +9,7 @@ import { verdict } from './learned/rules.js';
 import { storedHarm, spoiledRations } from './habits.js';
 import { canEat } from './appetite.js';
 import { lineNest } from './things.js';
+import { drawVariant } from './chemistry.js';
 
 export function nestUnder(fagi, world) {
   const nestObj = nestOf(world);
@@ -45,7 +46,7 @@ export function useNest(fagi, world) {
       takeFromNest(nestObj, best);
       record(world, 'nest_take', { what: best });
       const firstBite = !(fagi.brain.facts[best]?.tries > 0);
-      eat(fagi, best);
+      eat(fagi, best, { variant: drawVariant(best) });   // a stored look-alike (TASTE) is as likely as on the tree
       // She had stored it without ever tasting it, and it harms her.
       storedHarm(fagi, best, firstBite, fagi.lastMeal?.reward ?? 0);
       fagi.lastPantry = { n: (fagi.lastPantry?.n ?? 0) + 1, type: best };

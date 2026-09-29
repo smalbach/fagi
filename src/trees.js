@@ -3,6 +3,7 @@
 
 import { TREE } from './config.js';
 import { addPoint, removeObject } from './world.js';
+import { drawVariant } from './chemistry.js';
 import { isTree, radiusOf, waterZone } from './obstacles.js';
 
 export function treesOf(world) {
@@ -43,7 +44,9 @@ export function updateTrees(world, dt) {
     const y = Math.min(world.height - 10, Math.max(10, tree.y + Math.sin(ang) * dist));
     // Fruit that falls in the water is carried off by it: nobody can pick it up.
     if (waterZone(world, x, y)) continue;
-    addPoint(world, x, y, tree.fruit ?? TREE.fruit, tree.id);
+    const p = addPoint(world, x, y, tree.fruit ?? TREE.fruit, tree.id);
+    const variant = drawVariant(p.type);   // a look-alike's fruit (TASTE), same look
+    if (variant) p.variant = variant;
     tree.lastDrop = (tree.lastDrop ?? 0) + 1;
   }
 }

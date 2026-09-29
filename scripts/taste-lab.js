@@ -13,9 +13,13 @@
 //              she came to eat whole; of those present on the map
 //   acquiredNew  of those, first met already swallowed whole: what she learned of
 //              the taste, not of the species, let her
+//   twinDose   poison taken from look-alikes (TASTE.mimics): the same look as a good
+//              species, another mix inside
+//   twinSpits  look-alikes she spat out; goodOfMimics, whole good fruit of those species
+//              she ate (a good fruit with a poisonous twin is still food)
 //   lifetime, alive, cause
 //
-//   node scripts/taste-lab.js [--lives 48] [--seed 5000] [--map 3] [--duration 2400] [--set BLOCK.key=V ...]
+//   node scripts/taste-lab.js [--lives 48] [--seed 5000] [--map 3] [--duration 2400] [--set BLOCK.key=V ...] [--json file]
 
 import { createWorld } from '../src/world.js';
 import { generateMap } from '../src/mapgen.js';
@@ -23,12 +27,13 @@ import { createFagi, updateFagi } from '../src/fagi.js';
 import { stepWorld } from '../src/simulation.js';
 import { enableOrganism } from '../src/organism.js';
 import * as CONFIG from '../src/config.js';
-import { isHarmful, registerSpecies, speciesKeys } from '../src/chemistry.js';
+import { isHarmful, registerSpecies, speciesKeys, specOfFruit } from '../src/chemistry.js';
 import { verdict } from '../src/learned/rules.js';
 import { aversive } from '../src/appetite.js';
 import { cuesOf } from '../src/learned/cues.js';
 import { innateLiking, liking } from '../src/taste.js';
 import { rng, withRng } from './batch/random.js';
+import { writeFileSync } from 'node:fs';
 
 const args = process.argv.slice(2);
 const opt = (name, dflt) => (args.includes(`--${name}`) ? Number(args[args.indexOf(`--${name}`) + 1]) : dflt);
@@ -64,19 +69,25 @@ for (let i = 0; i < LIVES; i++) {
   const firstWhole = new Set();
   const met = new Set();
   let dose = 0; let spits = 0; let spitsGood = 0; let eaten = 0; let spit = 0;
+  let twinDose = 0; let twinSpits = 0; let goodOfMimics = 0;
+  const harmful = (key, variant) => (specOfFruit(key, variant)?.hunger ?? 0) > 0;
   for (let s = 0; s < SECONDS / DT && fagi.alive; s++) {
     withRng(worldRng, () => stepWorld(world, DT));
     withRng(fagiRng, () => updateFagi(fagi, world, DT));
     if (fagi.lastSpit && fagi.lastSpit.n !== spit) {
       spit = fagi.lastSpit.n;
       spits += 1;
-      if (!isHarmful(fagi.lastSpit.key)) spitsGood += 1;
+      if (!harmful(fagi.lastSpit.key, fagi.lastSpit.variant)) spitsGood += 1;
+      if (fagi.lastSpit.variant === 'twin') twinSpits += 1;
     }
     if (fagi.eaten === eaten || !fagi.lastMeal) continue;
     eaten = fagi.eaten;
     const key = fagi.lastMeal.type;
+    const variant = fagi.lastMeal.variant ?? null;
     const portion = fagi.lastEpisode?.portion ?? 1;
-    if (isHarmful(key)) dose += portion;
+    if (harmful(key, variant)) dose += portion;
+    if (variant === 'twin' && harmful(key, variant)) twinDose += portion;
+    if (!variant && specOfFruit(key)?.twin && portion === 1) goodOfMimics += 1;
     if (portion === 1) { whole.add(key); if (!met.has(key)) firstWhole.add(key); }
     met.add(key);
   }
@@ -88,7 +99,7 @@ for (let i = 0; i < LIVES; i++) {
   }
   rows.push({
     judgment: ((hit + miss ? hit / (hit + miss) : 1) + (ok + fa ? ok / (ok + fa) : 1)) / 2,
-    dose, spits, spitsGood,
+    dose, spits, spitsGood, twinDose, twinSpits, goodOfMimics,
     disliked: disliked.length,
     acquired: disliked.filter((k) => whole.has(k)).length,
     acquiredNew: disliked.filter((k) => firstWhole.has(k)).length,
@@ -102,7 +113,8 @@ const mean = (k) => rows.reduce((a, r) => a + r[k], 0) / rows.length;
 const se = (k) => { const m = mean(k); return Math.sqrt(rows.reduce((a, r) => a + (r[k] - m) ** 2, 0) / (rows.length - 1) / rows.length); };
 const sets = args.filter((a, k) => args[k - 1] === '--set').join(' ');
 console.log(`${LIVES} lives × ${SECONDS}s, taste ${CONFIG.TASTE.enabled}${sets ? `, ${sets}` : ''}`);
-for (const k of ['judgment', 'dose', 'spits', 'spitsGood', 'disliked', 'acquired', 'acquiredNew', 'lifetime', 'alive']) console.log(`  ${k.padEnd(11)} ${mean(k).toFixed(3)} ± ${se(k).toFixed(3)}`);
+for (const k of ['judgment', 'dose', 'twinDose', 'twinSpits', 'goodOfMimics', 'spits', 'spitsGood', 'disliked', 'acquired', 'acquiredNew', 'lifetime', 'alive']) console.log(`  ${k.padEnd(11)} ${mean(k).toFixed(3)} ± ${se(k).toFixed(3)}`);
 const causes = {};
 for (const r of rows) if (r.cause) causes[r.cause] = (causes[r.cause] ?? 0) + 1;
 console.log('  deaths     ', JSON.stringify(causes));
+if (args.includes('--json')) writeFileSync(args[args.indexOf('--json') + 1], JSON.stringify(rows));

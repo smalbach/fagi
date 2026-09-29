@@ -946,6 +946,9 @@ export const HEALTH = {
 //   spitPortion  : what she swallows of what she spits
 //   learnWeight  : how fast what she learned of tastes overrides her innate liking
 //   burn         : health a fully spicy bite takes (with HEALTH)
+//   mimics       : nourishing species of a map that have a poisonous look-alike: the
+//                same look, another mix inside (mostly bitter); twinShare of their fruit
+//                is the look-alike. Only the tongue tells them apart
 //   salience     : how much more readily a taste takes the blame for a bite than a look
 //                does (Garcia and Koelling, 1966); 1 = the same
 //   innate       : 0 = born liking nothing and disliking nothing (an ablation)
@@ -960,6 +963,8 @@ export const TASTE = {
   spitPortion: 0.2,
   learnWeight: 1.5,
   burn: 4,
+  mimics: 2,
+  twinShare: 0.35,
   salience: 2,
   innate: 1,
   learn: 1,
