@@ -58,7 +58,17 @@ export function temperatureOf(fagi) {
   return CHOICE.temper * (c.innate ?? 1) * (1 + CHOICE.surpriseHeat * c.volatility);
 }
 
-const siteUtility = (fagi, s) => s.value * s.confidence - CHOICE.cost * distanceTo(fagi, s) / MEMORY.travelRange;
+// What going back to a site is worth: what she expects to find there, less the
+// walk. How sure she is doesn't lower it — what she expects already drops
+// when she finds it empty — it makes her estimate looser: the less she
+// trusts a site, the more its worth wobbles from one choice to the next.
+// (CHOICE.trustDiscount = 1: trust multiplies the worth instead, as first
+// measured in spec §25.22.)
+function siteUtility(fagi, s) {
+  const walk = CHOICE.cost * distanceTo(fagi, s) / MEMORY.travelRange;
+  if (CHOICE.trustDiscount) return s.value * s.confidence - walk;
+  return s.value - walk + CHOICE.doubt * (1 - s.confidence) * gauss();
+}
 
 // The options she has now, and what each is worth to her.
 export function optionsOf(fagi) {

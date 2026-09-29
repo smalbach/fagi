@@ -55,7 +55,9 @@ test('with little noise she takes the option worth more; with a lot, both', () =
     let site = 0;
     withRng(rng(21), () => {
       for (let i = 0; i < 200; i++) {
-        const { world, fagi } = scene();
+        const { world, fagi, site: known } = scene();
+        known.value = 0.5;        // a middling site she is sure of: no wobble
+        known.confidence = 1;
         if (look(fagi, world)) site++;
       }
     });

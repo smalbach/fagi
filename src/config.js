@@ -632,6 +632,8 @@ export const CHOICE = {
   explorePrior: 0.4,  // what she expects of exploring before she has tried it
   rate: 0.25,         // how far one search moves what she expects of exploring (× the surprise)
   cost: 0.3,          // value a site loses per MEMORY.travelRange of walk
+  doubt: 0.3,         // how much her estimate of a site wobbles when she doesn't trust it at all
+  trustDiscount: 0,   // 1 = trust multiplies a site's worth (as first measured, spec §25.22); 0 = it only loosens it
   temper: 0.15,       // her noise when choosing: how much chance the worse option keeps
   temperSpread: 0.5,  // how much that noise differs between individuals from birth (0 = all alike)
   surpriseHeat: 1,    // how much her recent surprises raise her noise

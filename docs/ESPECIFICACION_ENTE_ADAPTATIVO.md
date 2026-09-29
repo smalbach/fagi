@@ -1800,7 +1800,7 @@ Recoge lo implementado en las fases 0 a 8 y lo medido de cada una. Las secciones
   - mantiene el plan hasta que se resuelve: llega al sitio, encuentra comida explorando, o lo busca el tiempo suficiente sin suerte (el reloj se para mientras duerme o no quiere comida); llevar comida al nido lo termina sin juzgarlo;
   - políticas fijas para la F1: siempre volver (`CHOICE.policy = 1`) y siempre explorar (`2`);
   - resumen `choice` en `batch.js`, con sus primeras cinco decisiones para la F3; ajustes en «Explorar o volver: la elección»; pruebas en `test/choice.test.js`.
-  Resultado exploratorio en el §25.22: **no mejora sobre las políticas fijas.**
+  Resultado exploratorio en el §25.22: **en este mundo, elegir no cambia cuánto come ni cuánto vive.**
 - [ ] D a F.
 
 **Fase 5: en batch (generaciones por lotes)**
@@ -1863,7 +1863,7 @@ Preguntar de noche y probar de día hace que Fagi conozca casi el doble de espec
 
 ### 25.3 Pendiente
 
-- Fase 9 (§12.11): de la D a la F. La A, la B y la C están hechas (§25.1), pero la C no mejora sobre las políticas fijas (§25.22): antes de la D hay que decidir qué cambiar.
+- Fase 9 (§12.11): de la D a la F. La A, la B y la C están hechas (§25.1), pero en el mundo actual elegir no cambia cuánto come (§25.22): antes de la F hay que decidir un mundo donde elegir importe.
 - §23, primera mitad del criterio social: que la información social se use con provecho. Con una informante que sabe, el efecto fue pequeño y no significativo (§25.18).
 - Fase 8: saladeros (una fuente de sal fija, que aprender como el agua); venenos más fuertes o más frecuentes, donde escupir importe más.
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
@@ -2505,5 +2505,18 @@ Fase 9 C, mismo montaje que el §25.21 (40 mapas de desarrollo, `FORAGE`, `SITES
 1. B le ofrece su mejor sitio en todo momento. La elección solo se lo ofrece cuando lo planeó.
 2. La elección descuenta cada sitio por la confianza, que decae en unos minutos sin volver. Así, explorar gana a sitios buenos pero poco recientes: explora el 43 % de las veces.
 
-**Estado.** El plan (§19) decía medir F1–F2 antes de la D y la E, y no seguir si la C no mejora sobre las políticas fijas. No mejora. Hay que decidir qué cambiar antes de congelar nada: la confianza como descuento, el valor de explorar, o cuándo se decide. Cambiar los números hasta que gane sería ajustar a la medida, y el protocolo congelado de la F lo invalidaría.
+**Corrección probada: la confianza ya no descuenta.** Un sitio vale lo que espera de él menos el camino. La confianza solo hace más ruidosa esa estimación (`CHOICE.doubt`); `CHOICE.trustDiscount = 1` recupera la versión anterior. Con las mismas 40 semillas, explora el 23 % de las veces en lugar del 43 %, pero los resultados de la tabla no cambian.
+
+**La peor supervivencia era ruido.** Con 120 mapas nuevos de desarrollo (semillas de mapa 1240–1359), ninguna métrica distingue entre condiciones:
+
+| | L | B | R | E | L − B [IC 95 %] |
+|---|---|---|---|---|---|
+| comida por minuto | 0,63 | 0,65 | 0,64 | 0,65 | −0,01 [−0,04, 0,01] |
+| raciones guardadas | 8,4 | 8,4 | 8,3 | 8,5 | −0,06 [−0,41, 0,29] |
+| vivas al final | 0,79 | 0,80 | 0,82 | 0,79 | −0,01 [−0,06, 0,03] |
+| muertas por veneno | 0,15 | 0,14 | 0,14 | 0,17 | +0,01 [−0,04, 0,05] |
+
+En los 40 primeros mapas, B había salido anormalmente alta. Una colonia es caótica: cualquier cambio, aunque sea un número aleatorio de más al elegir, desvía toda la trayectoria. 40 mapas no bastan para distinguir supervivencias. El veneno mata, además, al hacer desbordar un hambre que ya estaba al límite (`hungerCause`); en el tiempo con hambre extrema no hubo diferencias (1,2 % frente a 1,4 %).
+
+**Lo que queda.** En este mundo da igual cómo elija: volver, explorar o aprender rinden lo mismo. Así que la F1 no puede sostenerse aquí, por mucho que se ajuste la elección. Lo que falta es un mundo donde elegir bien importe: fuentes más escasas o más lejanas, explorar más caro, o un coste por volver a un sitio vacío. La fase D (tope del nido) añade uno. Antes de congelar la F hay que decidir ese mundo, y decidirlo por realismo, no porque haga ganar a la elección.
 
