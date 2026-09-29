@@ -8,7 +8,7 @@ import {
   FAGI, HUNGER, THIRST, ENERGY, BRAIN, CARRY, NEST, EXPLORE, WIND, PLUME, PHERO, TREE, FRUIT, MEMORY,
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
   CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI, CONCEPT,
-  LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS,
+  LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE,
 } from './config.js';
 import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
@@ -299,6 +299,14 @@ const GROUPS = [
     n(TREE, 'maxNear', 'Uncollected fruit before it stops', 'Fruta suya sin recoger antes de parar', 1, 30, 1),
     n(TREE, 'dropRadius', 'Where fruit falls (× its radius)', 'Dónde cae la fruta (× su radio)', 1, 5, 0.1),
     n(FRUIT, 'warnFrom', 'When it starts looking overripe', 'Desde cuándo se le nota que se pasa', 0, 1, 0.05),
+  ]},
+  { title: { en: 'Explore or come back', es: 'Explorar o volver' }, cat: 'world', fieldsOf: [
+    b(FORAGE, 'enabled', 'Seasonal trees and ground patches', 'Árboles de temporada y manchas en el suelo'),
+    n(FORAGE, 'persistence', 'Share of trees that bear all year', 'Parte de los árboles que dan todo el año', 0, 1, 0.05),
+    n(FORAGE, 'crop', 'Fruit a seasonal tree drops before going bare', 'Frutos de un árbol de temporada antes de quedar pelado', 1, 60, 1),
+    n(FORAGE, 'rest', 'Seconds a bare tree rests', 'Segundos que descansa un árbol pelado', 10, 1200, 10),
+    n(FORAGE, 'patchEvery', 'A ground patch every (seconds, 0 = none)', 'Una mancha en el suelo cada (segundos, 0 = ninguna)', 0, 1200, 10),
+    n(FORAGE, 'patchSize', 'Fruit in a patch', 'Frutos en una mancha', 1, 30, 1),
   ]},
   { title: { en: 'Map objects', es: 'Objetos del mapa' }, cat: 'world', fieldsOf: [
     // Four radii in one group: all but the rock's (the one recordings already

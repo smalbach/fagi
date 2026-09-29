@@ -3,7 +3,7 @@
 // "factory" in the game means organism on.
 
 import { enableOrganism } from '../organism.js';
-import { ENERGY, SLEEP, CONCEPT } from '../config.js';
+import { ENERGY, SLEEP, CONCEPT, PHERO } from '../config.js';
 
 enableOrganism();
 
@@ -14,7 +14,10 @@ enableOrganism();
 //     so she rests at night, not in the middle of the day;
 //   - a diurnal body: at dark she goes home and sleeps until daylight;
 //   - no things scattered at random: on the game's map what she finds comes
-//     from the trees (the settings can still turn them on).
+//     from the trees (the settings can still turn them on);
+//   - a pheromone mark lasts a minute: long enough to come back for more,
+//     short enough that an old path clears (research measured with 600).
 ENERGY.drain = 0.6;
 SLEEP.nightly = 1;
 CONCEPT.enabled = 0;
+PHERO.life = 60;

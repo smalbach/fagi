@@ -6,6 +6,7 @@ import { updateWind } from './wind.js';
 import { updateTrails } from './smell.js';
 import { updatePheromone } from './pheromone.js';
 import { updateTrees } from './trees.js';
+import { updatePatches } from './patches.js';
 import { updateFood } from './food.js';
 import { updateNest, record } from './world.js';
 import { updateRain } from './rain.js';
@@ -25,6 +26,7 @@ export function stepWorld(world, dt) {
   updateWind(world.wind, dt);
   updateRain(world, dt);
   updateTrees(world, dt);
+  updatePatches(world, dt);
   updateFood(world, dt);
   updateNest(world, dt);
   updateTrails(world, dt);

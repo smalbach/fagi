@@ -90,6 +90,8 @@ export function runColony(opts, fagiSeed) {
   for (let i = 0; i < steps && colony.ants.some((f) => f.alive); i++) {
     withRng(worldRng, () => stepWorld(world, opts.dt));
     withRng(fagiRng, () => updateColony(world, colony, opts.dt));
+    // A colony that breeds (LIFE) grows: each young is followed from her hatching.
+    while (follows.length < colony.ants.length) follows.push(newFollow(opts, colony.ants[follows.length]));
     colony.ants.forEach((fagi, k) => {
       if (!fagi.alive) return;
       const s = follows[k];

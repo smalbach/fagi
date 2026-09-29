@@ -58,6 +58,11 @@ export const EVENT_TYPES = {
   extinct: ['at'],
   // Who is who (names.js): id -> { name, mother, father, generation, sex, bornAt },
   // sent once per individual, the first time the recording sees her.
+  // Explore or come back (FORAGE, trees.js, patches.js): a seasonal tree goes
+  // bare and bears again; a patch of fruit shows up on the ground.
+  tree_bare: ['id'],
+  tree_bears: ['id'],
+  patch: ['x', 'y', 'what', 'n'],
   people: ['people'],   // what the night mind proposed and what was kept (night/)
 };
 

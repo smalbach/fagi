@@ -1,8 +1,8 @@
 // Trees: they drop fruit around their crown every so often.
 // It's the only way food shows up without the player placing it.
 
-import { TREE, POINT_TYPES } from './config.js';
-import { addPoint, removeObject } from './world.js';
+import { TREE, POINT_TYPES, FORAGE } from './config.js';
+import { addPoint, removeObject, record } from './world.js';
 import { drawVariant } from './chemistry.js';
 import { isTree, radiusOf, waterZone } from './obstacles.js';
 
@@ -36,6 +36,9 @@ export function updateTrees(world, dt) {
       continue;
     }
 
+    // A seasonal tree gone bare drops nothing until its rest is over (FORAGE).
+    if (FORAGE.enabled && seasonal(tree) && resting(world, tree, dt)) continue;
+
     tree.timer -= dt;
     if (tree.timer > 0) continue;
     // Its fruit was a made one the person has since deleted: it bears nothing.
@@ -56,8 +59,40 @@ export function updateTrees(world, dt) {
     const variant = drawVariant(p.type);   // a look-alike's fruit (TASTE), same look
     if (variant) p.variant = variant;
     tree.lastDrop = (tree.lastDrop ?? 0) + 1;
+    if (FORAGE.enabled) spend(world, tree);
   }
 }
+
+// Seasons (FORAGE). Whether a tree bears all year is drawn the first time the
+// tree is updated, from the world's own randomness: a tree placed later, by the
+// map or by the person, gets its nature the same way.
+function seasonal(tree) {
+  tree.seasonal ??= Math.random() >= FORAGE.persistence;
+  return tree.seasonal;
+}
+
+// One fruit less of this season's crop; the last one leaves it bare.
+function spend(world, tree) {
+  if (!seasonal(tree)) return;
+  tree.crop = (tree.crop ?? FORAGE.crop) - 1;
+  if (tree.crop > 0) return;
+  tree.bare = FORAGE.rest;
+  record(world, 'tree_bare', { id: tree.id });
+}
+
+// A bare tree rests; when its rest is over it bears a new crop.
+function resting(world, tree, dt) {
+  if (!(tree.bare > 0)) return false;
+  tree.bare -= dt;
+  if (tree.bare > 0) return true;
+  tree.bare = 0;
+  tree.crop = FORAGE.crop;
+  record(world, 'tree_bears', { id: tree.id });
+  return false;
+}
+
+// Is it bare right now (for drawing and the inspector)?
+export const isBare = (tree) => tree.bare > 0;
 
 // Changing the interval from the panel also affects the ones already placed.
 export function setFruitInterval(world, seconds) {

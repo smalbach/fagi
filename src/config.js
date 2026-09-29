@@ -566,7 +566,7 @@ export const ATTENTION = {
 
 // Her own pheromone: the path she marks when returning loaded to the nest.
 export const PHERO = {
-  life: 60,           // seconds for a mark to evaporate: long enough to come back for more, short enough that an old path clears
+  life: 600,          // seconds for a mark to evaporate (Lasius niger: ~47 min half-life). The game uses 60 (app/organism-on.js)
   every: 0.1,         // how often she leaves a mark while carrying: ~7 px, a continuous trail
   sense: 12,          // at what distance she detects a mark: what the antennae reach (~6 mm)
   // Following the trail is learned like anything else: if within learnWindow
@@ -585,6 +585,25 @@ export const TREE = {
   dropRadius: 1.9,    // where it falls: tree radius × this
   maxNear: 5,         // if this much of its fruit is already lying uncollected, it stops dropping
   life: 0,            // seconds a tree lives (0 = forever)
+};
+
+// Explore or come back (phase 9, spec §12.11): a world where going back to
+// the last good place is not always right. With it off, every tree bears
+// forever and no fruit shows up on its own, as before.
+//   - some trees bear all year; the rest have seasons: they drop a crop, go
+//     bare and rest before bearing again. She can't tell which is which
+//     until she has been back;
+//   - now and then a patch of fruit shows up on the ground somewhere (a
+//     branch that broke, a windfall) and is never renewed.
+export const FORAGE = {
+  enabled: 0,
+  persistence: 0.5,   // share of trees that bear all year (1 = all, as before)
+  crop: 12,           // fruit a seasonal tree drops before it goes bare
+  rest: 240,          // seconds a bare tree rests before bearing again
+  patchEvery: 150,    // seconds between ground patches (0 = none)
+  patchSize: 6,       // fruit in a patch
+  patchSpread: 30,    // px around its centre
+  patchMinNest: 200,  // px from the nest: not on her doorstep
 };
 
 // What happens to fruit nobody collects.

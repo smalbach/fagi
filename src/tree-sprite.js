@@ -34,7 +34,7 @@
 // we only keep the already painted canvases and decide what is stamped where.
 
 import { TREE, POINT_TYPES } from './config.js';
-import { treeAge } from './trees.js';
+import { treeAge, isBare } from './trees.js';
 import { cacheSprite, detail, stamp, seedFor } from './sprite-kit.js';
 import { paintTrunk } from './tree-sprite/trunk.js';
 import { paintBranches } from './tree-sprite/branches.js';
@@ -86,5 +86,6 @@ export function drawTree(ctx, o, spec, r, wind, now) {
       stamp(ctx, tips, o.x + v.x, o.y + v.y, z);
     }
   }
-  fruitsOf(ctx, o, r, v, dry, form);
+  // A seasonal tree resting between crops (FORAGE) hangs nothing.
+  if (!isBare(o)) fruitsOf(ctx, o, r, v, dry, form);
 }

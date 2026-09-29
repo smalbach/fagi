@@ -72,6 +72,13 @@ export function applyEvent(state, ev) {
       w.objects.push(obj);
       break;
     }
+    case 'tree_bare':
+    case 'tree_bears': {
+      const o = w.objects.find((x) => x.id === ev.id);
+      // Only the look: a bare tree draws without fruit (trees.js isBare).
+      if (o) o.bare = ev.type === 'tree_bare' ? 1 : 0;
+      break;
+    }
     case 'obj_fruit': {
       addRetired(ev.what);
       const o = w.objects.find((x) => x.id === ev.id);

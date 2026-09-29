@@ -14,9 +14,13 @@ El repositorio contiene estudios preregistrados y congelados (`docs/research/`) 
 2. **Con todo apagado, la simulación es idéntica número a número**: no se consume ni un número aleatorio más ni en otro orden, y todo multiplicador corporal vale exactamente `1`. Se comprobó comparando byte a byte la salida JSON de `batch.js` antes y después (ejecución simple y por generaciones con especies).
 3. **El juego enciende el organismo** al arrancar (`src/app/organism-on.js`, que se importa antes que los ajustes). En batch se enciende con `--organism`, y `--set` puede apagar después cualquier pieza (`--set SLEEP.consolidate=0`).
 4. **Las sesiones grabadas guardan los flags** con el resto de ajustes. Al reproducir una sesión anterior al organismo, los flags ausentes se consideran `0` (`organismOffConfig`).
-5. **Los números propios del juego van en `src/app/organism-on.js`, no en `src/config.js`.** `config.js` es el mundo preregistrado de batch y de las pruebas. El juego lo ajusta encima: `ENERGY.drain = 0.6` (una jornada de trabajo por carga), `SLEEP.nightly = 1` (cuerpo diurno: con la oscuridad vuelve a casa y duerme hasta el día) y `CONCEPT.enabled = 0` (en el mapa del juego lo que encuentra viene de los árboles).
+5. **Los números propios del juego van en `src/app/organism-on.js`, no en `src/config.js`.** `config.js` es el mundo preregistrado de batch y de las pruebas. El juego lo ajusta encima:
+   - `ENERGY.drain = 0.6`: una jornada de trabajo por carga;
+   - `SLEEP.nightly = 1`: cuerpo diurno, que con la oscuridad vuelve a casa y duerme hasta el día;
+   - `CONCEPT.enabled = 0`: en el mapa del juego lo que encuentra viene de los árboles;
+   - `PHERO.life = 60`: una marca dura un minuto.
 
-**Una excepción rompió esta regla.** El commit `1ac1976` bajó la vida de la feromona (`PHERO.life`) de 600 s a 60 s en `config.js`, y con ello cambió todo lo medido que usa rastros. Se comprobó con una pieza del §25.19: HEAD da otro resultado, y con `PHERO.life = 600` vuelve a dar el guardado byte a byte. Ver §25.4.
+**Una excepción rompió esta regla, ya corregida.** El commit `1ac1976` bajó `PHERO.life` de 600 s a 60 s en `config.js`, y con ello cambió todo lo medido que usa rastros. La fase 9 A (§25.1) la devolvió a 600 en `config.js` y dejó los 60 s en `organism-on.js`. Se comprobó que HEAD vuelve a dar byte a byte una pieza guardada del §25.19.
 
 Sin esta regla, cada mejora invalidaría en silencio los resultados publicados.
 
@@ -898,6 +902,41 @@ El §12.1 pedía que el agua, el nido, los árboles y las rocas dejaran de ser c
 
 **Árboles aprendidos** (`SOURCES`, parte del organismo). Sin él, cualquier árbol era para ella una fuente de comida desde el primer vistazo, y sabía qué fruta daba antes de ver ninguna: una fuga del mismo tipo que las del §12.7. Con él, un árbol es solo un objeto grande. La primera vez que ve fruta caída a su alrededor (dentro de `SOURCES.near` veces su radio), aprende que ahí cae comida y cuál. Desde entonces lo recuerda como fuente y vuelve cuando tiene hambre, como los animales con sus sitios de comida. El olor que el viento trae de un árbol sigue siendo el de su fruta: eso sí se percibe.
 
+### 12.11 Explorar o volver: diseño (fase 9)
+
+**Hipótesis principal de la fase.** Cada Fagi aprende, por su propia experiencia, cuándo le conviene volver al último sitio donde encontró comida y cuándo explorar. Hermanas con el mismo genoma, en el mismo mapa, acaban con políticas distintas, y esas diferencias se explican por lo que vivió cada una.
+
+Es el dilema entre explotar y explorar de cualquier animal que forrajea. Charnov (1976) lo formuló como la decisión de cuándo abandonar un parche. Las abejas vuelven a una flor que les dio néctar y la abandonan tras visitas vacías. En *Temnothorax* hay exploradoras y explotadoras dentro de la misma colonia.
+
+**Punto de partida.**
+
+- La decisión es una jerarquía fija (sobrevivir, aguantar, proveer, explorar). Lo único que aprende de ella son umbrales, los hábitos (`src/habits.js`).
+- Recuerda un solo sitio de comida (`foodSource`): el último árbol que vio, con su posición difuminándose. Los sitios con fruta en el suelo no los recuerda.
+- Volver o explorar no se aprende. El árbol recordado compite como un candidato más, con una penalización fija, y explorar es lo que queda cuando nada más gana.
+- Los árboles no se agotan y sueltan fruta cada 8 s, así que volver es siempre lo correcto. **No hay nada que aprender.**
+- La despensa solo la conoce al entrar al nido (`fagi.pantry`). Pero el nido no tiene tope: «lleno» es solo su umbral de reserva.
+- El único canal para compartir *dónde* está la comida es la feromona compartida. Lo social (`src/social.js`) solo transmite *qué* comer.
+
+**Diseño, por partes.**
+
+1. **Un mundo donde volver no siempre gane** (fase A). Hay árboles duraderos y árboles de temporada, que se vacían y descansan antes de volver a dar fruta. Hay también manchas efímeras de fruta en el suelo, que no se renuevan. `FORAGE.persistence` dice qué parte de los árboles son duraderos.
+2. **Memoria de sitios** (fase B). Varios lugares (3 a 5), árboles o manchas del suelo. De cada uno guarda posición (difusa), rendimiento esperado, cuánto hace que fue, cuántas veces volvió y cuántas lo halló vacío. El rendimiento se aprende por error de predicción: más de lo esperado sube el valor, un sitio vacío lo baja. Así emerge quedarse tras ganar y cambiar tras perder. El olvido baja la confianza, no borra (`memory.js`).
+3. **La decisión, aprendida** (fase C). Al salir del nido, o cuando el sitio actual se agota, compara:
+   - volver al sitio *i*: rendimiento esperado × probabilidad de que siga ahí − coste del viaje;
+   - explorar: lo que explorar le ha rendido a ella.
+
+   Elige con ruido (softmax), no siempre lo mejor. La temperatura es individual: parte del genoma (audacia innata) y parte de la experiencia. Sustituye la penalización fija del árbol recordado dentro del nivel «proveer». Sobrevivir y aguantar siguen siendo la red de seguridad.
+4. **El nido lleno como sorpresa** (fase D). `NEST.capacity` pone un tope real: por encima, lo guardado se pudre antes o la descarga tarda. Es parecido a las abejas, que cambian de tarea si nadie recibe su carga (Seeley). Al llegar lleno decide sola: comerse la carga, guardarla igual y asumir el coste, o soltarla y cambiar de plan. Aprende a predecir la despensa según cuánto hace que la vio y cuánto consume la colonia, y esa predicción baja su impulso de salir por comida.
+5. **Cableado individual, visible** (fase E):
+   - aristas de sitio → volver, peso de explorar, temperatura y predicción de la despensa en el mapa del cerebro;
+   - sus sitios e historia de decisiones en el inspector;
+   - narración de cada decisión;
+   - registro de cada salida: opciones, valores, elección y resultado.
+
+**Fuga que evitar.** Una Fagi no sabe si un árbol es duradero ni si el nido está lleno sin ir. Solo lo sabe por lo que vio y cuándo lo vio (§12.7).
+
+**Criterio.** Realismo, no supervivencia (§25.5). Se busca que decidan como animales reales, no que vivan más.
+
 ## 13. Memoria propuesta
 
 ### 13.1 Memoria episódica
@@ -1481,6 +1520,26 @@ Si quitar una pieza no empeora nada, esa pieza no está demostrando valor.
 
 **Criterio de salida:** con sabores, aprende qué comer con menos veneno que con el gusto innato solo, y llega a comer lo amargo inofensivo y lo picante nutritivo que su gusto innato rechazaba.
 
+### Fase 9 — Explorar o volver
+
+**Meta:** que cada Fagi aprenda de su experiencia cuándo volver al último sitio con comida y cuándo explorar, y que eso la haga distinta de sus hermanas (§12.11).
+
+- [ ] A. Preparar el terreno: `PHERO.life` fuera de `config.js`; `batch.js` con colonias que crían; árboles de temporada y manchas efímeras detrás de `FORAGE.enabled`.
+- [ ] B. Memoria de varios sitios, con rendimiento aprendido por error de predicción.
+- [ ] C. Decisión aprendida entre volver y explorar, con temperatura individual.
+- [ ] D. Tope del nido y predicción de la despensa.
+- [ ] E. Cableado visible: mapa del cerebro, inspector, narración y registro de decisiones.
+- [ ] F. Protocolo congelado:
+  - F1: aprendiendo junta más comida por energía que tres políticas fijas (siempre volver, siempre explorar, la de antes de la fase);
+  - F2: vuelve más con fuentes duraderas y explora más con fuentes efímeras, y cambia si el mundo se invierte;
+  - F3: en colonias clonales, las hermanas difieren en cuánto exploran, y sus primeras experiencias lo predicen;
+  - F4: tras encontrar el nido lleno tarda más en volver a salir por comida, y se pudre menos en la despensa.
+  - Ablaciones: sin memoria de sitios, sin aprendizaje, sin variación individual, sin predicción de la despensa y sin feromona.
+
+**Orden:** A → B → C, y medir F1–F2 antes de D y E. Si C no mejora sobre las políticas fijas, D y E no tienen base.
+
+**Criterio de salida:** F1 a F3 se sostienen con protocolo congelado, y la individualidad de F3 no se explica por el genoma.
+
 > Las casillas de este plan se actualizan en el §25, no aquí, para conservar la propuesta original tal como se escribió.
 
 ---
@@ -1637,6 +1696,7 @@ El siguiente orden minimiza retrabajo:
 9. implementar población persistente y ciclo vital;
 10. ejecutar evaluación completa con baselines y ablaciones;
 11. sustituir los tipos de fruta por composiciones y sabores (fase 8, §12.9).
+12. que explorar o volver se aprenda y haga distinta a cada Fagi (fase 9, §12.11).
 
 Este orden construye primero el cuerpo y el entorno, después la memoria, después la evolución y finalmente la apertura conceptual. Intentar todo al mismo tiempo haría imposible saber qué funciona.
 
@@ -1721,6 +1781,12 @@ Recoge lo implementado en las fases 0 a 8 y lo medido de cada una. Las secciones
 - [x] Conceptos puestos a prueba con clases nuevas, y retirados cuando fallan o cuando la evidencia los rehace.
 - [x] Criterio de salida confirmado con protocolo congelado (§25.11).
 
+**Fase 9: explorar o volver** (§12.11)
+- [x] A. `PHERO.life` vuelve a 600 en `config.js`; el juego usa 60 (`organism-on.js`). Con todo lo nuevo apagado, `batch.js` da la misma salida byte a byte (simple, con organismo, colonia, generaciones y mundo variable), y la pieza `shift-4` del §25.19 se reproduce sin worktree.
+- [x] A. `batch.js` sigue a las crías de una colonia que cría: antes fallaba en cuanto nacía una.
+- [x] A. `FORAGE`, apagado por defecto: árboles de temporada, que sueltan su cosecha, quedan pelados y descansan (`FORAGE.persistence` dice qué parte da todo el año), y manchas efímeras de fruta en el suelo (`src/patches.js`). Eventos `tree_bare`, `tree_bears` y `patch` en la grabación; el árbol pelado se dibuja sin fruta; el inspector dice «una mancha en el suelo»; ajustes en «Explorar o volver». Pruebas en `test/forage.test.js`.
+- [ ] B a F.
+
 **Fase 5: en batch (generaciones por lotes)**
 - [x] Recombinación de dos progenitores, mutación posterior y límites.
 - [x] Parentesco (`genome.parents`), apareamientos entre hermanos, diversidad genética, proporción de sexos y cuerpo medio por generación.
@@ -1781,6 +1847,7 @@ Preguntar de noche y probar de día hace que Fagi conozca casi el doble de espec
 
 ### 25.3 Pendiente
 
+- Fase 9 (§12.11): de la B a la F. La A está hecha (§25.1).
 - §23, primera mitad del criterio social: que la información social se use con provecho. Con una informante que sabe, el efecto fue pequeño y no significativo (§25.18).
 - Fase 8: saladeros (una fuente de sal fija, que aprender como el agua); venenos más fuertes o más frecuentes, donde escupir importe más.
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
@@ -1798,7 +1865,7 @@ Preguntar de noche y probar de día hace que Fagi conozca casi el doble de espec
 
 Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas. Todas las tablas anteriores al §25.11 se midieron sin cosas ni conceptos y con el reflejo térmico antiguo: a los comandos de `batch.js`, `sleep-lab.js`, `autopsy.js` y `population.js` hay que añadirles `--set SOURCES.enabled=0 --set TASTE.enabled=0 --set HEALTH.enabled=0 --set CONCEPT.enabled=0 --set THERMAL.voluntary=0 --set SLEEP.askAlways=0 --set SLEEP.replay=4`; la del §25.11, solo las tres últimas; las del §25.12, `--set SLEEP.askAlways=0 --set SLEEP.replay=4`. A `population.js` y a todo lo que cría antes del §25.14, además, `--set LIFE.gradual=0`. Las evaluaciones congeladas y la batería de sexos ya lo hacen solas. `LIFE` solo afecta a quien pertenece a una población que se reproduce, así que no cambia las vidas individuales; en cualquier ejecución con colonia (`--colony`, `--generations`) sí la pone a criar.
 
-**La feromona.** Todo lo medido hasta el §25.19 usó `PHERO.life = 600`. Es el único cambio posterior que se sabe que altera lo medido, y solo se comprobó con una pieza del §25.19; los demás del §25.20 son del juego. Desde `1ac1976` vale 60 (§0). A los comandos que aceptan `--set` hay que añadirles `--set PHERO.life=600`. Los runners de protocolos congelados (`research/*/run.js`) no lo aceptan: se corren desde su commit de congelamiento, en un worktree (`git worktree add --detach ../frozen <commit>`), como se hizo en el §25.19.
+**La feromona.** Todo lo medido usó `PHERO.life = 600`. Entre `1ac1976` y la fase 9 A valió 60 en `config.js` (§0), y una corrida en esos commits no reproduce las tablas sin `--set PHERO.life=600`. Hoy vuelve a valer 600 fuera del juego.
 
 ```text
 npm test
@@ -2361,7 +2428,7 @@ Commits `9054330` a `1ac1976`. Son del juego y de su interfaz, no del organismo,
 - **Sin forma de cristal** en las frutas que hace la persona. Una guardada con esa forma se descarta al cargar; las sesiones grabadas conservan la suya.
 - **Árboles con el aspecto de su fruta.** La forma elige el tipo de árbol (redonda: frondoso en flor; gota: conífera con resina; orbe: sauce) y el color tiñe hojas y flores.
 - **Estelas de olor ocultas por defecto** (`PLUME.show = 0`). Solo se dibujan mientras una Fagi las huele. Es solo dibujo: no cambia lo que percibe.
-- **Feromona de 60 s** en lugar de 600 s. Una marca cuenta su vida desde que se dejó, igual que el replay, así que el replay sigue siendo exacto. Esto sí cambia la simulación (§0, §25.4).
+- **Feromona de 60 s** en lugar de 600 s. Una marca cuenta su vida desde que se dejó, igual que el replay, así que el replay sigue siendo exacto. Desde la fase 9 A es solo del juego (§0).
 - **Mapas más grandes** (`MAPGEN.size`). Rocas y cosas se escalan con el área. Con varias fuentes de agua, la primera va cerca del nacimiento y las demás en cualquier sitio. Con `size = 1` y un solo charco, que es lo medido, el mapa no cambia.
 - **Nombres y familias** (`src/names.js`). Cada Fagi tiene nombre y dos apellidos, el primero del padre y el segundo de la madre. Se sacan de un flujo aleatorio propio, así que no alteran una corrida con semilla. Las grabaciones antiguas reciben nombres estables (`nameForId`).
 - **Inspector.** Al hacer clic en algo se muestra lo que es, incluida la familia de una Fagi y el árbol del que cayó una fruta.
