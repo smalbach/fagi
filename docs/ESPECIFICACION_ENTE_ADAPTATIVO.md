@@ -1,6 +1,6 @@
 # Especificación: Fagi como ente adaptativo autónomo
 
-**Estado:** en implementación: fases 1 a 7 hechas (ver §25)  
+**Estado:** fases 0 a 7 hechas; fase 8 implementada, con su criterio de salida cumplido a medias (ver §25)  
 **Proyecto:** First AGI / Fagi  
 **Objetivo de esta versión:** transformar la simulación actual, inspirada en una hormiga, en un entorno experimental para estudiar un organismo artificial limitado que percibe, aprende, descansa, consolida experiencias, se reproduce y se adapta durante varias generaciones.
 
@@ -14,6 +14,9 @@ El repositorio contiene estudios preregistrados y congelados (`docs/research/`) 
 2. **Con todo apagado, la simulación es idéntica número a número**: no se consume ni un número aleatorio más ni en otro orden, y todo multiplicador corporal vale exactamente `1`. Se comprobó comparando byte a byte la salida JSON de `batch.js` antes y después (ejecución simple y por generaciones con especies).
 3. **El juego enciende el organismo** al arrancar (`src/app/organism-on.js`, que se importa antes que los ajustes). En batch se enciende con `--organism`, y `--set` puede apagar después cualquier pieza (`--set SLEEP.consolidate=0`).
 4. **Las sesiones grabadas guardan los flags** con el resto de ajustes. Al reproducir una sesión anterior al organismo, los flags ausentes se consideran `0` (`organismOffConfig`).
+5. **Los números propios del juego van en `src/app/organism-on.js`, no en `src/config.js`.** `config.js` es el mundo preregistrado de batch y de las pruebas. El juego lo ajusta encima: `ENERGY.drain = 0.6` (una jornada de trabajo por carga), `SLEEP.nightly = 1` (cuerpo diurno: con la oscuridad vuelve a casa y duerme hasta el día) y `CONCEPT.enabled = 0` (en el mapa del juego lo que encuentra viene de los árboles).
+
+**Una excepción rompió esta regla.** El commit `1ac1976` bajó la vida de la feromona (`PHERO.life`) de 600 s a 60 s en `config.js`, y con ello cambió todo lo medido que usa rastros. Se comprobó con una pieza del §25.19: HEAD da otro resultado, y con `PHERO.life = 600` vuelve a dar el guardado byte a byte. Ver §25.4.
 
 Sin esta regla, cada mejora invalidaría en silencio los resultados publicados.
 
@@ -1641,7 +1644,7 @@ Este orden construye primero el cuerpo y el entorno, después la memoria, despu�
 
 ## 25. Estado de implementación
 
-Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás de los flags del §0.
+Recoge lo implementado en las fases 0 a 8 y lo medido de cada una. Las secciones de resultados van del §25.5 en adelante, en el orden en que se midieron. Todo está detrás de los flags del §0.
 
 ### 25.1 Hecho
 
@@ -1775,6 +1778,125 @@ Preguntar de noche y probar de día hace que Fagi conozca casi el doble de espec
 ¹ **Corrección de la métrica.** Una versión anterior de estas tablas usó `accuracy()` de `research/lab/truth.js` sobre el catálogo completo. Esa función lee los rasgos de las especies registradas en el mapa, así que para las ~90 combinaciones que no estaban en el mapa no veía rasgos y ninguna regla de rasgos se aplicaba. Medía casi solo 6 especies (daba 0,52 en todas las condiciones) y llevó a concluir, por error, que la agenda no mejoraba la transferencia. `scripts/sleep-lab.js` ahora juzga cada combinación por sus rasgos, y las cifras de arriba están rehechas con él. Los estudios preregistrados no estaban afectados: allí el catálogo son las especies registradas.
 
 **Sexos:** en 8 vidas de 1200 s sobrevivieron todas, tanto hembras (5) como machos (3); ningún sexo dominó en esa muestra. Hace falta una batería de mapas para afirmar equilibrio.
+
+### 25.3 Pendiente
+
+- §23, primera mitad del criterio social: que la información social se use con provecho. Con una informante que sabe, el efecto fue pequeño y no significativo (§25.18).
+- Fase 8: saladeros (una fuente de sal fija, que aprender como el agua); venenos más fuertes o más frecuentes, donde escupir importe más.
+- Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
+- Fase 6, lo que queda del §12.3:
+  - (resuelto en §12.10: roca, agua y nido quedan como capacidades innatas, con lo que se aprende de cada uno; los árboles pasan a aprenderse)
+  - combinaciones más ricas que forrar el nido: una cosa que solo sirve junto a otra fuera de casa (romper una contra otra, por ejemplo), con transporte y acción propios.
+
+**Decidido y descartado**, con su motivo:
+
+- **Transmitir la aversión alimentaria por observación.** Ver a una hermana comer algo que le sienta mal ya enseña (`learnSeen`, §25.8), pero no transmite la aversión del cuerpo (§25.5), que solo nace del malestar propio. Así pasa en las ratas: la transmisión social enseña qué comer, no qué evitar (Galef, 1985). Con las cosas es distinto, porque el dolor ajeno sí se ve.
+- **Que la noche ordene también los conceptos.** Los conceptos se forman al momento, con cada clase que queda decidida (§12.8), y se ponen a prueba con cada clase nueva. Una pasada nocturna repetiría el mismo cálculo sin evidencia nueva.
+- **Volatilidad para la fruta.** Se probó y no cambió nada (§25.13).
+
+### 25.4 Cómo reproducir
+
+Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas. Todas las tablas anteriores al §25.11 se midieron sin cosas ni conceptos y con el reflejo térmico antiguo: a los comandos de `batch.js`, `sleep-lab.js`, `autopsy.js` y `population.js` hay que añadirles `--set SOURCES.enabled=0 --set TASTE.enabled=0 --set HEALTH.enabled=0 --set CONCEPT.enabled=0 --set THERMAL.voluntary=0 --set SLEEP.askAlways=0 --set SLEEP.replay=4`; la del §25.11, solo las tres últimas; las del §25.12, `--set SLEEP.askAlways=0 --set SLEEP.replay=4`. A `population.js` y a todo lo que cría antes del §25.14, además, `--set LIFE.gradual=0`. Las evaluaciones congeladas y la batería de sexos ya lo hacen solas. `LIFE` solo afecta a quien pertenece a una población que se reproduce, así que no cambia las vidas individuales; en cualquier ejecución con colonia (`--colony`, `--generations`) sí la pone a criar.
+
+**La feromona.** Todo lo medido hasta el §25.19 usó `PHERO.life = 600`. Es el único cambio posterior que se sabe que altera lo medido, y solo se comprobó con una pieza del §25.19; los demás del §25.20 son del juego. Desde `1ac1976` vale 60 (§0). A los comandos que aceptan `--set` hay que añadirles `--set PHERO.life=600`. Los runners de protocolos congelados (`research/*/run.js`) no lo aceptan: se corren desde su commit de congelamiento, en un worktree (`git worktree add --detach ../frozen <commit>`), como se hizo en el §25.19.
+
+```text
+npm test
+
+# §25.2 calibración térmica (medida con apetito, antes de PERCEPT y de la mente nocturna)
+T="--set PERCEPT.enabled=0 --set NIGHTAI.enabled=0"
+node scripts/batch.js --organism --runs 12 --duration 2400 $T
+node scripts/batch.js --organism --runs 12 --duration 2400 $T --set THERMAL.behave=0
+node scripts/batch.js --organism --runs 12 --duration 2400 $T --set CYCLE.swing=16
+node scripts/batch.js --organism --runs 12 --duration 2400 $T --set CYCLE.swing=16 --set THERMAL.behave=0
+
+# §25.2 replay en el laboratorio
+node scripts/sleep-lab.js --k 6 --trials 300
+node scripts/sleep-lab.js --k 6 --trials 300 --set SLEEP.downscale=0.1
+node scripts/sleep-lab.js --k 3 --trials 300 --set SLEEP.downscale=0.1
+
+# §25.2 replay en el juego (antes de los experimentos, el apetito, PERCEPT y la mente nocturna)
+OFF="--set EXPERIMENT.enabled=0 --set APPETITE.enabled=0 --set PERCEPT.enabled=0 --set NIGHTAI.enabled=0"
+node scripts/sleep-lab.js --game 32 $OFF
+node scripts/sleep-lab.js --game 32 $OFF --set SLEEP.replay=0
+node scripts/sleep-lab.js --game 32 $OFF --set SLEEP.consolidate=0
+
+# §25.2 experimentos (antes del apetito, PERCEPT y la mente nocturna)
+OFF="--set APPETITE.enabled=0 --set PERCEPT.enabled=0 --set NIGHTAI.enabled=0"
+node scripts/sleep-lab.js --game 48 $OFF --set EXPERIMENT.enabled=0
+node scripts/sleep-lab.js --game 48 $OFF
+node scripts/sleep-lab.js --game 48 $OFF --set SLEEP.consolidate=0
+
+# §25.5 autopsias y apetito (antes de PERCEPT y la mente nocturna)
+OFF="--set PERCEPT.enabled=0 --set NIGHTAI.enabled=0"
+node scripts/autopsy.js --lives 48 $OFF --set APPETITE.enabled=0
+node scripts/autopsy.js --lives 48 $OFF
+node scripts/sleep-lab.js --game 48 $OFF
+
+# §25.6 percepción (antes de la mente nocturna)
+node scripts/sleep-lab.js --game 48 --set NIGHTAI.enabled=0
+node scripts/autopsy.js --lives 48 --set NIGHTAI.enabled=0
+
+# §25.7 mente nocturna
+node scripts/sleep-lab.js --k 6 --night
+node scripts/sleep-lab.js --k 6 --night --family conj
+node scripts/sleep-lab.js --game 48
+node scripts/sleep-lab.js --game 48 --set MAPGEN.family=conj --set NIGHTAI.enabled=0
+node scripts/sleep-lab.js --game 48 --set MAPGEN.family=conj
+node scripts/sleep-lab.js --game 48 --set NIGHTAI.enabled=0 --set EXPERIMENT.enabled=0
+node scripts/sleep-lab.js --game 48 --set SLEEP.consolidate=0
+
+# §25.8 población que se reproduce sola
+node scripts/population.js --maps 8 --duration 10800
+node scripts/population.js --maps 1 --seed 5000 --duration 10800 --set LIFE.maxPopulation=40
+
+# §25.9 evaluación congelada (docs/research/organism-protocol.md)
+node research/organism/run.js --jobs 16
+node research/organism/analyze.js research/results/organism
+
+# §25.11 cosas y conceptos (protocolo congelado: docs/research/concepts-protocol.md)
+node research/concepts/run.js --jobs 16
+node research/concepts/analyze.js research/results/concepts
+node scripts/concept-lab.js --lives 48                  # banco exploratorio
+node scripts/concept-lab.js --lives 48 --dims color --turn
+
+# §25.13 seguimiento congelado (docs/research/organism2-protocol.md)
+node research/organism2/run.js --jobs 16
+node research/organism2/analyze.js research/results/organism2
+
+# §25.14 frenos graduales (y sin ellos, como en el §25.8)
+node scripts/population.js --maps 8 --duration 10800
+node scripts/population.js --maps 8 --duration 10800 --set LIFE.gradual=0
+
+# §25.15 salud (con y sin)
+node scripts/population.js --maps 4 --duration 5400
+node scripts/population.js --maps 4 --duration 5400 --set HEALTH.enabled=0
+
+# §25.17 fuentes aprendidas: node test/sources.test.js; vidas con --set SOURCES.enabled=0 para comparar
+
+# §25.16 sabores (12 especies; y con --set TASTE.learn=0 / TASTE.innate=0)
+node scripts/taste-lab.js --set MAPGEN.species=12
+
+# §25.18 información social falsa (protocolo congelado: docs/research/social-protocol.md)
+node research/social/run.js --jobs 16
+node research/social/analyze.js
+
+# §25.19 diversidad y cambio de mundo (protocolo congelado: docs/research/diversity-protocol.md)
+# desde un worktree en 84c6e0a: git worktree add --detach ../frozen 84c6e0a
+node research/diversity/run.js --jobs 16
+node research/diversity/analyze.js
+
+# §25.12 retención
+node scripts/retention.js
+node scripts/retention.js --set SLEEP.consolidate=0
+node scripts/retention.js --set SLEEP.enabled=0
+
+# §25.10 batería de sexos (--current: con el organismo de hoy)
+node scripts/sex-battery.js --lives 120 --jobs 16
+
+# generaciones con reproducción sexual, creadas por lotes (sin cría dentro del mundo)
+node scripts/batch.js --organism --set LIFE.enabled=0 --set GEN.sexual=1 --generations 6 --colony 6 --runs 4 --duration 600 --set MAPGEN.species=6
+```
 
 ### 25.5 Realismo antes que supervivencia: autopsias
 
@@ -2228,122 +2350,20 @@ Protocolo congelado antes de correr: `docs/research/diversity-protocol.md`, comm
 
 **Criterio del §23: cumplido.** La población conserva diversidad y se adapta a un cambio de mundo. Que la diversidad sea la causa no queda demostrado (D4). Se publica así.
 
-**Nota de reproducción.** Una primera tanda se interrumpió con 8 piezas guardadas. El resto se corrió desde un worktree en `84c6e0a`, porque commits posteriores cambiaron la generación del mapa. Antes se comprobó que el worktree reproduce byte a byte una pieza ya guardada (`shift-4`).
+**Nota de reproducción.** Una primera tanda se interrumpió con 8 piezas guardadas. El resto se corrió desde un worktree en `84c6e0a`, porque un commit posterior cambió la vida de la feromona (§0). Antes se comprobó que el worktree reproduce byte a byte una pieza ya guardada (`shift-4`).
 
-### 25.3 Pendiente
+### 25.20 Cambios del juego fuera de esta especificación
 
-- §23, primera mitad del criterio social: que la información social se use con provecho. Con una informante que sabe, el efecto fue pequeño y no significativo (§25.18).
-- Fase 8: saladeros (una fuente de sal fija, que aprender como el agua); venenos más fuertes o más frecuentes, donde escupir importe más.
-- Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
-- Fase 6, lo que queda del §12.3:
-  - (resuelto en §12.10: roca, agua y nido quedan como capacidades innatas, con lo que se aprende de cada uno; los árboles pasan a aprenderse)
-  - combinaciones más ricas que forrar el nido: una cosa que solo sirve junto a otra fuera de casa (romper una contra otra, por ejemplo), con transporte y acción propios.
+Commits `9054330` a `1ac1976`. Son del juego y de su interfaz, no del organismo, y no se midieron. Se anotan aquí para que la especificación no quede por detrás del código.
 
-**Decidido y descartado**, con su motivo:
-
-- **Transmitir la aversión alimentaria por observación.** Ver a una hermana comer algo que le sienta mal ya enseña (`learnSeen`, §25.8), pero no transmite la aversión del cuerpo (§25.5), que solo nace del malestar propio. Así pasa en las ratas: la transmisión social enseña qué comer, no qué evitar (Galef, 1985). Con las cosas es distinto, porque el dolor ajeno sí se ve.
-- **Que la noche ordene también los conceptos.** Los conceptos se forman al momento, con cada clase que queda decidida (§12.8), y se ponen a prueba con cada clase nueva. Una pasada nocturna repetiría el mismo cálculo sin evidencia nueva.
-- **Volatilidad para la fruta.** Se probó y no cambió nada (§25.13).
-
-### 25.4 Cómo reproducir
-
-Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas. Todas las tablas anteriores al §25.11 se midieron sin cosas ni conceptos y con el reflejo térmico antiguo: a los comandos de `batch.js`, `sleep-lab.js`, `autopsy.js` y `population.js` hay que añadirles `--set SOURCES.enabled=0 --set TASTE.enabled=0 --set HEALTH.enabled=0 --set CONCEPT.enabled=0 --set THERMAL.voluntary=0 --set SLEEP.askAlways=0 --set SLEEP.replay=4`; la del §25.11, solo las tres últimas; las del §25.12, `--set SLEEP.askAlways=0 --set SLEEP.replay=4`. A `population.js` y a todo lo que cría antes del §25.14, además, `--set LIFE.gradual=0`. Las evaluaciones congeladas y la batería de sexos ya lo hacen solas. `LIFE` solo afecta a quien pertenece a una población que se reproduce, así que no cambia las vidas individuales; en cualquier ejecución con colonia (`--colony`, `--generations`) sí la pone a criar.
-
-```text
-npm test
-
-# §25.2 calibración térmica (medida con apetito, antes de PERCEPT y de la mente nocturna)
-T="--set PERCEPT.enabled=0 --set NIGHTAI.enabled=0"
-node scripts/batch.js --organism --runs 12 --duration 2400 $T
-node scripts/batch.js --organism --runs 12 --duration 2400 $T --set THERMAL.behave=0
-node scripts/batch.js --organism --runs 12 --duration 2400 $T --set CYCLE.swing=16
-node scripts/batch.js --organism --runs 12 --duration 2400 $T --set CYCLE.swing=16 --set THERMAL.behave=0
-
-# §25.2 replay en el laboratorio
-node scripts/sleep-lab.js --k 6 --trials 300
-node scripts/sleep-lab.js --k 6 --trials 300 --set SLEEP.downscale=0.1
-node scripts/sleep-lab.js --k 3 --trials 300 --set SLEEP.downscale=0.1
-
-# §25.2 replay en el juego (antes de los experimentos, el apetito, PERCEPT y la mente nocturna)
-OFF="--set EXPERIMENT.enabled=0 --set APPETITE.enabled=0 --set PERCEPT.enabled=0 --set NIGHTAI.enabled=0"
-node scripts/sleep-lab.js --game 32 $OFF
-node scripts/sleep-lab.js --game 32 $OFF --set SLEEP.replay=0
-node scripts/sleep-lab.js --game 32 $OFF --set SLEEP.consolidate=0
-
-# §25.2 experimentos (antes del apetito, PERCEPT y la mente nocturna)
-OFF="--set APPETITE.enabled=0 --set PERCEPT.enabled=0 --set NIGHTAI.enabled=0"
-node scripts/sleep-lab.js --game 48 $OFF --set EXPERIMENT.enabled=0
-node scripts/sleep-lab.js --game 48 $OFF
-node scripts/sleep-lab.js --game 48 $OFF --set SLEEP.consolidate=0
-
-# §25.5 autopsias y apetito (antes de PERCEPT y la mente nocturna)
-OFF="--set PERCEPT.enabled=0 --set NIGHTAI.enabled=0"
-node scripts/autopsy.js --lives 48 $OFF --set APPETITE.enabled=0
-node scripts/autopsy.js --lives 48 $OFF
-node scripts/sleep-lab.js --game 48 $OFF
-
-# §25.6 percepción (antes de la mente nocturna)
-node scripts/sleep-lab.js --game 48 --set NIGHTAI.enabled=0
-node scripts/autopsy.js --lives 48 --set NIGHTAI.enabled=0
-
-# §25.7 mente nocturna
-node scripts/sleep-lab.js --k 6 --night
-node scripts/sleep-lab.js --k 6 --night --family conj
-node scripts/sleep-lab.js --game 48
-node scripts/sleep-lab.js --game 48 --set MAPGEN.family=conj --set NIGHTAI.enabled=0
-node scripts/sleep-lab.js --game 48 --set MAPGEN.family=conj
-node scripts/sleep-lab.js --game 48 --set NIGHTAI.enabled=0 --set EXPERIMENT.enabled=0
-node scripts/sleep-lab.js --game 48 --set SLEEP.consolidate=0
-
-# §25.8 población que se reproduce sola
-node scripts/population.js --maps 8 --duration 10800
-node scripts/population.js --maps 1 --seed 5000 --duration 10800 --set LIFE.maxPopulation=40
-
-# §25.9 evaluación congelada (docs/research/organism-protocol.md)
-node research/organism/run.js --jobs 16
-node research/organism/analyze.js research/results/organism
-
-# §25.11 cosas y conceptos (protocolo congelado: docs/research/concepts-protocol.md)
-node research/concepts/run.js --jobs 16
-node research/concepts/analyze.js research/results/concepts
-node scripts/concept-lab.js --lives 48                  # banco exploratorio
-node scripts/concept-lab.js --lives 48 --dims color --turn
-
-# §25.13 seguimiento congelado (docs/research/organism2-protocol.md)
-node research/organism2/run.js --jobs 16
-node research/organism2/analyze.js research/results/organism2
-
-# §25.14 frenos graduales (y sin ellos, como en el §25.8)
-node scripts/population.js --maps 8 --duration 10800
-node scripts/population.js --maps 8 --duration 10800 --set LIFE.gradual=0
-
-# §25.15 salud (con y sin)
-node scripts/population.js --maps 4 --duration 5400
-node scripts/population.js --maps 4 --duration 5400 --set HEALTH.enabled=0
-
-# §25.17 fuentes aprendidas: node test/sources.test.js; vidas con --set SOURCES.enabled=0 para comparar
-
-# §25.16 sabores (12 especies; y con --set TASTE.learn=0 / TASTE.innate=0)
-node scripts/taste-lab.js --set MAPGEN.species=12
-
-# §25.18 información social falsa (protocolo congelado: docs/research/social-protocol.md)
-node research/social/run.js --jobs 16
-node research/social/analyze.js
-
-# §25.19 diversidad y cambio de mundo (protocolo congelado: docs/research/diversity-protocol.md)
-# desde un worktree en 84c6e0a: git worktree add --detach ../frozen 84c6e0a
-node research/diversity/run.js --jobs 16
-node research/diversity/analyze.js
-
-# §25.12 retención
-node scripts/retention.js
-node scripts/retention.js --set SLEEP.consolidate=0
-node scripts/retention.js --set SLEEP.enabled=0
-
-# §25.10 batería de sexos (--current: con el organismo de hoy)
-node scripts/sex-battery.js --lives 120 --jobs 16
-
-# generaciones con reproducción sexual, creadas por lotes (sin cría dentro del mundo)
-node scripts/batch.js --organism --set LIFE.enabled=0 --set GEN.sexual=1 --generations 6 --colony 6 --runs 4 --duration 600 --set MAPGEN.species=6
-```
+- **Frutas que hace la persona** (`src/custom-fruits.js`, editor en la pantalla de inicio). Cada una tiene nombre, color, forma, olor, sabores, efectos sobre el cuerpo y el árbol que la da. Entran en `POINT_TYPES` como cualquier otra, así que Fagi no lee su definición: la ve, la huele, la prueba y siente lo que hace (§12.7). Solo existen en el juego; en batch no hay ninguna.
+- **Frutas clásicas retiradas.** `spark`, `eye` y `resin` salen de `config.js`. Las sesiones grabadas que las nombran las recuperan solo para dibujarlas e inspeccionarlas (`addRetired`), nunca para colocarlas. En `config.js` quedan solo el néctar y `toxic`, que es también en lo que se pudre cualquier fruta.
+- **Sin forma de cristal** en las frutas que hace la persona. Una guardada con esa forma se descarta al cargar; las sesiones grabadas conservan la suya.
+- **Árboles con el aspecto de su fruta.** La forma elige el tipo de árbol (redonda: frondoso en flor; gota: conífera con resina; orbe: sauce) y el color tiñe hojas y flores.
+- **Estelas de olor ocultas por defecto** (`PLUME.show = 0`). Solo se dibujan mientras una Fagi las huele. Es solo dibujo: no cambia lo que percibe.
+- **Feromona de 60 s** en lugar de 600 s. Una marca cuenta su vida desde que se dejó, igual que el replay, así que el replay sigue siendo exacto. Esto sí cambia la simulación (§0, §25.4).
+- **Mapas más grandes** (`MAPGEN.size`). Rocas y cosas se escalan con el área. Con varias fuentes de agua, la primera va cerca del nacimiento y las demás en cualquier sitio. Con `size = 1` y un solo charco, que es lo medido, el mapa no cambia.
+- **Nombres y familias** (`src/names.js`). Cada Fagi tiene nombre y dos apellidos, el primero del padre y el segundo de la madre. Se sacan de un flujo aleatorio propio, así que no alteran una corrida con semilla. Las grabaciones antiguas reciben nombres estables (`nameForId`).
+- **Inspector.** Al hacer clic en algo se muestra lo que es, incluida la familia de una Fagi y el árbol del que cayó una fruta.
+- **Paneles en vertical u horizontal** (`setSideBySide`).
 
