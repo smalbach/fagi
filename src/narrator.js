@@ -472,6 +472,11 @@ function narrateOrganism(narr, fagi, p) {
     }
     for (const gone of c.retired) push(narr, fagi, 'concept', { key: 'log.conceptRevised', params: { id: gone.id } }, null);
   }
+  const spit = fagi.lastSpit;
+  if (spit && spit.n !== p.spit) {
+    p.spit = spit.n;
+    push(narr, fagi, 'concept', { key: 'log.spit', params: { taste: { key: `taste.${spit.taste}` } } }, { key: 'log.spitSub', params: { what: spit.key } });
+  }
   const lined = fagi.lastLining;
   if (lined && lined.n !== p.lining) {
     p.lining = lined.n;

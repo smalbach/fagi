@@ -58,6 +58,7 @@ if (argv[0] === '--piece') {
     CONFIG.SLEEP.askAlways = 0;   // and before the night asked without episodes
     CONFIG.SLEEP.replay = 4;      // with replay on
     CONFIG.HEALTH.enabled = 0;      // and health did not exist
+    CONFIG.TASTE.enabled = 0;       // nor tastes
   }
   CONFIG.MAPGEN.species = SPECIES;
   for (const [path, value] of Object.entries(SCENARIOS[scenario])) {

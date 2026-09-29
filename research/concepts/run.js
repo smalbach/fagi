@@ -28,6 +28,7 @@ if (argv[0] === '--piece') {
   CONFIG.CONCEPT.lookAgain = 0;   // she did not go back to look at drained sap
   CONFIG.CONCEPT.lining = 0;      // nor line the nest
   CONFIG.HEALTH.enabled = 0;      // and health did not exist
+  CONFIG.TASTE.enabled = 0;       // nor tastes
   CONFIG.MAPGEN.species = SPECIES;
   CONFIG.CONCEPT.dims = FAMILIES[family];
   for (const [path, value] of Object.entries(CONDITIONS[condition])) {

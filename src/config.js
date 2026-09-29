@@ -380,6 +380,7 @@ export const POINT_TYPES = {
     hunger: -35,
     effects: [],
     traits: { color: 'green', shape: 'round', smell: 'sweet' },
+    taste: { sweet: 0.9 },   // what the tongue says of it (TASTE only)
   },
   spark: {
     color: '#4cc9f0',
@@ -389,6 +390,7 @@ export const POINT_TYPES = {
     hunger: -5,
     effects: [{ stat: 'speed', mult: 1.8, sec: 8 }],
     traits: { color: 'blue', shape: 'crystal', smell: 'sharp' },
+    taste: { sour: 0.5, spicy: 0.6 },   // what the tongue says of it (TASTE only)
   },
   eye: {
     color: '#b57bff',
@@ -401,6 +403,7 @@ export const POINT_TYPES = {
       { stat: 'fovDeg', mult: 1.4, sec: 10 },
     ],
     traits: { color: 'purple', shape: 'orb', smell: 'musky' },
+    taste: { bitter: 0.6 },   // what the tongue says of it (TASTE only)
   },
   resin: {
     color: '#e8a33d',
@@ -410,6 +413,7 @@ export const POINT_TYPES = {
     hunger: -10,
     effects: [{ stat: 'hungerRate', mult: 0.5, sec: 14 }],
     traits: { color: 'orange', shape: 'drop', smell: 'musky' },
+    taste: { sweet: 0.4, astringent: 0.6 },   // what the tongue says of it (TASTE only)
   },
   toxic: {
     color: '#d95b7e',
@@ -419,6 +423,7 @@ export const POINT_TYPES = {
     hunger: 25,
     effects: [{ stat: 'speed', mult: 0.6, sec: 5 }],
     traits: { color: 'red', shape: 'round', smell: 'rotten' },
+    taste: { sour: 0.7, bitter: 0.5 },   // what the tongue says of it (TASTE only)
   },
 };
 
@@ -929,3 +934,34 @@ export const HEALTH = {
   slowest: 0.6,
   breed: 0.5,
 };
+
+// Tastes and nutritional chemistry (chemistry.js, feeding.js; spec §12.9). A
+// wild species is a hidden mix of compounds the tongue reads as tastes. Only
+// in the mouth: never at a distance. Part of the organism, off by default.
+//   valence      : how much she likes each taste from birth (-1..1): a hint, not the truth
+//   toxicBitter  : chance a bitter species of a map is poisonous (the rest: harmless alkaloids)
+//   hiddenToxin  : chance a species that is not bitter is poisonous all the same
+//   hedonic      : weight of how it tastes in what a bite feels like, right away
+//   spitBelow    : liking under which she spits it out (unless starving, or she knows it is good)
+//   spitPortion  : what she swallows of what she spits
+//   learnWeight  : how fast what she learned of tastes overrides her innate liking
+//   burn         : health a fully spicy bite takes (with HEALTH)
+//   salience     : how much more readily a taste takes the blame for a bite than a look
+//                does (Garcia and Koelling, 1966); 1 = the same
+//   innate       : 0 = born liking nothing and disliking nothing (an ablation)
+//   learn        : 0 = tastes teach nothing: only her innate liking, at the mouth (an ablation)
+export const TASTE = {
+  enabled: 0,
+  valence: { sweet: 0.6, umami: 0.5, salty: 0.2, sour: -0.25, astringent: -0.4, spicy: -0.5, bitter: -0.7 },
+  toxicBitter: 0.7,
+  hiddenToxin: 0.1,
+  hedonic: 0.3,
+  spitBelow: -0.3,
+  spitPortion: 0.2,
+  learnWeight: 1.5,
+  burn: 4,
+  salience: 2,
+  innate: 1,
+  learn: 1,
+};
+

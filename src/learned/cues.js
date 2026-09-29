@@ -54,14 +54,16 @@ export function predict(cues, list) {
 
 // One experience: every cue that was there moves by the same surprise.
 // `rate` defaults to CUES.rate; watching a sister learns at a fraction of it.
-export function learnCues(cues, list, reward, now, rate = CUES.rate) {
+// `salience(c)` (optional): how readily each cue takes blame (1 = like any);
+// a taste does more than a color (TASTE.salience; Garcia and Koelling).
+export function learnCues(cues, list, reward, now, rate = CUES.rate, salience = null) {
   if (!cues || !list.length) return null;
   const before = predict(cues, list).value;
   const surprise = reward - before;
   for (const c of list) {
     // An innate bias (generations.js) stays marked as such: learning moves it.
     const e = cues[c] ?? (cues[c] = { w: 0, n: 0, lastAt: now });
-    e.w = clamp(e.w + rate * surprise);
+    e.w = clamp(e.w + rate * (salience ? salience(c) : 1) * surprise);
     e.n += 1;
     e.lastAt = now;
   }

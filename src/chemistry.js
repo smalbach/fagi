@@ -15,7 +15,7 @@
 // them too. The classic fruit have traits as well (config.js): learning is the
 // same for all.
 
-import { POINT_TYPES, PERCEPT } from './config.js';
+import { POINT_TYPES, PERCEPT, TASTE } from './config.js';
 
 export const TRAITS = {
   color: ['red', 'orange', 'yellow', 'green', 'blue', 'purple'],
@@ -69,6 +69,7 @@ export function cuesOfTraits(traits) {
 // each a list of clauses, a clause a list of cues that must all be there.
 // They are what research/ changes and seeds theories from.
 export function createChemistry(rnd = Math.random, { family = 'smell', dim = 'smell' } = {}) {
+  if (TASTE.enabled && family === 'smell') return createTasteChemistry(rnd);
   const smells = shuffle(TRAITS.smell, rnd);
   const colors = shuffle(TRAITS.color, rnd);
   const chem = {
@@ -88,6 +89,10 @@ export function createChemistry(rnd = Math.random, { family = 'smell', dim = 'sm
 
 // What a fruit with these traits does to hunger: 'poison', 'nourishing' or 'mild'.
 export function feedOf(chem, traits) {
+  if (chem.taste) {
+    const comp = chem.compositions[speciesKey(traits)];
+    return comp ? tasteEffect(chem, comp).feed : 'mild';
+  }
   if (!chem.rules) return chem.smell[traits.smell] ?? 'mild';
   const cues = cuesOfTraits(traits);
   const hit = (clauses) => clauses.some((c) => c.every((x) => cues.includes(x)));
@@ -100,6 +105,7 @@ export function feedOf(chem, traits) {
 // nourishes and the other way round. Colors keep their buffs. It is the
 // hardest change for whoever learned the old one: what she avoided is now food.
 export function invertChemistry(chem) {
+  if (chem.taste) return { ...chem, inverted: !chem.inverted };
   if (chem.rules) return { ...chem, rules: { poison: chem.rules.food, food: chem.rules.poison } };
   const smell = { ...chem.smell };
   const poison = Object.keys(smell).find((s) => smell[s] === 'poison');
@@ -152,6 +158,7 @@ export function effectOf(chem, traits) {
 // `count` species, all distinct, with at least two poisonous and two
 // nourishing ones so that there is something to generalize in both directions.
 export function createSpecies(chem, count, rnd = Math.random) {
+  if (chem.taste) return createTasteSpecies(chem, count, rnd);
   const bySmell = (cls) => Object.keys(chem.smell).filter((s) => chem.smell[s] === cls);
   const pick = (list) => list[Math.floor(rnd() * list.length)];
   const wanted = [
@@ -190,6 +197,7 @@ export function createSpecies(chem, count, rnd = Math.random) {
 // under another chemistry (after the world changes) are the same species
 // doing something else.
 export function speciesUnder(chem, traits) {
+  if (chem.taste) return tasteSpeciesUnder(chem, traits);
   const fx = effectOf(chem, traits);
   return {
     key: speciesKey(traits),
@@ -205,6 +213,101 @@ export function speciesUnder(chem, traits) {
       species: true,
     },
   };
+}
+
+// --- tastes (TASTE, spec §12.9) ---------------------------------------------
+// A wild species is a hidden mix of compounds; the tongue reads each as a
+// taste. What the body gets comes from the compounds, not from the taste: a
+// bitter alkaloid is poison on some species and harmless on others, and a
+// poison can have no taste at all.
+
+export const TASTES = ['sweet', 'umami', 'salty', 'sour', 'astringent', 'bitter', 'spicy'];
+// What a species with this dominant taste tends to smell like: a hint, not a rule.
+const SMELL_OF = {
+  sweet: ['sweet'], umami: ['musky'], salty: ['musky', 'sharp'], sour: ['sour'],
+  astringent: ['sour', 'musky'], bitter: ['musky', 'sharp'], spicy: ['sharp'],
+};
+
+export function createTasteChemistry(rnd = Math.random) {
+  const colors = shuffle(TRAITS.color, rnd);
+  return {
+    taste: true,
+    color: { [colors[0]]: 'speed', [colors[1]]: 'sight', [colors[2]]: 'metabolism' },
+    compositions: {},
+    inverted: false,
+  };
+}
+
+const r2 = (v) => Math.round(v * 100) / 100;
+
+// What a composition does to the body. Turned upside down (a world that
+// changes), the poisons feed and the most nourishing poison.
+export function tasteEffect(chem, comp) {
+  const g = (t) => comp.taste[t] ?? 0;
+  let relief = (30 * g('sweet') + 40 * g('umami')) * (1 - 0.6 * g('astringent'));
+  let toxic = comp.toxic;
+  if (chem.inverted) {
+    if (toxic) { toxic = false; relief = Math.max(relief, 35); } else if (relief >= 20) toxic = true;
+  }
+  return {
+    hunger: toxic ? 25 : -Math.max(5, Math.round(relief)),
+    feed: toxic ? 'poison' : relief >= 20 ? 'nourishing' : 'mild',
+    thirst: Math.round(14 * g('salty') - 10 * g('sour')),
+    burn: g('spicy'),
+  };
+}
+
+function tasteSpeciesUnder(chem, traits) {
+  const key = speciesKey(traits);
+  const comp = chem.compositions[key];
+  const fx = tasteEffect(chem, comp);
+  const buff = chem.color[traits.color];
+  return {
+    key,
+    spec: {
+      color: COLOR_HEX[traits.color], radius: 6, aroma: 130, life: 200,
+      hunger: fx.hunger, thirst: fx.thirst, burn: fx.burn, taste: { ...comp.taste },
+      effects: [...(fx.feed === 'poison' ? POISON_EFFECTS : []), ...(buff ? BUFFS[buff] : [])],
+      traits, painter: SHAPE_PAINTER[traits.shape], species: true,
+    },
+  };
+}
+
+function createTasteSpecies(chem, count, rnd) {
+  const pick = (list) => list[Math.floor(rnd() * list.length)];
+  const wanted = [
+    ...Array(2).fill('poison'), ...Array(2).fill('nourishing'),
+    ...Array(Math.max(0, count - 4)).fill(null),
+  ].slice(0, count);
+  const looks = new Set(Object.values(POINT_TYPES).filter((s) => s.traits && !s.species).map((s) => speciesKey(s.traits)));
+  const out = [];
+  for (const cls of wanted) {
+    for (let tries = 0; tries < 500; tries++) {
+      const d = pick(TASTES);
+      const taste = { [d]: r2(0.6 + 0.4 * rnd()) };
+      if (rnd() < 0.5) taste[pick(TASTES.filter((t) => t !== d))] = r2(0.2 + 0.3 * rnd());
+      const toxic = (taste.bitter ?? 0) >= 0.3 ? rnd() < TASTE.toxicBitter : rnd() < TASTE.hiddenToxin;
+      const comp = { taste, toxic };
+      if (cls && tasteEffect(chem, comp).feed !== cls) continue;
+      const traits = {
+        color: pick(TRAITS.color), shape: pick(TRAITS.shape),
+        smell: rnd() < 0.7 ? pick(SMELL_OF[d]) : pick(TRAITS.smell),
+      };
+      const key = speciesKey(traits);
+      if (chem.compositions[key] || looks.has(key) || POINT_TYPES[key] && !POINT_TYPES[key].species) continue;
+      chem.compositions[key] = comp;
+      out.push(tasteSpeciesUnder(chem, traits));
+      break;
+    }
+  }
+  return out;
+}
+
+// The tastes of a fruit type (what the tongue says), as cues: 'taste:bitter'.
+// Only what is there enough to notice.
+export function tasteCuesOf(key) {
+  const t = POINT_TYPES[key]?.taste;
+  return t ? Object.entries(t).filter(([, v]) => v >= 0.3).map(([k]) => `taste:${k}`) : [];
 }
 
 // Species are part of the map: a new map drops the old ones.

@@ -9,7 +9,7 @@
 // There is only one pending episode at a time. Opening another closes the previous one
 // outright: two bites in a row can't both carry the same scare.
 
-import { FEEL, NEEDS, HUNGER, THIRST, PHERO } from './config.js';
+import { FEEL, NEEDS, HUNGER, THIRST, PHERO, TASTE } from './config.js';
 import { learn } from './brain.js';
 import { snapshotBody, feel } from './interoception.js';
 
@@ -29,7 +29,7 @@ function learnFrom(fagi, key, reward, sensations) {
 
 // Opens an episode and immediately teaches what she felt. `before` is the snapshot of the
 // body before eating or starting to drink.
-export function openEpisode(fagi, { action, key, before, portion = 1 }) {
+export function openEpisode(fagi, { action, key, before, portion = 1, taste = null }) {
   const previous = fagi.episode;
   if (previous) close(fagi, previous, null);   // the scare, if it comes, belongs to the new one
 
@@ -38,6 +38,7 @@ export function openEpisode(fagi, { action, key, before, portion = 1 }) {
     n: (fagi.lastEpisode?.n ?? 0) + 1,
     action, key, need,
     ...(portion !== 1 ? { portion } : {}),
+    ...(taste != null ? { taste } : {}),
     at: fagi.age,
     before,
     // If the need was ALREADY critical before the bite, the bad outcome is no surprise:
@@ -64,8 +65,14 @@ function feelNow(fagi, ep) {
   const felt = feel(ep.before, after);
   // A trial bite: she felt a fraction of the fruit, and knows how small the bite
   // was, so she learns what a whole one would do.
-  const reward = ep.portion ? Math.max(-1, Math.min(1, felt.reward / ep.portion)) : felt.reward;
-  const sensations = ep.portion ? [...felt.sensations, { sense: 'trial', v: ep.portion }] : felt.sensations;
+  let reward = ep.portion ? Math.max(-1, Math.min(1, felt.reward / ep.portion)) : felt.reward;
+  const sensations = ep.portion ? [...felt.sensations, { sense: 'trial', v: ep.portion }] : [...felt.sensations];
+  // How it tasted (TASTE, taste.js): liking or disgust, right away, whatever
+  // the body makes of it later.
+  if (ep.taste != null) {
+    reward = Math.max(-1, Math.min(1, reward + TASTE.hedonic * ep.taste));
+    sensations.push({ sense: 'taste', v: Math.round(ep.taste * 100) / 100 });
+  }
   ep.reward = reward;
   ep.sensations = sensations;
   ep.change = learnFrom(fagi, ep.key, reward, sensations);

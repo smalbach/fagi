@@ -46,5 +46,5 @@ export function healthSpeed(fagi) {
 // Has the harm killed her? What of, if so.
 export function woundsCause(fagi) {
   if (!HEALTH.enabled || healthOf(fagi) > 0) return null;
-  return fagi.hurtBy === 'sting' ? 'wounds' : fagi.hurtBy ?? 'wounds';
+  return fagi.hurtBy === 'sting' || fagi.hurtBy === 'burn' ? 'wounds' : fagi.hurtBy ?? 'wounds';
 }

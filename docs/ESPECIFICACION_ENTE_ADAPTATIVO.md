@@ -842,6 +842,46 @@ Pasa menos frío en el nido, pero no muere menos de frío: las muertes ocurren f
 
 Ninguna parte recibe el identificador real: la API ve rasgos y la decisión, conceptos.
 
+### 12.9 Sabores y química nutricional: diseño
+
+`TASTE` en `config.js`, que forma parte del organismo.
+
+**Por qué.** Hasta aquí una fruta era un aspecto (color, forma, olor) y el olor decidía si alimentaba o envenenaba: tres clases (`nourishing`, `mild`, `poison`) y efectos fijos. En la naturaleza un alimento es una mezcla de compuestos, y el animal la conoce por la boca. Con sabores se pueden hacer muchas más cosas, parecidas al mundo real, sin escribir cada tipo a mano.
+
+**Composición y efectos.** Cada especie del mapa tiene una composición oculta de hasta dos compuestos dominantes. El cuerpo nota sus efectos (físicas, `chemistry.js`):
+
+| Compuesto | Sabor que la lengua percibe | Qué hace al cuerpo |
+|---|---|---|
+| azúcar | dulce | alimenta |
+| proteína | umami | alimenta más |
+| sal | salado | da sed |
+| ácido | ácido | quita un poco de sed (jugoso) |
+| taninos | astringente | resta lo que alimenta |
+| alcaloides | amargo | a veces veneno, a veces nada: depende del mapa |
+| capsaicina | picante | quema (un poco de salud), sin más daño |
+
+El veneno sigue siendo el de siempre: el hambre sube y el cuerpo va lento. Casi siempre es amargo (`TASTE.toxicBitter`), pero en cada mapa hay alcaloides amargos inofensivos, y a veces un veneno sin sabor (`TASTE.hiddenToxin`). El olor se correlaciona con el sabor dominante sin revelarlo (lo dulce suele oler dulce; lo picante, penetrante), y el color sigue llevando sus efectos secundarios.
+
+**Gusto innato** (`TASTE.valence`). Nace con una valencia por sabor, como los animales reales: le gusta el dulce, el umami y un poco lo salado; le disgustan el ácido, lo astringente, el picante y, sobre todo, lo amargo. Es una pista, no la verdad: lo amargo inofensivo y lo picante nutritivo existen, y aprender es descubrirlos.
+
+**En la boca.** El sabor solo se percibe al morder: nunca a distancia, ni en la API antes del bocado.
+
+- **Tragar o escupir.** Al morder calcula cuánto le gusta: su gusto innato, corregido por lo que ha aprendido de esos sabores. Si le disgusta lo bastante, la escupe y solo se traga un bocado pequeño (`TASTE.spitPortion`).
+- **Cuándo no escupe.** Si el hambre es crítica, porque la necesidad vence al disgusto. Tampoco si ya sabe que esa fruta le sienta bien: es el sabor adquirido, como el café.
+- **Lo que siente del sabor** (`TASTE.hedonic`) forma parte de la recompensa inmediata. Lo que la fruta hace al cuerpo llega aparte.
+
+**Aprendizaje sabor-consecuencia.** Cada bocado enseña a los rasgos del aspecto y también a los sabores (`taste:bitter`, …), con la regla de Rescorla-Wagner de siempre. Los animales asocian el malestar con el sabor mucho mejor que con lo que ven (Garcia y Koelling, 1966). El resultado:
+
+- lo aprendido de un sabor actúa en la boca ante una especie nueva;
+- lo aprendido del aspecto actúa a distancia.
+
+**Qué cambia en el resto del plan:**
+
+- **Percepción** (§12.7). El sabor es un sentido de contacto, como el tacto de las cosas; `percept.js` no lo expone a distancia.
+- **Apetito** (§25.5). La aversión de un solo bocado ahora se ata también al sabor.
+- **Métricas.** El aspecto ya no decide el efecto, así que el juicio sobre el catálogo de 96 aspectos no tiene verdad. Con sabores, el juicio se mide sobre las especies del mapa.
+- **Evaluaciones congeladas.** Apagan `TASTE`, como las demás piezas posteriores.
+
 ## 13. Memoria propuesta
 
 ### 13.1 Memoria episódica
@@ -1410,6 +1450,21 @@ Si quitar una pieza no empeora nada, esa pieza no está demostrando valor.
 
 **Criterio de salida:** los resultados pueden repetirse desde un comando y respaldan afirmaciones concretas, no impresiones visuales.
 
+### Fase 8 — Sabores y química nutricional
+
+**Meta:** que un alimento no sea un tipo fijo con un efecto fijo, sino una mezcla de compuestos que la lengua percibe como sabores, como en el mundo natural (§12.9).
+
+- [ ] Composición oculta de cada alimento (azúcar, proteína, sal, ácido, taninos, alcaloides, capsaicina) y efectos derivados de ella.
+- [ ] Siete sabores percibidos solo en la boca: dulce, umami, salado, ácido, astringente, amargo, picante.
+- [ ] Gusto innato por cada sabor, como pista imperfecta y no como verdad.
+- [ ] Decisión en la boca: tragar o escupir.
+- [ ] Aprendizaje sabor-consecuencia y sabores adquiridos.
+- [ ] Olor y color correlacionados con el sabor, sin revelarlo.
+- [ ] Métricas por especie del mapa, porque el aspecto ya no decide el efecto.
+- [ ] Ablaciones: sin gusto innato, sin aprendizaje del sabor.
+
+**Criterio de salida:** con sabores, aprende qué comer con menos veneno que con el gusto innato solo, y llega a comer lo amargo inofensivo y lo picante nutritivo que su gusto innato rechazaba.
+
 > Las casillas de este plan se actualizan en el §25, no aquí, para conservar la propuesta original tal como se escribió.
 
 ---
@@ -1564,7 +1619,8 @@ El siguiente orden minimiza retrabajo:
 7. añadir experimentación y conceptos;
 8. integrar la IA nocturna bajo esquema limitado;
 9. implementar población persistente y ciclo vital;
-10. ejecutar evaluación completa con baselines y ablaciones.
+10. ejecutar evaluación completa con baselines y ablaciones;
+11. sustituir los tipos de fruta por composiciones y sabores (fase 8, §12.9).
 
 Este orden construye primero el cuerpo y el entorno, después la memoria, después la evolución y finalmente la apertura conceptual. Intentar todo al mismo tiempo haría imposible saber qué funciona.
 
@@ -1630,6 +1686,14 @@ Actualizado al implementar las fases 1 a 3 y parte de la 5. Todo está detrás d
 - [x] Protocolo congelado antes de correr (`docs/research/organism-protocol.md`, commit `c181469`), semillas nunca usadas, un solo comando.
 - [x] Resultados negativos publicados, datos brutos conservados (`research/results/organism/`) e informe automático (§25.9).
 - [x] Protocolo de seguimiento: replay, rigidez de la consolidación y memoria episódica como ablación propia (§25.13). El replay queda apagado por defecto.
+
+**Fase 8: sabores y química nutricional** (§12.9, §25.16)
+- [x] Composición oculta y efectos derivados de ella; siete sabores, solo en la boca.
+- [x] Gusto innato como pista; tragar o escupir; sabor adquirido.
+- [x] Aprendizaje sabor-consecuencia, con saliencia del sabor (Garcia).
+- [x] Olor correlacionado con el sabor dominante.
+- [x] Métrica de juicio por especie del mapa; ablaciones sin gusto innato y sin aprendizaje del sabor.
+- [ ] Criterio de salida: se cumple a medias (§25.16).
 
 **Fase 6: novedad y conceptos emergentes**
 - [x] Identidad real separada de lo percibido, en lo que Fagi decide y en lo que ve la API (§12.7).
@@ -2023,8 +2087,32 @@ La población se regula antes de chocar con el techo. Hay más generaciones porq
 
 **Medido, con semillas de desarrollo.** En el mundo por defecto no cambia casi nada, ni en vidas sueltas (48 por clima) ni en poblaciones (4 mapas, 30 días). En clima templado las vidas son idénticas, y las poblaciones crían 13,75 frente a 13,5 por mapa. En frío y en calor la vida cambia un poco (1783 frente a 1837 s en frío; 2094 frente a 2107 s en calor). Nadie muere de heridas: el daño es raro y se recupera antes de que pese. Es el contrato del §9 cumplido y listo para mundos más duros (más cosas que pican, depredadores). En este mundo no hay casi nada que herir.
 
+### 25.16 Sabores: resultado
+
+`scripts/taste-lab.js`: 48 vidas de desarrollo por condición (semillas 5000–5047, mapas `3 + 13i`), 2400 s, el organismo completo con `TASTE`. Como el aspecto ya no decide el efecto, el juicio se mide sobre las especies del mapa (¿se la comería, contando si la tragaría?), equilibrado entre venenosas y el resto.
+
+**Con 6 especies los sabores apenas cambian nada.** Juicio 0,92, veneno 0,85 frutas por vida y 0,13 escupidas por vida, en todas las condiciones. Lo nuevo casi siempre lo prueba con un bocado de prueba de la agenda, que ya es pequeño, y el aspecto le basta para aprender seis especies.
+
+**Con 12 especies:**
+
+| Condición | Juicio | Veneno | Especies que le disgustaban, no venenosas, que acaba comiendo enteras | Vivas | Muertes por veneno |
+|---|---|---|---|---|---|
+| completo | 0,854 | 0,94 | 0,69 de 2,02 | 0,98 | 0 |
+| sin aprender del sabor | 0,830 | 0,84 | 0,60 de 2,02 | 0,98 | 0 |
+| sin gusto innato | 0,858 | 1,01 | — | 0,94 | 2 |
+| sin ninguno | 0,825 | 1,03 | — | 0,92 | 3 |
+
+- **El gusto innato protege.** Sin él mueren envenenadas 2 o 3 de 48, frente a ninguna, porque escupir lo amargo corta la dosis cuando el aspecto no avisa.
+- **Aprender del sabor mejora un poco el juicio** (+0,02 a +0,03), pero no reduce el veneno. Al contrario, sube algo (0,94 frente a 0,84): lo aprendido vence a veces al disgusto innato, y no todo lo amargo es inofensivo.
+- **Sabores adquiridos, sí, pero por especie.** Llega a comer entera un tercio de la fruta que de nacimiento escupiría. Casi siempre es porque el bocado escupido le enseñó que esa especie alimenta. Pocas veces porque lo aprendido del sabor se extienda a una especie nueva (0,04–0,08 por vida). La saliencia del sabor (Garcia) no cambia esto: juicio 0,851 con saliencia 1, 0,854 con 2 y 0,857 con 3.
+
+**Criterio de salida: a medias.** Sí llega a comer lo amargo inofensivo y lo picante nutritivo que su gusto innato rechazaba (un tercio de ello). No aprende a comer con menos veneno que con el gusto innato solo.
+
+El sabor añade realismo, porque el mundo ya no es una tabla de tipos, y añade una protección innata. En este mundo casi todo se aprende antes por la vista. Pesaría más en un mundo donde lo que se ve engaña (especies iguales por fuera y distintas por dentro) o con venenos más fuertes. Eso queda anotado como siguiente paso de esta fase.
+
 ### 25.3 Pendiente
 
+- Fase 8: un mundo donde la vista engañe (especies de aspecto igual y composición distinta, mimetismo) y donde el sabor sea lo que decide; apetito por la sal según la necesidad.
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
 - Fase 6, lo que queda del §12.3:
   - que el agua, el nido, los árboles y las rocas dejen de ser categorías innatas (hoy solo las cosas lo son);
@@ -2038,7 +2126,7 @@ La población se regula antes de chocar con el techo. Hay más generaciones porq
 
 ### 25.4 Cómo reproducir
 
-Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas. Todas las tablas anteriores al §25.11 se midieron sin cosas ni conceptos y con el reflejo térmico antiguo: a los comandos de `batch.js`, `sleep-lab.js`, `autopsy.js` y `population.js` hay que añadirles `--set CONCEPT.enabled=0 --set THERMAL.voluntary=0 --set SLEEP.askAlways=0 --set SLEEP.replay=4`; la del §25.11, solo las tres últimas; las del §25.12, `--set SLEEP.askAlways=0 --set SLEEP.replay=4`. A `population.js` y a todo lo que cría antes del §25.14, además, `--set LIFE.gradual=0`. Las evaluaciones congeladas y la batería de sexos ya lo hacen solas. `LIFE` solo afecta a quien pertenece a una población que se reproduce, así que no cambia las vidas individuales; en cualquier ejecución con colonia (`--colony`, `--generations`) sí la pone a criar.
+Cada tabla se midió con el organismo tal como estaba en ese momento. `--organism` enciende hoy todas sus piezas, así que los comandos apagan las que se añadieron después (`--set …=0`); así reproducen las cifras exactas. Todas las tablas anteriores al §25.11 se midieron sin cosas ni conceptos y con el reflejo térmico antiguo: a los comandos de `batch.js`, `sleep-lab.js`, `autopsy.js` y `population.js` hay que añadirles `--set TASTE.enabled=0 --set HEALTH.enabled=0 --set CONCEPT.enabled=0 --set THERMAL.voluntary=0 --set SLEEP.askAlways=0 --set SLEEP.replay=4`; la del §25.11, solo las tres últimas; las del §25.12, `--set SLEEP.askAlways=0 --set SLEEP.replay=4`. A `population.js` y a todo lo que cría antes del §25.14, además, `--set LIFE.gradual=0`. Las evaluaciones congeladas y la batería de sexos ya lo hacen solas. `LIFE` solo afecta a quien pertenece a una población que se reproduce, así que no cambia las vidas individuales; en cualquier ejecución con colonia (`--colony`, `--generations`) sí la pone a criar.
 
 ```text
 npm test
@@ -2111,6 +2199,9 @@ node scripts/population.js --maps 8 --duration 10800 --set LIFE.gradual=0
 # §25.15 salud (con y sin)
 node scripts/population.js --maps 4 --duration 5400
 node scripts/population.js --maps 4 --duration 5400 --set HEALTH.enabled=0
+
+# §25.16 sabores (12 especies; y con --set TASTE.learn=0 / TASTE.innate=0)
+node scripts/taste-lab.js --set MAPGEN.species=12
 
 # §25.12 retención
 node scripts/retention.js

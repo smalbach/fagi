@@ -40,6 +40,7 @@ function configure(settings) {
   CONFIG.SLEEP.askAlways = 0;     // and the night asked only after a day with bites
   CONFIG.SLEEP.replay = 4;        // and rehearsed the remembered fruit four rounds
   CONFIG.HEALTH.enabled = 0;      // and health did not exist
+  CONFIG.TASTE.enabled = 0;       // nor tastes
   CONFIG.MAPGEN.species = SPECIES;
   for (const [path, value] of Object.entries(settings)) {
     const [block, key] = path.split('.');

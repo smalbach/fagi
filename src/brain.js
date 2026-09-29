@@ -1,7 +1,8 @@
 // Fagi's brain: she decides with what she remembers, and what she remembers lives in
 // memory.js. Here we only score: what she wants most out of everything she perceives.
 
-import { BRAIN, CUES, SOCIAL, MEMORY, BASELINE } from './config.js';
+import { BRAIN, CUES, SOCIAL, MEMORY, BASELINE, TASTE } from './config.js';
+import { tasteCuesOf } from './chemistry.js';
 import { createMemory, recall, weight, curious, reinforce, reinforceSeen } from './memory.js';
 import { createRules } from './learned/rules.js';
 import { synthAfterLearn, synthCues, synthInduced, checkTold } from './learned/synth.js';
@@ -121,16 +122,21 @@ export function learnSeen(brain, key, reward, now, from) {
   return change;
 }
 
+// Tastes take the blame for what a bite did more readily than looks do: the
+// preparedness of taste-illness learning (Garcia and Koelling, 1966).
+const tasteSalience = (c) => (c.startsWith('taste:') ? TASTE.salience : 1);
+
 export function learn(brain, key, reward, now, because = []) {
   if (!BASELINE.learn) return unchanged(brain, key);
   const change = reinforce(brain, key, reward, now, BRAIN.learnRate);
   synthAfterLearn(brain, key, change, because, now);
   // Kept to point at later, when she explains herself (learned/explain.js).
   logBite(brain, key, reward, now, because.some((s) => s.sense === 'peril'));
-  // The same experience teaches about each trait of what she ate.
-  const traits = CUES.enabled ? cuesOf(key) : [];
+  // The same experience teaches about each trait of what she ate, and, with
+  // TASTE, about each taste she felt in her mouth (taste.js).
+  const traits = CUES.enabled ? [...cuesOf(key), ...(TASTE.enabled && TASTE.learn ? tasteCuesOf(key) : [])] : [];
   if (traits.length) {
-    learnCues(brain.cues, traits, reward, now);
+    learnCues(brain.cues, traits, reward, now, CUES.rate, TASTE.enabled ? tasteSalience : null);
     // Rules about traits: induced from whole species (learned/induce.js), or
     // one trait at a time from its weight.
     if (CUES.induce !== 1) synthCues(brain, traits, because, now);
