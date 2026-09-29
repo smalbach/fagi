@@ -18,13 +18,39 @@ import { weight } from './memory.js';
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
 
 // How much she likes it by birth alone (-1..1).
-export function innateLiking(key, taste = null) {
+// How much she likes a taste now: her innate liking, and for salt, more the
+// less sodium she has (salt appetite).
+function valenceOf(fagi, t) {
+  const base = TASTE.valence[t] ?? 0;
+  if (t !== 'salty' || !TASTE.salt || !fagi) return base;
+  return base + (TASTE.saltCraving - base) * (1 - sodiumOf(fagi));
+}
+
+export function innateLiking(key, taste = null, fagi = null) {
   const t = taste ?? POINT_TYPES[key]?.taste;
   if (!t || !TASTE.innate) return 0;
   let v = 0;
-  for (const [taste, amount] of Object.entries(t)) v += (TASTE.valence[taste] ?? 0) * amount;
+  for (const [name, amount] of Object.entries(t)) v += valenceOf(fagi, name) * amount;
   return clamp1(v);
 }
+
+// --- sodium (TASTE.salt) ---
+export const sodiumOf = (fagi) => (TASTE.enabled && TASTE.salt ? fagi.sodium ?? 1 : 1);
+
+// Once per frame: sodium runs out.
+export function updateSodium(fagi, dt) {
+  if (!TASTE.enabled || !TASTE.salt) return;
+  fagi.sodium = Math.max(0, sodiumOf(fagi) - TASTE.saltLoss * dt);
+}
+
+// A salty bite restores it.
+export function saltBite(fagi, taste, portion) {
+  if (!TASTE.enabled || !TASTE.salt || !taste?.salty) return;
+  fagi.sodium = Math.min(1, sodiumOf(fagi) + TASTE.saltGain * taste.salty * portion);
+}
+
+// Short of sodium she is weak: slower.
+export const saltSpeed = (fagi) => (sodiumOf(fagi) < TASTE.saltWeak ? 0.8 : 1);
 
 // The taste that stands out most, to say what it tasted of.
 export function dominantTaste(key, taste = null) {
@@ -36,7 +62,7 @@ export function dominantTaste(key, taste = null) {
 // How much she likes it now: her innate liking, overridden as she learns what
 // these tastes lead to.
 export function liking(fagi, key, taste = null) {
-  const innate = innateLiking(key, taste);
+  const innate = innateLiking(key, taste, fagi);
   const cues = tasteCuesOf(key, taste);
   if (!cues.length) return innate;
   const learned = predict(fagi.brain.cues ?? {}, cues);
@@ -62,7 +88,7 @@ export function noteFlavor(fagi, key, taste = null) {
 export function atMouth(fagi, key, portion, taste = null) {
   const t = taste ?? POINT_TYPES[key]?.taste;
   if (!TASTE.enabled || !t) return { portion, spat: false, innate: null };
-  const innate = innateLiking(key, t);
+  const innate = innateLiking(key, t, fagi);
   if (portion < 1) return { portion, spat: false, innate };
   const starving = fagi.hunger / HUNGER.max >= NEEDS.critical;
   const knownGood = (fagi.brain.facts[key]?.tries ?? 0) > 0 && weight(fagi.brain, key) > 0 && !tastesWrong(fagi, key, t);
@@ -71,3 +97,11 @@ export function atMouth(fagi, key, portion, taste = null) {
   }
   return { portion, spat: false, innate };
 }
+
+// How much a fruit pulls her because of her salt hunger: only one she has
+// tasted salty (she cannot know it by looking), the more the less sodium she has.
+export function saltUrge(fagi, key) {
+  if (!TASTE.enabled || !TASTE.salt) return 0;
+  return fagi.brain.flavors?.[key]?.includes('taste:salty') ? 1 - sodiumOf(fagi) : 0;
+}
+

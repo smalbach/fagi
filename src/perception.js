@@ -19,6 +19,7 @@ import { rememberPlace, recallPlace, forgetPlace, waterPlaceKind, peekWeight } f
 import { energyMax } from './biology.js';
 import { isThing, isDry } from './things.js';
 import { conceptsOf, noteSeen } from './concepts.js';
+import { saltUrge } from './taste.js';
 
 // The nearest visible pool. Water isn't learned: it's instinct.
 function nearestWater(fagi, world) {
@@ -156,7 +157,8 @@ function buildCandidates(fagi, world, {
 
   const seen = seenPoints(fagi, world.points, world);
   for (const { point, dist } of seen) {
-    add({ key: point.type, kind: 'food', ref: point, dist, range, urgency: hungerU, via: 'sight', penalty: 0,
+    // Hunger pulls her to food; salt hunger, to what she knows tastes salty (taste.js).
+    add({ key: point.type, kind: 'food', ref: point, dist, range, urgency: Math.max(hungerU, saltUrge(fagi, point.type)), via: 'sight', penalty: 0,
           cues: perceivedCues(point.type, 'sight') });
   }
 

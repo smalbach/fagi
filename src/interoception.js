@@ -19,7 +19,7 @@ export function snapshotBody(fagi) {
   for (const s of STATS) mults[s] = statMult(fagi, s);
   // A stat with an active effect that isn't on the list also counts.
   for (const s of Object.keys(fagi.effects ?? {})) if (!(s in mults)) mults[s] = statMult(fagi, s);
-  return { hunger: fagi.hunger, thirst: fagi.thirst, energy: fagi.energy, mults };
+  return { hunger: fagi.hunger, thirst: fagi.thirst, energy: fagi.energy, mults, ...(fagi.sodium != null ? { sodium: fagi.sodium } : {}) };
 }
 
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
@@ -41,6 +41,13 @@ export function feel(before, after) {
   if (dThirst !== 0) {
     total += -dThirst / FEEL.thirstScale;
     sensations.push({ sense: 'thirst', v: round(dThirst) });
+  }
+
+  // Salt hunger eased (TASTE.salt): the more she lacked, the more it relieves.
+  if (before.sodium != null && after.sodium != null && after.sodium > before.sodium) {
+    const eased = (after.sodium - before.sodium) * (1 - before.sodium) * 2;
+    total += eased;
+    sensations.push({ sense: 'salt', v: round(after.sodium - before.sodium) });
   }
 
   // A multiplier that changes is felt; one refreshed to the same value is not.

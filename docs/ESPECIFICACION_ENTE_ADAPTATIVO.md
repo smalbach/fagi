@@ -2138,6 +2138,15 @@ Medido con 96 vidas pareadas, 12 especies (pruebas pareadas por signo, sin corre
 
 El sabor cambia cómo come (escupe, adquiere sabores, desconfía de lo que sabe raro), pero no cuánto veneno toma. Con 48 vidas parecía que el gusto innato salvaba vidas; con 96 no se sostiene. Se publica así.
 
+**Apetito por la sal** (`TASTE.salt`). El sodio es una necesidad propia: se agota (`TASTE.saltLoss`, un día y medio de lleno a vacío) y lo repone lo salado.
+
+- **Le gusta más cuanto más le falta.** Lo salado le agrada más a medida que se vacía (hasta `TASTE.saltCraving`), el apetito por la sal de Richter.
+- **Lo alivia y lo aprende.** Un bocado salado con carencia es un alivio que siente, y así aprende qué lo da.
+- **Tira de ella a distancia.** Una fruta que sabe salada (porque la probó) la atrae tanto más cuanto más sodio le falta, como el hambre tira de la comida.
+- **Si le falta mucho,** camina más despacio.
+
+**Medido** (48 vidas, 12 especies): pasa dos tercios de la vida corta de sodio (0,67), aun con el tirón. La fruta salada escasea (el salado domina en una de cada siete especies), como la sal en la naturaleza, donde los animales recorren kilómetros hasta un saladero. El mecanismo está y funciona en las pruebas, pero en este mapa no cambia la supervivencia. Pesaría en un mundo con saladeros: una fuente de sal fija que aprender, como el agua.
+
 **Criterio de salida: a medias.** Sí llega a comer lo amargo inofensivo y lo picante nutritivo que su gusto innato rechazaba (un tercio de ello). No aprende a comer con menos veneno que con el gusto innato solo.
 
 El sabor añade realismo, porque el mundo ya no es una tabla de tipos, y añade una protección innata. En este mundo casi todo se aprende antes por la vista. Pesaría más en un mundo donde lo que se ve engaña (especies iguales por fuera y distintas por dentro) o con venenos más fuertes. Eso queda anotado como siguiente paso de esta fase.
@@ -2157,7 +2166,7 @@ Aprender que los árboles dan fruta cuesta poco: unos segundos de vida en clima 
 
 ### 25.3 Pendiente
 
-- Fase 8: apetito por la sal según la necesidad (el sodio como necesidad propia, que sube la valencia de lo salado cuando falta; Richter); venenos más fuertes o más frecuentes, donde escupir importe más.
+- Fase 8: saladeros (una fuente de sal fija, que aprender como el agua); venenos más fuertes o más frecuentes, donde escupir importe más.
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
 - Fase 6, lo que queda del §12.3:
   - (resuelto en §12.10: roca, agua y nido quedan como capacidades innatas, con lo que se aprende de cada uno; los árboles pasan a aprenderse)

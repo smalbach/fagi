@@ -642,6 +642,7 @@ export default {
   'reason.probeNibble': 'al tacto no dijo nada: la mordisquea',
   'sense.trial': 'bocado de prueba ×{v}',
   'sense.taste': 'sabor {v}',
+  'sense.salt': 'sal +{v}',
   'taste.sweet': 'dulce', 'taste.umami': 'umami', 'taste.salty': 'salado', 'taste.sour': 'ácido',
   'taste.astringent': 'astringente', 'taste.bitter': 'amargo', 'taste.spicy': 'picante',
   'log.spit': 'Sabe {taste}: la escupe',

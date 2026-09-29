@@ -109,3 +109,22 @@ test('a look-alike: the same look, another mix; only the tongue tells, and it ta
   delete POINT_TYPES.test_mimic;
   TASTE.enabled = 0;
 });
+
+test('sodium runs out; short of it she likes salt more, a salty bite relieves her, and known salty food pulls', async () => {
+  const { updateSodium, innateLiking: liked, saltUrge } = await import('../src/taste.js');
+  TASTE.enabled = 1;
+  POINT_TYPES.test_salty = { color: '#888', radius: 6, aroma: 100, life: 100, hunger: -10, thirst: 10, effects: [], taste: { salty: 0.9 }, traits: { color: 'red', shape: 'drop', smell: 'musky' } };
+  const fagi = createFagi();
+  updateSodium(fagi, 10);
+  const full = liked('test_salty', null, fagi);
+  fagi.sodium = 0.1;
+  assert.ok(liked('test_salty', null, fagi) > full, 'salt appetite');
+  assert.equal(saltUrge(fagi, 'test_salty'), 0, 'she cannot know it is salty by looking');
+  eat(fagi, 'test_salty');
+  assert.ok(fagi.sodium > 0.1);
+  assert.ok(fagi.lastEpisode.sensations.some((s) => s.sense === 'salt'));
+  fagi.sodium = 0.2;
+  assert.ok(Math.abs(saltUrge(fagi, 'test_salty') - 0.8) < 1e-9);
+  delete POINT_TYPES.test_salty;
+  TASTE.enabled = 0;
+});

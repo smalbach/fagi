@@ -17,6 +17,8 @@
 //              species, another mix inside
 //   twinSpits  look-alikes she spat out; goodOfMimics, whole good fruit of those species
 //              she ate (a good fruit with a poisonous twin is still food)
+//   saltLow    share of her life short of sodium (under TASTE.saltWeak)
+//   saltyWhenLow, saltyWhenFull  salty bites per 100 s while short of sodium / not
 //   lifetime, alive, cause
 //
 //   node scripts/taste-lab.js [--lives 48] [--seed 5000] [--map 3] [--duration 2400] [--set BLOCK.key=V ...] [--json file]
@@ -70,10 +72,13 @@ for (let i = 0; i < LIVES; i++) {
   const met = new Set();
   let dose = 0; let spits = 0; let spitsGood = 0; let eaten = 0; let spit = 0;
   let twinDose = 0; let twinSpits = 0; let goodOfMimics = 0;
+  let lowT = 0; let fullT = 0; let saltyLow = 0; let saltyFull = 0;
   const harmful = (key, variant) => (specOfFruit(key, variant)?.hunger ?? 0) > 0;
   for (let s = 0; s < SECONDS / DT && fagi.alive; s++) {
     withRng(worldRng, () => stepWorld(world, DT));
     withRng(fagiRng, () => updateFagi(fagi, world, DT));
+    const low = (fagi.sodium ?? 1) < 0.5;
+    if (low) lowT += DT; else fullT += DT;
     if (fagi.lastSpit && fagi.lastSpit.n !== spit) {
       spit = fagi.lastSpit.n;
       spits += 1;
@@ -86,6 +91,7 @@ for (let i = 0; i < LIVES; i++) {
     const variant = fagi.lastMeal.variant ?? null;
     const portion = fagi.lastEpisode?.portion ?? 1;
     if (harmful(key, variant)) dose += portion;
+    if ((specOfFruit(key, variant)?.taste?.salty ?? 0) >= 0.3) { if (low) saltyLow += 1; else saltyFull += 1; }
     if (variant === 'twin' && harmful(key, variant)) twinDose += portion;
     if (!variant && specOfFruit(key)?.twin && portion === 1) goodOfMimics += 1;
     if (portion === 1) { whole.add(key); if (!met.has(key)) firstWhole.add(key); }
@@ -99,6 +105,9 @@ for (let i = 0; i < LIVES; i++) {
   }
   rows.push({
     judgment: ((hit + miss ? hit / (hit + miss) : 1) + (ok + fa ? ok / (ok + fa) : 1)) / 2,
+    saltLow: lowT / Math.max(1, lowT + fullT),
+    saltyWhenLow: lowT > 60 ? (100 * saltyLow) / lowT : null,
+    saltyWhenFull: fullT > 60 ? (100 * saltyFull) / fullT : null,
     dose, spits, spitsGood, twinDose, twinSpits, goodOfMimics,
     disliked: disliked.length,
     acquired: disliked.filter((k) => whole.has(k)).length,
@@ -109,11 +118,12 @@ for (let i = 0; i < LIVES; i++) {
   });
   registerSpecies([]);
 }
-const mean = (k) => rows.reduce((a, r) => a + r[k], 0) / rows.length;
-const se = (k) => { const m = mean(k); return Math.sqrt(rows.reduce((a, r) => a + (r[k] - m) ** 2, 0) / (rows.length - 1) / rows.length); };
+const vals = (k) => rows.map((r) => r[k]).filter((v) => v != null);
+const mean = (k) => { const v = vals(k); return v.reduce((a, b) => a + b, 0) / v.length; };
+const se = (k) => { const v = vals(k); const m = mean(k); return Math.sqrt(v.reduce((a, b) => a + (b - m) ** 2, 0) / (v.length - 1) / v.length); };
 const sets = args.filter((a, k) => args[k - 1] === '--set').join(' ');
 console.log(`${LIVES} lives × ${SECONDS}s, taste ${CONFIG.TASTE.enabled}${sets ? `, ${sets}` : ''}`);
-for (const k of ['judgment', 'dose', 'twinDose', 'twinSpits', 'goodOfMimics', 'spits', 'spitsGood', 'disliked', 'acquired', 'acquiredNew', 'lifetime', 'alive']) console.log(`  ${k.padEnd(11)} ${mean(k).toFixed(3)} ± ${se(k).toFixed(3)}`);
+for (const k of ['judgment', 'dose', 'twinDose', 'twinSpits', 'goodOfMimics', 'spits', 'spitsGood', 'disliked', 'acquired', 'acquiredNew', 'saltLow', 'saltyWhenLow', 'saltyWhenFull', 'lifetime', 'alive']) console.log(`  ${k.padEnd(11)} ${mean(k).toFixed(3)} ± ${se(k).toFixed(3)}`);
 const causes = {};
 for (const r of rows) if (r.cause) causes[r.cause] = (causes[r.cause] ?? 0) + 1;
 console.log('  deaths     ', JSON.stringify(causes));

@@ -640,6 +640,7 @@ export default {
   'reason.probeNibble': 'the touch said nothing: she nibbles it',
   'sense.trial': 'trial bite ×{v}',
   'sense.taste': 'taste {v}',
+  'sense.salt': 'salt +{v}',
   'taste.sweet': 'sweet', 'taste.umami': 'umami', 'taste.salty': 'salty', 'taste.sour': 'sour',
   'taste.astringent': 'astringent', 'taste.bitter': 'bitter', 'taste.spicy': 'spicy',
   'log.spit': 'It tastes {taste}: she spits it out',

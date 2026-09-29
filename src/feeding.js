@@ -1,7 +1,7 @@
 // Eating and carrying. The rule is simple: when hungry you eat, when not hungry you work.
 
 import { HUNGER, THIRST, CARRY, POINT_TYPES, HEALTH, TASTE } from './config.js';
-import { atMouth, dominantTaste, noteFlavor } from './taste.js';
+import { atMouth, dominantTaste, noteFlavor, saltBite } from './taste.js';
 import { specOfFruit, tasteCuesOf } from './chemistry.js';
 import { hurt } from './health.js';
 import { habit } from './habits.js';
@@ -96,6 +96,7 @@ export function eat(fagi, type, { hunger = null, portion: meant = 1, variant = n
     // Salt makes her thirsty, juicy acid quenches a little; spicy burns.
     if (spec.thirst) fagi.thirst = Math.min(THIRST.max, Math.max(0, fagi.thirst + spec.thirst * portion));
     if (spec.burn) hurt(fagi, TASTE.burn * spec.burn * portion, 'burn');
+    saltBite(fagi, spec.taste, portion);
   }
   applyEffects(fagi, type, portion, variant ? spec.effects : null);
   if (mouth.spat) fagi.lastSpit = { n: (fagi.lastSpit?.n ?? 0) + 1, key: type, taste: dominantTaste(type, spec.taste), variant };

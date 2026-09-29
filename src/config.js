@@ -946,6 +946,10 @@ export const HEALTH = {
 //   spitPortion  : what she swallows of what she spits
 //   learnWeight  : how fast what she learned of tastes overrides her innate liking
 //   burn         : health a fully spicy bite takes (with HEALTH)
+//   salt         : 1 = sodium is a need of its own: it runs out (saltLoss per second, 1 = full),
+//                a salty bite restores it (saltGain × how salty), and the less she has the
+//                more she likes salt (up to saltCraving) and the more a salty bite relieves
+//                her (Richter's salt appetite). Under saltWeak she walks slower
 //   mimics       : nourishing species of a map that have a poisonous look-alike: the
 //                same look, another mix inside (mostly bitter); twinShare of their fruit
 //                is the look-alike. Only the tongue tells them apart
@@ -963,6 +967,11 @@ export const TASTE = {
   spitPortion: 0.2,
   learnWeight: 1.5,
   burn: 4,
+  salt: 1,
+  saltLoss: 1 / 900,
+  saltGain: 0.6,
+  saltCraving: 0.9,
+  saltWeak: 0.2,
   mimics: 2,
   twinShare: 0.35,
   salience: 2,

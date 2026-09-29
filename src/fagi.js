@@ -43,6 +43,7 @@ import { senseBody } from './thermal.js';
 import { updateSleep } from './sleep.js';
 import { useThing } from './decision/things.js';
 import { updateHealth } from './health.js';
+import { updateSodium } from './taste.js';
 
 // `born`: what the birth already decided (sex, genome), for reproduction.
 // Without it the sex is drawn here, only when SEX is on.
@@ -202,6 +203,7 @@ export function updateFagi(fagi, world, dt) {
   resolveTrail(fagi);            // did the trail she was following lead her to food?
   increaseNeeds(fagi, world, dt);
   updateHealth(fagi, dt, fagi.thought?.action === 'rest');   // harm and mending (health.js; HEALTH only)
+  updateSodium(fagi, dt);        // sodium runs out (taste.js; TASTE only)
   updateSleep(fagi, world, dt);  // pressure, and the night's sorting once she has slept enough
   // What happened to her body tunes her habits: a scare makes her more careful.
   const pantry = { stored: stockCount(fagi.pantry), edible: edibleCount(fagi, fagi.pantry) };
