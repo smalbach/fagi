@@ -67,7 +67,7 @@ function discover(fagi, world, p, seen) {
   }
   site.id = fagi.brain.siteN = (fagi.brain.siteN ?? 0) + 1;
   sites.push(site);
-  fagi.brain.lastSite = { n: (fagi.brain.lastSite?.n ?? 0) + 1, id: site.id, what: 'found' };
+  fagi.brain.lastSite = { n: (fagi.brain.lastSite?.n ?? 0) + 1, id: site.id, what: 'found', value: site.value, seen: n, tree: Boolean(tree) };
   return site;
 }
 
@@ -86,7 +86,7 @@ function visit(fagi, site, seen) {
   site.error = 0;
   site.confidence += SITES.gain * (1 - site.confidence);
   if (n > 0) site.fruit = seen.find(({ point }) => Math.hypot(point.x - site.x, point.y - site.y) <= site.r).point.type;
-  fagi.brain.lastSite = { n: (fagi.brain.lastSite?.n ?? 0) + 1, id: site.id, what: n ? 'full' : 'empty', surprise };
+  fagi.brain.lastSite = { n: (fagi.brain.lastSite?.n ?? 0) + 1, id: site.id, what: n ? 'full' : 'empty', surprise, value: site.value, seen: n, tree: Boolean(site.ref) };
 }
 
 // Every frame, from what she sees: new sites, and visits to the ones she knows.

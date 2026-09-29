@@ -64,21 +64,40 @@ export function temperatureOf(fagi) {
 // trusts a site, the more its worth wobbles from one choice to the next.
 // (CHOICE.trustDiscount = 1: trust multiplies the worth instead, as first
 // measured in spec §25.22.)
-function siteUtility(fagi, s) {
+// `noisy` false: the worth without the wobble, for drawing it (draws nothing).
+function siteUtility(fagi, s, noisy = true) {
   const walk = CHOICE.cost * distanceTo(fagi, s) / MEMORY.travelRange;
   if (CHOICE.trustDiscount) return s.value * s.confidence - walk;
-  return s.value - walk + CHOICE.doubt * (1 - s.confidence) * gauss();
+  return s.value - walk + (noisy ? CHOICE.doubt * (1 - s.confidence) * gauss() : 0);
 }
 
 // The options she has now, and what each is worth to her.
-export function optionsOf(fagi) {
+export function optionsOf(fagi, noisy = true) {
   const c = stateOf(fagi);
   const out = [{ kind: 'explore', u: c.exploreValue }];
   for (const s of fagi.brain.sites ?? []) {
     if (s.confidence <= 0) continue;
-    out.push({ kind: 'site', id: s.id, u: siteUtility(fagi, s) });
+    out.push({ kind: 'site', id: s.id, u: siteUtility(fagi, s, noisy) });
   }
   return out;
+}
+
+// Her options as she would weigh them now, with the chance of each, for the
+// brain map and the inspector. Reads, never draws: the simulation's
+// randomness is untouched.
+export function choiceView(fagi) {
+  const c = fagi.brain.choice;
+  if (!CHOICE.enabled || !SITES.enabled || !c) return null;
+  const options = optionsOf(fagi, false);
+  const t = Math.max(1e-6, temperatureOf(fagi));
+  const top = Math.max(...options.map((o) => o.u));
+  const w = options.map((o) => Math.exp((o.u - top) / t));
+  const total = w.reduce((a, b) => a + b, 0);
+  return {
+    options: options.map((o, i) => ({ ...o, p: w[i] / total, site: o.kind === 'site' ? fagi.brain.sites.find((s) => s.id === o.id) : null })),
+    plan: c.plan, exploreValue: c.exploreValue, temperature: t, innate: c.innate, volatility: c.volatility,
+    counts: c.counts, recent: c.log.slice(-5),
+  };
 }
 
 function pick(fagi, options) {
@@ -163,6 +182,9 @@ export function updateChoice(fagi, seen) {
     c.plan = { kind: chosen.kind, id: chosen.id, p: chosen.p ?? 1, at: fagi.age,
       options: options.map((o) => ({ kind: o.kind, id: o.id ?? null, u: Math.round(o.u * 100) / 100 })) };
     c.counts[chosen.kind] += 1;
+    const best = Math.max(...options.filter((o) => o.kind === 'site').map((o) => o.u), -Infinity);
+    fagi.brain.lastPlan = { n: (fagi.brain.lastPlan?.n ?? 0) + 1, kind: chosen.kind, id: chosen.id ?? null, p: chosen.p ?? 1,
+      explore: c.exploreValue, site: chosen.kind === 'site' ? chosen.u : (Number.isFinite(best) ? best : null) };
   }
 
   if (c.plan?.kind !== 'site') return null;

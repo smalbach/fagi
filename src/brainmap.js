@@ -14,8 +14,11 @@
 //   5. Learn     — the last experience: what she tried, what she felt, how it moved
 //                  the belief and which rule she wrote or revised.
 //   6. Network   — the neurons and their synapses, with the signal running now.
-//   7. Mental    — what she remembers of the place: where she has been, where she
-//      map         thinks the water and the tree are, and her home.
+//   7. Explore   — with SITES, CHOICE or LARDER: her wiring for where to look for
+//      or come     food (each site she remembers and exploring, as thick as the
+//      back        chance she'd take it), her noise, her last decisions, the pantry.
+//   8. Mental    — what she remembers of the place: where she has been, where she
+//      map         thinks the water, the tree and her food sites are, and her home.
 //
 // It computes nothing that isn't already computed: it reads fagi.thought (decision.js),
 // fagi.brain (memory.js, learned/) and fagi.lastEpisode (episodes.js). The canvas
@@ -34,6 +37,7 @@ import { paintDecide } from './brainmap/decide.js';
 import { paintLearn } from './brainmap/learn.js';
 import { paintNetwork } from './brainmap/network.js';
 import { paintMentalMap } from './brainmap/mental-map.js';
+import { paintForage } from './brainmap/forage.js';
 
 export function createBrainMap(canvas, statusEl, expandBtn) {
   if (!canvas) return { update() {} };
@@ -66,7 +70,7 @@ export function createBrainMap(canvas, statusEl, expandBtn) {
     });
   }
 
-  // The seven sections, one below another: each starts where the previous
+  // The sections, one below another: each starts where the previous
   // one ended and returns where it ends. The total is the canvas height.
   function everything(fagi, worldState) {
     brushes.begin();
@@ -77,6 +81,7 @@ export function createBrainMap(canvas, statusEl, expandBtn) {
     y = paintDecide(brushes, fagi, y);
     y = paintLearn(brushes, fagi, y);
     y = paintNetwork(brushes, fagi, y);
+    y = paintForage(brushes, fagi, y);
     return paintMentalMap(brushes, fagi, worldState, y);
   }
 

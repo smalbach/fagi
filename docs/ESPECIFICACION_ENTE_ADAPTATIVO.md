@@ -1809,7 +1809,13 @@ Recoge lo implementado en las fases 0 a 8 y lo medido de cada una. Las secciones
   - entre visitas predice la despensa: lo último que vio menos el ritmo al que cree que se vacía. Cada visita corrige ese ritmo por la sorpresa, y puede salir negativo: sus hermanas la llenan mientras está fuera. Su impulso de salir por comida sigue a la predicción (`pantryEstimate`) y no a la última foto;
   - evento `nest_full`, fruta «dejada a la puerta del nido lleno» en el inspector, ajustes en «Despensa», resumen `larder` en `batch.js` y pruebas en `test/larder.test.js`.
   Resultado exploratorio en el §25.23.
-- [ ] E y F.
+- [x] E. Cableado visible:
+  - **mapa del cerebro, sección 7 «Explorar o volver: su cableado»**: una línea de «¿comida?» a cada opción (cada sitio y explorar), tan gruesa como la probabilidad de elegirla ahora y coloreada por lo que vale. El plan en curso va en blanco. Debajo, su ruido al elegir (innato × sorpresas recientes), sus últimas decisiones con su resultado y la despensa que predice. Dos hermanas en el mismo mapa dibujan cableados distintos;
+  - **mapa mental (ahora sección 8)**: sus sitios, con un anillo del tamaño del sitio, un punto que se desvanece cuanto menos confía y lo que espera de cada uno. El sitio al que va, con anillo blanco;
+  - **inspector, sección «Explorar o volver»**: cada sitio con su valor, confianza y visitas; lo que le vale explorar; con qué probabilidad elegiría cada opción; su ruido; sus decisiones; la despensa que cree y su ritmo;
+  - **narración (etiqueta ELIGE)**: recuerda un sitio, vuelve y lo encuentra lleno o vacío, decide volver o explorar (con los valores y la probabilidad), explorando encuentra comida o nada, el nido estaba lleno y qué hizo, la despensa estaba más llena o más vacía de lo que creía;
+  - todo se dibuja con `choiceView` y `larderView`, que leen sin sortear: pintar no cambia el azar de la simulación (probado).
+- [ ] F. Antes, fijar el mundo (§25.23).
 
 **Fase 5: en batch (generaciones por lotes)**
 - [x] Recombinación de dos progenitores, mutación posterior y límites.
@@ -1871,7 +1877,7 @@ Preguntar de noche y probar de día hace que Fagi conozca casi el doble de espec
 
 ### 25.3 Pendiente
 
-- Fase 9 (§12.11): la E y la F. De la A a la D están hechas (§25.1). En el mundo por defecto elegir no cambia cuánto come (§25.22); en uno más escaso, sí empieza a cambiarlo (§25.23). Antes de congelar la F hay que fijar ese mundo.
+- Fase 9 (§12.11): la F. De la A a la E están hechas (§25.1). En el mundo por defecto elegir no cambia cuánto come (§25.22); en uno más escaso, sí empieza a cambiarlo (§25.23). Antes de congelar la F hay que fijar ese mundo.
 - §23, primera mitad del criterio social: que la información social se use con provecho. Con una informante que sabe, el efecto fue pequeño y no significativo (§25.18).
 - Fase 8: saladeros (una fuente de sal fija, que aprender como el agua); venenos más fuertes o más frecuentes, donde escupir importe más.
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.

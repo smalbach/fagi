@@ -127,6 +127,16 @@ export function nestFull(fagi, world, nestObj) {
   return did;
 }
 
+// What she believes of the pantry, for the brain map and the inspector.
+export function larderView(fagi) {
+  if (!LARDER.enabled || fagi.pantryAt == null) return null;
+  const l = fagi.brain.larder;
+  return {
+    seen: edibleCount(fagi, fagi.pantry), ago: fagi.age - fagi.pantryAt, predicted: pantryEstimate(fagi),
+    rate: l?.rate ?? LARDER.prior, full: l?.full ?? 0, room: roomAtHome(fagi), capacity: LARDER.capacity,
+  };
+}
+
 // What batch reports of her larder.
 export function larderSummary(fagi) {
   const l = fagi.brain.larder;

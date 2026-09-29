@@ -57,6 +57,7 @@ export const TAG_COLOR = {
   rethink: '#f0c75e',
   why: '#b57bff',
   told: '#e8a33d',
+  forage: '#f0a35e',
 };
 
 export function createNarrator() {
@@ -137,6 +138,53 @@ export function narrate(narr, fagi) {
       { key: 'log.store', params: { what: { key: `type.${d.type}` } } },
       { key: 'log.storeSub', params: { what: { key: `type.${d.type}` }, total: d.total } });
     p.stored = d.n;
+  }
+
+  // Explore or come back (SITES, CHOICE, LARDER): what she decides, and
+  // what she finds when she gets there.
+  const site = fagi.brain.lastSite;
+  if (site && site.n !== p.site) {
+    const what = site.tree ? { key: 'type.tree' } : { key: 'brainmap.forage.ground' };
+    if (site.what === 'found') {
+      push(narr, fagi, 'forage', { key: 'log.site.found', params: { id: site.id, what } },
+        { key: 'log.site.foundSub', params: { n: site.seen, v: site.value.toFixed(2) } });
+    } else {
+      push(narr, fagi, 'forage', { key: `log.site.${site.what}`, params: { id: site.id } },
+        { key: 'log.site.visitSub', params: { v: site.value.toFixed(2) } });
+    }
+    p.site = site.n;
+  }
+  const plan = fagi.brain.lastPlan;
+  if (plan && plan.n !== p.plan) {
+    push(narr, fagi, 'forage', { key: `log.choice.${plan.kind}`, params: { id: plan.id } },
+      { key: 'log.choice.sub', params: {
+        site: plan.site == null ? '—' : plan.site.toFixed(2), explore: plan.explore.toFixed(2), p: Math.round(plan.p * 100),
+      } });
+    p.plan = plan.n;
+  }
+  const choice = fagi.brain.lastChoice;
+  if (choice && choice.n !== p.choice) {
+    if (choice.chose === 'explore' && (choice.outcome === 'found' || choice.outcome === 'nothing')) {
+      push(narr, fagi, 'forage', { key: `log.explore.${choice.outcome}` },
+        { key: 'log.explore.sub', params: { v: (fagi.brain.choice?.exploreValue ?? 0).toFixed(2) } });
+    }
+    p.choice = choice.n;
+  }
+  const full = fagi.lastNestFull;
+  if (full && full.n !== p.nestFull) {
+    push(narr, fagi, 'nest',
+      { key: `log.nestFull.${full.did}`, params: { what: { key: `type.${full.what}` }, out: full.out ? { key: `type.${full.out}` } : '' } },
+      { key: 'log.nestFull.sub' });
+    p.nestFull = full.n;
+  }
+  const look = fagi.brain.lastLarder;
+  if (look && look.n !== p.larder) {
+    // Only a real surprise is news.
+    if (Math.abs(look.now - look.predicted) >= 3) {
+      push(narr, fagi, 'nest', { key: look.now > look.predicted ? 'log.larder.fuller' : 'log.larder.emptier' },
+        { key: 'log.larder.sub', params: { predicted: look.predicted.toFixed(1), now: look.now } });
+    }
+    p.larder = look.n;
   }
 
   // Draws on the pantry.

@@ -6,7 +6,7 @@ import { createWorld, addPoint } from '../src/world.js';
 import { createFagi } from '../src/fagi.js';
 import { perceive } from '../src/perception.js';
 import { noteSites } from '../src/sites.js';
-import { updateChoice, temperatureOf, choiceSummary } from '../src/choice.js';
+import { updateChoice, temperatureOf, choiceSummary, choiceView } from '../src/choice.js';
 import { rng, withRng } from '../scripts/batch/random.js';
 
 // SITES and CHOICE on for one test, and back to how they were even if it fails.
@@ -100,6 +100,7 @@ test('exploring that finds food raises what she expects of it; a long search for
 
 test('going back to a site that turns out empty resolves the plan and heats her up', () => withChoice(() => {
   CHOICE.policy = 1;
+  CHOICE.temperSpread = 0;   // only the surprise moves her noise here
   const { world, fagi, site } = scene();
   const t0 = temperatureOf(fagi);
   look(fagi, world);
@@ -148,6 +149,20 @@ test('with CHOICE on, choosing to explore leaves no remembered site to go to', (
   const ctx = perceive(fagi, world);
   assert.equal(ctx.source, null);
   assert.equal(choiceSummary(fagi).explore, 1);
+}));
+
+test('drawing her wiring draws no random numbers, and its chances add up to one', () => withChoice(() => {
+  const { world, fagi } = scene();
+  look(fagi, world);
+  const real = Math.random;
+  let draws = 0;
+  Math.random = () => { draws++; return real(); };
+  try {
+    const view = choiceView(fagi);
+    assert.equal(draws, 0);
+    assert.ok(Math.abs(view.options.reduce((a, o) => a + o.p, 0) - 1) < 1e-9);
+    assert.ok(view.options.some((o) => o.kind === 'site' && o.site));
+  } finally { Math.random = real; }
 }));
 
 test('with CHOICE off nothing is chosen and the best site is offered, as in phase B', () => {

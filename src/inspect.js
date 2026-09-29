@@ -24,6 +24,8 @@ import { lifeAge, fertility } from './lifecycle.js';
 import { activeEffects } from './effects.js';
 import { viewRangeOf } from './vision.js';
 import { HABIT_IDS, habit } from './habits.js';
+import { choiceView } from './choice.js';
+import { larderView } from './larder.js';
 import { nestOf, nestRipeness, stockCount } from './world.js';
 import { nestUnder } from './nest.js';
 import { radiusOf, deepRadius } from './obstacles.js';
@@ -295,6 +297,27 @@ function paintFagi(f, world, main, isMain, canFollow) {
     HABIT_IDS.map((h) => row(HABIT_LABEL[h]?.() ?? h, num(habit(f, h), 2))).join(''),
   ].join('') : '';
 
+  // Explore or come back (SITES, CHOICE, LARDER): her sites, how she weighs
+  // them against exploring, and the pantry she predicts.
+  const view = f.brain ? choiceView(f) : null;
+  const larder = f.brain ? larderView(f) : null;
+  const sitesOf = f.brain?.sites ?? [];
+  const outcome = (e) => `${e.chose === 'explore' ? L('explore', 'explorar') : `#${e.site}`} → ${t(`brainmap.forage.outcome.${e.outcome.replace(' ', '')}`)}`;
+  const forage = [
+    sitesOf.map((s) => bar(
+      `#${s.id} ${s.ref ? labelOf('tree') : L('ground', 'suelo')} · ${L('trust', 'confianza')} ${pct(s.confidence)}`,
+      s.value, `${num(s.value, 2)} · ${s.visits}/${s.empties}∅`, s.value >= 0.6 ? '#8fd93d' : s.value >= 0.3 ? '#f0c75e' : '#d95b7e')).join(''),
+    view ? bar(L('Exploring is worth', 'Explorar le vale'), view.exploreValue, num(view.exploreValue, 2), '#7f869a') : '',
+    view ? row(L('Now she would', 'Ahora elegiría'), view.options.slice().sort((a, b) => b.p - a.p)
+      .map((o) => `${o.kind === 'explore' ? L('explore', 'explorar') : `#${o.id}`} ${Math.round(o.p * 100)}%`).join(' · '), 'ins-wrap') : '',
+    view ? row(L('Noise when choosing', 'Ruido al elegir'), `${num(view.temperature, 2)} (${L('innate', 'innato')} ×${num(view.innate ?? 1, 2)})`) : '',
+    view ? row(L('Decisions', 'Decisiones'), `${view.counts.site} ${L('back', 'volver')} · ${view.counts.explore} ${L('explore', 'explorar')}`) : '',
+    view?.recent.length ? row(L('Last ones', 'Últimas'), view.recent.map(outcome).join(' · '), 'ins-wrap') : '',
+    larder ? row(L('Pantry she believes', 'Despensa que cree'), `${num(larder.predicted, 1)} / ${larder.capacity} (${L('saw', 'vio')} ${larder.seen}, ${dur(larder.ago)})`) : '',
+    larder ? row(L('It empties', 'Se vacía'), `${num(larder.rate * 60, 2)} / min`) : '',
+    larder && !larder.room ? row(L('Room at home', 'Sitio en casa'), L('none, she believes', 'ninguno, cree')) : '',
+  ].join('');
+
   let family = '';
   if (fam && (fam.mother || fam.father || fam.children.length || fam.siblings.length || world.colony)) {
     family = `<div class="ins-fam">`
@@ -318,6 +341,7 @@ function paintFagi(f, world, main, isMain, canFollow) {
     + section('life', L('Life', 'Vida'), life)
     + section('body', L('Body', 'Cuerpo'), body)
     + section('mind', L('Mind', 'Mente'), mind)
+    + section('forage', L('Explore or come back', 'Explorar o volver'), forage)
     + section('genome', L('Inherited biases', 'Sesgos heredados'), genome)
     + `</div>`;
 }

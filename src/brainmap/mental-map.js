@@ -1,6 +1,6 @@
-// 7. Mental map — what she remembers of the place: where she has been (it
+// 8. Mental map — what she remembers of the place: where she has been (it
 // fades), where she thinks the water and the tree are (and by how much she might
-// be off), and her home.
+// be off), her food sites (SITES) with what she expects of each, and her home.
 
 import { WORLD, EXPLORE } from '../config.js';
 import { nestOf } from '../world.js';
@@ -10,7 +10,7 @@ import { DIM } from './palette.js';
 export function paintMentalMap(brushes, fagi, world, y) {
   const { g, s, text, box, header } = brushes;
   const { W, pad } = brushes.measures();
-  header(7, t('brainmap.sec.mental'), y, W, pad);
+  header(8, t('brainmap.sec.mental'), y, W, pad);
   y += 12 * s;
   const maxH = 240 * s;
   let mw = W - pad * 2;
@@ -62,6 +62,31 @@ export function paintMentalMap(brushes, fagi, world, y) {
     g.globalAlpha = 1;
     text(`${labelOf(kind === 'foodSource' ? 'tree' : kind)} ${Math.round(conf * 100)}% · ±${Math.round(p.error ?? 0)}px`,
       X(p.x) + 7 * s, Y(p.y) - 8 * s, { size: 8.5, color });
+  }
+  // her food sites (SITES): what she expects of each; the one she chose, ringed
+  const plan = fagi.brain.choice?.plan;
+  for (const site of fagi.brain.sites ?? []) {
+    const color = site.value >= 0.6 ? '#8fd93d' : site.value >= 0.3 ? '#f0c75e' : '#d95b7e';
+    // A ring as wide as the site, and a dot: faint the less she trusts it.
+    g.globalAlpha = 0.35 + 0.65 * site.confidence;
+    g.beginPath();
+    g.arc(X(site.x), Y(site.y), Math.max(3 * s, site.r * k), 0, Math.PI * 2);
+    g.strokeStyle = color;
+    g.lineWidth = 1.5;
+    g.stroke();
+    g.beginPath();
+    g.arc(X(site.x), Y(site.y), 3 * s, 0, Math.PI * 2);
+    g.fillStyle = color;
+    g.fill();
+    g.globalAlpha = 1;
+    if (plan?.kind === 'site' && plan.id === site.id) {
+      g.beginPath();
+      g.arc(X(site.x), Y(site.y), Math.max(5 * s, site.r * k + 3 * s), 0, Math.PI * 2);
+      g.strokeStyle = '#ffffff';
+      g.lineWidth = 1.5;
+      g.stroke();
+    }
+    text(`#${site.id} ${site.value.toFixed(2)}`, X(site.x) + 6 * s, Y(site.y) + 9 * s, { size: 8, color });
   }
   // where she's going to take a peek
   if (fagi.exploreTarget && (fagi.thought?.action === 'explore')) {
