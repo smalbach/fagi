@@ -19,7 +19,7 @@ import { createWorld } from '../../src/world.js';
 import { generateMap } from '../../src/mapgen.js';
 import { stepWorld } from '../../src/simulation.js';
 import { createColony, updateColony } from '../../src/colony.js';
-import { createChemistry, invertChemistry, speciesKeys } from '../../src/chemistry.js';
+import { createChemistry, invertChemistry, speciesKeys, smellOf } from '../../src/chemistry.js';
 import { createGenome, mutate, recombine, diversity, applyGenome, teach, pick, fitness } from '../../src/generations.js';
 import { rng, withRng } from './random.js';
 import { POINT_TYPES, GEN, SEX } from '../../src/config.js';
@@ -29,8 +29,6 @@ import { noteLearning, learningSummary, createMythLog, noteMyths, mythSummary, i
 
 const MYTH_EVERY = 10;
 
-const poisonSmell = (chem) => Object.keys(chem.smell).find((s) => chem.smell[s] === 'poison');
-const foodSmell = (chem) => Object.keys(chem.smell).find((s) => chem.smell[s] === 'nourishing');
 
 // One lineage: returns one summary per generation.
 export function runLineage(opts, seed) {
@@ -152,10 +150,12 @@ function population(colony, genomes, matings) {
 // taught is over the map's species (balanced accuracy), how many rules she
 // was born with, and how many of them are about traits.
 function birthView(colony, chem) {
-  const poison = `smell:${poisonSmell(chem)}`;
-  const food = `smell:${foodSmell(chem)}`;
-  const avoids = (f, cue) => f.brain.rules.list.some((r) => !r.retired && r.verdict === 'avoid' && r.when.all?.includes(cue));
   const species = speciesKeys().map((k) => POINT_TYPES[k].traits);
+  // Under tastes the smell is only a hint: these are the ones this map's
+  // poisonous and nourishing species mostly carry (chemistry.js smellOf).
+  const poison = `smell:${smellOf(chem, 'poison', species)}`;
+  const food = `smell:${smellOf(chem, 'nourishing', species)}`;
+  const avoids = (f, cue) => f.brain.rules.list.some((r) => !r.retired && r.verdict === 'avoid' && r.when.all?.includes(cue));
   const live = (f) => f.brain.rules.list.filter((r) => !r.retired);
   return {
     acc: round(mean(colony.ants.map((f) => accuracy(f, chem, species).balanced)), 3),

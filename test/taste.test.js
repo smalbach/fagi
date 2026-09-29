@@ -1,8 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { TASTE, HUNGER, NEEDS, POINT_TYPES } from '../src/config.js';
-import { createChemistry, createSpecies, registerSpecies, tasteCuesOf, TASTES, feedOf } from '../src/chemistry.js';
+import { TASTE, HUNGER, NEEDS, POINT_TYPES, LIFE, GEN, MAPGEN } from '../src/config.js';
+import { createChemistry, createSpecies, registerSpecies, tasteCuesOf, TASTES, feedOf, invertChemistry, smellOf } from '../src/chemistry.js';
+import { enableOrganism } from '../src/organism.js';
+import { runLineage } from '../scripts/batch/generations.js';
 import { createFagi } from '../src/fagi.js';
 import { eat } from '../src/feeding.js';
 import { atMouth, innateLiking, liking } from '../src/taste.js';
@@ -127,4 +129,46 @@ test('sodium runs out; short of it she likes salt more, a salty bite relieves he
   assert.ok(Math.abs(saltUrge(fagi, 'test_salty') - 0.8) < 1e-9);
   delete POINT_TYPES.test_salty;
   TASTE.enabled = 0;
+});
+
+test('the smell of the poison: the chemistry\'s own under smells, the one poisonous species mostly carry under tastes', () => {
+  const smelly = createChemistry(rng(1));
+  const p = smellOf(smelly, 'poison');
+  assert.equal(smelly.smell[p], 'poison');
+  assert.equal(smellOf(invertChemistry(smelly), 'nourishing'), p, 'turned upside down, the old poison smell feeds');
+
+  const chem = { taste: true, color: {}, compositions: {}, twins: {}, inverted: false };
+  const toxin = { taste: { bitter: 0.8 }, toxic: true };
+  const food = { taste: { umami: 0.9 }, toxic: false };
+  const add = (smell, shape, comp) => { chem.compositions[`red-${shape}-${smell}`] = comp; return { color: 'red', shape, smell }; };
+  const catalogue = [
+    add('sharp', 'round', toxin), add('sharp', 'drop', toxin), add('musky', 'crystal', toxin),
+    add('sweet', 'round', food), add('sweet', 'drop', food),
+  ];
+  assert.equal(chem.smell, undefined, 'a taste chemistry has no smell rule');
+  assert.equal(smellOf(chem, 'poison', catalogue), 'sharp');
+  assert.equal(smellOf(chem, 'nourishing', catalogue), 'sweet');
+  const upside = invertChemistry(chem);
+  assert.equal(smellOf(upside, 'poison', catalogue), 'sweet');
+  assert.equal(smellOf(upside, 'nourishing', catalogue), 'sharp');
+  assert.equal(smellOf(chem, 'poison', []), null, 'no poisonous species, no poison smell');
+});
+
+test('generations run with the organism on, whose chemistry is tastes (§25.4)', () => {
+  const saved = { life: LIFE.enabled, sexual: GEN.sexual, species: MAPGEN.species };
+  enableOrganism();
+  LIFE.enabled = 0; GEN.sexual = 1; MAPGEN.species = 6;
+  try {
+    const opts = { generations: 2, colony: 4, duration: 20, dt: 0.05, mapSeed: 1, switchAt: null };
+    const rows = runLineage(opts, 1000);
+    assert.ok(rows.length >= 1);
+    for (const r of rows) {
+      assert.ok(Number.isFinite(r.born.innatePoison) && Number.isFinite(r.born.innateFood));
+      assert.ok(Number.isInteger(r.born.taughtAvoidPoison) && Number.isInteger(r.born.taughtAvoidFood));
+    }
+  } finally {
+    enableOrganism(false);
+    LIFE.enabled = saved.life; GEN.sexual = saved.sexual; MAPGEN.species = saved.species;
+    registerSpecies([]);
+  }
 });

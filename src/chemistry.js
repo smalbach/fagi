@@ -115,6 +115,20 @@ export function invertChemistry(chem) {
   return { ...chem, smell };
 }
 
+// The smell that goes with a class of fruit ('poison' or 'nourishing'), for
+// measuring only. Under a smell chemistry it is the chemistry's own. Under
+// tastes (TASTE) there is none: the body answers to hidden compounds and a
+// smell is only a hint, so it is the smell most of these species of that class
+// carry (ties to the first in TRAITS.smell), or null when none is of that class.
+export function smellOf(chem, cls, catalogue = speciesKeys().map((k) => POINT_TYPES[k].traits)) {
+  if (chem.smell) return Object.keys(chem.smell).find((s) => chem.smell[s] === cls);
+  const count = {};
+  for (const traits of catalogue) if (feedOf(chem, traits) === cls) count[traits.smell] = (count[traits.smell] ?? 0) + 1;
+  let best = null;
+  for (const s of TRAITS.smell) if ((count[s] ?? 0) > (count[best] ?? 0)) best = s;
+  return best;
+}
+
 // A rules-based chemistry after the world changes (`kind`):
 //   'invert': poison and food swap (above);
 //   'rotate': every poison cue moves to another value of its dimension, one no
