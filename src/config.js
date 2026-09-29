@@ -622,6 +622,24 @@ export const SITES = {
   leave: 2,           // × its radius: how far she must go for coming back to count as a visit
 };
 
+// Explore or come back, the choice (phase 9 C, spec §12.11, choice.js). When
+// she needs food and sees none she weighs going back to a site she knows
+// against looking somewhere new, from what each has given her, and chooses
+// with a noise of her own. Needs SITES. Off, the fixed hierarchy decides.
+export const CHOICE = {
+  enabled: 0,
+  policy: 0,          // 0 = learned; the fixed ones to compare with: 1 = always back to her best site, 2 = always explore
+  explorePrior: 0.4,  // what she expects of exploring before she has tried it
+  rate: 0.25,         // how far one search moves what she expects of exploring (× the surprise)
+  cost: 0.3,          // value a site loses per MEMORY.travelRange of walk
+  temper: 0.15,       // her noise when choosing: how much chance the worse option keeps
+  temperSpread: 0.5,  // how much that noise differs between individuals from birth (0 = all alike)
+  surpriseHeat: 1,    // how much her recent surprises raise her noise
+  surpriseMemory: 0.2,// how fast those recent surprises follow the last ones
+  exploreWindow: 90,  // seconds exploring without finding food before it counts as nothing
+  planMax: 180,       // seconds a plan to go back holds before she reconsiders
+};
+
 // What happens to fruit nobody collects.
 // Rot doesn't stay forever either: when ITS life runs out
 // (POINT_TYPES.toxic.life) it falls apart and disappears from the map, plume included.

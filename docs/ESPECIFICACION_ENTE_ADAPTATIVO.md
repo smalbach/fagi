@@ -1794,7 +1794,14 @@ Recoge lo implementado en las fases 0 a 8 y lo medido de cada una. Las secciones
   - sin ver fruta, va al sitio en que más confía, aunque sea suelo; un árbol que aprendió que no da nada deja de atraerla;
   - resumen `sites` en `batch.js` (solo con `SITES`), ajustes en «Sitios de comida» y pruebas en `test/sites.test.js`.
   Resultado exploratorio en el §25.21.
-- [ ] C a F.
+- [x] C. Elección aprendida (`CHOICE`, `src/choice.js`), apagada por defecto, necesita `SITES`:
+  - cuando quiere comida y no ve ninguna, compara volver a cada sitio (lo que espera de él × su confianza − el camino) con explorar (lo que explorar le ha dado, aprendido por la sorpresa de cada búsqueda);
+  - elige con ruido (softmax); el ruido es suyo: una parte innata, sorteada al nacer (`CHOICE.temperSpread`), y otra que sube con sus sorpresas recientes;
+  - mantiene el plan hasta que se resuelve: llega al sitio, encuentra comida explorando, o lo busca el tiempo suficiente sin suerte (el reloj se para mientras duerme o no quiere comida); llevar comida al nido lo termina sin juzgarlo;
+  - políticas fijas para la F1: siempre volver (`CHOICE.policy = 1`) y siempre explorar (`2`);
+  - resumen `choice` en `batch.js`, con sus primeras cinco decisiones para la F3; ajustes en «Explorar o volver: la elección»; pruebas en `test/choice.test.js`.
+  Resultado exploratorio en el §25.22: **no mejora sobre las políticas fijas.**
+- [ ] D a F.
 
 **Fase 5: en batch (generaciones por lotes)**
 - [x] Recombinación de dos progenitores, mutación posterior y límites.
@@ -1856,7 +1863,7 @@ Preguntar de noche y probar de día hace que Fagi conozca casi el doble de espec
 
 ### 25.3 Pendiente
 
-- Fase 9 (§12.11): de la C a la F. La A y la B están hechas (§25.1).
+- Fase 9 (§12.11): de la D a la F. La A, la B y la C están hechas (§25.1), pero la C no mejora sobre las políticas fijas (§25.22): antes de la D hay que decidir qué cambiar.
 - §23, primera mitad del criterio social: que la información social se use con provecho. Con una informante que sabe, el efecto fue pequeño y no significativo (§25.18).
 - Fase 8: saladeros (una fuente de sal fija, que aprender como el agua); venenos más fuertes o más frecuentes, donde escupir importe más.
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
@@ -2470,4 +2477,33 @@ Nadie le dice qué árbol es de temporada: lo distingue por haberlo encontrado v
 Con sitios, los viajes son algo más cortos y explora algo más: deja de ir a un árbol que aprendió vacío, y lo que queda es explorar. No come ni vive más, y no tiene por qué: el criterio es el realismo (§25.5). Qué hacer cuando ningún sitio compensa sigue siendo la jerarquía fija; que eso se aprenda es la fase C.
 
 **Un fallo encontrado al medir.** La primera versión guardaba cada hallazgo nuevo y echaba al peor sitio, así que redescubría sin parar los que acababa de olvidar: unos 660 hallazgos por vida. Ahora un hallazgo solo entra si vale más que el sitio en que menos confía, y son unos 21.
+
+### 25.22 Elección aprendida: resultado exploratorio
+
+Fase 9 C, mismo montaje que el §25.21 (40 mapas de desarrollo, `FORAGE`, `SITES`, colonia de 5, 2400 s, números del juego). Se compara la elección aprendida (L) con la memoria de sitios sola, que va siempre a su mejor sitio (B), y con las dos políticas fijas de la F1: siempre volver (R) y siempre explorar (E). Sin protocolo congelado.
+
+**Lo que sí aparece:**
+
+- **Se ajusta al mundo** (anticipo de la F2). Con fuentes efímeras explora en el 50 % de sus decisiones; con fuentes duraderas, en el 42 %. Diferencia +0,08 [0,05, 0,10], p < ,001.
+- **Individualidad** (anticipo de la F3). Dentro de una misma colonia, cuánto explora cada hermana varía con una desviación típica de 0,12. Lo predicen sus primeras experiencias: las primeras exploraciones con éxito menos las fallidas correlacionan con cuánto explora después, r = 0,38 (n = 200). Su ruido innato no lo explica (r = −0,22).
+
+**Lo que no aparece: no decide mejor.**
+
+| | L | B | R | E |
+|---|---|---|---|---|
+| comida por minuto de vida | 0,62 | 0,61 | 0,63 | 0,65 |
+| raciones guardadas | 7,8 | 8,5 | 8,2 | 8,3 |
+| vivas al final | 0,72 | 0,83 | 0,74 | 0,75 |
+| muertes por veneno (de 200) | 41 | 24 | 38 | 43 |
+
+- La comida por minuto no se distingue entre condiciones.
+- L guarda menos que B (−0,6, p = ,05) y vive menos (−0,12, p = ,01).
+- Las muertes por veneno suben con cualquier política con elección, sin comer más veneno. Los primeros bocados dañinos son los mismos (unos 2,8) y las especies probadas también. Lo que cambia es que el mismo veneno mata más a quien está peor alimentada.
+
+**Por qué, probablemente.**
+
+1. B le ofrece su mejor sitio en todo momento. La elección solo se lo ofrece cuando lo planeó.
+2. La elección descuenta cada sitio por la confianza, que decae en unos minutos sin volver. Así, explorar gana a sitios buenos pero poco recientes: explora el 43 % de las veces.
+
+**Estado.** El plan (§19) decía medir F1–F2 antes de la D y la E, y no seguir si la C no mejora sobre las políticas fijas. No mejora. Hay que decidir qué cambiar antes de congelar nada: la confianza como descuento, el valor de explorar, o cuándo se decide. Cambiar los números hasta que gane sería ajustar a la medida, y el protocolo congelado de la F lo invalidaría.
 

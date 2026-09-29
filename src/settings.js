@@ -8,7 +8,7 @@ import {
   FAGI, HUNGER, THIRST, ENERGY, BRAIN, CARRY, NEST, EXPLORE, WIND, PLUME, PHERO, TREE, FRUIT, MEMORY,
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
   CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI, CONCEPT,
-  LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES,
+  LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES, CHOICE,
 } from './config.js';
 import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
@@ -312,6 +312,12 @@ const GROUPS = [
     b(SITES, 'enabled', 'Remembers several food sites and learns what each gives', 'Recuerda varios sitios con comida y aprende qué da cada uno'),
     n(SITES, 'max', 'Sites she can remember', 'Sitios que puede recordar', 1, 8, 1),
     n(SITES, 'rate', 'How much one visit changes what she expects', 'Cuánto cambia una visita lo que espera', 0.05, 1, 0.05),
+  ]},
+  { title: { en: 'Explore or come back: the choice', es: 'Explorar o volver: la elección' }, cat: 'world', fieldsOf: [
+    b(CHOICE, 'enabled', 'She learns whether to go back or explore (needs food sites)', 'Aprende si volver o explorar (necesita sitios de comida)'),
+    c(CHOICE, 'policy', 'How she chooses', 'Cómo elige', [['learned', 'aprendido'], ['always go back', 'siempre volver'], ['always explore', 'siempre explorar']]),
+    n(CHOICE, 'temper', 'Noise when choosing', 'Ruido al elegir', 0.01, 1, 0.01),
+    n(CHOICE, 'temperSpread', 'How much that noise differs between individuals', 'Cuánto difiere ese ruido entre individuos', 0, 1.5, 0.05),
   ]},
   { title: { en: 'Map objects', es: 'Objetos del mapa' }, cat: 'world', fieldsOf: [
     // Four radii in one group: all but the rock's (the one recordings already

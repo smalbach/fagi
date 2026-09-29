@@ -15,6 +15,7 @@ import { explain, stance } from '../../src/learned/explain.js';
 import { habit, HABIT_IDS, habitsSnapshot, restoreHabits } from '../../src/habits.js';
 import { newOrganismFollow, noteOrganism, organismSummary } from './organism.js';
 import { sitesSummary } from '../../src/sites.js';
+import { choiceSummary } from '../../src/choice.js';
 
 const { WORLD } = CONFIG;
 
@@ -343,6 +344,7 @@ function runSummary(fagiSeed, fagi, world, s) {
     ...(s.organism ? { organism: organismSummary(s.organism, fagi) } : {}),
     // Only with SITES on: every other run keeps its output byte for byte.
     ...(CONFIG.SITES.enabled ? { sites: sitesSummary(fagi) } : {}),
+    ...(CONFIG.CHOICE.enabled ? { choice: choiceSummary(fagi) } : {}),
   };
 }
 

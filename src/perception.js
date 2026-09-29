@@ -21,6 +21,7 @@ import { isThing, isDry } from './things.js';
 import { conceptsOf, noteSeen } from './concepts.js';
 import { saltUrge } from './taste.js';
 import { noteSites, bestSite, worthVisiting } from './sites.js';
+import { updateChoice } from './choice.js';
 
 // The nearest visible pool. Water isn't learned: it's instinct.
 function nearestWater(fagi, world) {
@@ -110,7 +111,7 @@ function learnSources(fagi, world) {
 
 function rememberFoodSource(fagi, world) {
   const known = SOURCES.enabled ? learnSources(fagi, world) : null;
-  if (SITES.enabled) noteSites(fagi, world);
+  const edibleInSight = SITES.enabled ? noteSites(fagi, world) : null;
   const isKnownTree = known ? (o) => isTree(o) && Boolean(known[o.id]) : isTree;
   // With SITES, a tree she has learned gives nothing now is not a source to her.
   const isSource = SITES.enabled ? (o) => isKnownTree(o) && worthVisiting(fagi, o) : isKnownTree;
@@ -124,7 +125,11 @@ function rememberFoodSource(fagi, world) {
   }
   if (visible) rememberPlace(fagi.brain, 'foodSource', visible, fagi.age);
   // With SITES, what she goes back to unseen is the site she counts on most.
-  if (SITES.enabled) return { visible, source: visible ?? bestSite(fagi), smelled, strength };
+  // With CHOICE, only the one she chose to go back to — none if she chose to explore.
+  if (SITES.enabled) {
+    const chosen = updateChoice(fagi, edibleInSight);
+    return { visible, source: visible ?? (chosen === undefined ? bestSite(fagi) : chosen), smelled, strength };
+  }
   const place = recallPlace(fagi.brain, 'foodSource');
   if (place && !world.objects.includes(place.ref)) {
     forgetPlace(fagi.brain, 'foodSource');

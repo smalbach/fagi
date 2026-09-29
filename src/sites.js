@@ -90,8 +90,9 @@ function visit(fagi, site, seen) {
 }
 
 // Every frame, from what she sees: new sites, and visits to the ones she knows.
+// Returns the edible fruit in sight (choice.js uses it).
 export function noteSites(fagi, world) {
-  if (!SITES.enabled) return;
+  if (!SITES.enabled) return [];
   const sites = sitesOf(fagi);
   // A tree that fell is no longer a site.
   for (let i = sites.length - 1; i >= 0; i--) {
@@ -107,6 +108,7 @@ export function noteSites(fagi, world) {
   for (const { point } of seen) {
     if (!siteAt(fagi, point.x, point.y)) discover(fagi, world, point, seen);
   }
+  return seen;
 }
 
 // Time passes: she trusts a site less and remembers less exactly where it is.
