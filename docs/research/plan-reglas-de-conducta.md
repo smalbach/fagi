@@ -1,7 +1,17 @@
 # Plan: que Fagi escriba sus propias reglas de conducta
 
-Estado: propuesta de ejecución; no es un protocolo congelado. Pasos 1 y 2 hechos en desarrollo (`research/adaptive-decision/conduct-grammar.md`): la gramática expresa la regla ganadora con dos líneas que rinden como la heurística fija. Paso 3 (`research/adaptive-decision/conduct-learning.md`): las dos variantes permitidas empeoran (−0,08 y −0,07); con ~9 bocados por vida escribe líneas demasiado generales ("con hambre < 45, no comas") y casi nunca "prueba lo nuevo". Pendiente decidir: aprender entre vidas, una tercera variante como revisión, o cerrar.
+Estado: propuesta de ejecución; no es un protocolo congelado. Pasos 1 y 2 hechos en desarrollo (`research/adaptive-decision/conduct-grammar.md`): la gramática expresa la regla ganadora con dos líneas que rinden como la heurística fija. Paso 3 (`research/adaptive-decision/conduct-learning.md`): las dos variantes permitidas empeoran (−0,08 y −0,07); con ~9 bocados por vida escribe líneas demasiado generales ("con hambre < 45, no comas") y casi nunca "prueba lo nuevo". Revisión 1: aprender entre vidas (paso 3b), en curso.
 Referencia inicial: commit `96cba62` (cierre del ciclo de decisión adaptativa). Registrar el commit efectivo al comenzar.
+
+## Revisión 1 (tras el paso 3): aprender entre vidas
+
+Escrita antes de ejecutar nada de lo que sigue. Dentro de una vida, las dos variantes permitidas empeoran (−0,08 y −0,07; `research/adaptive-decision/conduct-learning.md`): con ~9 bocados no hay evidencia para distinguir la regla verdadera de la que encaja por azar. El paso 5, condicionado en el plan original, pasa a ser el paso 3b.
+
+- **Linajes.** Generaciones de K Fagis, cada una en un mundo propio que no se repite, rotando las familias `stable`, `invert` y `novel`. Cada cría nace con las líneas de conducta vivas de una madre de la generación anterior. La memoria de bocados no se hereda: solo las líneas, que son lo que se transmite en el proyecto (`source: born`).
+- **Evidencia que viaja con la línea.** Cada línea lleva lo que ha acumulado en su linaje: bocados a favor, en contra y balance. Cada hija la sigue juzgando con lo que vive y la retira si el acumulado deja de compensar. El aprendizaje dentro de la vida es el de v2, sin cambios.
+- **Selección.** La madre se elige entre la generación anterior con probabilidad proporcional al tiempo que vivió: quien sobrevive, se reproduce. Ablación: madre al azar.
+- **Comparación.** La Fagi actual en los mismos mundos (pareada por mundo), la heurística fija y los linajes sin selección. Medida principal: supervivencia de las últimas generaciones. Secundaria: qué líneas dominan al final y si aparecen las dos que funcionan.
+- **Lo que no cambia.** Mundos nuevos para desarrollo (`lin`) y otros para confirmar, protocolo congelado antes de la confirmación y una sola campaña. Sigue el máximo de dos variantes, ahora del mecanismo de herencia.
 
 ## De dónde sale
 
