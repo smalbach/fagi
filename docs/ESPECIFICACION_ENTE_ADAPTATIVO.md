@@ -1817,7 +1817,7 @@ Recoge lo implementado en las fases 0 a 8 y lo medido de cada una. Las secciones
   - todo se dibuja con `choiceView` y `larderView`, que leen sin sortear: pintar no cambia el azar de la simulación (probado).
 - [x] Vía 1 (§25.25): la elección sale de su propia incertidumbre (`CHOICE.mode = 1`, por defecto). Desaparecen el ruido puesto a mano, su parte innata, el valor previo de explorar, la tasa de aprendizaje y la duda. El modo anterior sigue como `CHOICE.mode = 0`.
 - [x] Vía 2 (§25.26): lo que queda de innato en la elección se hereda: cuatro genes de forrajeo (`explore`, `site`, `memory`, `patience`), a 0 en las fundadoras, que mutan y pasan a las crías. Solo existen con la elección aprendida encendida.
-- [ ] F. Protocolo congelado (`docs/research/forage-protocol.md`, `research/forage/`; §25.24–§25.26) con F1a–F4; la F5 queda fuera hasta que sea viable. Pendiente de correr.
+- [x] F. Protocolo congelado (`397449a`) y corrido (§25.27): se sostienen la F3 (la experiencia hace distintas a las hermanas) y la F4 (el nido lleno cambia lo que hace después); no se sostienen la F1 ni la F2. La F5 queda fuera hasta que sea viable.
 
 **Fase 5: en batch (generaciones por lotes)**
 - [x] Recombinación de dos progenitores, mutación posterior y límites.
@@ -1879,7 +1879,7 @@ Preguntar de noche y probar de día hace que Fagi conozca casi el doble de espec
 
 ### 25.3 Pendiente
 
-- Fase 9 (§12.11): congelar y correr el protocolo de la F (§25.24). De la A a la E están hechas (§25.1). En el mundo por defecto elegir no cambia cuánto come (§25.22); en uno más escaso, sí empieza a cambiarlo (§25.23). Antes de congelar la F hay que fijar ese mundo.
+- Fase 9 (§12.11): la F5, poblaciones cuyos genes de forrajeo siguen a su mundo, pendiente de un diseño viable (§25.26). Todo lo demás está hecho y medido (§25.27). En el mundo por defecto elegir no cambia cuánto come (§25.22); en uno más escaso, sí empieza a cambiarlo (§25.23). Antes de congelar la F hay que fijar ese mundo.
 - §23, primera mitad del criterio social: que la información social se use con provecho. Con una informante que sabe, el efecto fue pequeño y no significativo (§25.18).
 - Fase 8: saladeros (una fuente de sal fija, que aprender como el agua); venenos más fuertes o más frecuentes, donde escupir importe más.
 - Fase 4: probar un modelo de lenguaje real por `NIGHTAI.backend = 'http'` y medir si propone algo que la mente local no propone.
@@ -2688,4 +2688,28 @@ Se toma **el más efímero en el que se extingan menos de la mitad de las poblac
 | duradero | 40 % | 13 | 12,3 |
 
 **Ningún candidato cumple el criterio.** Con 4 fundadoras, a lo largo de 30 000 s se extinguen la mayoría de las poblaciones de cualquier mundo con fuentes que se agotan, y casi la mitad incluso donde duran. No se busca ahora otro mundo que sí lo cumpla: sería elegirlo por el resultado. La F5 queda fuera del protocolo hasta decidir, con otro criterio escrito antes, cómo hacerla viable. Por ejemplo, empezar con más fundadoras, que es un parámetro del experimento y no de Fagi.
+
+**Segundo criterio de viabilidad, escrito antes de su piloto.** Mismo planteamiento, con **12 fundadoras** en lugar de 4 (`LIFE.founders`), que es un parámetro del experimento y no de Fagi. Mismos cuatro candidatos, la misma regla (el más efímero con menos de la mitad extinguidas y una mediana de vivas de al menos 5), 30 000 s y 10 poblaciones por candidato, con semillas de desarrollo distintas de las del primer piloto. Si ninguno la cumple, la F5 no se hace con este diseño y se publica así.
+
+### 25.27 Explorar o volver: resultado
+
+Protocolo congelado antes de correr: `docs/research/forage-protocol.md`, commit `397449a`, publicado en GitHub. 120 colonias de 5 hermanas por condición, con semillas nunca usadas, en el mundo escaso y con los números del juego. Informe completo, generado por el propio código: `research/results/forage/report.md`.
+
+| | Predicción | Resultado | ¿Se sostiene? |
+|---|---|---|---|
+| F1a | aprendiendo, come más que yendo siempre a su mejor sitio | 11,6 frente a 11,2; +0,40 [−0,25, 1,03] | no |
+| F1b | y más que explorando siempre | 11,6 frente a 11,9; −0,30 [−0,95, 0,37] | no |
+| F2a | donde las fuentes son efímeras explora más | 0,275 frente a 0,298; −0,023 [−0,037, −0,009] | **no: explora menos** |
+| F2b | si un mundo duradero se vuelve efímero, explora después más que en uno que siguió duradero | −0,006 [−0,022, 0,009] | no |
+| F3 | hermanas que nacen iguales en su forma de elegir, en el mismo mapa: la que tuvo éxito en sus primeras búsquedas explora más después | r = 0,455, 596 hermanas, p < ,001 | **sí** |
+| F4 | tras encontrar el nido lleno de comida buena tarda más en volver a recoger que tras guardar | 983 s frente a 153 s, dz 1,79 | **sí** |
+
+**Lo que dicen.**
+
+1. **La experiencia hace a cada Fagi distinta.** Es la hipótesis central de la fase. Hermanas sin ninguna diferencia innata en cómo eligen, en el mismo mapa, divergen por lo que vivieron. Lo que les pasó en sus cinco primeras decisiones explica buena parte de cuánto exploran después (r = 0,46), y nadie pone esa diferencia. Con la versión anterior, de ruido puesto a mano (`softmax`), la experiencia apenas cuenta (r = 0,09) y lo que diferencia a las hermanas es el ruido innato (r = 0,19).
+2. **El nido lleno cambia lo que hace después.** Tras encontrarlo lleno tarda unas seis veces más en volver a recoger para casa. Sale de la predicción de la despensa y de recordar que no cabe, sin ninguna regla que lo ordene.
+3. **Aprender a elegir no rinde más que una regla fija en este mundo.** Siempre volver, siempre explorar y aprender comen lo mismo. Tampoco rinde más la versión anterior, ni tener sitios que recordar, ni la feromona: ninguna ablación cambia cuánto come. En este mundo, cuánto come lo decide el mundo (el duradero da +2,2 comidas; el efímero, −1,8), no cómo elige.
+4. **Donde las fuentes son efímeras explora menos, no más.** Explorar también rinde poco cuando todo se agota, y su evidencia lo refleja: se asienta más, en menos opciones. Es lo contrario de lo que predijimos, y es coherente con aprender de lo que rinde.
+
+**Criterio de la fase 9:** «F1 a F3 se sostienen con protocolo congelado, y la individualidad de F3 no se explica por el genoma». **Se cumple a medias.** La F3 se sostiene, y su individualidad no viene del genoma: estas hermanas no tienen genes de forrajeo distintos. La F1 no. Se publica así.
 
