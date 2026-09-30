@@ -1,6 +1,6 @@
 # Plan: demostrar una mejora de decisión adaptativa
 
-Estado: propuesta de ejecución; no es un protocolo congelado. Pasos 1 y 1b ejecutados sobre mundos de desarrollo (`research/adaptive-decision/baseline.md`). Paso 2: la batería de "dónde buscar" no distingue (`research/adaptive-decision/viability.md`); revisión 1 ("qué comer") medida: privilegiado +0,19, informado +0,085; puerta dada por cumplida por decisión explícita (umbral práctico). Paso 3 en desarrollo (`research/adaptive-decision/development.md`): el modelo completo no mejora a la referencia; la ablación sin olvido sí, sobre todo en el mundo estable. Pendiente decidir qué entra al paso 4.
+Estado: propuesta de ejecución; no es un protocolo congelado. Pasos 1 y 1b ejecutados sobre mundos de desarrollo (`research/adaptive-decision/baseline.md`). Paso 2: la batería de "dónde buscar" no distingue (`research/adaptive-decision/viability.md`); revisión 1 ("qué comer") medida: privilegiado +0,19, informado +0,085; puerta dada por cumplida por decisión explícita (umbral práctico). Paso 3 en desarrollo (`research/adaptive-decision/development.md`): el modelo completo no mejora a la referencia; la ablación sin olvido sí, sobre todo en el mundo estable. Revisión 2: hipótesis "cautela aprendida", paso 4 en curso.
 Referencia inicial: commit `c751fe0`; paso 1 medido sobre `9b8fc6e` (el commit exacto queda en `research/results/adaptive-decision/manifest.json`).
 
 ## Revisión 1 (tras el paso 2): el dominio pasa a "qué comer"
@@ -15,6 +15,17 @@ Qué cambia:
 - Batería: mapas con especies y química de sabores (perfil experimental del paso 1). Familias: estable, química invertida (lo que alimentaba envenena y al revés) y especies nuevas que aparecen; composición reservada: las dos cosas, en otro orden y momento.
 - Referencias del paso 2: privilegiada (sabe qué hace este fruto concreto, parecidos incluidos) e informada (conoce el mecanismo —hay parecidos, la química puede invertirse, un bocado dañino con hambre alta mata— pero solo usa lo que ha probado y sentido). Misma puerta: la informada mejora al menos 0,10 a la referencia en las familias cambiantes.
 - Pasos 3 y 4: la hipótesis del modelo de consecuencias se aplica a este dominio (predecir qué hará un bocado y cuánto arriesga con el hambre actual). Lo de "dónde buscar" (familias `resources` y `cost`) queda como batería descartada, no como resultado.
+
+## Revisión 2 (tras el paso 3, antes de ver validación): la hipótesis pasa a "cautela aprendida"
+
+Escrita el 2026-09-30, con solo los mundos de desarrollo vistos; validación y confirmación sin tocar.
+
+- **Hipótesis principal.** Un juez que aprende de sus propios bocados, juzga lo desconocido por su aspecto, lo prueba primero con un bocado pequeño y no arriesga un bocado dañino cuando la mataría —sin olvidar lo aprendido (`model-fixed`)— sobrevive más que Fagi actual (`current`) y que el mejor competidor simple, en mundos cuya química cambia.
+- **Hipótesis original, como candidata.** El mismo juez con olvido por sorpresa (`model`). La validación elige una sola de las dos; la otra no pasa a confirmación.
+- **Competidores.** Una heurística sin conocimiento del mecanismo y un Q-learning tabular, cada uno con 6 configuraciones ajustadas en desarrollo (los métodos nuevos usaron 2: el presupuesto favorece a los competidores). La validación elige el más fuerte de los dos.
+- **Aprendizaje entre vidas: no se permite a nadie.** Cada vida empieza sin memoria, para todos los jueces.
+- **Ablación de horizonte.** La de la variante elegida (`model-h1` o `model-fixed-h1`). El criterio 4 sigue: si no la supera, la afirmación no se apoya en planificar dos decisiones.
+- **Afirmación posible.** Si se confirma, "cautela aprendida frente a lo desconocido mejora la supervivencia de Fagi en mundos con química cambiante", no "adaptación al cambio" ni "planificación", salvo que los criterios 2 y 4 lo apoyen por separado.
 
 ## Objetivo y límite de la afirmación
 
