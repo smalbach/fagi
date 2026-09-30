@@ -14,6 +14,7 @@ import { onAgenda, answered } from './experiment.js';
 import { canEat, afterBite, aversive } from './appetite.js';
 import { EXPERIMENT } from './config.js';
 import { pantryEstimate, roomAtHome } from './larder.js';
+import { judge, chewing } from './decision/bite.js';
 
 // When hungry she eats it on the spot. When not hungry she picks it up and takes it to the nest:
 // that's the difference between eating and working. And with the pantry stocked she doesn't even
@@ -25,6 +26,10 @@ export function tryPickOrEat(fagi, world) {
   // Whether or not she has to pick it up, she's already on it: it stops being a target to go to.
   // Without this, a point she rejects stays spotted and Fagi circles it forever.
   const release = () => { if (fagi.target === p) { fagi.target = null; fagi.memory = 0; } };
+
+  // With the bite point on (DECIDE.eat, decision/bite.js) a judge says what to do with it.
+  const j = judge();
+  if (j) { judged(fagi, world, p, j.ground(fagi, p)); release(); return; }
 
   // She doesn't accidentally eat or pick up something she has already learned is harmful.
   // She only tries it again when it was her deliberate target (curiosity).
@@ -65,12 +70,31 @@ export function tryPickOrEat(fagi, world) {
   release();
 }
 
+// A judge's answer, carried out. The body still has its limit: while she
+// handles the last bite, she eats nothing (she stays on it and asks again).
+function judged(fagi, world, p, answer) {
+  if ((answer === 'eat' || answer === 'taste') && chewing(fagi)) return;
+  if (answer === 'eat') {
+    eat(fagi, p.type, { variant: p.variant });
+    removePoint(world, p, 'eaten');
+  } else if (answer === 'taste') {
+    eat(fagi, p.type, { portion: EXPERIMENT.portion, variant: p.variant });
+    if (onAgenda(fagi, p.type)) answered(fagi, p.type);
+    removePoint(world, p, 'tasted');
+  } else if (answer === 'carry' && !fagi.carrying) {
+    fagi.carrying = { type: p.type, age: p.age ?? 0, ...(p.variant ? { variant: p.variant } : {}) };
+    fagi.picked = (fagi.picked ?? 0) + 1;
+    removePoint(world, p, 'picked');
+  }
+}
+
 // If she's already carrying a ration it makes no sense to starve while
 // looking for another. In an emergency she tries it, just as she would with food on the ground.
 export function eatCarried(fagi) {
   if (!fagi.carrying) return false;
   const { type, variant } = fagi.carrying;
-  if (!POINT_TYPES[type] || !canEat(fagi, type)) return false;
+  const j = judge();
+  if (!POINT_TYPES[type] || (j ? chewing(fagi) || !j.carried(fagi, type) : !canEat(fagi, type))) return false;
   fagi.carrying = null;
   eat(fagi, type, { variant });
   return true;
@@ -92,6 +116,7 @@ export function eat(fagi, type, { hunger = null, portion: meant = 1, variant = n
   const mouth = atMouth(fagi, type, meant, spec.taste);
   const portion = mouth.portion;
   const added = (hunger ?? spec.hunger) * portion;
+  const hungerBefore = fagi.hunger;
   fagi.hunger = Math.min(HUNGER.max, Math.max(0, fagi.hunger + added));
   if (TASTE.enabled) {
     // Salt makes her thirsty, juicy acid quenches a little; spicy burns.
@@ -114,6 +139,7 @@ export function eat(fagi, type, { hunger = null, portion: meant = 1, variant = n
     beliefBefore: ep.change.before.value,
     beliefAfter: ep.change.after.value,
     kind: ep.change.kind,
+    hungerBefore,
     hungerAfter: fagi.hunger,
     reward: ep.reward,
     sensations: ep.sensations,

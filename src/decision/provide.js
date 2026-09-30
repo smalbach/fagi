@@ -9,6 +9,7 @@ import { APPETITE } from '../config.js';
 import { seekWaterNear } from './survive.js';
 import { uselessNow } from '../appetite.js';
 import { smellOnly } from '../percept.js';
+import { judge } from './bite.js';
 
 // Her verdict on a candidate, from what she perceives of it (percept.js).
 const verdictOf = (fagi, scope, c) => (smellOnly(c)
@@ -59,8 +60,9 @@ export function pursue(fagi, world, ctx, dt, onlyKind = null) {
 
 function pickCandidate(fagi, ctx, onlyKind) {
   const { ranked } = ctx;
+  const j = judge();
   const canPursue = (r) => !useless(fagi, ctx, r)
-    && (r.kind !== 'food' || (verdictOf(fagi, 'pursue', r) !== 'avoid' && !uselessNow(fagi, r.key)));
+    && (r.kind !== 'food' || (j ? j.wants(fagi, r) : verdictOf(fagi, 'pursue', r) !== 'avoid' && !uselessNow(fagi, r.key)));
   // Her own trail leads to food (or so she believes): it counts when looking for food.
   const ofType = (r) => !onlyKind || r.kind === onlyKind || (onlyKind === 'food' && r.kind === 'trail');
   const available = ranked.filter((r) => ofType(r) && canPursue(r));

@@ -7,6 +7,7 @@ import { pct, reasonOf, pantryIntent, pressing } from './common.js';
 import { pursue } from './provide.js';
 import { habit } from '../habits.js';
 import { canEat } from '../appetite.js';
+import { judge, chewing } from './bite.js';
 
 // Trapped in deep water: the first thing is to get out, by the nearest shore. It's
 // instinct, not learned; what's learned is not to go in again (swim.js).
@@ -45,7 +46,8 @@ function needAtRisk(fagi, ctx) {
 export function eatCarriedFood(fagi) {
   if (!fagi.carrying || fagi.hunger < CARRY.eatBelow) return null;
   // Sick from the last bite, or still chewing: she keeps it for later (appetite.js).
-  if (!canEat(fagi, fagi.carrying.type)) return null;
+  const j = judge();
+  if (j ? chewing(fagi) || !j.carried(fagi, fagi.carrying.type) : !canEat(fagi, fagi.carrying.type)) return null;
   return {
     action: 'eatCarried',
     reason: reasonOf('reason.seekFood', { n: 1, score: '∞' }),

@@ -65,3 +65,10 @@ export const BATTERY_HORIZON = 2400;
 export const DEV_WORLDS = 40;
 export const DEV_SEED = 31000;
 export const devMapSeed = (i) => 1800000 + 61 * i;
+
+// --- revision 1: what to eat (foodworlds.js) -----------------------------------
+
+// Step 1's experimental map (species, taste chemistry, seasons) with the
+// connected choice deciding where to go; the bite point's judge is the
+// controller (battery.js sets DECIDE.eat).
+export const FOOD = { ...GAME, ...FORAGE, 'DECIDE.enabled': 1 };

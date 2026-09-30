@@ -652,6 +652,7 @@ export const DECIDE = {
   enabled: 0,
   controller: 'choice', // who answers: 'choice' = the learned choice (choice.js) connected here
   ownStream: 1,         // 1 = the controller's draws come from a stream of its own, not the one that moves her
+  eat: null,            // the bite point (decision/bite.js): who judges a fruit; null = as always, 'current' = the same judgment through it
 };
 
 // The larder (phase 9 D, spec §12.11, larder.js): a nest that fills up, and

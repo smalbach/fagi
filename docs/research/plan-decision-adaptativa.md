@@ -1,7 +1,20 @@
 # Plan: demostrar una mejora de decisión adaptativa
 
-Estado: propuesta de ejecución; no es un protocolo congelado. Pasos 1 y 1b ejecutados sobre mundos de desarrollo (`research/adaptive-decision/baseline.md`). Paso 2: la puerta no se cumple, la referencia vive ~100 % en toda severidad probada (`research/adaptive-decision/viability.md`); pendiente decidir la revisión permitida.
+Estado: propuesta de ejecución; no es un protocolo congelado. Pasos 1 y 1b ejecutados sobre mundos de desarrollo (`research/adaptive-decision/baseline.md`). Paso 2: la batería de "dónde buscar" no distingue (`research/adaptive-decision/viability.md`); revisión 1 ("qué comer") medida: el privilegiado gana +0,19, el informado +0,085 [0,005, 0,162], por debajo de 0,10; pendiente decidir (`viability.md`).
 Referencia inicial: commit `c751fe0`; paso 1 medido sobre `9b8fc6e` (el commit exacto queda en `research/results/adaptive-decision/manifest.json`).
+
+## Revisión 1 (tras el paso 2): el dominio pasa a "qué comer"
+
+La batería de "dónde buscar" no distingue nada: la referencia vive ~100 % con cualquier severidad probada (`research/adaptive-decision/viability.md`). Es la única revisión de diseño que el plan permite, basada solo en referencias; si vuelve a fallar, el ciclo se cierra como prueba inadecuada.
+
+Qué cambia:
+
+- La decisión estudiada es **comer, probar, llevar o dejar** cada fruto que toca, y qué ración sacar del nido. En el paso 1 las muertes eran sobre todo por veneno, y la autopsia de 40 vidas muestra de dónde: primer bocado de especies nuevas, parecidos venenosos de especies buenas (~30 %) y fruta podrida, casi siempre con el hambre ya alta.
+- El aprendizaje de alimentos deja de ser común: juzgar un fruto es lo que decide cada controlador. Sigue común lo físico: qué hace un bocado al cuerpo, el tiempo de masticar, lo que siente después (observable), y todo lo de "dónde ir" (punto de decisión del paso 1b con la elección conectada).
+- Punto de bocado (`DECIDE.eat`): el controlador `current` reproduce la lógica actual y debe dar huellas idénticas a no usarlo; así las referencias solo difieren en el juicio.
+- Batería: mapas con especies y química de sabores (perfil experimental del paso 1). Familias: estable, química invertida (lo que alimentaba envenena y al revés) y especies nuevas que aparecen; composición reservada: las dos cosas, en otro orden y momento.
+- Referencias del paso 2: privilegiada (sabe qué hace este fruto concreto, parecidos incluidos) e informada (conoce el mecanismo —hay parecidos, la química puede invertirse, un bocado dañino con hambre alta mata— pero solo usa lo que ha probado y sentido). Misma puerta: la informada mejora al menos 0,10 a la referencia en las familias cambiantes.
+- Pasos 3 y 4: la hipótesis del modelo de consecuencias se aplica a este dominio (predecir qué hará un bocado y cuánto arriesga con el hambre actual). Lo de "dónde buscar" (familias `resources` y `cost`) queda como batería descartada, no como resultado.
 
 ## Objetivo y límite de la afirmación
 

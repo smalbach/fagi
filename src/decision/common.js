@@ -6,6 +6,7 @@ import { habit } from '../habits.js';
 import { verdict } from '../learned/rules.js';
 import { canEat } from '../appetite.js';
 import { pantryEstimate } from '../larder.js';
+import { judge } from './bite.js';
 
 export const pct = (u) => `${Math.round(u * 100)}%`;
 
@@ -33,9 +34,13 @@ export function pantryIntent(fagi, ctx) {
   // the nest rewrites fagi.pantry and the next decision is already the right one.
   // The same test the nest applies when she is inside (nest.js useNest), or
   // she walks in, finds nothing she can eat, walks out and is sent back.
-  const has = Object.entries(fagi.pantry).some(
-    ([type, amount]) => amount > 0 && verdict(fagi, 'eat', type) !== 'avoid' && canEat(fagi, type)
-  );
+  // With the bite point on (bite.js), what she believes is there is worth the trip if her judge would take one.
+  const j = judge();
+  const has = j
+    ? j.pantry(fagi, Object.keys(fagi.pantry).filter((k) => fagi.pantry[k] > 0)) != null
+    : Object.entries(fagi.pantry).some(
+      ([type, amount]) => amount > 0 && verdict(fagi, 'eat', type) !== 'avoid' && canEat(fagi, type)
+    );
   if (!has) return null;
   return {
     action: 'pantry',

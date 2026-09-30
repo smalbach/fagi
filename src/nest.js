@@ -11,11 +11,18 @@ import { canEat } from './appetite.js';
 import { lineNest } from './things.js';
 import { drawVariant } from './chemistry.js';
 import { lookInLarder, larderFull, nestFull } from './larder.js';
+import { judge, chewing } from './decision/bite.js';
 
 export function nestUnder(fagi, world) {
   const nestObj = nestOf(world);
   if (!nestObj) return null;
   return Math.hypot(nestObj.x - fagi.x, nestObj.y - fagi.y) <= radiusOf(nestObj) ? nestObj : null;
+}
+
+// What she remembers best of what's stored, never what she learned disagrees with her.
+function pickRation(fagi, stocked) {
+  const saved = stocked.filter((k) => verdict(fagi, 'eat', k) !== 'avoid' && canEat(fagi, k));
+  return saved.length ? saved.reduce((a, b) => (weight(fagi.brain, b) > weight(fagi.brain, a) ? b : a)) : null;
 }
 
 // What happens while inside the nest: she drops her load, eats from the stores
@@ -44,12 +51,11 @@ export function useNest(fagi, world) {
   // When hungry she draws on the pantry: she picks what she remembers best of what's stored,
   // but never serves something she learned disagrees with her.
   if (fagi.hunger >= CARRY.eatBelow) {
-    const saved = Object.keys(nestObj.stock).filter(
-      (k) => nestObj.stock[k] > 0 && verdict(fagi, 'eat', k) !== 'avoid' && canEat(fagi, k)
-    );
-    if (saved.length) {
-      const best = saved.reduce((a, b) =>
-        (weight(fagi.brain, b) > weight(fagi.brain, a) ? b : a));
+    // Which one, if any: a judge's call with the bite point on (decision/bite.js).
+    const j = judge();
+    const stocked = Object.keys(nestObj.stock).filter((k) => nestObj.stock[k] > 0);
+    const best = j ? (chewing(fagi) ? null : j.pantry(fagi, stocked)) : pickRation(fagi, stocked);
+    if (best) {
       takeFromNest(nestObj, best);
       record(world, 'nest_take', { what: best });
       const firstBite = !(fagi.brain.facts[best]?.tries > 0);
