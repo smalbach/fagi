@@ -29,7 +29,8 @@ const G = Number(opt('--generations', 20));
 const K = Number(opt('--size', 12));
 const GROUP = opt('--group', 'lin');
 const JOBS = Number(opt('--jobs', 16));
-// Version of the inheritance (plan revision 1): 1 as first run; 2, fruit left because of a line count against it.
+// Version: 1 and 2, the two of plan revision 1 (2: fruit left because of a line count against it);
+// 3, plan revision 2 (every ban has a way out); 4, its variant 2 (and lines are lost at birth now and then).
 const VERSION = Number(opt('--version', 2));
 const OUT = `research/results/adaptive-decision/lineages/${TAG ?? MODE}`;
 const run = promisify(execFile);
@@ -41,9 +42,13 @@ const fileOf = (r, g, k) => `${OUT}/r${r}-g${g}-k${k}.json`;
 
 // What a daughter inherits from her mother's life: her live lines, with what
 // each had gathered (a line never judged in her life keeps what it brought).
-function inheritance(row) {
+// Version 4 (plan revision 2, variant 2): each line a daughter would inherit
+// is lost with chance MUTATION, so sisters differ and selection has something
+// to choose between.
+const MUTATION = 0.2;
+function inheritance(row, rnd = null) {
   if (!row?.conduct) return [];
-  return row.conduct.lines.filter((l) => l.retired == null).map((l) => ({
+  return row.conduct.lines.filter((l) => l.retired == null && !(rnd && rnd() < MUTATION)).map((l) => ({
     id: l.id, if: l.if, do: l.do,
     ...(l.lineage || l.inherited ? { lineage: l.lineage ?? l.inherited } : {}),
   }));
@@ -67,7 +72,11 @@ async function life(r, g, k, born) {
   if (existsSync(file)) return JSON.parse(readFileSync(file, 'utf8'));
   const n = worldOf(r, g, k);
   const plain = MODE === 'current' || MODE === 'heuristic';
-  const sets = plain ? {} : { 'CONDUCT.enabled': 1, 'CONDUCT.learn': 1, 'CONDUCT.inherit': 1, 'CONDUCT.declined': VERSION >= 2 ? 1 : 0, 'CONDUCT.born': born };
+  const sets = plain ? {} : {
+    'CONDUCT.enabled': 1, 'CONDUCT.learn': 1, 'CONDUCT.inherit': 1, 'CONDUCT.declined': VERSION >= 2 ? 1 : 0, 'CONDUCT.born': born,
+    // Revision 2 of the plan (version 3 here): every ban has a way out, the kind before her hunger, three harms behind a line.
+    ...(VERSION >= 3 ? { 'CONDUCT.explore': 0.2, 'CONDUCT.kindFirst': 1, 'CONDUCT.minSupport': 3 } : {}),
+  };
   const controller = MODE === 'current' ? 'current' : MODE === 'heuristic' ? 'heuristic:1:75' : 'learned';
   const piece = { domain: 'food', controller, family: familyOf(n), i: n, group: GROUP, sets };
   await run('node', [BATTERY, '--piece', JSON.stringify(piece), `${file}.tmp`], { maxBuffer: 1 << 26 });
@@ -97,7 +106,11 @@ for (let g = 0; g < G; g++) {
   const tasks = [];
   for (let r = 0; r < R; r++) {
     const ms = g === 0 ? Array(K).fill(null) : mothers(prev[r], r, g);
-    for (let k = 0; k < K; k++) tasks.push(() => life(r, g, k, inheritance(ms[k])));
+    for (let k = 0; k < K; k++) {
+      const rnd = VERSION >= 4 ? rng(7717 + r * 1009 + g * 31 + k) : null;
+      const born = inheritance(ms[k], rnd);
+      tasks.push(() => life(r, g, k, born));
+    }
   }
   const rows = await pool(tasks);
   prev = Array.from({ length: R }, (_, r) => rows.slice(r * K, (r + 1) * K));

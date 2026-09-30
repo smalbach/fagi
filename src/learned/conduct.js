@@ -201,6 +201,30 @@ export function noteDeclined(fagi, key, ref, hungerFrom) {
   return true;
 }
 
+// A way out of every ban (CONDUCT.explore, revision 2): now and then she
+// breaks a line that makes her leave a fruit she wants, with a trial bite.
+// Decided once per fruit, from a stream of her own seeded once from hers, so
+// looking at the same fruit twice does not ask twice.
+export function breaksBan(fagi, ref, hungerFrom) {
+  if (!CONDUCT.enabled || !CONDUCT.explore) return false;
+  if (fagi.hunger < hungerFrom || fagi.hunger >= CONDUCT.exploreBelow) return false;
+  const c = conductOf(fagi);
+  const id = ref?.id;
+  if (id == null) return false;
+  c.explored ??= {};
+  if (id in c.explored) return c.explored[id];
+  c.stream ??= Math.floor(Math.random() * 4294967296) >>> 0;
+  c.stream = (c.stream + 0x6D2B79F5) >>> 0;
+  let t = Math.imul(c.stream ^ (c.stream >>> 15), c.stream | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  const draw = ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  const keys = Object.keys(c.explored);
+  if (keys.length > 100) delete c.explored[keys[0]];
+  c.explored[id] = draw < CONDUCT.explore;
+  if (c.explored[id]) c.exploredCount = (c.exploredCount ?? 0) + 1;
+  return c.explored[id];
+}
+
 // Does a rule's `if` hold for this kind, now?
 export function holds(fagi, r, key, hunger = fagi.hunger) {
   const w = r.if;
@@ -238,6 +262,7 @@ export function conductSummary(fagi) {
       lineage: c.lineage?.[r.id] ?? null,
     })),
     stats: c.stats ?? null,
+    explored: c.exploredCount ?? 0,
     bites: c.meals.length,
   };
 }

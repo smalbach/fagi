@@ -52,3 +52,36 @@ Con las dos variantes permitidas, **el paso 3b no se cumple, y empeora**: hereda
 3. **El descubrimiento necesita reconocer la cautela como útil.** Probar vale por lo que enseña a lo largo de muchas vidas, no en el repaso de un bocado. El filtro actual no puede verlo.
 
 Cualquiera de esos cambios es una revisión del plan, no un ajuste, y se deja a decisión de la persona.
+
+---
+
+# Revisión 2: prohibiciones con salida (desarrollo)
+
+Plan: `docs/research/plan-reglas-de-conducta.md`, revisión 2. Mismos mundos `lin` y mismo diseño (10 linajes × 20 generaciones × 12).
+
+- **Variante 1 (`select-v3`).**
+  - Toda prohibición tiene salida: con hambre entre 45 y 75, rompe una línea de "dejar" con un bocado de prueba el 20 % de las veces (`CONDUCT.explore`).
+  - Entre candidatas casi iguales gana la que habla de la especie (`CONDUCT.kindFirst`).
+  - Hacen falta 3 bocados dañinos a favor.
+- **Variante 2 (`select-v4`, `random-v4`).** Lo mismo y, además, cada línea que heredaría una cría se pierde al nacer con probabilidad 0,2 (mutación), para que las hermanas difieran y la selección tenga variación.
+
+| | g0 | g1 | g19 | Últimas 5 − `current` |
+|---|---|---|---|---|
+| v2 del paso 3b (referencia) | 0,830 | 0,660 | 0,628 | −0,228 |
+| Revisión 2, variante 1 | 0,811 | 0,708 | 0,579 | −0,254 [−0,276, −0,232] |
+| Revisión 2, variante 2, selección | 0,811 | 0,707 | 0,603 | −0,232 [−0,253, −0,211] |
+| Revisión 2, variante 2, madre al azar | 0,811 | 0,678 | 0,602 | −0,245 |
+| heurística fija | 0,926 | 0,914 | 0,843 | +0,044 |
+
+**Ninguna variante mejora; la revisión 2 no se cumple.**
+
+- **La salida funciona como mecanismo:** rompe de 7 a 8 prohibiciones por vida con un bocado de prueba. Pero no basta, porque el filtro sigue aprobando prohibiciones con muchos más frutos dejados en contra que bocados dañinos a favor.
+- **El fallo empieza antes de heredar nada.** En la generación 0 (sin herencia), aprender con este filtro ya deja a la Fagi peor que la actual (0,811 frente a 0,843) y con 20 muertes de hambre de 120, frente a ~2. La herencia lo amplifica; no lo crea.
+- **Por qué el filtro aprueba prohibiciones dañinas.** Lo que cuesta dejar un fruto lo estima con sus propios bocados, y sus bocados son los que rompieron prohibiciones, sobre todo de especies dañinas. Sus datos le dicen que comer no compensa. Es un sesgo de muestra, no de valoración.
+- **La mutación no alcanza.** Cada cría vuelve a escribir las mismas prohibiciones en su propia vida, así que quitar líneas al nacer se compensa enseguida (en la generación 19 lleva 5 heredadas y 2 propias).
+
+## Lectura de todo el ciclo
+
+Seis variantes de "que las escriba ella" (dos en una vida, dos entre vidas, dos con salida) quedan por debajo de la Fagi actual. Lo común a todas es el filtro: juzgar una línea repasando sus propios bocados. Con pocos bocados y esa muestra sesgada, las prohibiciones siempre parecen buenas.
+
+La gramática sí sirve: con las dos líneas correctas escritas a mano, la Fagi mejora y ya está en el juego (`docs/research/caution-protocol.md`). Lo que no se ha logrado es que ella las encuentre. Una salida que no pasa por ese filtro sería que las líneas aparezcan y desaparezcan al azar en la herencia y que solo la supervivencia las seleccione: evolución de reglas, sin juicio interno. Es otro experimento.

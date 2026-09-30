@@ -193,8 +193,10 @@ export function learnConduct(fagi, meal) {
   }
   if (!ok.length) return;
   const top = Math.max(...ok.map((x) => x.s.gain));
+  // Revision 2 (CONDUCT.kindFirst): a line about the kind before one about her hunger or a look.
+  const aboutKind = (cond) => (CONDUCT.kindFirst && (cond.novel || cond.harmed || cond.harmedMostly) ? 1 : 0);
   const best = ok.filter((x) => x.s.gain >= top * TIE)
-    .sort((a, b) => said(a.cand.if) - said(b.cand.if) || b.s.gain - a.s.gain)[0];
+    .sort((a, b) => aboutKind(b.cand.if) - aboutKind(a.cand.if) || said(a.cand.if) - said(b.cand.if) || b.s.gain - a.s.gain)[0];
   const id = idOf(best.cand.if, best.cand.do);
   const old = c.list.findIndex((r) => r.id === id);
   if (old >= 0) c.list.splice(old, 1);   // a retired line written again

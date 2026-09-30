@@ -670,6 +670,9 @@ export const CONDUCT = {
   valuation: 'trajectory', // how the gate weighs a line: 'trajectory' (v2) or 'static' (v1, discarded)
   inherit: 0,           // 1 = lines she was born with keep being judged, on what her line gathered plus this life
   declined: 0,          // 1 = fruit she wanted and left because of a line count against it (lineages v2)
+  explore: 0,           // chance she breaks a line that bans a fruit she wants, with a trial bite (revision 2)
+  exploreBelow: 75,     // ...only while her hunger is below this
+  kindFirst: 0,         // 1 = among near ties, a line about the kind wins over one about her hunger or a look
 };
 
 // The larder (phase 9 D, spec §12.11, larder.js): a nest that fills up, and
