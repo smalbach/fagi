@@ -1,7 +1,19 @@
 # Plan: que Fagi escriba sus propias reglas de conducta
 
-Estado: propuesta de ejecución; no es un protocolo congelado. Pasos 1 y 2 hechos en desarrollo (`research/adaptive-decision/conduct-grammar.md`): la gramática expresa la regla ganadora con dos líneas que rinden como la heurística fija. Paso 3 (`research/adaptive-decision/conduct-learning.md`): las dos variantes permitidas empeoran (−0,08 y −0,07); con ~9 bocados por vida escribe líneas demasiado generales ("con hambre < 45, no comas") y casi nunca "prueba lo nuevo". Revisión 1, aprender entre vidas (paso 3b, `research/adaptive-decision/conduct-lineages.md`): las dos variantes se hunden (−0,23 frente a la actual). Las crías heredan "no comas nada nuevo" y, sin conocer ninguna especie, no comen; las prohibiciones no producen datos que las corrijan y la selección no tiene variación. Opción 2 hecha: la regla escrita a mano, confirmada en el juego (`docs/research/caution-protocol.md`, +0,073 con especies) e integrada de fábrica. Siguiente: revisión 2 (opción 1).
+Estado: propuesta de ejecución; no es un protocolo congelado. Pasos 1 y 2 hechos en desarrollo (`research/adaptive-decision/conduct-grammar.md`): la gramática expresa la regla ganadora con dos líneas que rinden como la heurística fija. Paso 3 (`research/adaptive-decision/conduct-learning.md`): las dos variantes permitidas empeoran (−0,08 y −0,07); con ~9 bocados por vida escribe líneas demasiado generales ("con hambre < 45, no comas") y casi nunca "prueba lo nuevo". Revisión 1, aprender entre vidas (paso 3b, `research/adaptive-decision/conduct-lineages.md`): las dos variantes se hunden (−0,23 frente a la actual). Las crías heredan "no comas nada nuevo" y, sin conocer ninguna especie, no comen; las prohibiciones no producen datos que las corrijan y la selección no tiene variación. Opción 2 hecha: la regla escrita a mano, confirmada en el juego (`docs/research/caution-protocol.md`, +0,073 con especies) e integrada de fábrica. Revisión 2 (prohibiciones con salida) en curso.
 Referencia inicial: commit `96cba62` (cierre del ciclo de decisión adaptativa). Registrar el commit efectivo al comenzar.
+
+## Revisión 2 (tras el paso 3b): prohibiciones con salida
+
+Escrita antes de ejecutar nada de lo que sigue. En el paso 3b, heredar las líneas que ella escribe hundió a sus descendientes (−0,23; `research/adaptive-decision/conduct-lineages.md`): heredaban "no comas nada nuevo", que en una cría que no conoce ninguna especie es no comer nunca; lo que prohíbe no produce datos que lo corrijan; y como todas llevaban lo mismo, la selección no tenía con qué trabajar.
+
+Tres cambios, juntos, como la variante 1 de esta revisión (máximo dos variantes):
+
+1. **Toda prohibición tiene salida** (`CONDUCT.explore`). Cuando una línea de "dejar" le impide comer algo que quiere (hambre ≥ 45 y < 75), a veces la rompe con un bocado de prueba (probabilidad 0,2, de un flujo propio sembrado una vez del suyo). Ese bocado queda registrado como cualquier otro y juzga a la línea: si alimentó, cuenta en contra. Es la curiosidad que su juicio de siempre ya tenía y las reglas anulaban.
+2. **Atribuir a la especie antes que a su hambre.** Entre candidatas casi igual de buenas, gana la que habla de la especie (nueva, ya dañina) sobre la que habla solo de su hambre o su aspecto. Hacen falta 3 bocados dañinos a favor, no 2.
+3. **Todo lo demás, igual que la v2 del paso 3b:** herencia con evidencia acumulada, frutos dejados que cuentan, madres elegidas por lo que vivieron, y la ablación con madre al azar.
+
+Medida: la misma que el paso 3b, en los mismos mundos `lin` (desarrollo), para comparar con lo ya medido. Éxito de desarrollo: las últimas generaciones superan a `current` y aparece "probar lo nuevo" (o una equivalente) sin que nadie la escriba a mano. Si no, se documenta y se decide.
 
 ## Revisión 1 (tras el paso 3): aprender entre vidas
 
