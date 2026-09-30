@@ -1,0 +1,13 @@
+{
+ "controller": "choice",
+ "sets": {
+  "HUNGER.rate": 0.32
+ },
+ "world": {},
+ "families": [
+  "stable",
+  "resources",
+  "cost"
+ ],
+ "worlds": 40
+}

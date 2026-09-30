@@ -35,6 +35,8 @@ function drag(world, fagi) {
   if (fagi.wet > 0) f *= 1 - (1 - WATER.wetSpeed) * (fagi.wet / WATER.dryTime);
   // She notices the pressure dropping: instinct to hurry (INSTINCT.pressureHaste).
   if (fagi.pressureFalling) f *= 1 + INSTINCT.pressureHaste * fagi.pressure;
+  // Heavy ground (world.mud, research worlds only): it slows whoever crosses it.
+  for (const m of world.mud ?? []) if (Math.hypot(fagi.x - m.x, fagi.y - m.y) <= m.r) f *= m.speed;
   return f;
 }
 

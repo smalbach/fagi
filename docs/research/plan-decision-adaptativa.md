@@ -1,6 +1,6 @@
 # Plan: demostrar una mejora de decisión adaptativa
 
-Estado: propuesta de ejecución; no es un protocolo congelado. Pasos 1 y 1b ejecutados sobre mundos de desarrollo (`research/adaptive-decision/baseline.md`). Siguiente: paso 2.
+Estado: propuesta de ejecución; no es un protocolo congelado. Pasos 1 y 1b ejecutados sobre mundos de desarrollo (`research/adaptive-decision/baseline.md`). Paso 2: la puerta no se cumple, la referencia vive ~100 % en toda severidad probada (`research/adaptive-decision/viability.md`); pendiente decidir la revisión permitida.
 Referencia inicial: commit `c751fe0`; paso 1 medido sobre `9b8fc6e` (el commit exacto queda en `research/results/adaptive-decision/manifest.json`).
 
 ## Objetivo y límite de la afirmación
@@ -96,6 +96,8 @@ Medida principal: `min(tiempo hasta morir, horizonte) / horizonte`, entre 0 y 1,
 Puerta de salida propuesta: el controlador informado de percepción limitada mejora al menos 0,10 de media frente a la referencia actual en la batería cambiante de desarrollo, con intervalo del 95 % por encima de cero. Es un umbral práctico propuesto, no un estándar científico.
 
 Si solo gana el controlador privilegiado, investigar observabilidad y memoria. Si ninguno gana, esta batería no distingue la capacidad buscada. Se permite una revisión documentada del diseño basada únicamente en estas referencias; si vuelve a fallar, cerrar el ciclo como prueba inadecuada. No ajustar el mundo para favorecer al futuro aprendiz.
+
+Resultado (`research/adaptive-decision/viability.md`): batería sin veneno con seis árboles, cambio de recursos y cambio de coste (barro, `world.mud`). La elección conectada vive al horizonte en ~100 % de los mundos, también con tres árboles, sin manchas, despensa de 4 y hambre ×4. Hambre mata en ~1250 s y cinco o seis néctares bastan para 2400 s: dónde buscar comida no decide la supervivencia. **Puerta no cumplida**; la revisión permitida se decide antes de seguir (medida, cuerpo, dominio o cierre).
 
 Entregable: escenarios reproducibles e informe de viabilidad. El horizonte, severidad y frecuencia de cambios se fijan aquí; después no se retocan al ver el rendimiento del aprendiz.
 

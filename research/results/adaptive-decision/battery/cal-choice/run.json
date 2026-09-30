@@ -1,0 +1,10 @@
+{
+ "controller": "choice",
+ "sets": {},
+ "families": [
+  "stable",
+  "resources",
+  "cost"
+ ],
+ "worlds": 40
+}

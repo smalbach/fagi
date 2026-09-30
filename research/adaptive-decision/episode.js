@@ -62,8 +62,15 @@ function needsOf(f) {
 
 // `trace`: keep every segment (a stretch with the same rule, action and
 // target) with what she felt at its start and what came of it.
-export function runEpisode({ seed, mapSeed, horizon = HORIZON, dt = DT, trace = false }) {
-  const world = withRng(rng(mapSeed), () => { const w = createWorld(); generateMap(w); return w; });
+// `makeWorld`: builds the map instead of generateMap (under the map's stream);
+// `tick(world, fagi)`: after each step, for worlds that change on a schedule.
+export function runEpisode({ seed, mapSeed, horizon = HORIZON, dt = DT, trace = false, makeWorld = null, tick = null }) {
+  const world = withRng(rng(mapSeed), () => {
+    if (makeWorld) return makeWorld();
+    const w = createWorld();
+    generateMap(w);
+    return w;
+  });
   const worldRng = rng(seed * 7919);
   const fagiRng = rng(seed);
   const fagi = withRng(fagiRng, () => createFagi());
@@ -91,6 +98,7 @@ export function runEpisode({ seed, mapSeed, horizon = HORIZON, dt = DT, trace = 
   for (let i = 0; i < steps && fagi.alive; i++) {
     withRng(worldRng, () => stepWorld(world, dt));
     withRng(fagiRng, () => updateFagi(fagi, world, dt));
+    if (tick) tick(world, fagi);
     const th = fagi.thought;
     if (!th) continue;
     const rule = `${th.tier}.${th.rule}`;

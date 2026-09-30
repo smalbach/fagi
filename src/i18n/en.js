@@ -281,6 +281,7 @@ export default {
   'reason.decideExplore': 'decided to search somewhere new',
   'reason.decideWater': 'decided to go to the water she knows',
   'reason.decideNest': 'decided to go home',
+  'reason.decidePlace': 'decided to go to a spot',
   'reason.decideRest': 'decided to stay still',
 
   'log.spotWater': 'Spots water',

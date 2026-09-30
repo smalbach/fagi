@@ -280,6 +280,7 @@ export default {
   'reason.decideExplore': 'decidió buscar en otra parte',
   'reason.decideWater': 'decidió ir al agua que conoce',
   'reason.decideNest': 'decidió volver a casa',
+  'reason.decidePlace': 'decidió ir a un lugar',
   'reason.decideRest': 'decidió quedarse quieta',
 
   'log.spotWater': 'Detecta agua',

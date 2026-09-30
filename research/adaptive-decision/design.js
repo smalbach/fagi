@@ -45,3 +45,23 @@ export const isReflex = (rule) => rule.startsWith('survive.') || rule.startsWith
 export const EPISODES = 40;
 export const SEED = 29000;
 export const mapSeed = (i) => 1700000 + 59 * i;
+
+// --- step 2: the battery (worlds.js) ------------------------------------------
+
+// Every controller runs on this profile; only who answers the decision point
+// changes (controllers.js). No species chemistry (worlds.js), so no poison.
+export const BATTERY = {
+  ...GAME,
+  'FORAGE.enabled': 1, 'FORAGE.crop': 6, 'FORAGE.rest': 400, 'FORAGE.patchEvery': 300,
+  'SITES.enabled': 1,
+  'CHOICE.enabled': 1, 'CHOICE.mode': 1, 'CHOICE.policy': 0,
+  'LARDER.enabled': 1, 'LARDER.capacity': 12,
+  'DECIDE.enabled': 1,
+};
+export const BATTERY_HORIZON = 2400;
+
+// Development worlds for step 2 (and step 3's development). Validation and
+// confirmation (step 4) draw their own, apart from these.
+export const DEV_WORLDS = 40;
+export const DEV_SEED = 31000;
+export const devMapSeed = (i) => 1800000 + 61 * i;

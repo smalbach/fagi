@@ -21,6 +21,9 @@
 //   { kind: 'water' }      the water she knows
 //   { kind: 'nest' }       home
 //   { kind: 'rest' }       stay still (in the nest if she is in it)
+//   { kind: 'place', target }  any spot of the map ({ x, y }): only for the
+//                          reference controllers of research, which may know
+//                          more than she does
 // or null: no opinion, and the rest of the hierarchy answers as always. The
 // executed option is the rule 'decide.<kind>' in her thought, so whoever
 // watches can tell what the controller decided from what a reflex did.
@@ -91,6 +94,8 @@ function execute(fagi, world, ctx, dt, option) {
       return ctx.pool ? { action: 'seekWater', reason: reasonOf('reason.decideWater'), target: ctx.pool, targetKind: 'water', trailKey: null } : null;
     case 'nest':
       return ctx.nest ? { action: 'toNest', reason: reasonOf('reason.decideNest'), target: ctx.nest, targetKind: 'nest', trailKey: null } : null;
+    case 'place':
+      return { action: 'seekFood', reason: reasonOf('reason.decidePlace'), target: option.target, targetKind: 'food', trailKey: null };
     case 'rest':
       return { action: 'rest', reason: reasonOf('reason.decideRest'), target: null, targetKind: null, trailKey: null };
     default:
