@@ -662,6 +662,12 @@ export const DECIDE = {
 export const CONDUCT = {
   enabled: 0,
   born: [],             // lines she is born with ({ id, if, do }), for research
+  learn: 0,             // 1 = she writes her own lines from her bites (learned/conduct-learn.js)
+  power: 3,             // how much more a hunger near the top weighs: danger = (hunger/max)^power
+  minSupport: 2,        // harmful bites a line must have spared before she keeps it
+  gate: 1,              // 0 = ablation: she keeps whatever she proposes
+  retire: 1,            // 0 = ablation: a line she wrote is never retired
+  valuation: 'trajectory', // how the gate weighs a line: 'trajectory' (v2) or 'static' (v1, discarded)
 };
 
 // The larder (phase 9 D, spec §12.11, larder.js): a nest that fills up, and

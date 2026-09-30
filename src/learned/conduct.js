@@ -151,7 +151,7 @@ export function knownOf(fagi, key) {
 
 // Every bite she takes (feeding.js eat), recorded while CONDUCT is on.
 export function noteMeal(fagi, { key, portion, before, after }) {
-  if (!CONDUCT.enabled) return;
+  if (!CONDUCT.enabled) return null;
   const c = conductOf(fagi);
   const k = (c.kinds[key] ??= { bites: 0, harms: 0, fed: 0 });
   const harmed = after > before;
@@ -163,6 +163,7 @@ export function noteMeal(fagi, { key, portion, before, after }) {
   if (c.meals.length > MEALS) c.meals.shift();
   k.bites += 1;
   if (harmed) k.harms += 1; else k.fed += 1;
+  return c.meals.at(-1);
 }
 
 // Does a rule's `if` hold for this kind, now?
@@ -189,4 +190,15 @@ export function ruling(fagi, key, hunger = fagi.hunger) {
     if (r) return r;
   }
   return null;
+}
+
+// What batch reports of her conduct in a life.
+export function conductSummary(fagi) {
+  const c = fagi.brain.conduct;
+  if (!c) return null;
+  return {
+    lines: c.list.map((r) => ({ id: r.id, if: r.if, do: r.do, source: r.source, at: r.learnedAt, retired: r.retired ? r.retiredAt : null, pro: r.pro ?? null, con: r.con ?? null })),
+    stats: c.stats ?? null,
+    bites: c.meals.length,
+  };
 }

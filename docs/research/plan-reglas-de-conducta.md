@@ -1,6 +1,6 @@
 # Plan: que Fagi escriba sus propias reglas de conducta
 
-Estado: propuesta de ejecución; no es un protocolo congelado. Pasos 1 y 2 hechos en desarrollo (`research/adaptive-decision/conduct-grammar.md`): la gramática expresa la regla ganadora con dos líneas que rinden como la heurística fija. Siguiente: paso 3.
+Estado: propuesta de ejecución; no es un protocolo congelado. Pasos 1 y 2 hechos en desarrollo (`research/adaptive-decision/conduct-grammar.md`): la gramática expresa la regla ganadora con dos líneas que rinden como la heurística fija. Paso 3 (`research/adaptive-decision/conduct-learning.md`): las dos variantes permitidas empeoran (−0,08 y −0,07); con ~9 bocados por vida escribe líneas demasiado generales ("con hambre < 45, no comas") y casi nunca "prueba lo nuevo". Pendiente decidir: aprender entre vidas, una tercera variante como revisión, o cerrar.
 Referencia inicial: commit `96cba62` (cierre del ciclo de decisión adaptativa). Registrar el commit efectivo al comenzar.
 
 ## De dónde sale

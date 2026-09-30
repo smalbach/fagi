@@ -27,6 +27,7 @@ import { stepWorld } from '../../src/simulation.js';
 import { choiceSummary } from '../../src/choice.js';
 import { sitesSummary } from '../../src/sites.js';
 import { adaptiveSummary } from '../../src/adaptive-decision/index.js';
+import { conductSummary } from '../../src/learned/conduct.js';
 import { rng, withRng } from '../../scripts/batch/random.js';
 import { HORIZON, DT } from './design.js';
 
@@ -157,6 +158,7 @@ export function runEpisode({ seed, mapSeed, horizon = HORIZON, dt = DT, trace = 
     fingerprint: fnv(`${hash}|${fagi.age}|${fagi.x}|${fagi.y}|${fagi.eaten}|${fagi.stored}|${fagi.cause}`),
   };
   if (fagi.adaptive) out.adaptive = adaptiveSummary(fagi);
+  if (fagi.brain.conduct) out.conduct = conductSummary(fagi);
   if (trace) out.segments = segments;
   return out;
 }
