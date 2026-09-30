@@ -20,6 +20,7 @@ import { set, runEpisode } from './episode.js';
 import { BATTERY, BATTERY_HORIZON, DEV_SEED, devMapSeed, DEV_WORLDS, FOOD } from './design.js';
 import { foodSchedule, foodTicker, FOOD_FAMILIES, FOOD_PARAMS } from './foodworlds.js';
 import './judges.js';
+import '../../src/adaptive-decision/index.js';
 import { makeWorld, scheduleOf, ticker, FAMILIES, WORLD_PARAMS } from './worlds.js';
 import { setup } from './controllers.js';
 

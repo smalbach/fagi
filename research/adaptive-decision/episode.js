@@ -26,6 +26,7 @@ import { createFagi, updateFagi } from '../../src/fagi.js';
 import { stepWorld } from '../../src/simulation.js';
 import { choiceSummary } from '../../src/choice.js';
 import { sitesSummary } from '../../src/sites.js';
+import { adaptiveSummary } from '../../src/adaptive-decision/index.js';
 import { rng, withRng } from '../../scripts/batch/random.js';
 import { HORIZON, DT } from './design.js';
 
@@ -155,6 +156,7 @@ export function runEpisode({ seed, mapSeed, horizon = HORIZON, dt = DT, trace = 
     sites: CONFIG.SITES.enabled ? sitesSummary(fagi) : null,
     fingerprint: fnv(`${hash}|${fagi.age}|${fagi.x}|${fagi.y}|${fagi.eaten}|${fagi.stored}|${fagi.cause}`),
   };
+  if (fagi.adaptive) out.adaptive = adaptiveSummary(fagi);
   if (trace) out.segments = segments;
   return out;
 }

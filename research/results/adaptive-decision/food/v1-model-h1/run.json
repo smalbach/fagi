@@ -1,0 +1,12 @@
+{
+ "domain": "food",
+ "controller": "model-h1",
+ "sets": {},
+ "world": {},
+ "families": [
+  "stable",
+  "invert",
+  "novel"
+ ],
+ "worlds": 40
+}

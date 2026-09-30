@@ -1,6 +1,6 @@
 # Plan: demostrar una mejora de decisión adaptativa
 
-Estado: propuesta de ejecución; no es un protocolo congelado. Pasos 1 y 1b ejecutados sobre mundos de desarrollo (`research/adaptive-decision/baseline.md`). Paso 2: la batería de "dónde buscar" no distingue (`research/adaptive-decision/viability.md`); revisión 1 ("qué comer") medida: el privilegiado gana +0,19, el informado +0,085 [0,005, 0,162], por debajo de 0,10; pendiente decidir (`viability.md`).
+Estado: propuesta de ejecución; no es un protocolo congelado. Pasos 1 y 1b ejecutados sobre mundos de desarrollo (`research/adaptive-decision/baseline.md`). Paso 2: la batería de "dónde buscar" no distingue (`research/adaptive-decision/viability.md`); revisión 1 ("qué comer") medida: privilegiado +0,19, informado +0,085; puerta dada por cumplida por decisión explícita (umbral práctico). Paso 3 en desarrollo (`research/adaptive-decision/development.md`): el modelo completo no mejora a la referencia; la ablación sin olvido sí, sobre todo en el mundo estable. Pendiente decidir qué entra al paso 4.
 Referencia inicial: commit `c751fe0`; paso 1 medido sobre `9b8fc6e` (el commit exacto queda en `research/results/adaptive-decision/manifest.json`).
 
 ## Revisión 1 (tras el paso 2): el dominio pasa a "qué comer"
@@ -151,6 +151,8 @@ Preferir una política local síncrona para batch y juego. El camino actual de `
 Pruebas necesarias: no fuga de estado oculto; una consecuencia modifica la predicción; intención realmente aplicada; interrupciones correctamente atribuidas; bandera apagada conserva ejecuciones previas; semillas del controlador no alteran sorteos del entorno. Separar los generadores del entorno y del agente solo en el nuevo experimento, conservando el comportamiento histórico.
 
 Entregable: prototipo aislado y comparación de desarrollo. Máximo dos variantes del modelo en este ciclo; registrar también la descartada.
+
+Resultado (revisión 1, `research/adaptive-decision/development.md`): prototipo en `src/adaptive-decision/`, juez `model` en el punto de bocado. v1 descartada (−0,16 a −0,26). v2: −0,009 frente a la referencia en las familias cambiantes; horizonte 2 no aporta frente a horizonte 1; el olvido por sorpresa perjudica y la ablación sin olvido gana +0,067 [−0,014, 0,149] en las cambiantes y +0,115 en el estable. Lo que apunta es la cautela aprendida, no la planificación ni la adaptación al cambio.
 
 ## Paso 4. Evaluación reservada y decisión de continuar
 
