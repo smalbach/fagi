@@ -72,3 +72,12 @@ export const devMapSeed = (i) => 1800000 + 61 * i;
 // connected choice deciding where to go; the bite point's judge is the
 // controller (battery.js sets DECIDE.eat).
 export const FOOD = { ...GAME, ...FORAGE, 'DECIDE.enabled': 1 };
+
+// Step 4's worlds, apart from development and from each other. Validation:
+// choosing the variant and the competitor. Confirmation: only after the
+// protocol is frozen.
+export const GROUPS = {
+  dev: { seed: DEV_SEED, map: devMapSeed },
+  val: { seed: 33000, map: (i) => 1900000 + 67 * i },
+  conf: { seed: 35000, map: (i) => 2000000 + 71 * i },
+};

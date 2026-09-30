@@ -1,0 +1,13 @@
+{
+ "domain": "food",
+ "group": "dev",
+ "controller": "qlearn:0.3:0.3",
+ "sets": {},
+ "world": {},
+ "families": [
+  "stable",
+  "invert",
+  "novel"
+ ],
+ "worlds": 40
+}

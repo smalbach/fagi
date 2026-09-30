@@ -21,6 +21,8 @@ const byWorld = (rows, fams) => {
 };
 
 export function gate(tag, ref = 'current', out = OUT) {
+  if (tag.startsWith('val-') && ref === 'current') ref = 'val-current';
+  if (tag.startsWith('conf-') && ref === 'current') ref = 'conf-current';
   const a = byWorld(load(tag, out), FOOD_FAMILIES);
   const b = byWorld(load(ref, out), FOOD_FAMILIES);
   const worlds = Object.keys(a).filter((i) => b[i] && FOOD_FAMILIES.every((f) => a[i][f] != null && b[i][f] != null));

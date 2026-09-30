@@ -153,6 +153,6 @@ export function adaptiveSummary(fagi) {
   return {
     counts: s.counts, bites: m.bites, volatility: r2(m.volatility),
     harm: r2(m.harm.mean), relief: r2(m.relief.mean), rate: r2(m.rate.mean * 1000) / 1000, between: Math.round(m.between.mean),
-    kinds: Object.keys(m.kinds).length, recent: s.log.slice(-8),
+    kinds: Object.keys(m.kinds).length, bytes: JSON.stringify(m).length, recent: s.log.slice(-8),
   };
 }

@@ -1,0 +1,13 @@
+{
+ "domain": "food",
+ "group": "val",
+ "controller": "model-fixed-h1",
+ "sets": {},
+ "world": {},
+ "families": [
+  "stable",
+  "invert",
+  "novel"
+ ],
+ "worlds": 40
+}

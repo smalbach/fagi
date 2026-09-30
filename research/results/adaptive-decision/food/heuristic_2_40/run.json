@@ -1,0 +1,13 @@
+{
+ "domain": "food",
+ "group": "dev",
+ "controller": "heuristic:2:40",
+ "sets": {},
+ "world": {},
+ "families": [
+  "stable",
+  "invert",
+  "novel"
+ ],
+ "worlds": 40
+}
