@@ -2713,3 +2713,15 @@ Protocolo congelado antes de correr: `docs/research/forage-protocol.md`, commit 
 
 **Criterio de la fase 9:** «F1 a F3 se sostienen con protocolo congelado, y la individualidad de F3 no se explica por el genoma». **Se cumple a medias.** La F3 se sostiene, y su individualidad no viene del genoma: estas hermanas no tienen genes de forrajeo distintos. La F1 no. Se publica así.
 
+**Resultado del segundo piloto de viabilidad** (12 fundadoras, 10 poblaciones por mundo, 30 000 s):
+
+| Mundo | Extinguidas | Mediana de vivas | Generaciones |
+|---|---|---|---|
+| E4 | 70 % | 0 | 7,4 |
+| E3 | 70 % | 0 | 10,6 |
+| E2 | 50 % | 6 | 12,1 |
+| E1 | 40 % | 11 | 12,8 |
+| duradero | 0 % | 14 | 15,8 |
+
+Por la regla escrita antes, el mundo efímero de la F5 es **E1**, el escaso de base: el 70 % de los árboles tiene temporadas y hay una mancha cada 200 s. E2 no entra porque la regla pedía menos de la mitad extinguidas, y tuvo exactamente la mitad. El diseño de la F5 queda así: 12 fundadoras, 30 000 s, E1 frente al duradero. Falta escribir su protocolo y congelarlo.
+
