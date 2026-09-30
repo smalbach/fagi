@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { CONDUCT } from '../src/config.js';
 import { createFagi } from '../src/fagi.js';
-import { noteMeal, conductOf } from '../src/learned/conduct.js';
+import { noteMeal, conductOf, noteDeclined } from '../src/learned/conduct.js';
 import { candidates, replay, learnConduct } from '../src/learned/conduct-learn.js';
 
 function withConduct(settings, fn) {
@@ -48,4 +48,27 @@ test('after enough harm she writes a line of her own, and says why', () => withC
   const lines = conductOf(fagi).list.filter((r) => r.source === 'self');
   assert.ok(lines.length >= 1);
   assert.match(lines[0].why, /spared/);
+}));
+
+test('a fruit left because of a line is recorded once, only when hungry, and counts against the line', () => withConduct({ enabled: 1, declined: 1 }, () => {
+  const fagi = createFagi();
+  fagi.hunger = 30;
+  assert.equal(noteDeclined(fagi, 'nectar', { id: 7 }, 45), false);
+  fagi.hunger = 60;
+  assert.equal(noteDeclined(fagi, 'nectar', { id: 7 }, 45), true);
+  assert.equal(noteDeclined(fagi, 'nectar', { id: 7 }, 45), false);
+  const c = conductOf(fagi);
+  const fed = [meal({ at: 5, key: 'nectar', harmed: false, before: 50, after: 15 })];
+  const s = replay({ if: { hungerFrom: 45 }, do: 'leave' }, fed, c.declined);
+  assert.ok(s.con >= 2);
+  assert.ok(s.gain < 0);
+}));
+
+test('a line born from a mother brings what her line gathered', () => withConduct({ enabled: 1, born: [
+  { id: 'leave-novel', if: { novel: true }, do: 'leave', lineage: { pro: 5, con: 1, gain: 0.4, lives: 3 } },
+] }, () => {
+  const fagi = createFagi();
+  const c = conductOf(fagi);
+  assert.equal(c.list[0].source, 'born');
+  assert.deepEqual(c.base['leave-novel'], { pro: 5, con: 1, gain: 0.4, lives: 3 });
 }));

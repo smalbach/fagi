@@ -135,11 +135,18 @@ function choose(n, k) {
 
 // Her rules of conduct and her record of kinds, made the first time asked;
 // born with CONDUCT.born (validated, as any line).
-// A born line needs only { id, if, do }: it starts trusted and settled.
+// A born line needs only { id, if, do }: then it starts trusted and settled.
+// One inherited from a mother (research lineages) also brings what her line
+// had gathered before this life — { pro, con, gain } in `lineage` — which
+// the learner (conduct-learn.js) adds to what this life shows.
 export function conductOf(fagi) {
   if (fagi.brain.conduct) return fagi.brain.conduct;
-  const list = (CONDUCT.born ?? []).map(({ id, ...spec }) => conduct(id, { weight: 1, tries: 0, stage: 'long', ...spec, source: 'born', learnedAt: 0 }));
-  fagi.brain.conduct = { list, kinds: {}, meals: [] };
+  const base = {};
+  const list = (CONDUCT.born ?? []).map(({ id, lineage, ...spec }) => {
+    if (lineage) base[id] = { pro: lineage.pro ?? 0, con: lineage.con ?? 0, gain: lineage.gain ?? 0, lives: lineage.lives ?? 0 };
+    return conduct(id, { weight: 1, tries: 0, stage: 'long', ...spec, source: 'born', learnedAt: 0 });
+  });
+  fagi.brain.conduct = { list, kinds: {}, meals: [], base, declined: [], declinedIds: [] };
   return fagi.brain.conduct;
 }
 
@@ -164,6 +171,24 @@ export function noteMeal(fagi, { key, portion, before, after }) {
   k.bites += 1;
   if (harmed) k.harms += 1; else k.fed += 1;
   return c.meals.at(-1);
+}
+
+// A fruit she wanted and left because a line of hers said so (CONDUCT.declined):
+// once per fruit, only while hungry enough to eat. What she would have got
+// from it she never learns, but the line must answer for having left it.
+export function noteDeclined(fagi, key, ref, hungerFrom) {
+  if (!CONDUCT.enabled || !CONDUCT.declined || fagi.hunger < hungerFrom) return false;
+  const c = conductOf(fagi);
+  const id = ref?.id ?? null;
+  if (id != null && c.declinedIds.includes(id)) return false;
+  if (id != null) { c.declinedIds.push(id); if (c.declinedIds.length > 50) c.declinedIds.shift(); }
+  const k = c.kinds[key];
+  c.declined.push({
+    key, at: Math.round(fagi.age * 10) / 10, before: Math.round(fagi.hunger * 10) / 10,
+    novel: !k || k.bites === 0, harmedBefore: (k?.harms ?? 0) > 0, harmedMostly: (k?.harms ?? 0) > 0 && k.harms >= k.fed,
+  });
+  if (c.declined.length > MEALS) c.declined.shift();
+  return true;
 }
 
 // Does a rule's `if` hold for this kind, now?
@@ -197,7 +222,11 @@ export function conductSummary(fagi) {
   const c = fagi.brain.conduct;
   if (!c) return null;
   return {
-    lines: c.list.map((r) => ({ id: r.id, if: r.if, do: r.do, source: r.source, at: r.learnedAt, retired: r.retired ? r.retiredAt : null, pro: r.pro ?? null, con: r.con ?? null })),
+    lines: c.list.map((r) => ({
+      id: r.id, if: r.if, do: r.do, source: r.source, at: r.learnedAt, retired: r.retired ? r.retiredAt : null,
+      pro: r.pro ?? null, con: r.con ?? null, weight: r.weight, tries: r.tries, stage: r.stage,
+      lineage: c.lineage?.[r.id] ?? null,
+    })),
     stats: c.stats ?? null,
     bites: c.meals.length,
   };

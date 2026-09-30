@@ -668,6 +668,8 @@ export const CONDUCT = {
   gate: 1,              // 0 = ablation: she keeps whatever she proposes
   retire: 1,            // 0 = ablation: a line she wrote is never retired
   valuation: 'trajectory', // how the gate weighs a line: 'trajectory' (v2) or 'static' (v1, discarded)
+  inherit: 0,           // 1 = lines she was born with keep being judged, on what her line gathered plus this life
+  declined: 0,          // 1 = fruit she wanted and left because of a line count against it (lineages v2)
 };
 
 // The larder (phase 9 D, spec §12.11, larder.js): a nest that fills up, and

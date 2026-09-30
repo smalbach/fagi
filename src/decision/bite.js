@@ -25,7 +25,8 @@ import { onAgenda } from '../experiment.js';
 import { pantryEstimate, roomAtHome } from '../larder.js';
 import { weight } from '../memory.js';
 import { smellOnly } from '../percept.js';
-import { ruling } from '../learned/conduct.js';
+import { ruling, noteDeclined, knownOf } from '../learned/conduct.js';
+import { reviewConduct } from '../learned/conduct-learn.js';
 
 const verdictOf = (fagi, scope, c) => (smellOnly(c)
   ? verdict(fagi, scope, c.key, { traits: c.cues ?? [], blind: true })
@@ -65,6 +66,10 @@ export const learned = {
   ground(fagi, p) {
     const r = ruling(fagi, p.type);
     if (!r) return current.ground(fagi, p);
+    if (r.do === 'leave' && noteDeclined(fagi, p.type, p, CARRY.eatBelow)) reviewConduct(fagi);
+    // 'leave' is about eating it: she may still carry it home as she always
+    // would, unless it is a kind that has harmed her.
+    if (r.do === 'leave') return knownOf(fagi, p.type).harms === 0 && current.ground(fagi, p) === 'carry' ? 'carry' : 'leave';
     // A rule speaks for what she judges; only the body's own limit (chewing) stays.
     if (r.do === 'carry') return !fagi.carrying && !p.refuse && roomAtHome(fagi) ? 'carry' : 'leave';
     return r.do;
@@ -82,7 +87,9 @@ export const learned = {
   wants(fagi, c) {
     const r = ruling(fagi, c.key);
     if (!r) return current.wants(fagi, c);
-    return r.do !== 'leave';
+    if (r.do === 'leave' && c.via === 'sight' && noteDeclined(fagi, c.key, c.ref, CARRY.eatBelow)) reviewConduct(fagi);
+    if (r.do === 'leave') return knownOf(fagi, c.key).harms === 0 && fagi.hunger < CARRY.eatBelow && current.wants(fagi, c);
+    return true;
   },
 };
 

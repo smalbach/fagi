@@ -84,4 +84,7 @@ export const GROUPS = {
   dev2: { seed: 41000, map: (i) => 2100000 + 73 * i },
   val2: { seed: 43000, map: (i) => 2200000 + 79 * i },
   conf2: { seed: 45000, map: (i) => 2300000 + 83 * i },
+  // Lineages (revision 1 of the rules of conduct): development, and confirmation apart.
+  lin: { seed: 47000, map: (i) => 2400000 + 89 * i },
+  lin2: { seed: 49000, map: (i) => 2500000 + 97 * i },
 };

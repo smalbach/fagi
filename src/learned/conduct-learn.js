@@ -78,7 +78,17 @@ function medianGap(meals) {
   return Math.max(30, gaps[Math.floor(gaps.length / 2)]);
 }
 
-export function replay(r, meals) {
+// Version 2 of learning across lives (CONDUCT.declined): the fruit she left
+// because of a line count too. What she would have got from each she
+// estimates from her own bites — of that kind if she has eaten it, else of
+// the kinds that were new to her, else of all she ate — and the line answers
+// for that meal missed, carried forward like any other.
+function expectedDelta(meals, d) {
+  const avg = (ms) => (ms.length ? ms.reduce((a, m) => a + (m.after - m.before) / Math.max(m.portion, 1e-6), 0) / ms.length : null);
+  return avg(meals.filter((m) => m.key === d.key)) ?? avg(meals.filter((m) => m.novel)) ?? avg(meals) ?? 0;
+}
+
+export function replay(r, meals, declined = []) {
   let gain = 0; let pro = 0; let con = 0; let high = 0;
   if (CONDUCT.valuation === 'static') {
     for (const m of meals) {
@@ -92,24 +102,42 @@ export function replay(r, meals) {
     }
     return { gain, pro, con, high };
   }
+  // Two worlds against what she lived: with the line (`withL`) and without
+  // it (`without`), each as a shift from her real hunger. A bite she took
+  // happened without the line; a fruit she left because of it happened with it.
   const half = medianGap(meals);
-  let shift = 0;
-  let t = meals[0]?.at ?? 0;
-  for (const m of meals) {
-    shift *= 0.5 ** ((m.at - t) / half);
+  let withL = 0;
+  let without = 0;
+  const events = CONDUCT.declined && declined.length
+    ? [...meals, ...declined.map((d) => ({ ...d, left: true }))].sort((a, b) => a.at - b.at)
+    : meals;
+  let t = events[0]?.at ?? 0;
+  for (const m of events) {
+    const fade = 0.5 ** ((m.at - t) / half);
+    withL *= fade; without *= fade;
     t = m.at;
-    const before = clampH(m.before + shift);
-    let delta = m.after - m.before;
+    if (m.left) {
+      if (!heldAt(r, m)) continue;
+      // Without the line she would have eaten it, and got what such fruit gives her.
+      const delta = Math.max(-m.before, expectedDelta(meals, m));
+      const g = danger(clampH(m.before + without + delta)) - danger(clampH(m.before + withL));
+      gain += g;
+      con += 1;
+      if (m.before >= HIGH) high += g;
+      without += delta;
+      continue;
+    }
+    const real = m.after - m.before;
+    let delta = real;
     if (heldAt(r, m)) {
       const cf = afterWith(r.do, m) - m.before;
-      if (cf !== delta) { if (m.harmed) pro += 1; else con += 1; }
-      shift += cf - delta;
+      if (cf !== real) { if (m.harmed) pro += 1; else con += 1; }
       delta = cf;
     }
-    const after = clampH(before + delta);
-    const g = danger(m.after) - danger(after);
+    const g = danger(clampH(m.before + without + real)) - danger(clampH(m.before + withL + delta));
     gain += g;
-    if (m.before >= HIGH || before >= HIGH) high += g;
+    if (m.before >= HIGH || m.before + withL >= HIGH) high += g;
+    withL += delta - real;
   }
   return { gain, pro, con, high };
 }
@@ -159,7 +187,7 @@ export function learnConduct(fagi, meal) {
   for (const cand of candidates(meal)) {
     if (c.list.some((r) => !r.retired && r.do === cand.do && sameIf(r.if, cand.if))) continue;
     log.proposed += 1;
-    const s = replay(cand, c.meals);
+    const s = replay(cand, c.meals, c.declined);
     if (CONDUCT.gate && !passes(s)) { log.rejected += 1; continue; }
     ok.push({ cand, s });
   }
@@ -179,21 +207,39 @@ export function learnConduct(fagi, meal) {
   fagi.brain.lastConduct = { n: (fagi.brain.lastConduct?.n ?? 0) + 1, id, kind: 'written' };
 }
 
-// Every line she wrote, judged again on her whole record.
+// A fruit left because of a line (conduct.js noteDeclined): her lines are
+// judged again, since a line that makes her go without is on trial too.
+export function reviewConduct(fagi) {
+  if (!CONDUCT.enabled || !CONDUCT.learn) return;
+  const c = conductOf(fagi);
+  c.stats ??= { proposed: 0, kept: 0, retired: 0, rejected: 0 };
+  review(fagi, c);
+}
+
+// Every line she wrote, judged again on her whole record. With
+// CONDUCT.inherit, the lines she was born with too: what this life shows is
+// added to what her line gathered before her (`c.base`), and it is that sum
+// that must keep paying — the evidence travels with the line.
 function review(fagi, c) {
+  c.lineage ??= {};
   for (const r of c.list) {
-    if (r.retired || r.source !== 'self') continue;
-    const s = replay(r, c.meals);
-    r.pro = s.pro; r.con = s.con;
+    if (r.retired) continue;
+    const born = r.source === 'born';
+    if (born && !CONDUCT.inherit) continue;
+    const s = replay(r, c.meals, c.declined);
+    const b = c.base?.[r.id] ?? { pro: 0, con: 0, gain: 0, lives: 0 };
+    const sum = { pro: b.pro + s.pro, con: b.con + s.con, gain: b.gain + s.gain, lives: b.lives + 1 };
+    c.lineage[r.id] = { pro: sum.pro, con: sum.con, gain: Math.round(sum.gain * 1e4) / 1e4, lives: sum.lives };
+    r.pro = sum.pro; r.con = sum.con;
     r.tries += 1;
-    if (CONDUCT.retire && !(s.gain > 0 && s.high >= 0)) {
+    if (CONDUCT.retire && !(sum.gain > 0 && s.high >= 0)) {
       r.retired = true;
       r.retiredAt = Math.round(fagi.age * 10) / 10;
       c.stats.retired += 1;
       fagi.brain.lastConduct = { n: (fagi.brain.lastConduct?.n ?? 0) + 1, id: r.id, kind: 'retired' };
       continue;
     }
-    r.weight = Math.min(1, Math.round((WEIGHT0 + 0.1 * s.pro) * 100) / 100);
+    r.weight = Math.min(1, Math.round((WEIGHT0 + 0.1 * sum.pro) * 100) / 100);
     r.stage = r.tries >= 10 ? 'long' : r.tries >= 3 ? 'medium' : 'short';
   }
 }
