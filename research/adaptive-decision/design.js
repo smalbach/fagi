@@ -11,6 +11,8 @@
 // The connected one is the reference the plan compares against from step 2
 // on; the other two are described.
 
+import { CAUTION_LINES } from '../../src/learned/conduct.js';
+
 export const HORIZON = 2400;           // seconds, as phase 9
 export const DT = 0.05;
 
@@ -97,11 +99,8 @@ export const GAME_PROFILES = {
   classic: { ...GAME },
   species: { ...GAME, 'MAPGEN.species': 6 },
 };
-// The two lines, as the game would be born with them (conduct-grammar.md).
-export const CAUTION_LINES = [
-  { id: 'taste-novel', if: { novel: true, hungerBelow: 75 }, do: 'taste' },
-  { id: 'leave-harmed-mostly', if: { harmedMostly: true }, do: 'leave' },
-];
+// The two lines, as the game is born with them (conduct-grammar.md; src/learned/conduct.js).
+export { CAUTION_LINES };
 export const CAUTION = { 'DECIDE.eat': 'learned', 'CONDUCT.enabled': 1, 'CONDUCT.born': CAUTION_LINES };
 export const GAME_GROUPS = {
   gdev: { seed: 51000, map: (i) => 2600000 + 101 * i },

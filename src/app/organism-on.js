@@ -3,7 +3,8 @@
 // "factory" in the game means organism on.
 
 import { enableOrganism } from '../organism.js';
-import { ENERGY, SLEEP, CONCEPT, PHERO } from '../config.js';
+import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT } from '../config.js';
+import { CAUTION_LINES } from '../learned/conduct.js';
 
 enableOrganism();
 
@@ -21,3 +22,12 @@ ENERGY.drain = 0.6;
 SLEEP.nightly = 1;
 CONCEPT.enabled = 0;
 PHERO.life = 60;
+
+// Caution when eating (docs/research/caution-protocol.md): she is born with
+// two lines of conduct — a kind she never ate, a trial bite first; a kind that
+// harmed her as often as it fed her, never again — applied at the bite point
+// over her usual judgment. The settings turn it off (CONDUCT.enabled): then
+// she judges exactly as before.
+DECIDE.eat = 'learned';
+CONDUCT.enabled = 1;
+CONDUCT.born = CAUTION_LINES;

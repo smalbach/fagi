@@ -34,6 +34,16 @@ import { CONDUCT } from '../config.js';
 import { cuesOf } from './cues.js';
 
 export const HUNGER_STEPS = [45, 60, 75, 90];
+
+// Caution when eating: the two lines the game's Fagi is born with
+// (docs/research/caution-protocol.md, confirmed on 200 unused worlds: with
+// wild species she survives 0.073 more, poisoned 4 times instead of 29; on
+// the classic map, no worse). A kind never eaten, a trial bite first while
+// not too hungry; a kind that harmed her as often as it fed her, never again.
+export const CAUTION_LINES = [
+  { id: 'taste-novel', if: { novel: true, hungerBelow: 75 }, do: 'taste' },
+  { id: 'leave-harmed-mostly', if: { harmedMostly: true }, do: 'leave' },
+];
 export const ACTIONS = ['taste', 'leave', 'eat', 'carry'];
 const FLAGS = ['novel', 'harmed', 'harmedMostly'];
 const VALID_ID = /^[a-z0-9-]{1,64}$/;

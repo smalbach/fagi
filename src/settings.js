@@ -8,7 +8,7 @@ import {
   FAGI, HUNGER, THIRST, ENERGY, BRAIN, CARRY, NEST, EXPLORE, WIND, PLUME, PHERO, TREE, FRUIT, MEMORY,
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
   CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI, CONCEPT,
-  LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES, CHOICE, LARDER,
+  LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES, CHOICE, LARDER, CONDUCT,
 } from './config.js';
 import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
@@ -130,6 +130,9 @@ const GROUPS = [
     n(APPETITE, 'handling', 'Seconds between bites', 'Segundos entre bocados', 0, 20, 0.5),
     n(APPETITE, 'malaise', 'Seconds of malaise after a bad bite', 'Segundos de malestar tras un mal bocado', 0, 300, 5),
     n(APPETITE, 'searchWater', 'Thirst from which she looks for unknown water', 'Sed desde la que busca agua que no conoce', 0, 1, 0.05),
+  ]},
+  { title: { en: 'Caution', es: 'Cautela' }, cat: 'mind', fieldsOf: [
+    b(CONDUCT, 'enabled', 'Tries a new kind with a small bite, never again what harmed her', 'Prueba lo nuevo con un bocado pequeño y no vuelve a lo que la dañó'),
   ]},
   { title: { en: 'Experiments', es: 'Experimentos' }, cat: 'mind', fieldsOf: [
     b(EXPERIMENT, 'enabled', 'Tries what the night asked', 'Prueba lo que se preguntó de noche'),

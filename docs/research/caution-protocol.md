@@ -46,3 +46,13 @@ conduct('leave-harmed-mostly', {"if":{"harmedMostly":true},"do":"leave",...});
 | H1 no se cumple y H2 sí | No integrar; publicar el resultado |
 
 Una muerte es un resultado, nunca una exclusión. Piloto: con especies +0,090 [0,018, 0,176]; en el mapa clásico, sin diferencia (todas vivas).
+
+## Resultado (añadido tras la campaña, sin tocar lo anterior)
+
+`research/adaptive-decision/caution-confirmation.md`.
+
+- **H1 ✓:** con especies, 0,882 → 0,955, +0,073 [0,033, 0,111], p 0,0003. Muertes por veneno: de 29 a 4, con 4 por hambre donde antes no había.
+- **H2 ✓:** mapa clásico, +0,005 (cota inferior −0,014).
+- **Coste ✓:** 0,94 veces.
+
+Integrado de fábrica en el juego (`src/app/organism-on.js`), con el ajuste "Cautela" para apagarlo (`CONDUCT.enabled`). Apagado, juzga exactamente como antes.

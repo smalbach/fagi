@@ -71,3 +71,14 @@ test("with no rule of conduct, the 'learned' judge is her usual judgment", () =>
     assert.equal(learned.fingerprint, plain.fingerprint);
   } finally { DECIDE.eat = null; DECIDE.enabled = 0; CONDUCT.enabled = 0; }
 });
+
+test('the game is born cautious, and the setting turns it back into her usual judgment', async () => {
+  await import('../src/app/organism-on.js');
+  assert.equal(DECIDE.eat, 'learned');
+  assert.equal(CONDUCT.enabled, 1);
+  const fagi = createFagi();
+  fagi.hunger = 50;
+  assert.equal(ruling(fagi, 'nectar').do, 'taste');
+  CONDUCT.enabled = 0;
+  assert.equal(ruling(fagi, 'nectar'), null);
+});
