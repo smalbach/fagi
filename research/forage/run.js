@@ -41,7 +41,8 @@ const JOBS = Number(opt('--jobs', 16));
 const OUT = opt('--out', 'research/results/forage');
 const N = Number(opt('--colonies', COLONIES));
 const NP = Number(opt('--populations', POPULATIONS));
-const ONLY = opt('--only', null);
+// Colonies only unless asked: the populations (F5) are not part of this protocol.
+const ONLY = opt('--only', 'colonies');
 const OFFSET = opt('--offset', '0');
 const self = fileURLToPath(import.meta.url);
 const part = (c, i) => `${OUT}/parts/${c}-${i}.json`;

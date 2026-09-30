@@ -1817,7 +1817,7 @@ Recoge lo implementado en las fases 0 a 8 y lo medido de cada una. Las secciones
   - todo se dibuja con `choiceView` y `larderView`, que leen sin sortear: pintar no cambia el azar de la simulación (probado).
 - [x] Vía 1 (§25.25): la elección sale de su propia incertidumbre (`CHOICE.mode = 1`, por defecto). Desaparecen el ruido puesto a mano, su parte innata, el valor previo de explorar, la tasa de aprendizaje y la duda. El modo anterior sigue como `CHOICE.mode = 0`.
 - [x] Vía 2 (§25.26): lo que queda de innato en la elección se hereda: cuatro genes de forrajeo (`explore`, `site`, `memory`, `patience`), a 0 en las fundadoras, que mutan y pasan a las crías. Solo existen con la elección aprendida encendida.
-- [ ] F. Protocolo redactado y pilotado dos veces (`docs/research/forage-protocol.md`, `research/forage/`; §25.24, §25.25), sin congelar todavía.
+- [ ] F. Protocolo congelado (`docs/research/forage-protocol.md`, `research/forage/`; §25.24–§25.26) con F1a–F4; la F5 queda fuera hasta que sea viable. Pendiente de correr.
 
 **Fase 5: en batch (generaciones por lotes)**
 - [x] Recombinación de dos progenitores, mutación posterior y límites.
@@ -2665,4 +2665,27 @@ El protocolo de la F está redactado en `docs/research/forage-protocol.md`, con 
 - **El mundo efímero es demasiado duro para medir genes.** Tres de cada cuatro poblaciones se extinguen, y en las demás quedan menos de dos Fagis.
 
 Para que la F5 pueda responder hacen falta más generaciones y un mundo efímero en el que la población sobreviva. Hay que decidirlo por viabilidad, antes de correr nada confirmatorio, y no por el sentido del resultado.
+
+**Criterio de viabilidad, escrito antes del piloto.** Las poblaciones de la F5 vivirán **30 000 s**. El mundo efímero se elige entre cuatro candidatos, de más a menos efímero:
+
+| Candidato | Árboles que dan todo el año | Cosecha | Descanso | Una mancha cada |
+|---|---|---|---|---|
+| E4 (el efímero de las colonias) | 0 % | 4 | 900 s | 60 s |
+| E3 | 15 % | 4 | 600 s | 60 s |
+| E2 | 0 % | 6 | 400 s | 60 s |
+| E1 (el escaso de base) | 30 % | 6 | 400 s | 200 s |
+
+Se toma **el más efímero en el que se extingan menos de la mitad de las poblaciones y la mediana de vivas al final sea al menos 5**. El duradero es siempre el mismo: todos los árboles dan todo el año y no hay manchas. El piloto usa semillas de desarrollo, 10 poblaciones por candidato, y solo mira extinción y vivas, nunca los genes.
+
+**Resultado del piloto de viabilidad** (10 poblaciones por mundo, 30 000 s, semillas de desarrollo; corrido en paralelo, 17 a la vez):
+
+| Mundo | Extinguidas | Mediana de vivas | Generaciones |
+|---|---|---|---|
+| E4 | 90 % | 0 | 7,0 |
+| E3 | 70 % | 0 | 9,0 |
+| E2 | 70 % | 0 | 8,3 |
+| E1 | 60 % | 0 | 9,9 |
+| duradero | 40 % | 13 | 12,3 |
+
+**Ningún candidato cumple el criterio.** Con 4 fundadoras, a lo largo de 30 000 s se extinguen la mayoría de las poblaciones de cualquier mundo con fuentes que se agotan, y casi la mitad incluso donde duran. No se busca ahora otro mundo que sí lo cumpla: sería elegirlo por el resultado. La F5 queda fuera del protocolo hasta decidir, con otro criterio escrito antes, cómo hacerla viable. Por ejemplo, empezar con más fundadoras, que es un parámetro del experimento y no de Fagi.
 

@@ -1,7 +1,7 @@
 # Protocol: explore or come back
 
-Status: **draft, not frozen.** It will be frozen by the git commit that marks
-it frozen, pushed to GitHub before any confirmatory run. The design, the seeds,
+Status: **frozen.** Frozen by the git commit that marks it so, pushed to
+GitHub before any confirmatory run. The design, the seeds,
 the outcomes, the hypotheses and the analysis are the code committed with it
 (`research/forage/`). Changing any of it after the run means a new protocol,
 and this one is reported anyway.
@@ -75,6 +75,13 @@ confirmatory only in that they are tested on seeds nobody has run. F1 and
 F2 keep the direction the phase predicted although the second pilot suggests
 they will not hold: nothing was tuned to make them.
 
+The foraging genes added afterwards (spec §25.26, way 2) are all 0 in these
+colonies, which do not breed: the frozen code behaves exactly as the one
+piloted (two pilot pieces rerun on it came out byte for byte the same).
+The populations that breed (F5, `research/forage/population.js`) are **not
+part of this protocol**: their viability pilot failed its own criterion
+(spec §25.26) and they will get a protocol of their own.
+
 ## Outcomes
 
 Per sister (`research/forage/colony.js`); a colony's outcome is the mean over
@@ -121,7 +128,7 @@ is exploratory and reported as description.
 ## Commands
 
 ```bash
-node research/forage/run.js --jobs 16
+node research/forage/run.js --jobs 17
 node research/forage/analyze.js
 ```
 
