@@ -1,0 +1,14 @@
+{
+ "domain": "food",
+ "group": "conf",
+ "controller": "current",
+ "sets": {},
+ "world": {},
+ "families": [
+  "stable",
+  "invert",
+  "novel",
+  "composition"
+ ],
+ "worlds": 300
+}

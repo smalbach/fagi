@@ -58,3 +58,7 @@ No se afirma adaptación al cambio ni planificación salvo que los criterios 2 y
 | Intervalos que no deciden | Inconcluso; ausencia de evidencia no es equivalencia |
 | Peor o demasiado costoso | Retirar del camino por defecto y publicar |
 | Otro caso | Sin mejora útil demostrada |
+
+## Resultado (añadido tras la campaña, sin tocar lo anterior)
+
+`research/adaptive-decision/confirmation.md` y `conclusion.md`. Criterios 1 ✗, 2 ✗, 3 ✓, 4 ✗, 5 ✓: mejor que current, peor que la heurística; se prefiere la alternativa simple. El coste se midió con la máquina muy cargada por otros procesos (carga 60-110); la razón entre jueces es de la misma campaña, pero con ese ruido.
