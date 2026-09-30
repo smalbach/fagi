@@ -1,0 +1,15 @@
+{
+ "domain": "food",
+ "group": "dev2",
+ "controller": "learned",
+ "sets": {
+  "CONDUCT.enabled": 1
+ },
+ "world": {},
+ "families": [
+  "stable",
+  "invert",
+  "novel"
+ ],
+ "worlds": 40
+}

@@ -15,6 +15,7 @@ import { canEat, afterBite, aversive } from './appetite.js';
 import { EXPERIMENT } from './config.js';
 import { pantryEstimate, roomAtHome } from './larder.js';
 import { judge, chewing } from './decision/bite.js';
+import { noteMeal } from './learned/conduct.js';
 
 // When hungry she eats it on the spot. When not hungry she picks it up and takes it to the nest:
 // that's the difference between eating and working. And with the pantry stocked she doesn't even
@@ -132,6 +133,7 @@ export function eat(fagi, type, { hunger = null, portion: meant = 1, variant = n
   fagi.brain.tasting = null;
   if (TASTE.enabled && spec.taste) noteFlavor(fagi, type, spec.taste);
   fagi.eaten += 1;
+  noteMeal(fagi, { key: type, portion, before: hungerBefore, after: fagi.hunger });   // CONDUCT only
   afterBite(fagi, ep.reward, added, type);
   if (added > 0) hurt(fagi, HEALTH.poison * portion, 'poison');   // poison harms her too (health.js)
   fagi.lastMeal = {

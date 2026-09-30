@@ -655,6 +655,15 @@ export const DECIDE = {
   eat: null,            // the bite point (decision/bite.js): who judges a fruit; null = as always, 'current' = the same judgment through it
 };
 
+// Rules of conduct (docs/research/plan-reglas-de-conducta.md,
+// learned/conduct.js): lines of her own code about how to act with a fruit.
+// With it on she records every bite for them and the 'learned' judge of the
+// bite point (DECIDE.eat) applies her live ones over her usual judgment.
+export const CONDUCT = {
+  enabled: 0,
+  born: [],             // lines she is born with ({ id, if, do }), for research
+};
+
 // The larder (phase 9 D, spec §12.11, larder.js): a nest that fills up, and
 // a pantry she predicts between visits. Off, the nest takes all she brings and
 // she remembers the pantry as she last saw it.

@@ -25,6 +25,7 @@ import { onAgenda } from '../experiment.js';
 import { pantryEstimate, roomAtHome } from '../larder.js';
 import { weight } from '../memory.js';
 import { smellOnly } from '../percept.js';
+import { ruling } from '../learned/conduct.js';
 
 const verdictOf = (fagi, scope, c) => (smellOnly(c)
   ? verdict(fagi, scope, c.key, { traits: c.cues ?? [], blind: true })
@@ -56,7 +57,36 @@ export const current = {
   wants: (fagi, c) => verdictOf(fagi, 'pursue', c) !== 'avoid' && !uselessNow(fagi, c.key),
 };
 
-const JUDGES = { current };
+// 'learned': her usual judgment, and over it her live rules of conduct
+// (learned/conduct.js) where one holds. In the nest a ration is whole: a rule
+// that says 'taste' there means "not a whole one", so she leaves it. Without
+// any rule of conduct it is exactly 'current'.
+export const learned = {
+  ground(fagi, p) {
+    const r = ruling(fagi, p.type);
+    if (!r) return current.ground(fagi, p);
+    // A rule speaks for what she judges; only the body's own limit (chewing) stays.
+    if (r.do === 'carry') return !fagi.carrying && !p.refuse && roomAtHome(fagi) ? 'carry' : 'leave';
+    return r.do;
+  },
+  pantry(fagi, keys) {
+    const ok = keys.filter((k) => { const r = ruling(fagi, k); return !r || r.do === 'eat'; });
+    const forced = ok.filter((k) => ruling(fagi, k)?.do === 'eat');
+    return forced.length ? forced[0] : current.pantry(fagi, ok.filter((k) => !ruling(fagi, k)));
+  },
+  carried(fagi, key) {
+    const r = ruling(fagi, key);
+    if (!r) return current.carried(fagi, key);
+    return r.do === 'eat';
+  },
+  wants(fagi, c) {
+    const r = ruling(fagi, c.key);
+    if (!r) return current.wants(fagi, c);
+    return r.do !== 'leave';
+  },
+};
+
+const JUDGES = { current, learned };
 
 export function registerJudge(name, judge) {
   JUDGES[name] = judge;

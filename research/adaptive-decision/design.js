@@ -80,4 +80,8 @@ export const GROUPS = {
   dev: { seed: DEV_SEED, map: devMapSeed },
   val: { seed: 33000, map: (i) => 1900000 + 67 * i },
   conf: { seed: 35000, map: (i) => 2000000 + 71 * i },
+  // Rules of conduct (docs/research/plan-reglas-de-conducta.md): groups of their own.
+  dev2: { seed: 41000, map: (i) => 2100000 + 73 * i },
+  val2: { seed: 43000, map: (i) => 2200000 + 79 * i },
+  conf2: { seed: 45000, map: (i) => 2300000 + 83 * i },
 };

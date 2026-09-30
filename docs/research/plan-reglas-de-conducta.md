@@ -1,6 +1,6 @@
 # Plan: que Fagi escriba sus propias reglas de conducta
 
-Estado: propuesta de ejecución; no es un protocolo congelado ni un experimento realizado.
+Estado: propuesta de ejecución; no es un protocolo congelado. Pasos 1 y 2 hechos en desarrollo (`research/adaptive-decision/conduct-grammar.md`): la gramática expresa la regla ganadora con dos líneas que rinden como la heurística fija. Siguiente: paso 3.
 Referencia inicial: commit `96cba62` (cierre del ciclo de decisión adaptativa). Registrar el commit efectivo al comenzar.
 
 ## De dónde sale
@@ -46,7 +46,7 @@ Límites, dichos desde ahora:
 Trabajo:
 
 1. **Registro de bocados ampliado.** Por bocado propio: especie, hora, porción, si era la primera vez que la comía, hambre antes y después, y si la especie ya la había dañado antes. Solo lo que ella sintió o sabe; nada del fruto real.
-2. **Reglas de conducta en `dsl.js`**, validadas por `rule()` como las demás e imprimibles como una línea:
+2. **Reglas de conducta** (hechas en `src/learned/conduct.js`, hermano de `dsl.js`, para no tocar las reglas actuales), validadas por `conduct()` e imprimibles como una línea:
 
    ```js
    rule('probar-lo-nuevo', { kind: 'conducta', si: { nueva: true, hambreBajo: 75 }, hacer: 'probar', ... })
