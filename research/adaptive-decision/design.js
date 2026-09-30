@@ -88,3 +88,22 @@ export const GROUPS = {
   lin: { seed: 47000, map: (i) => 2400000 + 89 * i },
   lin2: { seed: 49000, map: (i) => 2500000 + 97 * i },
 };
+
+// --- integrating caution in the game (plan-reglas-de-conducta.md, option 2) ---
+
+// The game as it plays (app/organism-on.js), one Fagi, no breeding, with its
+// classic map (MAPGEN.species 0) or with the wild species the settings offer.
+export const GAME_PROFILES = {
+  classic: { ...GAME },
+  species: { ...GAME, 'MAPGEN.species': 6 },
+};
+// The two lines, as the game would be born with them (conduct-grammar.md).
+export const CAUTION_LINES = [
+  { id: 'taste-novel', if: { novel: true, hungerBelow: 75 }, do: 'taste' },
+  { id: 'leave-harmed-mostly', if: { harmedMostly: true }, do: 'leave' },
+];
+export const CAUTION = { 'DECIDE.eat': 'learned', 'CONDUCT.enabled': 1, 'CONDUCT.born': CAUTION_LINES };
+export const GAME_GROUPS = {
+  gdev: { seed: 51000, map: (i) => 2600000 + 101 * i },
+  gconf: { seed: 53000, map: (i) => 2700000 + 103 * i },
+};

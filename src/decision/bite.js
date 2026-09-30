@@ -99,9 +99,10 @@ export function registerJudge(name, judge) {
   JUDGES[name] = judge;
 }
 
-// The judge in charge, or null with the bite point off.
+// The judge in charge, or null with the bite point off. It stands on its own:
+// DECIDE.eat works with or without the decision point (DECIDE.enabled).
 export function judge() {
-  if (!DECIDE.enabled || !DECIDE.eat) return null;
+  if (!DECIDE.eat) return null;
   const j = JUDGES[DECIDE.eat];
   if (!j) throw new Error(`DECIDE.eat: unknown judge ${DECIDE.eat}`);
   return j;
