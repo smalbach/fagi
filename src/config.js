@@ -644,6 +644,16 @@ export const CHOICE = {
   planMax: 180,       // seconds a plan to go back holds before she reconsiders
 };
 
+// The decision point (docs/research/plan-decision-adaptativa.md step 1b,
+// decision/point.js): after the reflexes, a controller says what she goes
+// after, and that is what she does. Off, the fixed hierarchy decides as
+// always and nothing changes.
+export const DECIDE = {
+  enabled: 0,
+  controller: 'choice', // who answers: 'choice' = the learned choice (choice.js) connected here
+  ownStream: 1,         // 1 = the controller's draws come from a stream of its own, not the one that moves her
+};
+
 // The larder (phase 9 D, spec §12.11, larder.js): a nest that fills up, and
 // a pantry she predicts between visits. Off, the nest takes all she brings and
 // she remembers the pantry as she last saw it.

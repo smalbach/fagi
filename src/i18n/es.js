@@ -276,6 +276,11 @@ export default {
   'reason.exploreFull': 'despensa hecha · lo único que queda por hacer es aprenderse el mapa',
   'reason.nothing': 'no percibe nada',
   'reason.belowMin': '{n} candidato(s), ninguno supera el mínimo',
+  'reason.decideSite': 'decidió volver a un sitio que conoce',
+  'reason.decideExplore': 'decidió buscar en otra parte',
+  'reason.decideWater': 'decidió ir al agua que conoce',
+  'reason.decideNest': 'decidió volver a casa',
+  'reason.decideRest': 'decidió quedarse quieta',
 
   'log.spotWater': 'Detecta agua',
   'log.spotWaterSub': 'guarda dónde está · no significa que vaya',

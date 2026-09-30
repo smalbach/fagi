@@ -27,6 +27,7 @@ import { earlyDirective, safeDirective } from './decision/directive.js';
 import { exploreRule } from './decision/explore.js';
 import { taste } from './decision/experiment.js';
 import { sip, huddle, probe, line } from './decision/things.js';
+import { decideOn, decisionPoint, seenFood } from './decision/point.js';
 import { BASELINE } from './config.js';
 
 // Exported: the cortex uses it to know whether an external directive can
@@ -70,6 +71,12 @@ const RULES = [
 // The tiers in order, for whoever wants to draw the hierarchy.
 export const TIERS = ['survive', 'endure', 'provide', 'clues', 'explore'];
 
+// With the decision point on (DECIDE, decision/point.js): the reflexes common
+// to every controller are these two tiers, then food in sight; after them the
+// controller answers, and only if it has no opinion does the rest of the
+// hierarchy.
+const REFLEX_TIERS = new Set(['survive', 'endure']);
+
 export function decide(fagi, world, ctx, dt) {
   // What has just entered what she perceives (fagi.js checks it first, so that
   // the cortex hears about it too). The rules decide the same way every frame;
@@ -87,7 +94,16 @@ export function decide(fagi, world, ctx, dt) {
 function firstToAnswer(fagi, world, ctx, dt) {
   // The random baseline (BASELINE.policy, scripts/evaluate.js) decides nothing.
   if (BASELINE.policy === 'random') return { intent: wander(fagi, world, dt), who: { tier: 'explore', rule: 'random' } };
+  fagi.decided = null;
+  let asked = !decideOn();
   for (const [tier, name, rule] of RULES) {
+    if (!asked && !REFLEX_TIERS.has(tier)) {
+      asked = true;
+      const seen = seenFood(fagi, world, ctx, dt);
+      if (seen) return { intent: seen, who: { tier: 'provide', rule: 'seen' } };
+      const decided = decisionPoint(fagi, world, ctx, dt);
+      if (decided) return decided;
+    }
     const intent = rule(fagi, world, ctx, dt);
     if (intent) return { intent, who: { tier: tier, rule: name } };
   }

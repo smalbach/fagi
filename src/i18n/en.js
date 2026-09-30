@@ -277,6 +277,11 @@ export default {
   'reason.exploreFull': 'pantry done · nothing left to do but learn the map',
   'reason.nothing': 'perceives nothing',
   'reason.belowMin': '{n} candidate(s), none above the minimum',
+  'reason.decideSite': 'decided to go back to a site she knows',
+  'reason.decideExplore': 'decided to search somewhere new',
+  'reason.decideWater': 'decided to go to the water she knows',
+  'reason.decideNest': 'decided to go home',
+  'reason.decideRest': 'decided to stay still',
 
   'log.spotWater': 'Spots water',
   'log.spotWaterSub': 'stores where it is · not the same as going',

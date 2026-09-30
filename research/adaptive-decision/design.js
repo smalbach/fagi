@@ -1,0 +1,47 @@
+// Adaptive decision, step 1: the reference and who decides
+// (docs/research/plan-decision-adaptativa.md). Not a frozen protocol: this
+// only fixes what the baseline measures, so it can be repeated.
+//
+// One Fagi alone, no breeding, no sisters. Two profiles over the same seeds:
+//   game          the organism with the game's own numbers (app/organism-on.js)
+//   experimental  the same, plus FORAGE, SITES, CHOICE (mode 1, learned) and
+//                 LARDER, with the scarce world of phase 9 (forage/design.js)
+//   connected     experimental with the decision point on (step 1b, DECIDE):
+//                 the same learned choice, now deciding what she goes after
+// The connected one is the reference the plan compares against from step 2
+// on; the other two are described.
+
+export const HORIZON = 2400;           // seconds, as phase 9
+export const DT = 0.05;
+
+// The game's numbers over the organism (app/organism-on.js). LIFE off: she
+// neither ages out nor breeds within the horizon.
+const GAME = {
+  'LIFE.enabled': 0,
+  'ENERGY.drain': 0.6, 'SLEEP.nightly': 1, 'CONCEPT.enabled': 0, 'PHERO.life': 60,
+};
+
+// Phase 9's scarce world (research/forage/design.js BASE), for one.
+const FORAGE = {
+  'MAPGEN.species': 6,
+  'FORAGE.enabled': 1, 'FORAGE.persistence': 0.3, 'FORAGE.crop': 6, 'FORAGE.rest': 400, 'FORAGE.patchEvery': 200,
+  'SITES.enabled': 1,
+  'CHOICE.enabled': 1, 'CHOICE.mode': 1, 'CHOICE.policy': 0,
+  'LARDER.enabled': 1, 'LARDER.capacity': 12,
+};
+
+export const PROFILES = {
+  game: GAME,
+  experimental: { ...GAME, ...FORAGE },
+  connected: { ...GAME, ...FORAGE, 'DECIDE.enabled': 1 },
+};
+
+// The reflexes that may replace a controller's choice (decision.js with
+// DECIDE on): time they take is not the controller's to lose.
+export const isReflex = (rule) => rule.startsWith('survive.') || rule.startsWith('endure.') || rule === 'provide.seen';
+
+// Seeds and maps no earlier work used (forage 26000-27039, maps 1400000 + 43i
+// and 1500000 + 47i). Development only: step 4 draws its own.
+export const EPISODES = 40;
+export const SEED = 29000;
+export const mapSeed = (i) => 1700000 + 59 * i;

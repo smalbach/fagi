@@ -37,7 +37,7 @@
 // "provide" tier (decision/provide.js); the fixed hierarchy — survive,
 // endure — stays her safety net. Draws randomness only while choosing.
 
-import { CHOICE, SITES, MEMORY, HUNGER, NEST, FAGI } from './config.js';
+import { CHOICE, SITES, MEMORY, HUNGER, NEST, FAGI, DECIDE } from './config.js';
 import { distanceTo } from './vision.js';
 import { habit } from './habits.js';
 import { pantryEstimate } from './larder.js';
@@ -64,8 +64,26 @@ function stateOf(fagi) {
   });
 }
 
+// Where her choosing draws from. With the decision point on (DECIDE.ownStream)
+// it is a stream of her own, seeded once from hers the first time she
+// chooses: a controller that draws more or less then changes what she
+// decides, not how she walks. Otherwise the simulation's own, as always.
+let drawFrom = () => Math.random;
+function streamFor(fagi) {
+  if (!DECIDE.enabled || !DECIDE.ownStream) return Math.random;
+  const c = stateOf(fagi);
+  // Its state is a number in her brain (it is copied and saved like the rest).
+  c.stream ??= Math.floor(Math.random() * 4294967296) >>> 0;
+  return () => {
+    c.stream = (c.stream + 0x6D2B79F5) >>> 0;
+    let t = Math.imul(c.stream ^ (c.stream >>> 15), c.stream | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 // A normal draw (Box-Muller). `rnd`: the simulation's own, unless drawing.
-function gauss(rnd = Math.random) {
+function gauss(rnd = drawFrom()) {
   const u = Math.max(1e-12, rnd());
   const v = rnd();
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
@@ -195,7 +213,7 @@ function pickSampled(fagi) {
     const sites = means.filter((o) => o.kind === 'site');
     return { ...(sites.length ? bestOf(sites) : means[0]), options: means };
   }
-  const guess = rates(fagi, (a, b) => betaDraw(a, b, Math.random));
+  const guess = rates(fagi, (a, b) => betaDraw(a, b, drawFrom()));
   const chosen = guess.indexOf(bestOf(guess));
   return { ...means[chosen], options: means };
 }
@@ -210,16 +228,26 @@ function pick(fagi, options) {
   const top = Math.max(...options.map((o) => o.u));
   const w = options.map((o) => Math.exp((o.u - top) / t));
   const total = w.reduce((a, b) => a + b, 0);
-  let r = Math.random() * total;
+  let r = drawFrom()() * total;
   for (let i = 0; i < options.length; i++) { r -= w[i]; if (r <= 0) return { ...options[i], p: w[i] / total }; }
   return { ...options.at(-1), p: w.at(-1) / total };
 }
 
-// Does she want food now? Her hunger or what the pantry lacks as she remembers it.
-function wantsFood(fagi) {
+// How much she wants food now: her hunger or what the pantry lacks as she
+// remembers it, whichever is greater.
+export function foodDrive(fagi) {
   const hunger = fagi.hunger / HUNGER.max;
   const missing = 1 - Math.min(1, pantryEstimate(fagi) / habit(fagi, 'reserve'));
-  return !fagi.carrying && Math.max(hunger, NEST.forageDrive * missing) > 0.15;
+  return Math.max(hunger, NEST.forageDrive * missing);
+}
+
+const wantsFood = (fagi) => !fagi.carrying && foodDrive(fagi) > 0.15;
+
+// Her plan, while it runs: she wants food and is awake (for the decision point).
+export function activePlan(fagi) {
+  const plan = fagi.brain.choice?.plan;
+  if (!CHOICE.enabled || !SITES.enabled || !plan) return null;
+  return wantsFood(fagi) && !fagi.sleeping ? plan : null;
 }
 
 function resolve(fagi, outcome, surprise) {
@@ -297,34 +325,41 @@ export function updateChoice(fagi, seen) {
   }
 
   if (!c.plan && busy && seen.length === 0) {
-    let chosen;
-    let options;
-    if (CHOICE.mode === 1) {
-      chosen = pickSampled(fagi);
-      options = chosen.options;
-    } else {
-      c.innate ??= Math.exp(CHOICE.temperSpread * gauss());
-      options = optionsOf(fagi);
-      chosen = pick(fagi, options);
-    }
-    c.plan = { kind: chosen.kind, id: chosen.id, p: chosen.p ?? 1, at: fagi.age,
-      options: options.map((o) => ({ kind: o.kind, id: o.id ?? null, u: Math.round(o.u * 1000) / 1000 })) };
-    c.counts[chosen.kind] += 1;
-    const best = Math.max(...options.filter((o) => o.kind === 'site').map((o) => o.u), -Infinity);
-    // What she expected of the site she took (or of her best one) and of exploring.
-    const siteOf = (id) => (fagi.brain.sites ?? []).find((s) => s.id === id);
-    const bestSite = CHOICE.mode === 1
-      ? (fagi.brain.sites ?? []).reduce((x, s) => (!x || betaMean(s.a ?? 1, s.b ?? 1) > betaMean(x.a ?? 1, x.b ?? 1) ? s : x), null)
-      : null;
-    const siteExpect = CHOICE.mode === 1
-      ? (() => { const s = chosen.kind === 'site' ? siteOf(chosen.id) : bestSite; return s ? betaMean(s.a ?? 1, s.b ?? 1) : null; })()
-      : chosen.kind === 'site' ? chosen.u : (Number.isFinite(best) ? best : null);
-    fagi.brain.lastPlan = { n: (fagi.brain.lastPlan?.n ?? 0) + 1, kind: chosen.kind, id: chosen.id ?? null,
-      p: CHOICE.mode === 1 ? null : chosen.p ?? 1, explore: c.exploreValue, site: siteExpect };
+    const rnd = streamFor(fagi);
+    drawFrom = () => rnd;
+    try { choose(fagi, c); } finally { drawFrom = () => Math.random; }
   }
 
   if (c.plan?.kind !== 'site') return null;
   return (fagi.brain.sites ?? []).find((s) => s.id === c.plan.id) ?? null;
+}
+
+// A new plan: her options, weighed, one taken.
+function choose(fagi, c) {
+  let chosen;
+  let options;
+  if (CHOICE.mode === 1) {
+    chosen = pickSampled(fagi);
+    options = chosen.options;
+  } else {
+    c.innate ??= Math.exp(CHOICE.temperSpread * gauss());
+    options = optionsOf(fagi);
+    chosen = pick(fagi, options);
+  }
+  c.plan = { kind: chosen.kind, id: chosen.id, p: chosen.p ?? 1, at: fagi.age,
+    options: options.map((o) => ({ kind: o.kind, id: o.id ?? null, u: Math.round(o.u * 1000) / 1000 })) };
+  c.counts[chosen.kind] += 1;
+  const best = Math.max(...options.filter((o) => o.kind === 'site').map((o) => o.u), -Infinity);
+  // What she expected of the site she took (or of her best one) and of exploring.
+  const siteOf = (id) => (fagi.brain.sites ?? []).find((s) => s.id === id);
+  const bestSite = CHOICE.mode === 1
+    ? (fagi.brain.sites ?? []).reduce((x, s) => (!x || betaMean(s.a ?? 1, s.b ?? 1) > betaMean(x.a ?? 1, x.b ?? 1) ? s : x), null)
+    : null;
+  const siteExpect = CHOICE.mode === 1
+    ? (() => { const s = chosen.kind === 'site' ? siteOf(chosen.id) : bestSite; return s ? betaMean(s.a ?? 1, s.b ?? 1) : null; })()
+    : chosen.kind === 'site' ? chosen.u : (Number.isFinite(best) ? best : null);
+  fagi.brain.lastPlan = { n: (fagi.brain.lastPlan?.n ?? 0) + 1, kind: chosen.kind, id: chosen.id ?? null,
+    p: CHOICE.mode === 1 ? null : chosen.p ?? 1, explore: c.exploreValue, site: siteExpect };
 }
 
 // What batch reports of her choices.
