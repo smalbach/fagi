@@ -47,6 +47,7 @@ import { updateHealth } from './health.js';
 import { updateSodium } from './taste.js';
 import { founderName } from './names.js';
 import { noteCodeMutation } from './phylogeny.js';
+import { updateCaste } from './castes.js';
 
 // `born`: what the birth already decided (sex, genome), for reproduction.
 // Without it the sex is drawn here, only when SEX is on.
@@ -215,6 +216,7 @@ export function updateFagi(fagi, world, dt) {
   // What happened to her body tunes her habits: a scare makes her more careful.
   const pantry = { stored: stockCount(fagi.pantry), edible: edibleCount(fagi, fagi.pantry) };
   observeHabits(fagi, pantry);
+  updateCaste(fagi, world, dt);
 
   // Track self-rewritten code mutations into the world's phylogenetic tree
   if (world && fagi.brain?.lastProgram && fagi.brain.lastProgram.n !== fagi._lastTrackedProgramN) {

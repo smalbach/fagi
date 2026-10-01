@@ -12,7 +12,7 @@
 
 import {
   POINT_TYPES, OBJECT_TYPES, TREE, FRUIT, HUNGER, THIRST, HEALTH, TASTE, THERMAL, NEST, LIFE, WATER, RAIN,
-  SLEEP, CONCEPT, specOf,
+  SLEEP, CONCEPT, CASTES, specOf,
 } from './config.js';
 import { t, tx, labelOf, getLang, formatDuration, onLangChange } from './i18n.js';
 import { fullName } from './names.js';
@@ -36,6 +36,7 @@ import { nestTemperature, eggPace } from './reproduction.js';
 import { treeAge, intervalOf, maxNearOf } from './trees.js';
 import { programOf } from './program.js';
 import { summarizePhylogeny, renderPhylogenyMermaid, exportPhylogenyJson } from './phylogeny.js';
+import { casteOf } from './castes.js';
 
 const L = (en, es) => (getLang() === 'es' ? es : en);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -247,10 +248,13 @@ function actionOf(f) {
 function paintFagi(f, world, main, isMain, canFollow) {
   const fam = world.lineage || world.colony ? familyOf(world, main, f.id ?? 1) : null;
   const stage = f.lifeStage ? stageName(f) : null;
+  const caste = CASTES.enabled ? casteOf(f) : null;
+  const casteTag = caste ? `<span class="ins-tag" style="background:${caste.color};color:#000;font-weight:bold;">${caste.icon} ${L(caste.name.en, caste.name.es)}</span>` : null;
   const sub = [
     f.id != null ? `#${f.id}` : null,
     f.sex ? `${SEX_MARK[f.sex]} ${t(`sex.${f.sex}`)}` : null,
     stage,
+    casteTag,
     f.generation != null ? L(`gen. ${f.generation}`, `gen. ${f.generation}`) : null,
     isMain ? `<span class="ins-tag">${L('followed', 'seguida')}</span>` : null,
   ].filter(Boolean).join(' · ');
@@ -272,6 +276,7 @@ function paintFagi(f, world, main, isMain, canFollow) {
   const inNest = nest && f.x != null && nestUnder(f, world);
   const state = [
     row(L('Doing', 'Haciendo'), now ? esc(now) : null),
+    caste ? row(L('Colony role', 'Rol en la colonia'), `${caste.icon} ${L(caste.name.en, caste.name.es)} (${Math.round(caste.affinity * 100)}% ${L('affinity', 'afinidad')})`) : null,
     row(L('Why', 'Por qué'), f.thought?.reason ? esc(tx(f.thought.reason)) : null, 'ins-wrap'),
     row(L('Decided by', 'Lo decide'), f.thought?.tier ? `${f.thought.tier} · ${f.thought.rule}` : null),
     row(t('stat.carrying'), f.carrying ? labelOf(f.carrying.type) : f.hauling ? L('a thing', 'una cosa') : (f.thought ? t('word.nothing') : null)),
@@ -279,7 +284,7 @@ function paintFagi(f, world, main, isMain, canFollow) {
     row(t('stat.bodyTemp'), THERMAL.enabled && f.temperature != null ? `${num(f.temperature)} °C${f.thermalFeel ? ` · ${t(`thermal.${f.thermalFeel}`)}` : ''}` : null),
     row(t('stat.body'), f.swimming ? t('body.swimming') : f.wet > 0 ? t('body.wet', { sec: { dur: f.wet, precise: true } }) : (f.thought ? t('body.dry') : null)),
     row(L('Sight', 'Vista'), f.brain ? `${Math.round(viewRangeOf(f))} px` : null),
-  ].join('');
+  ].filter(Boolean).join('');
 
   const age = lifeAge(f);
   const life = [

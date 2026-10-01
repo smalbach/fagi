@@ -9,7 +9,7 @@ import {
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
   CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI, CONCEPT,
   LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES, CHOICE, LARDER, CONDUCT,
-  PROGRAM, MOVEMENT,
+  PROGRAM, MOVEMENT, CASTES,
 } from './config.js';
 import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
@@ -203,6 +203,8 @@ const GROUPS = [
   { title: { en: 'Colony (new sessions)', es: 'Colonia (sesiones nuevas)' }, cat: 'colony', fieldsOf: [
     n(SOCIAL, 'size', 'Individuals in the colony (1 = Fagi alone)', 'Individuos en la colonia (1 = Fagi sola)', 1, 8, 1),
     b(SOCIAL, 'share', 'Tell each other rules in the nest', 'Contarse reglas en el nido'),
+    b(CASTES, 'enabled', 'Emergent division of labor (castes)', 'División emergente del trabajo (castas)'),
+    b(GEN, 'cultureProgram', 'Elders teach self-written code to juveniles', 'Veteranas enseñan código propio a juveniles'),
     n(SOCIAL, 'observe', 'Learning from watching a sister eat', 'Aprender de ver comer a una hermana', 0, 1, 0.05),
     n(SOCIAL, 'trust', 'Trust in a rule told', 'Confianza en una regla contada', 0.1, 1, 0.05),
   ]},

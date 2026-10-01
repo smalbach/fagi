@@ -321,6 +321,18 @@ export const SOCIAL = {
   topic: 'all',       // what is passed on: 'all' rules, or only 'food' (rules about eating)
 };
 
+// Polyethism & Emergent Castes (castes.js): adaptive division of labor
+// based on task response thresholds (Theraulaz, Bonabeau & Deneubourg).
+// Ants reinforce affinities as they execute survival tasks:
+// foragers (pantry/food), scouts (exploration/plumes), nurses (nest/rest), patrollers (borders/mud).
+export const CASTES = {
+  enabled: 0,         // 1 = emergent behavioral division of labor enabled
+  reinforceRate: 0.1, // threshold reinforcement per successful task turn
+  decayRate: 0.02,    // threshold decay per idle/unrelated second
+  thresholdMin: 0.1,  // highest sensitivity / specialization
+  thresholdMax: 0.9,  // lowest sensitivity
+};
+
 // Generations (generations.js, batch --generations): what a newborn inherits.
 export const GEN = {
   culture: 1,         // raised by a surviving elder: her rules and habits
