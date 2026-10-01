@@ -15,6 +15,7 @@ import { modernize } from '../legacy.js';
 import { LEARN } from '../config.js';
 import { renderModule, parseModule, modernWhen } from './dsl.js';
 import { createHabits, habitsSnapshot, restoreHabits } from '../habits.js';
+import { programOf, renderProgram } from '../program.js';
 
 const KEY = 'fagi.learning';
 
@@ -94,12 +95,16 @@ export function restore(fagi, saved) {
   fagi.brain.version = (fagi.brain.version ?? 0) + 1;
 }
 
+// What she learned, and after it her program (program.js): the order in which
+// she tries what she knows how to do. Importing reads only what she learned
+// (parseModule skips the program's lines): the lines she was born with are
+// hers whatever is imported.
 export function exportText(fagi) {
   return renderModule(fagi.brain.rules.list, fagi.brain.facts, {
     age: fagi.age, puddleLife: fagi.brain.puddleLife, synapses: learnedSynapses(fagi), cues: fagi.brain.cues,
     bites: fagi.brain.bites,
     habits: habitsSnapshot(fagi.brain.habits),
-  });
+  }) + `\n${renderProgram(programOf(fagi))}`;
 }
 
 // Reads an imported file and, if valid, replaces what was learned. Throws with

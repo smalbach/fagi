@@ -196,3 +196,33 @@ test('off, no model is asked anything', () => {
   assert.equal(asked, false);
   registerSpecies([]);
 });
+
+test('the night mind can propose a program line, verified by sandbox and kept with source night', () => {
+  const fagi = createFagi();
+  fagi.thermalStress = 25;
+  const proposal = {
+    type: 'program',
+    tier: 'endure',
+    do: 'shelterRetreat',
+    over: 'pursue',
+    if: { raining: true },
+    chain: ['shelterRetreat', 'rest'],
+    why: 'shelter macro to endure bad weather',
+  };
+  const validated = validateProposal(proposal, fagi);
+  assert.equal(validated.type, 'program');
+  assert.equal(validated.do, 'shelterRetreat');
+  assert.deepEqual(validated.chain, ['shelterRetreat', 'rest']);
+
+  const res = trial(fagi, validated);
+  assert.equal(res.accept, true);
+
+  const entries = weigh(fagi, 1, { proposals: [proposal] }, 120);
+  assert.equal(entries[0].accepted, true);
+  const progLine = fagi.brain.program.lines.find((l) => l.source === 'night');
+  assert.ok(progLine, 'should have written a line with source: night');
+  assert.equal(progLine.do, 'shelterRetreat');
+  assert.deepEqual(progLine.chain, ['shelterRetreat', 'rest']);
+  assert.equal(progLine.over, 'pursue');
+});
+

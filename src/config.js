@@ -97,6 +97,15 @@ export const FAGI = {
   trailMemory: 7.0,   // seconds she keeps searching for a trail she has lost
 };
 
+export const MOVEMENT = {
+  crawlSpeed: 0.5,        // fraction of speed when probing or cautious in unfamiliar ground
+  sprintMult: 1.35,       // speed burst when escaping critical danger or rushing shelter in storm
+  zigzagFreq: 2.2,        // sweep oscillation frequency (rad/s) when searching for trails
+  zigzagAmp: 0.35,        // sweep angle amplitude (radians)
+  terrainAdapt: 1,        // adapt speed to local terrain slope/relief
+  cautiousThreshold: 0.25,// distress/uncertainty level that triggers cautious crawling
+};
+
 export const HUNGER = {
   rate: 0.08,         // hunger points per second (~1250s = ~1 week without food,
                       // with water: 5-7 times longer than she lasts without drinking)
@@ -675,6 +684,58 @@ export const CONDUCT = {
   kindFirst: 0,         // 1 = among near ties, a line about the kind wins over one about her hunger or a look
 };
 
+// Her program (program.js) and how she rewrites it from what she lives
+// (program/watch.js, program/learn.js). All off: the program is the one she
+// was born with and nothing watches it.
+//   watch      : 1 = she notes each moment a line of hers comes to act, and what
+//                came of it, without changing anything she does; 2 = besides,
+//                she imagines every line below the one that acted (the
+//                competition between her lines, and the proof that imagining
+//                changes nothing). learn needs 1 at least, and turns it on
+//   learn      : 1 = now and then, where one of her lines leads and another
+//                would act too, she lets the other take its turn; when her
+//                record says the other does better there, she writes it in
+//                front, for that situation (a line of her own)
+//   tick       : seconds between her looks at which line would act
+//   every      : seconds between her looks at her record, to write or retire
+//   explore    : chance, each time a line comes to lead while others would act
+//                too, that one of those takes its turn this once
+//   reconsider : seconds the same line leads before it counts as chosen again
+//   trialMax   : seconds a trial lasts at most
+//   horizon    : seconds after a moment over which what came of it is judged
+//   power      : how much more a need near its top weighs: distress = need^power
+//   minSupport : moments on each side (it acted / she did without) before she weighs
+//   alpha      : chance that, over all she weighs at one look, noise alone gets a
+//                line rewritten (the gate's z grows with how much she asks)
+//   margin     : and the difference must be at least this much distress
+//   record     : moments she keeps
+//   maxOwn     : lines of her own at most
+//   share      : 1 = sisters in the nest tell each other their moments (what each
+//                line cost them), lived or told, and each weighs them like her
+//                own (program/share.js); nobody passes on a line
+//   shareBudget: moments a sister passes to another at one exchange
+export const PROGRAM = {
+  watch: 0,
+  learn: 0,
+  tick: 0.25,
+  every: 20,           // seconds between reviewing her program (was 60)
+  explore: 0.35,       // exploration probability for trials (was 0.3)
+  reconsider: 15,      // reconsider interval (was 20)
+  trialMax: 20,        // trial duration cap (was 30)
+  horizon: 15,         // consequence measurement window (was 60: tight credit assignment)
+  power: 3,
+  minSupport: 3,       // trials needed on each side to weigh (was 10: responsive learning)
+  alpha: 0.05,
+  strictness: 1.0,     // scaling factor on doubt
+  margin: 0.005,
+  record: 4000,
+  maxOwn: 8,           // lines she can write (was 6)
+  compound: 1,         // enable conjunctive condition synthesis (e.g. need + flag)
+  chaining: 1,         // enable macro-action and behavior routine chaining in self-programming
+  share: 0,
+  shareBudget: 100,
+};
+
 // The larder (phase 9 D, spec §12.11, larder.js): a nest that fills up, and
 // a pantry she predicts between visits. Off, the nest takes all she brings and
 // she remembers the pantry as she last saw it.
@@ -715,6 +776,11 @@ export const MAPGEN = {
                       // wild species, one tree each (chemistry.js). 0 = classic
   speciesMinDistance: 200, // how far from the nest the species trees grow
   speciesMaxDistance: 480,
+  density: 1.0,       // multiplier on rock and tree generation density
+  hazards: 0,         // enable mud patches and treacherous terrain (0 = off by default)
+  mudPatches: 3,      // number of mud patches that slow movement
+  shelters: 2,        // rock clusters that provide natural rain/thermal overhang
+  foodVariety: 1.0,   // multiplier on food variety and tree spacing
 };
 
 // ── The organism (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md) ───────────────────

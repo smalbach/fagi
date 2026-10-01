@@ -28,6 +28,7 @@
 import { CONDUCT, HUNGER, EXPERIMENT } from '../config.js';
 import { cuesOf } from './cues.js';
 import { conduct, conductOf, HUNGER_STEPS } from './conduct.js';
+import { imagining } from '../program/imagine.js';
 
 const HIGH = 75;           // bites taken from this hunger on must not come out worse
 const TIE = 0.9;           // within this share of the best, the simpler line wins
@@ -212,7 +213,7 @@ export function learnConduct(fagi, meal) {
 // A fruit left because of a line (conduct.js noteDeclined): her lines are
 // judged again, since a line that makes her go without is on trial too.
 export function reviewConduct(fagi) {
-  if (!CONDUCT.enabled || !CONDUCT.learn) return;
+  if (!CONDUCT.enabled || !CONDUCT.learn || imagining()) return;
   const c = conductOf(fagi);
   c.stats ??= { proposed: 0, kept: 0, retired: 0, rejected: 0 };
   review(fagi, c);

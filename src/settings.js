@@ -9,6 +9,7 @@ import {
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
   CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI, CONCEPT,
   LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES, CHOICE, LARDER, CONDUCT,
+  PROGRAM, MOVEMENT,
 } from './config.js';
 import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
@@ -62,6 +63,10 @@ const GROUPS = [
     n(FAGI, 'probe', 'Antenna spacing', 'Separación de las antenas', 5, 80, 1),
     n(FAGI, 'castTurn', 'Casting width', 'Apertura del barrido', 0.2, 2.5, 0.05),
     n(FAGI, 'castEvery', 'Side switch when casting', 'Cambio de lado al barrer', 0.2, 4, 0.1),
+    n(MOVEMENT, 'crawlSpeed', 'Cautious crawl speed (fraction)', 'Velocidad de avance cauto (fracción)', 0.1, 1, 0.05),
+    n(MOVEMENT, 'sprintMult', 'Sprint / escape speed multiplier', 'Multiplicador de velocidad de huida/sprint', 1, 2.5, 0.05),
+    n(MOVEMENT, 'zigzagFreq', 'Search sweep frequency', 'Frecuencia de barrido de búsqueda', 0.5, 6, 0.1),
+    n(MOVEMENT, 'zigzagAmp', 'Search sweep amplitude (radians)', 'Amplitud de barrido de búsqueda (radianes)', 0.1, 1.2, 0.05),
   ]},
   // The organism (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md). One group per
   // block: their ids ('Day and night.enabled'...) are what a recording keeps.
@@ -171,6 +176,21 @@ const GROUPS = [
     n(CUES, 'ruleEvidence', 'Experiences before a one-trait rule', 'Experiencias antes de una regla de un rasgo', 1, 10, 1),
     b(LEARN, 'autosave', 'Keep a recoverable copy', 'Guardar copia recuperable'),
     n(LEARN, 'autosaveEvery', 'Seconds between copies', 'Segundos entre copias', 1, 120, 1),
+  ]},
+  { title: { en: 'Adaptive program', es: 'Programa adaptativo' }, cat: 'mind', fieldsOf: [
+    b(PROGRAM, 'learn', 'Rewrites own program from living', 'Reescribe su propio programa por experiencia'),
+    c(PROGRAM, 'watch', 'Introspection & watch depth', 'Profundidad de introspección', [
+      ['Off', 'Apagado'],
+      ['Watch moments', 'Observar momentos'],
+      ['Watch + compete', 'Observar + competir'],
+    ]),
+    n(PROGRAM, 'horizon', 'Consequence horizon (seconds to judge distress)', 'Horizonte de consecuencias (segundos para juzgar angustia)', 5, 120, 5),
+    n(PROGRAM, 'minSupport', 'Minimum trial evidence needed to weigh a rule', 'Ensayos mínimos necesarios para sopesar una regla', 1, 20, 1),
+    n(PROGRAM, 'explore', 'Trial exploration rate (chance of trying alternative)', 'Tasa de ensayo y exploración (probabilidad de probar otra acción)', 0.05, 0.8, 0.05),
+    n(PROGRAM, 'every', 'Program review interval (seconds)', 'Intervalo de revisión del programa (segundos)', 5, 180, 5),
+    b(PROGRAM, 'share', 'Share moments with sisters in nest', 'Compartir momentos con hermanas en el nido'),
+    n(PROGRAM, 'maxOwn', 'Maximum self-written program lines', 'Máximo de líneas de código propio en el programa', 1, 20, 1),
+    n(PROGRAM, 'strictness', 'Statistical strictness (1 = conservative, 0.5 = plastic)', 'Rigor estadístico (1 = conservador, 0.5 = plástico)', 0.2, 2.0, 0.1),
   ]},
   { title: { en: 'Colony (new sessions)', es: 'Colonia (sesiones nuevas)' }, cat: 'colony', fieldsOf: [
     n(SOCIAL, 'size', 'Individuals in the colony (1 = Fagi alone)', 'Individuos en la colonia (1 = Fagi sola)', 1, 8, 1),
@@ -343,6 +363,10 @@ const GROUPS = [
     n(MAPGEN, 'treeMinNestDistance', 'Minimum tree distance from nest', 'Distancia mínima del árbol al nido', 100, 900, 10),
     n(MAPGEN, 'treeMaxNestDistance', 'Maximum tree distance from nest', 'Distancia máxima del árbol al nido', 100, 1000, 10),
     n(MAPGEN, 'rocks', 'Rocks when generating a map', 'Rocas al generar mapa', 0, 40, 1),
+    n(MAPGEN, 'density', 'Obstacle density factor (new maps)', 'Factor de densidad de objetos (mapas nuevos)', 0.2, 3, 0.1),
+    b(MAPGEN, 'hazards', 'Hazard terrain and mud patches (new maps)', 'Terreno peligroso y zonas de barro (mapas nuevos)'),
+    n(MAPGEN, 'mudPatches', 'Number of mud traps (new maps)', 'Número de trampas de barro (mapas nuevos)', 0, 15, 1),
+    n(MAPGEN, 'foodVariety', 'Food variety factor (new maps)', 'Factor de variedad de comida (mapas nuevos)', 0.2, 3, 0.1),
   ]},
   // Blocks added after the first recordings: new titles, so new ids.
   { title: { en: 'Urgency', es: 'Urgencia' }, cat: 'body', fieldsOf: [

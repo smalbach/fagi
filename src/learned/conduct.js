@@ -32,6 +32,7 @@
 
 import { CONDUCT } from '../config.js';
 import { cuesOf } from './cues.js';
+import { imagining } from '../program/imagine.js';
 
 export const HUNGER_STEPS = [45, 60, 75, 90];
 
@@ -186,8 +187,10 @@ export function noteMeal(fagi, { key, portion, before, after }) {
 // A fruit she wanted and left because a line of hers said so (CONDUCT.declined):
 // once per fruit, only while hungry enough to eat. What she would have got
 // from it she never learns, but the line must answer for having left it.
+// Only what she really leaves counts: imagining a line (program/imagine.js)
+// declines nothing.
 export function noteDeclined(fagi, key, ref, hungerFrom) {
-  if (!CONDUCT.enabled || !CONDUCT.declined || fagi.hunger < hungerFrom) return false;
+  if (!CONDUCT.enabled || !CONDUCT.declined || fagi.hunger < hungerFrom || imagining()) return false;
   const c = conductOf(fagi);
   const id = ref?.id ?? null;
   if (id != null && c.declinedIds.includes(id)) return false;
@@ -205,12 +208,15 @@ export function noteDeclined(fagi, key, ref, hungerFrom) {
 // breaks a line that makes her leave a fruit she wants, with a trial bite.
 // Decided once per fruit, from a stream of her own seeded once from hers, so
 // looking at the same fruit twice does not ask twice.
+// Imagined (program/imagine.js), it says what she already decided about this
+// fruit, or that she keeps the ban: it draws nothing and decides nothing.
 export function breaksBan(fagi, ref, hungerFrom) {
   if (!CONDUCT.enabled || !CONDUCT.explore) return false;
   if (fagi.hunger < hungerFrom || fagi.hunger >= CONDUCT.exploreBelow) return false;
   const c = conductOf(fagi);
   const id = ref?.id;
   if (id == null) return false;
+  if (imagining()) return c.explored?.[id] ?? false;
   c.explored ??= {};
   if (id in c.explored) return c.explored[id];
   c.stream ??= Math.floor(Math.random() * 4294967296) >>> 0;

@@ -148,8 +148,21 @@ export function generateMap(world, { chemistry = null } = {}) {
     );
   }
   placeCustomTrees(world);
-  // A bigger map keeps the same rocks per square pixel.
-  place(world, 'rock', Math.round(MAPGEN.rocks * areaOf(world)), MAPGEN.rockScale);
+  // A bigger map keeps the same rocks per square pixel; density scales it.
+  const rockDensity = MAPGEN.density ?? 1;
+  place(world, 'rock', Math.round(MAPGEN.rocks * areaOf(world) * rockDensity), MAPGEN.rockScale);
   // Last, so that with CONCEPT on the rest of the map is the same one.
   if (CONCEPT.enabled) placeThings(world);
+
+  // Mud patches and natural hazard zones when enabled in settings
+  if (MAPGEN.hazards && (MAPGEN.mudPatches ?? 0) > 0) {
+    world.mud ??= [];
+    for (let i = 0; i < (MAPGEN.mudPatches ?? 3); i++) {
+      const mx = MAPGEN.margin + 60 + Math.random() * (WORLD.width - 2 * (MAPGEN.margin + 60));
+      const my = MAPGEN.margin + 60 + Math.random() * (WORLD.height - 2 * (MAPGEN.margin + 60));
+      if (Math.hypot(mx - cx, my - cy) > MAPGEN.spawnClear) {
+        world.mud.push({ x: mx, y: my, r: 40 + Math.random() * 30, speed: 0.55 });
+      }
+    }
+  }
 }

@@ -26,6 +26,7 @@
 import { LIFE, HUNGER, THIRST, THERMAL, CYCLE, GEN } from './config.js';
 import { nestOf, takeFromNest, record } from './world.js';
 import { nestUnder } from './nest.js';
+import { createProgram, innateOf } from './program.js';
 import { createFagi } from './fagi.js';
 import { assignSex, energyMax } from './biology.js';
 import { createGenome, recombine, applyGenome, teach } from './generations.js';
@@ -149,6 +150,8 @@ function mate(world, colony, nest, mother, father) {
     id: colony.nextEgg = (colony.nextEgg ?? 0) + 1,
     mother: mother.id, father: father.id,
     genome: recombine(mother.genome ?? createGenome(), father.genome ?? createGenome(), Math.random, [tag(mother), tag(father)]),
+    // The program she will be born with: her mother's born lines (program.js).
+    program: innateOf(mother),
     sex: assignSex(),
     generation: Math.max(mother.generation ?? 0, father.generation ?? 0) + 1,
     inbreeding: r2(inbreeding),
@@ -183,6 +186,7 @@ function hatch(world, colony, nest, egg) {
   const name = childName(egg.sex, father?.name ?? world.lineage[egg.father]?.name, mother?.name ?? world.lineage[egg.mother]?.name);
   const child = createFagi({ sex: egg.sex, genome: egg.genome, name });
   applyGenome(child, egg.genome);
+  if (egg.program) child.brain.program = createProgram(egg.program);
   child.x = nest.x;
   child.y = nest.y;
   child.id = colony.nextId++;

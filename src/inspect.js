@@ -34,6 +34,7 @@ import { specOfFruit } from './chemistry.js';
 import { affordanceOf, isThing } from './things.js';
 import { nestTemperature, eggPace } from './reproduction.js';
 import { treeAge, intervalOf, maxNearOf } from './trees.js';
+import { programOf } from './program.js';
 
 const L = (en, es) => (getLang() === 'es' ? es : en);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -335,10 +336,33 @@ function paintFagi(f, world, main, isMain, canFollow) {
   const genes = f.genome ? Object.entries(f.genome.cues ?? {}).sort((a, b2) => Math.abs(b2[1]) - Math.abs(a[1])).slice(0, 6) : [];
   const genome = genes.length ? genes.map(([c, w]) => row(esc(labelOf(c)), `${w > 0 ? '+' : ''}${num(w, 2)}`)).join('') : '';
 
+  const prog = f.brain ? programOf(f) : null;
+  let programHtml = '';
+  if (prog) {
+    const lines = prog.lines;
+    const own = lines.filter((l) => l.source !== 'born');
+    const activeNow = f.thought?.line;
+    const seq = prog.seq ?? 0;
+    const headerRow = row(L('Program mutations', 'Mutaciones del programa'), `${seq} ${L('revisions', 'revisiones')} (${own.length} ${L('custom lines', 'líneas propias')})`);
+    const lineRows = lines.map((l) => {
+      const isNow = activeNow === l.id;
+      const isOwn = l.source !== 'born';
+      const tag = l.source === 'born' ? '' : `<span style="font-size:75%;padding:1px 4px;border-radius:3px;background:${l.source === 'night' ? '#8f7fd0' : l.source === 'told' ? '#3d8fd9' : '#8fd93d'};color:#000;margin-right:4px;font-weight:bold;">${l.source.toUpperCase()}</span>`;
+      const chain = l.chain ? `<span style="color:#f0c75e;font-size:80%;"> [macro: ${l.chain.join(' → ')}]</span>` : '';
+      const cond = l.if ? `<div style="font-size:80%;color:#aaa;margin-top:2px;">if: ${esc(JSON.stringify(l.if))}</div>` : '';
+      const why = l.why ? `<div style="font-size:75%;color:#888;font-style:italic;">${esc(l.why)}</div>` : '';
+      const prefix = isNow ? `<span style="color:#8fd93d;font-weight:bold;">▶ </span>` : '';
+      const style = isNow ? 'background:rgba(143,217,61,0.15);padding:3px 6px;border-radius:4px;border-left:3px solid #8fd93d;' : isOwn ? 'background:rgba(255,255,255,0.04);padding:3px 6px;border-radius:4px;' : '';
+      return `<div style="margin-bottom:6px;${style}">${prefix}${tag}<b>${esc(l.id)}</b> <span style="color:#888;font-size:80%;">(${l.tier})</span>${chain}${cond}${why}</div>`;
+    }).join('');
+    programHtml = headerRow + `<div style="margin-top:8px;max-height:260px;overflow-y:auto;padding-right:4px;">${lineRows}</div>`;
+  }
+
   return head(esc(fullName(f)), sub, SEX_COLOR[f.sex] ?? '#c9c9c9', actions)
     + `<div class="ins-body">`
     + section('needs', L('Needs', 'Necesidades'), needs)
     + section('now', L('Right now', 'Ahora'), state)
+    + section('program', L('Self-Programmed Code & Lineage', 'Código Auto-Programado y Filogenia'), programHtml)
     + section('family', L('Family', 'Familia'), family)
     + section('life', L('Life', 'Vida'), life)
     + section('body', L('Body', 'Cuerpo'), body)

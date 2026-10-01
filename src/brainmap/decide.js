@@ -15,7 +15,13 @@ export function paintDecide(brushes, fagi, y) {
   let x = pad;
   x += chip(t(`tag.${th.action ?? 'explore'}`), x, y, actionColor, { filled: true, bold: true }) + gap;
   x += text(t(`action.${th.action ?? 'explore'}`), x, y, { bold: true, size: 11, maxW: W - pad - x }) + gap;
-  if (fagi.directive && x < W - pad - 40 * s) chip(t('brainmap.api'), x, y, '#4cc9f0');
+  if (fagi.directive && x < W - pad - 40 * s) x += chip(t('brainmap.api'), x, y, '#4cc9f0') + gap;
+  const lineObj = fagi.brain?.program?.lines?.find((l) => l.id === th.line);
+  if (lineObj && lineObj.source !== 'born' && x < W - pad - 55 * s) {
+    const chipCol = lineObj.source === 'night' ? '#8f7fd0' : lineObj.source === 'told' ? '#3d8fd9' : '#8fd93d';
+    const chipLabel = lineObj.source === 'night' ? 'DREAM' : lineObj.source === 'told' ? 'CULTURE' : 'CODE';
+    chip(chipLabel, x, y, chipCol, { filled: true, bold: true, size: 8 });
+  }
   y += lineH;
   text(tx(th.reason), pad, y, { size: 9.5, color: TEXT, maxW: W - pad * 2 });
   y += lineH * 0.9;

@@ -1,7 +1,7 @@
 // How Fagi moves: turning, advancing, dodging, exploring and tracking a smell.
 // None of this decides WHERE to go; it only carries out the movement.
 
-import { FAGI, ENERGY, EXPLORE, WORLD, WATER, INSTINCT } from './config.js';
+import { FAGI, ENERGY, EXPLORE, WORLD, WATER, INSTINCT, MOVEMENT } from './config.js';
 import { angleTo, normalizeAngle } from './vision.js';
 import { statMult } from './effects.js';
 import { pushOutOfBlocks, avoidanceTurn, segmentBlocked, deepBlocked, waterZone, shorePoint, poolOf, radiusOf } from './obstacles.js';
@@ -14,6 +14,13 @@ import { thermalFactors } from './thermal.js';
 import { lifeSpeed } from './lifecycle.js';
 import { healthSpeed } from './health.js';
 import { saltSpeed } from './taste.js';
+
+// Dynamic crosswind zigzag sweep when searching actively or tracking
+export function zigzagHeading(fagi, baseAngle, time) {
+  const freq = MOVEMENT?.zigzagFreq ?? 2.2;
+  const amp = MOVEMENT?.zigzagAmp ?? 0.35;
+  return normalizeAngle(baseAngle + Math.sin(time * freq) * amp);
+}
 
 export function turnTowards(fagi, targetAngle, dt) {
   const diff = normalizeAngle(targetAngle - fagi.angle);
@@ -35,8 +42,16 @@ function drag(world, fagi) {
   if (fagi.wet > 0) f *= 1 - (1 - WATER.wetSpeed) * (fagi.wet / WATER.dryTime);
   // She notices the pressure dropping: instinct to hurry (INSTINCT.pressureHaste).
   if (fagi.pressureFalling) f *= 1 + INSTINCT.pressureHaste * fagi.pressure;
-  // Heavy ground (world.mud, research worlds only): it slows whoever crosses it.
-  for (const m of world.mud ?? []) if (Math.hypot(fagi.x - m.x, fagi.y - m.y) <= m.r) f *= m.speed;
+  // Heavy ground (world.mud, research worlds only): it slows whoever crosses it,
+  // but repeated passage compacts and paves trails over time (niche construction).
+  for (const m of world.mud ?? []) {
+    const d = Math.hypot(fagi.x - m.x, fagi.y - m.y);
+    if (d <= m.r) {
+      m.tread = (m.tread ?? 0) + 0.05;
+      const paved = Math.min(0.45, (m.tread / 40) * (1 - m.speed));
+      f *= (m.speed + paved);
+    }
+  }
   return f;
 }
 
@@ -71,7 +86,9 @@ export function advance(fagi, world, dt) {
   const weakness = fagi.energy <= 0 ? ENERGY.weakSpeed : 1;
   // Her own legs (biology.js) and the cold stiffening them (thermal.js).
   const body = bodyOf(fagi).speed * thermalFactors(fagi).speed * lifeSpeed(fagi) * healthSpeed(fagi) * saltSpeed(fagi);
-  const speed = FAGI.speed * statMult(fagi, 'speed') * weakness * drag(world, fagi) * body;
+  let speed = FAGI.speed * statMult(fagi, 'speed') * weakness * drag(world, fagi) * body;
+  if (fagi.cautious) speed *= (MOVEMENT?.crawlSpeed ?? 0.5);
+  else if (fagi.sprinting) speed *= (MOVEMENT?.sprintMult ?? 1.35);
   const before = { x: fagi.x, y: fagi.y };
   fagi.stride += speed * dt;
   fagi.x += Math.cos(fagi.angle) * speed * dt;

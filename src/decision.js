@@ -8,15 +8,19 @@
 //   4. explore               with no need and the pantry stocked, knowing the
 //                            map is the only thing that prepares the three above
 //
-// The list of rules below is that hierarchy written in order. Each one looks at
-// the situation and returns an intention, or null if it's not its turn; the first
-// one that answers wins. Adding a new behavior means adding a function to the list, in
-// the tier it belongs to.
+// That hierarchy is no longer written here: it is her program (program.js), data
+// she carries, one line per behavior, in order. She is born with it exactly as
+// it used to stand in this file (INNATE). Here there is only whoever walks it:
+// each line is tried in turn and the first that answers wins; with none, she
+// explores.
+//
+// A behavior looks at the situation and returns an intention, or null if it's
+// not its turn. They live in decision/, one file per tier (plus the API
+// directive and what they all share). Adding one means its function there, its
+// name in REPERTOIRE below and in BEHAVIORS (program.js), and its line in
+// INNATE, in the tier it belongs to.
 //
 // An intention is: { action, reason, target, targetKind, trailKey }
-//
-// The rules live in decision/, one file per tier (plus the API
-// directive and what they all share); here there's only the order and whoever walks it.
 
 import { notice, rethink } from './attention.js';
 import { leaveWater, drink, eatCarriedFood, urgency, goToPantry, thermalReflex } from './decision/survive.js';
@@ -27,49 +31,43 @@ import { earlyDirective, safeDirective } from './decision/directive.js';
 import { exploreRule } from './decision/explore.js';
 import { taste } from './decision/experiment.js';
 import { sip, huddle, probe, line } from './decision/things.js';
+import { zigzagTactic, patrolTactic, shelterRetreatTactic } from './decision/adaptive-tactics.js';
 import { decideOn, decisionPoint, seenFood } from './decision/point.js';
-import { BASELINE } from './config.js';
+import { BEHAVIORS, programOf, holds, rootOf } from './program.js';
+import { watch, trialOf } from './program/watch.js';
+import { imagine } from './program/imagine.js';
+import { BASELINE, PROGRAM } from './config.js';
 
 // Exported: the cortex uses it to know whether an external directive can
 // afford to ignore the emergency, or whether instinct has to take over.
 export { pressing } from './decision/common.js';
 
-// Each rule with its tier and a name: the brain map shows which one
-// answered (the function name is no good, it gets lost when minifying).
-const RULES = [
-  // 1. survive now
-  ['survive', 'swimOut', leaveWater],
-  ['survive', 'drink', drink],
-  ['survive', 'sip', sip],                        // CONCEPT only: a thing she believes has sap, nearer than water
-  ['survive', 'eatCarried', eatCarriedFood],
-  ['survive', 'directiveEarly', earlyDirective],   // only answers with BACKEND.authority === 1, and never if something presses that it doesn't handle
-  ['survive', 'thermalReflex', thermalReflex],     // THERMAL only: stress about to kill
-  ['survive', 'urgency', urgency],
-  ['survive', 'pantry', goToPantry],
-  // 2. endure
-  ['endure', 'rest', rest],
-  ['endure', 'sleep', sleep],                     // SLEEP only
-  ['endure', 'huddle', huddle],                   // CONCEPT only: a thing she believes warm or cool, nearer than the nest
-  ['endure', 'thermal', thermoregulate],          // THERMAL only, once she knows the nest helps
-  ['endure', 'shelter', seekShelter],
-  ['endure', 'anticipate', anticipate],
-  ['endure', 'dusk', dusk],                       // CYCLE only, once the dark means cold to her
-  // 3. provide
-  ['provide', 'directive', safeDirective],     // only answers with BACKEND.authority === 0 (the default)
-  ['provide', 'line', line],                      // CONCEPT only: take a thing she believes warm home, for the nest
-  ['provide', 'carry', carry],
-  ['provide', 'thirstSearch', thirstSearch],   // only with APPETITE on
-  ['provide', 'pursue', pursue],
-  // clues of something she already perceived and lost, from the freshest to the oldest
-  ['clues', 'scent', persistOnScent],
-  ['clues', 'memory', persistFromMemory],
-  // 4. explore: last night's questions come first (experiment.js)
-  ['explore', 'taste', taste],
-  ['explore', 'probe', probe],                    // CONCEPT only: touch, then nibble, a kind she has not figured out
-];
-
 // The tiers in order, for whoever wants to draw the hierarchy.
-export const TIERS = ['survive', 'endure', 'provide', 'clues', 'explore'];
+export { TIERS } from './program.js';
+
+// The function behind each behavior her program can name. Names, not the
+// functions' own: the brain map shows which one answered, and a function's
+// name gets lost when minifying.
+export const REPERTOIRE = {
+  swimOut: leaveWater, drink, sip, eatCarried: eatCarriedFood,
+  directiveEarly: earlyDirective, thermalReflex, urgency, pantry: goToPantry,
+  rest, sleep, huddle, thermal: thermoregulate, shelter: seekShelter, anticipate, dusk, shelterRetreat: shelterRetreatTactic,
+  directive: safeDirective, line, carry, thirstSearch, pursue, patrol: patrolTactic,
+  scent: persistOnScent, memory: persistFromMemory, zigzag: zigzagTactic,
+  taste, probe,
+};
+
+// A program could name a behavior with nothing behind it, or a behavior could
+// exist that no program can name: either way, the two lists disagree and
+// nothing should run.
+{
+  const names = Object.keys(REPERTOIRE);
+  const missing = BEHAVIORS.filter((b) => !names.includes(b));
+  const unnamed = names.filter((b) => !BEHAVIORS.includes(b));
+  if (missing.length || unnamed.length) {
+    throw new Error(`decision.js: REPERTOIRE and BEHAVIORS differ (missing: ${missing.join(', ') || '-'}; unnamed: ${unnamed.join(', ') || '-'})`);
+  }
+}
 
 // With the decision point on (DECIDE, decision/point.js): the reflexes common
 // to every controller are these two tiers, then food in sight; after them the
@@ -77,37 +75,79 @@ export const TIERS = ['survive', 'endure', 'provide', 'clues', 'explore'];
 // hierarchy.
 const REFLEX_TIERS = new Set(['survive', 'endure']);
 
+export function executeLine(l, fagi, world, ctx, dt) {
+  if (l.chain && Array.isArray(l.chain) && l.chain.length > 0) {
+    for (const step of l.chain) {
+      const fn = REPERTOIRE[step];
+      if (fn) {
+        const intent = fn(fagi, world, ctx, dt);
+        if (intent) return { intent, step };
+      }
+    }
+    return null;
+  }
+  const fn = REPERTOIRE[l.do];
+  if (!fn) return null;
+  const intent = fn(fagi, world, ctx, dt);
+  return intent ? { intent, step: l.do } : null;
+}
+
 export function decide(fagi, world, ctx, dt) {
   // What has just entered what she perceives (fagi.js checks it first, so that
   // the cortex hears about it too). The rules decide the same way every frame;
   // what's new gets noted as to whether that frame changed the plan or not.
   const newOnes = ctx.newOnes ?? notice(fagi, ctx);
   const before = { action: fagi.thought?.action ?? null, target: fagi.target };
-  const { intent, who } = firstToAnswer(fagi, world, ctx, dt);
+  const walk = firstToAnswer(fagi, world, ctx, dt);
+  // She watches her own program (program/watch.js): which line came to act and
+  // what came of it, imagining the lines the walk passed over. Before anything
+  // of this decision is applied, so what she imagines sees what the walk saw.
+  if (PROGRAM.watch || PROGRAM.learn) {
+    watch(fagi, ctx, dt, walk, (l) => imagine(fagi, (her) => {
+      const res = executeLine(l, her, world, ctx, dt);
+      return res ? res.intent : null;
+    }));
+  }
+  const { intent, who } = walk;
   applySets(fagi, intent, before);
   rethink(fagi, newOnes, before, intent, ctx.ranked);
   fagi.thought = thought(fagi, ctx, intent, who, newOnes);
 }
 
-// Walks RULES in order; the first one that answers wins. If none
-// answers, explore.
+// Walks her program in order; the first line that answers wins. If none
+// answers, explore. `who` says which line answered and the behavior it named;
+// for the watch, `kind` ('line', 'none', or who else decided), the line that
+// acted and its place and, during a trial, the line whose turn it took (`over`).
 function firstToAnswer(fagi, world, ctx, dt) {
   // The random baseline (BASELINE.policy, scripts/evaluate.js) decides nothing.
-  if (BASELINE.policy === 'random') return { intent: wander(fagi, world, dt), who: { tier: 'explore', rule: 'random' } };
+  if (BASELINE.policy === 'random') return { intent: wander(fagi, world, dt), who: { tier: 'explore', rule: 'random' }, kind: 'random' };
   fagi.decided = null;
   let asked = !decideOn();
-  for (const [tier, name, rule] of RULES) {
-    if (!asked && !REFLEX_TIERS.has(tier)) {
+  const trial = trialOf(fagi);
+  const lines = programOf(fagi).lines;
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    // The controller is asked where the reflexes end, whether or not the
+    // first line past them is live or holds now.
+    if (!asked && !REFLEX_TIERS.has(l.tier)) {
       asked = true;
       const seen = seenFood(fagi, world, ctx, dt);
-      if (seen) return { intent: seen, who: { tier: 'provide', rule: 'seen' } };
+      if (seen) return { intent: seen, who: { tier: 'provide', rule: 'seen' }, kind: 'decide' };
       const decided = decisionPoint(fagi, world, ctx, dt);
-      if (decided) return decided;
+      if (decided) return { ...decided, kind: 'decide' };
     }
-    const intent = rule(fagi, world, ctx, dt);
-    if (intent) return { intent, who: { tier: tier, rule: name } };
+    if (l.retired || !holds(l, fagi, ctx)) continue;
+    // A trial (program/watch.js): another of her lines, from further down,
+    // takes this one's turn, if it would act now.
+    if (trial !== null && rootOf(l) === trial.root) {
+      const by = lines.find((x) => x.id === trial.by);
+      const res = by && executeLine(by, fagi, world, ctx, dt);
+      if (res) return { intent: res.intent, who: { tier: by.tier, rule: res.step, line: by.id }, kind: 'line', line: by, index: i, over: l };
+    }
+    const res = executeLine(l, fagi, world, ctx, dt);
+    if (res) return { intent: res.intent, who: { tier: l.tier, rule: res.step, line: l.id }, kind: 'line', line: l, index: i };
   }
-  return { intent: exploreRule(fagi, world, ctx), who: { tier: 'explore', rule: 'explore' } };
+  return { intent: exploreRule(fagi, world, ctx), who: { tier: 'explore', rule: 'explore' }, kind: 'none', line: null, index: lines.length };
 }
 
 function applySets(fagi, intent, before) {
@@ -138,6 +178,7 @@ function thought(fagi, ctx, intent, who, newOnes) {
     rethink: fagi.rethink,
     tier: who.tier,
     rule: who.rule,
+    line: who.line ?? null,   // which line of her program answered (null: none did)
   };
 }
 

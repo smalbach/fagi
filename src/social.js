@@ -16,7 +16,8 @@
 // experience says otherwise). One nobody verifies can go round the whole
 // colony: a myth. batch measures them (scripts/batch/run.js).
 
-import { SOCIAL, POINT_TYPES, CONCEPT } from './config.js';
+import { SOCIAL, POINT_TYPES, CONCEPT, PROGRAM } from './config.js';
+import { shareMoments } from './program/share.js';
 import { conceptsOf, watched } from './concepts.js';
 import { nestUnder } from './nest.js';
 import { learnSeen } from './brain.js';
@@ -157,9 +158,11 @@ export function tell(giver, receiver, now) {
   return adopted;
 }
 
-// Sisters in the nest at the same time, each pair at most every SOCIAL.every s.
+// Sisters in the nest at the same time, each pair at most every SOCIAL.every s:
+// their rules (SOCIAL.share) and what their lines cost them (PROGRAM.share,
+// program/share.js).
 function trophallaxis(colony, world, now) {
-  if (!SOCIAL.share) return;
+  if (!SOCIAL.share && !PROGRAM.share) return;
   const home = colony.ants.filter((f) => f.alive && nestUnder(f, world));
   for (let i = 0; i < home.length; i++) {
     for (let j = i + 1; j < home.length; j++) {
@@ -167,9 +170,12 @@ function trophallaxis(colony, world, now) {
       const pair = `${Math.min(a.id, b.id)}-${Math.max(a.id, b.id)}`;
       if (now - (colony.lastExchange[pair] ?? -Infinity) < SOCIAL.every) continue;
       colony.lastExchange[pair] = now;
-      const told = tell(a, b, now).length + tell(b, a, now).length;
-      colony.stats.exchanges += 1;
-      colony.stats.told += told;
+      if (SOCIAL.share) {
+        const told = tell(a, b, now).length + tell(b, a, now).length;
+        colony.stats.exchanges += 1;
+        colony.stats.told += told;
+      }
+      if (PROGRAM.share) colony.stats.moments = (colony.stats.moments ?? 0) + shareMoments(a, b) + shareMoments(b, a);
     }
   }
 }

@@ -18,7 +18,8 @@ scent plumes → pheromone → Fagi.
 | `needs.js` | hunger, thirst, energy: going up, going down, dying |
 | `perception.js` | what she sees and smells, all together in one scored list |
 | `attention.js` | what has just entered what she perceives; notes whether it made her keep or change her plan |
-| `decision.js` | rules in priority order; the first one that answers wins |
+| `decision.js` | walks her program in order; the first line that answers wins |
+| `program.js` | her program: the order in which she tries what she knows how to do, as data she carries (see below) |
 | `movement.js` | turning, moving forward, avoiding, exploring, tracking a smell |
 | `explore.js` | the coarse map of where she has been; exploring goes in legs towards a point she can see |
 | `feeding.js` | eating or carrying |
@@ -41,8 +42,8 @@ scent plumes → pheromone → Fagi.
 | `learned/` | the code Fagi writes on her own from what she learns (see below) |
 | `observation.js` + `backend/` + `cortex.js` | the external decision API (see below) |
 
-The rules in `decision.js` are a hierarchy written in order, and all of it
-comes from the one directive, survive:
+What she does is a hierarchy in order, and all of it comes from the one
+directive, survive:
 
 1. **survive now** — drink, ease hunger or thirst, draw on the pantry;
 2. **endure** — rest, because without strength there is no surviving later;
@@ -50,11 +51,56 @@ comes from the one directive, survive:
 4. **explore** — with no need, no clues and the pantry stocked, getting to know
    the map is the only thing that prepares for the three above.
 
-Adding a new behaviour only takes one more entry in the `RULES` list (tier, name, function),
-in the tier where it belongs. It returns an intention or `null`. `decision.js` only
-keeps that order; the functions live in `decision/`, one file per tier
-(`survive`, `endure`, `provide`, `clues`, `explore`), plus `directive.js`
-(the decision API) and `common.js` (`reasonOf`, `pressing`, the pantry).
+That hierarchy is **her program** (`program.js`): not code only a person can
+change, but data she carries (`fagi.brain.program`), one line per behavior,
+printed as a line of real JavaScript (`line('drink', {"tier":"survive","do":"drink",...})`)
+and read back without `eval`, like her rules. A line names its tier, the
+behavior it tries and, optionally, an `if` over what she feels and perceives
+(hunger, thirst, energy at fixed steps; carrying, in the nest, dark, raining,
+pressure falling). She is born with `INNATE`, the hierarchy exactly as it used to
+be written in `decision.js`. `decision.js` only walks it: the first line that
+answers wins, and with none she explores. Her thought says which line answered
+(`thought.line`) and the learned-code panel shows the program after what she
+learned.
+
+A program nobody edited decides exactly as that written hierarchy did, frame
+by frame: `scripts/trace.js` runs seeded lives (classic, the game's organism,
+things, foraging, a colony, the random baseline) down to one fingerprint each,
+and `test/program.test.js` holds them against `test/fixtures/decisions.json`,
+recorded before the program existed.
+
+**She rewrites it from what she lives** (`PROGRAM`, off by default):
+
+| file | what it handles |
+|---|---|
+| `program/imagine.js` | asking a behavior what it would do now without anything of hers changing: it gets a shadow of her (reads fall through, writes stay), and what hangs deeper asks `imagining()` |
+| `program/watch.js` | each moment a line comes to lead: which other lines would have acted (imagined), whether the leader acted or one of those took its turn (a trial, now and then, never for a survive line, with something pressing, or in the dark), and what came of it: her distress over the next minute, from the worst of her needs |
+| `program/learn.js` | every minute, her record weighed pair by pair and clause by clause: when another line taking a leader's turn cost her clearly less there (a gate whose doubt grows with how much she asks), she writes that line in front of the leader, for that situation (`line('rest-before-pursue-energyBelow35', {..., "from":"rest","over":"pursue"})`); judged again at every look, and retired when what backed it is gone |
+| `program/share.js` | sisters in the nest tell each other their moments, lived or told, each known by who lived it and when (never taken twice); each weighs them like her own. Nobody passes on a line: a line changes only when what she holds clears her own doubt |
+
+A daughter is born with her mother's born lines (`innateOf`, through the egg
+in `reproduction.js`), never with what her mother wrote: what is learned is
+not in the egg, but a colony that shares its moments hands her, in the nest,
+what the colony lived.
+
+Nothing she was born with is touched: her lines go in front of born lines,
+for a situation. With `PROGRAM.watch = 2` she imagines every line below the one
+that acts, every look, and counts which compete; the fingerprints prove it
+changes nothing she does. `scripts/program-lab.js` runs paired lives, learning
+off and on, optionally born with a sabotaged program (`--sabotage rest`:
+resting comes last), to see whether she repairs what is wrong and leaves alone
+what is not; with `--colony N` as sisters (`--set PROGRAM.share=1` to share
+moments; `--set LIFE.enabled=1 --set SEX.enabled=1` to breed, and then it
+reports how long after birth founders and daughters wrote their first line).
+
+Adding a new behaviour takes its function in `decision/`, in the file of its
+tier (`survive`, `endure`, `provide`, `clues`, `explore`, plus `directive.js`
+for the decision API and `common.js` for `reasonOf`, `pressing` and the
+pantry); its name in `REPERTOIRE` (`decision.js`) and in `BEHAVIORS`
+(`program.js`), which must agree or nothing loads; and its line in `INNATE`,
+in the tier where it belongs. It returns an intention or `null`. If it changes
+what she does in the traced lives, the fingerprints are recorded again
+(`node scripts/trace.js --write`), only once the change is the one intended.
 
 There is no longer any tier that decides "this is good" or "this is bad": that is
 decided by `learned/rules.js` (`verdict()`), consulted from `feeding.js`,

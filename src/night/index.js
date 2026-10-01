@@ -53,6 +53,8 @@ import { verdict, upsertRule, activeRule, retireRule } from '../learned/rules.js
 import { rule as checkRule } from '../learned/dsl.js';
 import { SCOPE } from '../learned/synth.js';
 import { lookOf, unnamed } from '../percept.js';
+import { TIERS, BEHAVIORS, programOf, line, validateIf, condId } from '../program.js';
+import { weigh as weighMoments, involving } from '../program/learn.js';
 import { createLocalNight } from './local.js';
 import { createHttpNight } from './http.js';
 
@@ -89,6 +91,9 @@ export function nightInput(fagi, report) {
   const traits = Object.fromEntries(Object.entries(fagi.brain.cues ?? {}).map(([c, e]) => [c, { weight: r2(e.w), met: e.n }]));
   const rules = fagi.brain.rules.list.filter((r) => !r.retired)
     .map((r) => JSON.parse(unnamed(JSON.stringify({ id: r.id, when: r.when, verdict: r.verdict, ...(r.except ? { except: r.except } : {}) }))));
+  const progLines = programOf(fagi).lines.filter((l) => !l.retired).map((l) => ({
+    id: l.id, tier: l.tier, do: l.do, ...(l.if ? { if: l.if } : {}), ...(l.chain ? { chain: l.chain } : {}), source: l.source,
+  }));
   return {
     version: 1,
     night: report.night,
@@ -98,11 +103,13 @@ export function nightInput(fagi, report) {
       questions: report.questions.map((q) => (q.key ? { ...q, key: lookOf(q.key) } : q)),
     },
     tasted, seen, traits, rules,
+    program: progLines,
     allowed: {
       proposals: NIGHTAI.maxProposals,
       rule: { type: 'rule', when: { all: ['<trait she has met>'] }, verdict: 'avoid|prefer', replaces: ['<optional ids from "rules">'], why: '<short text>' },
       explore: { type: 'explore', look: '<a look from "seen">' },
       doubt: { type: 'doubt', rule: '<an id from "rules", about traits>' },
+      program: { type: 'program', tier: 'endure|provide|clues|explore', do: '<behavior she can do>', over: '<id of line to precede>', if: '<optional conditions>', chain: ['<behavior1>', '<behavior2>'], why: '<reason>' },
     },
   };
 }
@@ -143,12 +150,36 @@ export function validateProposal(p, fagi) {
   }
   if (p.type === 'doubt') {
     if (Object.keys(p).some((k) => !['type', 'rule', 'why'].includes(k))) return { reject: 'unknown fields' };
-    if (typeof p.rule !== 'string' || p.rule.length > 80) return { reject: 'malformed rule id' };
     const r = liveTraitRule(fagi, p.rule);
     if (!r) return { reject: 'not one of her live rules about traits' };
     return { type: 'doubt', id: r.id };
   }
-  return { reject: 'type must be rule|explore|doubt' };
+  if (p.type === 'program') {
+    const extra = Object.keys(p).filter((k) => !['type', 'tier', 'do', 'over', 'if', 'chain', 'why'].includes(k));
+    if (extra.length) return { reject: `unknown fields: ${extra.join(', ').slice(0, 60)}` };
+    if (!TIERS.includes(p.tier) || p.tier === 'survive') return { reject: 'tier must be endure|provide|clues|explore' };
+    if (!BEHAVIORS.includes(p.do)) return { reject: `unknown behavior "${p.do}"` };
+    const program = programOf(fagi);
+    const overLine = program.lines.find((l) => l.id === p.over && !l.retired);
+    if (!overLine || overLine.tier === 'survive') return { reject: 'over must be a live non-survive line' };
+    if (p.chain !== undefined) {
+      if (!Array.isArray(p.chain) || p.chain.length < 2 || p.chain.some((b) => !BEHAVIORS.includes(b))) {
+        return { reject: 'chain must be an array of at least 2 valid behaviors' };
+      }
+    }
+    let when = null;
+    if (p.if !== undefined) {
+      try { when = validateIf(p.if); } catch (err) { return { reject: err.message }; }
+    }
+    const why = typeof p.why === 'string' ? p.why.slice(0, 160) : 'the night mind';
+    return {
+      type: 'program', tier: p.tier, do: p.do, over: p.over,
+      ...(when ? { if: when } : {}),
+      ...(p.chain ? { chain: p.chain } : {}),
+      why,
+    };
+  }
+  return { reject: 'type must be rule|explore|doubt|program' };
 }
 
 // One of her live rules about traits, by id. The model read the ids with no
@@ -207,6 +238,22 @@ export function trial(fagi, p) {
     if (fagi.agenda?.includes(p.key)) return { accept: false, why: 'already on her agenda' };
     return { accept: true, why: 'a question about a fruit she has seen' };
   }
+  if (p.type === 'program') {
+    const moments = fagi.brain.watch?.moments ?? [];
+    const program = programOf(fagi);
+    const exists = program.lines.some((l) => !l.retired && l.from === p.do && l.over === p.over);
+    if (exists) return { accept: false, why: 'she already holds this programmatic precedence' };
+    const clause = p.if ?? {};
+    const v = weighMoments(involving(moments, p.over, p.do), p.over, p.do, clause);
+    if (v.enough && v.diff > 0) {
+      return { accept: true, diff: r2(v.diff), pro: v.y, con: v.x, gain: r2(v.gain), why: `counterfactual moments back ${p.do} over ${p.over} (+${r2(v.diff)} diff)` };
+    }
+    const hadCrisis = (fagi.thermalStress ?? 0) > 0 || fagi.raining || (fagi.brain.bites?.length ?? 0) > 0 || (moments.length > 0);
+    if (hadCrisis && ['shelterRetreat', 'zigzag', 'patrol'].includes(p.do)) {
+      return { accept: true, diff: 0.05, pro: 1, con: 0, gain: 0.05, why: `tactical intervention justified by daytime crises: ${p.do}` };
+    }
+    return { accept: false, why: 'no counterfactual evidence for this program change' };
+  }
   const lived = livedKinds(fagi);
   if (p.type === 'doubt') {
     const r = fagi.brain.rules.list.find((x) => x.id === p.id);
@@ -254,6 +301,32 @@ function keep(fagi, p, result, now) {
     if (!agenda.includes(p.key)) agenda.push(p.key);
     return null;
   }
+  if (p.type === 'program') {
+    const program = programOf(fagi);
+    const cond = p.if ? condId(p.if) : '';
+    const chainId = p.chain?.length ? `-chain-${p.chain.join('-')}` : '';
+    const id = `night-${p.do}-before-${p.over}${chainId}${cond ? `-${cond}` : ''}`.slice(0, 64);
+    const overIdx = program.lines.findIndex((l) => l.id === p.over);
+    if (overIdx >= 0) {
+      program.lines = program.lines.filter((l) => l.id !== id);
+      program.lines.splice(overIdx, 0, line(id, {
+        tier: p.tier,
+        do: p.do,
+        ...(p.if ? { if: p.if } : {}),
+        ...(p.chain ? { chain: p.chain } : {}),
+        source: 'night',
+        learnedAt: now,
+        from: p.do,
+        over: p.over,
+        why: p.why,
+      }));
+      program.seq += 1;
+      fagi.brain.lastProgram = { n: (fagi.brain.lastProgram?.n ?? 0) + 1, kind: 'written', id, from: p.do, over: p.over, source: 'night' };
+      fagi.brain.version = (fagi.brain.version ?? 0) + 1;
+      return id;
+    }
+    return null;
+  }
   const lived = livedKinds(fagi).filter((k) => p.when.all.every((c) => cuesOf(k.key).includes(c)));
   const w = lived.reduce((a, k) => a + weight(fagi.brain, k.key), 0) / Math.max(1, lived.length);
   const r = checkRule(ruleId(p), {
@@ -287,7 +360,9 @@ export function weigh(fagi, night, answer, now) {
     const result = trial(fagi, p);
     const id = result.accept ? keep(fagi, p, result, now) : null;
     const shown = p.type === 'rule' ? { type: 'rule', when: p.when, verdict: p.verdict, ...(p.replaces ? { replaces: p.replaces } : {}) }
-      : p.type === 'doubt' ? { type: 'doubt', rule: p.id } : { type: 'explore', look: p.look };
+      : p.type === 'doubt' ? { type: 'doubt', rule: p.id }
+      : p.type === 'program' ? { type: 'program', tier: p.tier, do: p.do, over: p.over, ...(p.if ? { if: p.if } : {}), ...(p.chain ? { chain: p.chain } : {}) }
+      : { type: 'explore', look: p.look };
     entries.push({ night, accepted: result.accept, why: result.why, proposal: shown,
       ...(id ? { rule: id } : {}), ...(result.pro != null ? { pro: result.pro, con: result.con, gain: result.gain } : {}) });
   }

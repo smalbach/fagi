@@ -223,6 +223,18 @@ export function narrate(narr, fagi) {
     p.rule = r.n;
   }
 
+  // She rewrites her program (program/learn.js): one of her behaviors in
+  // front of another for some situation, or such a line taken back.
+  const prog = fagi.brain.lastProgram;
+  if (prog && prog.n !== p.program) {
+    const where = prog.where ? prog.where : { key: 'log.programAlways' };
+    const params = { line: prog.id, x: prog.over, y: prog.from, where, diff: prog.diff, nx: prog.nx, ny: prog.ny };
+    push(narr, fagi, 'learn',
+      { key: prog.kind === 'written' ? 'log.program' : 'log.programRetired', params },
+      { key: prog.kind === 'written' ? 'log.programSub' : 'log.programRetiredSub', params });
+    p.program = prog.n;
+  }
+
   // In the nest a sister told her rules she had not lived (social.js).
   const told = fagi.brain.lastTold;
   if (told && told.n !== p.told) {

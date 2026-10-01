@@ -12,7 +12,7 @@ import { get, ApiError } from './api.js';
 import { showLogin, showWaitlist, showHome, showAdmin, hide, esc } from './screens.js';
 import { createGame } from '../main.js';
 import { retryPending } from '../recorder/sink.js';
-import { t, onLangChange } from '../i18n.js';
+import { t, onLangChange, getLang } from '../i18n.js';
 
 let user = null;
 const game = createGame({ onExit: () => goHome() });
@@ -20,11 +20,18 @@ const game = createGame({ onExit: () => goHome() });
 async function start() {
   try {
     ({ user } = await get('/auth/me'));
+    decide(user);
   } catch (err) {
-    if (!(err instanceof ApiError) || err.status !== 401) { noServer(); return; }
-    user = null;
+    if (err instanceof ApiError && err.status === 401) {
+      user = null;
+      decide(user);
+    } else {
+      // Standalone local mode: no backend server needed to play or test
+      console.info('Backend server (:8787) unreachable. Entering local standalone session.');
+      user = null;
+      newSession();
+    }
   }
-  decide(user);
 }
 
 function decide(u) {
@@ -39,6 +46,10 @@ function decide(u) {
 }
 
 function goHome() {
+  if (!user) {
+    noServer();
+    return;
+  }
   showHome(user, {
     onNew: newSession,
     onReplay: replay,
@@ -52,7 +63,20 @@ function noServer() {
   el.hidden = false;
   el.innerHTML = `<div class="screen-card"><div class="screen-body">
     <p class="screen-big">${t('err.network')}</p>
-    <div class="screen-actions"><button id="retry">${t('wait.check')}</button></div></div></div>`;
+    <p style="margin: 0.5rem 0 1.5rem; opacity: 0.8; font-size: 0.95rem; line-height: 1.4;">
+      ${getLang() === 'es'
+        ? 'El servidor de cuentas/Postgres (:8787) no está conectado. Puedes iniciar directamente una sesión local para jugar y probar las entidades adaptativas.'
+        : 'The account/Postgres server (:8787) is not connected. You can start a local session directly to play and test the adaptive entities.'}
+    </p>
+    <div class="screen-actions">
+      <button id="btn-local-play" class="primary">${getLang() === 'es' ? '▶ Jugar en modo local' : '▶ Play local mode'}</button>
+      <button id="retry">${t('wait.check')}</button>
+    </div>
+  </div></div>`;
+  el.querySelector('#btn-local-play').addEventListener('click', () => {
+    hide();
+    newSession();
+  });
   el.querySelector('#retry').addEventListener('click', start);
 }
 

@@ -187,7 +187,14 @@ export function createGame({ onExit } = {}) {
 
   // --- play ---
   async function begin({ recoverLearning = false } = {}) {
-    const { session: s } = await post('/sessions');
+    let s = null;
+    try {
+      const res = await post('/sessions');
+      s = res?.session;
+    } catch {
+      s = { id: `local-${Date.now()}` };
+    }
+    s ??= { id: `local-${Date.now()}` };
     newFagi();
     let learned = null;
     if (recoverLearning) {
