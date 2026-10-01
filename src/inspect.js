@@ -35,6 +35,7 @@ import { affordanceOf, isThing } from './things.js';
 import { nestTemperature, eggPace } from './reproduction.js';
 import { treeAge, intervalOf, maxNearOf } from './trees.js';
 import { programOf } from './program.js';
+import { summarizePhylogeny, renderPhylogenyMermaid, exportPhylogenyJson } from './phylogeny.js';
 
 const L = (en, es) => (getLang() === 'es' ? es : en);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -149,6 +150,25 @@ export function createInspector(el, hooks = {}) {
       sel = { kind: 'fagi', main: true, id: it.id };
       frozenUntil = 0;
     } else if (b.dataset.act === 'ask' && it) hooks.onAsk?.(it.x, it.y);
+    else if (b.dataset.act === 'copy-phylogeny-mermaid' && lastWorld) {
+      const mmd = renderPhylogenyMermaid(lastWorld);
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(mmd).then(() => {
+          const old = b.textContent;
+          b.textContent = '✓ Copied!';
+          setTimeout(() => { b.textContent = old; }, 1500);
+        });
+      }
+    } else if (b.dataset.act === 'download-phylogeny-json' && lastWorld) {
+      const json = exportPhylogenyJson(lastWorld);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fagi-phylogeny-${Math.round(lastWorld.time ?? 0)}s.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
   });
   onLangChange(() => { frozenUntil = 0; lastPaint = -Infinity; });
 
@@ -344,6 +364,16 @@ function paintFagi(f, world, main, isMain, canFollow) {
     const activeNow = f.thought?.line;
     const seq = prog.seq ?? 0;
     const headerRow = row(L('Program mutations', 'Mutaciones del programa'), `${seq} ${L('revisions', 'revisiones')} (${own.length} ${L('custom lines', 'líneas propias')})`);
+    let phyRow = '';
+    let exportBtns = '';
+    if (world?.codePhylogeny) {
+      const phySummary = summarizePhylogeny(world);
+      phyRow = row(L('Colony innovations', 'Innovaciones colonia'), `${phySummary.totalInnovations} (${phySummary.bySource.self} self · ${phySummary.bySource.night} night · ${phySummary.bySource.told} told)`);
+      exportBtns = `<div style="margin-top:6px;display:flex;gap:6px;">`
+        + `<button type="button" data-act="copy-phylogeny-mermaid" style="flex:1;font-size:11px;padding:3px 6px;">📋 ${L('Copy Mermaid', 'Copiar Mermaid')}</button>`
+        + `<button type="button" data-act="download-phylogeny-json" style="flex:1;font-size:11px;padding:3px 6px;">📥 ${L('Export JSON', 'Exportar JSON')}</button>`
+        + `</div>`;
+    }
     const lineRows = lines.map((l) => {
       const isNow = activeNow === l.id;
       const isOwn = l.source !== 'born';
@@ -355,7 +385,7 @@ function paintFagi(f, world, main, isMain, canFollow) {
       const style = isNow ? 'background:rgba(143,217,61,0.15);padding:3px 6px;border-radius:4px;border-left:3px solid #8fd93d;' : isOwn ? 'background:rgba(255,255,255,0.04);padding:3px 6px;border-radius:4px;' : '';
       return `<div style="margin-bottom:6px;${style}">${prefix}${tag}<b>${esc(l.id)}</b> <span style="color:#888;font-size:80%;">(${l.tier})</span>${chain}${cond}${why}</div>`;
     }).join('');
-    programHtml = headerRow + `<div style="margin-top:8px;max-height:260px;overflow-y:auto;padding-right:4px;">${lineRows}</div>`;
+    programHtml = headerRow + phyRow + exportBtns + `<div style="margin-top:8px;max-height:260px;overflow-y:auto;padding-right:4px;">${lineRows}</div>`;
   }
 
   return head(esc(fullName(f)), sub, SEX_COLOR[f.sex] ?? '#c9c9c9', actions)

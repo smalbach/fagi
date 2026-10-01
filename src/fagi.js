@@ -46,6 +46,7 @@ import { useThing } from './decision/things.js';
 import { updateHealth } from './health.js';
 import { updateSodium } from './taste.js';
 import { founderName } from './names.js';
+import { noteCodeMutation } from './phylogeny.js';
 
 // `born`: what the birth already decided (sex, genome), for reproduction.
 // Without it the sex is drawn here, only when SEX is on.
@@ -214,6 +215,14 @@ export function updateFagi(fagi, world, dt) {
   // What happened to her body tunes her habits: a scare makes her more careful.
   const pantry = { stored: stockCount(fagi.pantry), edible: edibleCount(fagi, fagi.pantry) };
   observeHabits(fagi, pantry);
+
+  // Track self-rewritten code mutations into the world's phylogenetic tree
+  if (world && fagi.brain?.lastProgram && fagi.brain.lastProgram.n !== fagi._lastTrackedProgramN) {
+    fagi._lastTrackedProgramN = fagi.brain.lastProgram.n;
+    if (fagi.brain.lastProgram.kind === 'written') {
+      noteCodeMutation(world, fagi, fagi.brain.lastProgram);
+    }
+  }
 
   // Dying saves right away, without waiting for the next autosave turn: the
   // last thing she learned (including the lesson of this very death) isn't lost.

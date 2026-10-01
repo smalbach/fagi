@@ -28,6 +28,7 @@ import { TRAITS } from './chemistry.js';
 import { pass } from './social.js';
 import { restoreHabits, habitsSnapshot } from './habits.js';
 import { BODY_TRAITS, bodyFor, energyMax } from './biology.js';
+import { programOf, line } from './program.js';
 
 // Every trait a fruit can have, rotten fruit's smell included.
 export const ALL_CUES = [
@@ -150,7 +151,55 @@ export function teach(child, elder) {
   if (!GEN.culture) return 0;
   const n = pass(elder, child, 0, { kind: 'born', scale: GEN.cultureTrust, budget: GEN.budget }).length;
   if (GEN.habits) child.brain.habits = restoreHabits(habitsSnapshot(elder.brain.habits));
+  if (GEN.cultureProgram) teachProgram(child, elder);
   return n;
+}
+
+// Cultural transmission of self-rewritten programmatic lines:
+// Elder passes non-retired custom rules to juvenile as source 'told'.
+export function teachProgram(child, elder) {
+  if (!elder?.brain || !child?.brain) return 0;
+  const elderProg = programOf(elder);
+  const childProg = programOf(child);
+  const ownLines = elderProg.lines.filter((l) => !l.retired && l.source !== 'born');
+  if (!ownLines.length) return 0;
+
+  let count = 0;
+  for (const l of ownLines) {
+    if (childProg.lines.some((cl) => !cl.retired && cl.id === l.id)) continue;
+    const overIdx = childProg.lines.findIndex((cl) => cl.id === l.over);
+    if (overIdx < 0) continue;
+
+    const copy = line(l.id, {
+      tier: l.tier,
+      do: l.do,
+      ...(l.if ? { if: l.if } : {}),
+      ...(l.chain ? { chain: l.chain } : {}),
+      source: 'told',
+      learnedAt: 0,
+      from: l.from,
+      over: l.over,
+      why: `taught by elder #${elder.id ?? 1}`,
+    });
+
+    childProg.lines.splice(overIdx, 0, copy);
+    count += 1;
+  }
+
+  if (count > 0) {
+    childProg.seq = (childProg.seq ?? 0) + 1;
+    child.brain.lastProgram = {
+      n: (child.brain.lastProgram?.n ?? 0) + 1,
+      kind: 'written',
+      id: ownLines[0].id,
+      from: ownLines[0].from,
+      over: ownLines[0].over,
+      source: 'told',
+      why: `taught ${count} program lines by elder #${elder.id ?? 1}`,
+    };
+    child.brain.version = (child.brain.version ?? 0) + 1;
+  }
+  return count;
 }
 
 // Pick one by weight (roulette). `weights` are ≥ 0; all zero picks uniformly.

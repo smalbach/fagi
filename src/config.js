@@ -325,6 +325,7 @@ export const SOCIAL = {
 export const GEN = {
   culture: 1,         // raised by a surviving elder: her rules and habits
   cultureTrust: 0.6,  // a rule taught is trusted this fraction of the elder's trust
+  cultureProgram: 0,  // 1 = elder passes custom non-retired program lines to juvenile (source: 'told')
   habits: 1,          // habits are taught too (with culture)
   genes: 1,           // born with innate trait biases, inherited with mutation
   mutation: 0.15,     // spread of each bias's random step from parent to child
