@@ -20,18 +20,11 @@ const game = createGame({ onExit: () => goHome() });
 async function start() {
   try {
     ({ user } = await get('/auth/me'));
-    decide(user);
   } catch (err) {
-    if (err instanceof ApiError && err.status === 401) {
-      user = null;
-      decide(user);
-    } else {
-      // Standalone local mode: no backend server needed to play or test
-      console.info('Backend server (:8787) unreachable. Entering local standalone session.');
-      user = null;
-      newSession();
-    }
+    if (!(err instanceof ApiError) || err.status !== 401) { noServer(); return; }
+    user = null;
   }
+  decide(user);
 }
 
 function decide(u) {
@@ -47,7 +40,7 @@ function decide(u) {
 
 function goHome() {
   if (!user) {
-    noServer();
+    decide(null);
     return;
   }
   showHome(user, {
