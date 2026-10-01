@@ -65,6 +65,8 @@ function scene(ctx, world, fagi, camera, rain) {
   for (const o of world.objects) if (isWater(o)) drawShore(ctx, o, radiusOf(o));
   // Wet ground takes a while to dry, so it's drawn even when it's no longer raining.
   drawWetGround(ctx, world);
+  // Heavy mud patches and trails paved by repeated passage (niche construction).
+  drawMudPatches(ctx, world);
 
   // A shared shadow ties every object to the same ground and the same light.
   // The sprites keep their fine contact shadows; this is the ambient shadow,
@@ -490,4 +492,27 @@ function drawBuffRings(ctx, fagi) {
   });
   ctx.globalAlpha = 1;
   ctx.lineWidth = 1;
+}
+
+// Heavy mud patches and trails paved by repeated passage (niche construction).
+function drawMudPatches(ctx, world) {
+  if (!world?.mud?.length) return;
+  for (const m of world.mud) {
+    const treadFrac = Math.min(1, (m.tread ?? 0) / 40);
+    const g = ctx.createRadialGradient(m.x, m.y, m.r * 0.1, m.x, m.y, m.r);
+    if (treadFrac > 0) {
+      g.addColorStop(0, `rgba(160, 135, 95, ${0.35 + 0.3 * treadFrac})`);
+      g.addColorStop(0.35, `rgba(120, 90, 60, ${0.4 + 0.2 * treadFrac})`);
+      g.addColorStop(0.7, 'rgba(42, 28, 18, 0.4)');
+      g.addColorStop(1, 'rgba(42, 28, 18, 0)');
+    } else {
+      g.addColorStop(0, 'rgba(42, 28, 18, 0.5)');
+      g.addColorStop(0.65, 'rgba(42, 28, 18, 0.3)');
+      g.addColorStop(1, 'rgba(42, 28, 18, 0)');
+    }
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }

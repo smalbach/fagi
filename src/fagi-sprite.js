@@ -17,7 +17,8 @@
 // turn the opposite way (`localLight`), or when she turned around the shine
 // would follow her and read as plastic.
 
-import { POINT_TYPES } from './config.js';
+import { POINT_TYPES, CASTES } from './config.js';
+import { casteOf } from './castes.js';
 import { mix } from './sprite-kit.js';
 import { localLight, shadow } from './fagi-sprite/light.js';
 import {
@@ -55,6 +56,17 @@ export function drawFagi(ctx, fagi) {
   drawCore(ctx, fagi);
   drawSenses(ctx, fagi, shape, colors, step);
   if (fagi.carrying && POINT_TYPES[fagi.carrying.type]) drawCargo(ctx, POINT_TYPES[fagi.carrying.type], L);
+  if (CASTES.enabled && fagi.casteProfile) {
+    const caste = casteOf(fagi);
+    ctx.save();
+    ctx.fillStyle = caste.color;
+    ctx.shadowColor = caste.color;
+    ctx.shadowBlur = 4;
+    ctx.beginPath();
+    ctx.arc(-shape.rx * 0.65, 0, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
 
   if (fagi.justLearnedCode > 0) {
     ctx.save();

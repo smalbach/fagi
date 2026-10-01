@@ -17,6 +17,7 @@
       <div id="topbar">
         <button id="btn-end" data-i18n="app.endSession">■ End session</button>
         <button id="btn-settings" data-i18n="app.settings">⚙ Settings</button>
+        <button id="btn-phylogeny" title="Code Phylogeny Tree / Árbol Filogenético">🧬 Filogenia</button>
         <div id="view-modes" class="view-modes" role="radiogroup">
           <button type="button" data-view="observe" data-i18n="view.observe">Observe</button>
           <button type="button" data-view="normal" data-i18n="view.normal">Normal</button>
@@ -321,6 +322,18 @@
         <button id="btn-settings-close" data-i18n="set.close">Close</button>
       </header>
       <div id="settings-body"></div>
+    </div>
+  </div>
+  <div id="phylogeny-overlay" hidden>
+    <div id="phylogeny-modal">
+      <header>
+        <h2>🧬 Code Phylogeny Tree / Árbol Filogenético</h2>
+        <button id="btn-phy-copy-mermaid" type="button">📋 Copiar Mermaid</button>
+        <button id="btn-phy-export-json" type="button">📥 Exportar JSON</button>
+        <button id="btn-phy-close" type="button">✕ Cerrar</button>
+      </header>
+      <div id="phylogeny-metrics" class="phy-metrics"></div>
+      <div id="phylogeny-tree" class="phy-tree"></div>
     </div>
   </div>
   <div id="fruit-overlay" hidden>

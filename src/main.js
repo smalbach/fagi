@@ -38,6 +38,7 @@ import { createCortex, resetCortex } from './cortex.js';
 import { createRecorder } from './recorder/recorder.js';
 import { createPlayer } from './recorder/replay.js';
 import { createSink } from './recorder/sink.js';
+import { createPhylogenyModal } from './phylogeny-modal.js';
 import { post } from './app/api.js';
 
 const MAX_DT = 0.05;   // caps big jumps when coming back from another tab
@@ -109,6 +110,7 @@ export function createGame({ onExit } = {}) {
   const learnedPanel = createLearnedPanel(fagi, { onBackendChange: mountBackend });
   const brainMap = createBrainMap(document.getElementById('brainmap'), document.getElementById('brainmap-status'), document.getElementById('brainmap-expand'));
   createSettings(world, () => fagi);
+  const phylogenyModal = createPhylogenyModal(() => (player?.world ?? world));
   // Fruit the person makes, and the map's size and water (setup only).
   const fruitEditor = createFruitEditor(world, {
     onFruitsChanged: () => ui.rebuildPalette(),
@@ -324,6 +326,7 @@ export function createGame({ onExit } = {}) {
     learnedPanel.update();
     brainMap.update(fagi, world);
     ask.update(fagi);
+    phylogenyModal.update();
   }
 
   function frameReplay(dt) {
@@ -350,6 +353,7 @@ export function createGame({ onExit } = {}) {
     learnedPanel.update(player.fagi);
     brainMap.update(player.fagi, player.world);
     ask.update(player.fagi);
+    phylogenyModal.update();
     onReplayFrame?.(player, replaying);
   }
 
