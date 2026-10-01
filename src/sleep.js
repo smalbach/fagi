@@ -39,7 +39,9 @@ function sortTheDay(fagi, world) {
   fagi.agenda = agendaFrom(fagi, report);
   // And, if there is one, the night mind proposes on top of it (night/).
   if (NIGHTAI.enabled && report.sorted) {
-    fagi.nightMind ??= createNightMind(NIGHTAI.backend, { url: NIGHTAI.url });
+    if (!fagi.nightMind || fagi.nightMind.name !== NIGHTAI.backend) {
+      fagi.nightMind = createNightMind(NIGHTAI.backend, { url: NIGHTAI.url });
+    }
     askTheNight(fagi, report, fagi.nightMind, (entries) => {
       if (!fagi.sister) record(world, 'night_mind', { night: report.night, entries });
     });
