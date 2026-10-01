@@ -65,6 +65,7 @@ function runReplicate(k, condition) {
       CONFIG.PROGRAM.horizon = 15;
       CONFIG.PROGRAM.minSupport = 3;
       CONFIG.PROGRAM.every = 20;
+      CONFIG.PROGRAM.strictness = 0.5;
       CONFIG.PROGRAM.compound = 1;
       CONFIG.PROGRAM.chaining = 1;
       CONFIG.NIGHTAI.enabled = 0;
@@ -74,6 +75,7 @@ function runReplicate(k, condition) {
       CONFIG.PROGRAM.horizon = 15;
       CONFIG.PROGRAM.minSupport = 3;
       CONFIG.PROGRAM.every = 20;
+      CONFIG.PROGRAM.strictness = 0.5;
       CONFIG.PROGRAM.compound = 1;
       CONFIG.PROGRAM.chaining = 1;
       CONFIG.NIGHTAI.enabled = 1;
