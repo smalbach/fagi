@@ -173,6 +173,7 @@ function tickLearnedCode(fagi, dt) {
 export function updateFagi(fagi, world, dt) {
   if (!fagi.alive) return;
   fagi.age += dt;
+  if (fagi.justLearnedCode > 0) fagi.justLearnedCode = Math.max(0, fagi.justLearnedCode - dt);
   updateStage(fagi);             // juvenile, adult, senescent (lifecycle.js; always 'adult' without LIFE)
 
   updateEffects(fagi, dt);

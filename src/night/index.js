@@ -323,6 +323,7 @@ function keep(fagi, p, result, now) {
       program.seq += 1;
       fagi.brain.lastProgram = { n: (fagi.brain.lastProgram?.n ?? 0) + 1, kind: 'written', id, from: p.do, over: p.over, source: 'night' };
       fagi.brain.version = (fagi.brain.version ?? 0) + 1;
+      fagi.justLearnedCode = 3.0;
       return id;
     }
     return null;

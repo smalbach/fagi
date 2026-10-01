@@ -137,6 +137,7 @@ function write(fagi, program, { x, y, clause, chain, v }) {
     source: 'self', learnedAt: at(fagi), from: y, over: x, why: why.slice(0, 160),
   }));
   changed(fagi, program, { kind: 'written', id, from: y, over: x, where: cond, diff: r3(v.diff), nx: v.x, ny: v.y, why, ...(chain ? { chain } : {}) });
+  fagi.justLearnedCode = 3.0;
 }
 
 function retire(fagi, program, own, v) {

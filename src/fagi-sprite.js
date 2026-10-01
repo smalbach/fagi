@@ -56,6 +56,18 @@ export function drawFagi(ctx, fagi) {
   drawSenses(ctx, fagi, shape, colors, step);
   if (fagi.carrying && POINT_TYPES[fagi.carrying.type]) drawCargo(ctx, POINT_TYPES[fagi.carrying.type], L);
 
+  if (fagi.justLearnedCode > 0) {
+    ctx.save();
+    ctx.strokeStyle = '#8fd93d';
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = Math.min(1, fagi.justLearnedCode / 3);
+    ctx.beginPath();
+    const r = 16 + (3.0 - fagi.justLearnedCode) * 6;
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   ctx.restore();
 }
 

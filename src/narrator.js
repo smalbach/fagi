@@ -58,6 +58,7 @@ export const TAG_COLOR = {
   why: '#b57bff',
   told: '#e8a33d',
   forage: '#f0a35e',
+  program: '#8fd93d',
 };
 
 export function createNarrator() {
@@ -229,7 +230,7 @@ export function narrate(narr, fagi) {
   if (prog && prog.n !== p.program) {
     const where = prog.where ? prog.where : { key: 'log.programAlways' };
     const params = { line: prog.id, x: prog.over, y: prog.from, where, diff: prog.diff, nx: prog.nx, ny: prog.ny };
-    push(narr, fagi, 'learn',
+    push(narr, fagi, 'program',
       { key: prog.kind === 'written' ? 'log.program' : 'log.programRetired', params },
       { key: prog.kind === 'written' ? 'log.programSub' : 'log.programRetiredSub', params });
     p.program = prog.n;

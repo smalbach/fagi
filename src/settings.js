@@ -191,6 +191,14 @@ const GROUPS = [
     b(PROGRAM, 'share', 'Share moments with sisters in nest', 'Compartir momentos con hermanas en el nido'),
     n(PROGRAM, 'maxOwn', 'Maximum self-written program lines', 'Máximo de líneas de código propio en el programa', 1, 20, 1),
     n(PROGRAM, 'strictness', 'Statistical strictness (1 = conservative, 0.5 = plastic)', 'Rigor estadístico (1 = conservador, 0.5 = plástico)', 0.2, 2.0, 0.1),
+    b(PROGRAM, 'compound', 'Compound inductive conditions', 'Condiciones inductivas compuestas'),
+    b(PROGRAM, 'chaining', 'Macro-routine chaining', 'Cadenas de macro-rutinas secuenciales'),
+  ]},
+  { title: { en: 'Night Mind (Dream Synthesis)', es: 'Mente Nocturna (Síntesis en Sueños)' }, cat: 'mind', fieldsOf: [
+    b(NIGHTAI, 'enabled', 'Dream synthesis during night rest', 'Síntesis de hipótesis durante el descanso nocturno'),
+    n(NIGHTAI, 'maxProposals', 'Max proposals per night', 'Máximo de propuestas por noche', 1, 10, 1),
+    n(NIGHTAI, 'minSupport', 'Minimum evidence to accept hypothesis', 'Evidencia mínima para aceptar hipótesis', 1, 10, 1),
+    n(NIGHTAI, 'trust', 'Trust in night proposals', 'Confianza en propuestas nocturnas', 0.1, 1, 0.05),
   ]},
   { title: { en: 'Colony (new sessions)', es: 'Colonia (sesiones nuevas)' }, cat: 'colony', fieldsOf: [
     n(SOCIAL, 'size', 'Individuals in the colony (1 = Fagi alone)', 'Individuos en la colonia (1 = Fagi sola)', 1, 8, 1),
