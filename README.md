@@ -36,3 +36,12 @@ each fruit and which tree it fell from), what disappeared and why, every setting
 touched, the wind, the pheromone and Fagi's path every half second.
 Replaying means re-applying those events in order. The catalogue is in
 `src/recorder/events.js`; the tables in `server/migrations/`.
+
+## Research site
+
+`investigacion/` is a static page about the project (questions, methods,
+preregistered results, references), in Spanish and in English (`investigacion/en/`).
+The build serves it at `/investigacion/` next to the game. It draws Fagi with the
+game's sprites and runs the lab of the main study (`research/lab/`) in the reader's
+browser. Its per-generation curves come from `npm run site-data`, which reruns the
+main cell with the study's own seeds.

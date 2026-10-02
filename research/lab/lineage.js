@@ -236,7 +236,7 @@ function meet(ants, rnd, g, genealogy) {
 function entry(genealogy, origin, g) {
   let e = genealogy.get(origin);
   if (!e) {
-    e = { origin, seeded: origin.startsWith('seed/'), bornG: g, lastG: g, told: 0, gens: 0, falseGens: 0, maxCarriers: 0 };
+    e = { origin, seeded: origin.startsWith('seed/'), bornG: g, lastG: g, told: 0, gens: 0, falseGens: 0, maxCarriers: 0, trail: [] };
     genealogy.set(origin, e);
   }
   return e;
@@ -261,5 +261,6 @@ function noteGenealogy(genealogy, ants, g, chem, catalogue) {
     e.gens += 1;
     if (c.false) e.falseGens += 1;
     e.maxCarriers = Math.max(e.maxCarriers, c.n);
+    e.trail.push({ g, carriers: c.n, false: c.false });   // generation by generation, for drawing it
   }
 }

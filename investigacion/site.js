@@ -1,4 +1,6 @@
 import { startHero } from './hero.js';
+import { T } from './strings.js';
+import './lab.js';
 
 // ---------- theme: light, dark, or whatever the system says ----------
 const root = document.documentElement;
@@ -31,7 +33,7 @@ const counted = new IntersectionObserver((entries) => {
     const to = Number(e.target.dataset.count), t0 = performance.now();
     const tick = (now) => {
       const k = Math.min(1, (now - t0) / 1100), v = Math.round(to * (1 - (1 - k) ** 3));
-      e.target.textContent = v.toLocaleString('es-ES').replace(/\./g, ' ');
+      e.target.textContent = document.documentElement.lang === 'en' ? v.toLocaleString('en-US') : v.toLocaleString('es-ES').replace(/\./g, ' ');
       if (k < 1) requestAnimationFrame(tick);
     };
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(tick);
@@ -59,26 +61,24 @@ document.querySelectorAll('main section[id]').forEach((s) => seen.observe(s));
 // Means per lineage, copied from docs/research/results.md.
 const RESULTS = {
   lab: {
-    label: 'Laboratorio · 200 linajes por celda',
+    label: T.labSource,
     harm: { none: 0.66, verdict: 0.53, rule: 0.31, evidence: 0.28 },
     surv: { none: 96, verdict: 94, rule: 66, evidence: 81 },
     myth: { none: 0.00, verdict: 1.99, rule: 2.85, evidence: 0.86 },
   },
   game: {
-    label: 'Juego completo · 75 linajes por formato',
+    label: T.gameSource,
     harm: { none: 1.95, verdict: 1.12, rule: 0.79, evidence: 0.82 },
     surv: { none: 81, verdict: 89, rule: 67, evidence: 81 },
     myth: { none: 0.10, verdict: 0.59, rule: 1.41, evidence: 0.93 },
   },
 };
-const FORMATS = [
-  ['none', 'nada', 'nada'], ['verdict', 'veredictos', 'veredictos'],
-  ['rule', 'razones', 'razones'], ['evidence', 'razones + evidencia', '+ evidencia'],
-];
+const FORMATS = ['none', 'verdict', 'rule', 'evidence'].map((k) => [k, T.formats[k], T.formatsShort[k]]);
+const dec = (v) => (document.documentElement.lang === 'en' ? v.toFixed(2) : v.toFixed(2).replace('.', ','));
 const PANELS = [
-  ['harm', 'Bocados dañinos por hormiga, mundo estable', 'menos es mejor', (v) => v.toFixed(2)],
-  ['surv', 'Supervivientes en la generación de la inversión', 'más es mejor', (v) => `${v}%`],
-  ['myth', 'Mitos por hormiga al llegar la inversión', 'menos es mejor', (v) => v.toFixed(2)],
+  ['harm', T.harmTitle, T.less, dec],
+  ['surv', T.survTitle, T.more, (v) => `${v}%`],
+  ['myth', T.mythTitle, T.less, dec],
 ];
 
 function bars(values, fmt, max) {

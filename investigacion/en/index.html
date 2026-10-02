@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fagi · Research</title>
+  <meta name="description" content="Fagi: an artificial organism that learns from its body, writes its own rules and passes them on to its colony. Questions, methods, preregistered results and references." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script>
+    // Theme before first paint, so a saved choice never flashes the other one.
+    try { const t = localStorage.getItem('fagi-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
+  </script>
+  <link rel="stylesheet" href="../site.css" />
+</head>
+<body>
+<div class="bg-glow" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="brand" href="#top"><span class="dot"></span>fagi <em>/ research</em></a>
+  <nav>
+    <a href="#mundo" class="hide-sm">World</a>
+    <a href="#organismo" class="hide-sm">Organism</a>
+    <a href="#resultado">Results</a>
+    <a href="#referencias" class="hide-sm">References</a>
+  </nav>
+  <div class="lang-switch" aria-label="Language"><a href="../" hreflang="es">ES</a><a href="./" aria-current="true" hreflang="en">EN</a></div>
+  <div class="theme-switch" role="radiogroup" aria-label="Theme">
+    <button type="button" data-theme-set="light" role="radio" aria-label="Light" title="Light">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+    </button>
+    <button type="button" data-theme-set="auto" role="radio" aria-label="Match system" title="Match system">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M8.5 20h7M12 16.5V20"/></svg>
+    </button>
+    <button type="button" data-theme-set="dark" role="radio" aria-label="Dark" title="Dark">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+    </button>
+  </div>
+  <a class="btn-play" href="/">Play <span aria-hidden="true">↗</span></a>
+</header>
+
+<div class="hero" id="top">
+  <div class="hero-text">
+    <div class="pill"><span class="live"></span>Ongoing research · updated 2 Oct 2026</div>
+    <h1>An organism that <span class="grad">learns from its body</span> and teaches its colony</h1>
+    <p class="lede">Fagi is a simulated ant that is born not knowing what is safe to eat. It tries things, gets sick, sleeps, remembers, writes its conclusions down as readable code and passes them to its sisters and daughters. Its world is our lab for questions that cannot be manipulated in real animals.</p>
+    <div class="cta">
+      <a class="btn primary" href="#resultado">See results</a>
+      <a class="btn ghost" href="#resumen">Read the abstract</a>
+    </div>
+    <p class="byline">By <b>Snheidert Smalbach</b> · artificial life · learning · cultural transmission</p>
+  </div>
+  <figure class="hero-art">
+    <canvas id="hero-canvas" aria-label="Several Fagi ants walk between the nest and the fruit, leaving a trail"></canvas>
+    <figcaption>Real sprites from the game, drawn live. The movement is decorative.</figcaption>
+  </figure>
+</div>
+
+<div class="stats">
+  <div class="stat"><b data-count="12800">12,800</b><span>lineages simulated in the main study</span></div>
+  <div class="stat"><b>11<small>/11</small></b><span>hypotheses confirmed in the lab; 3/3 in the game</span></div>
+  <div class="stat"><b data-count="10">10</b><span>protocols frozen before running, negatives included</span></div>
+  <div class="stat"><b>100<small>%</small></b><span>deterministic: every life reproduces byte for byte</span></div>
+</div>
+
+<div class="layout">
+  <aside class="toc" aria-label="Contents">
+    <b>Contents</b>
+    <ol>
+      <li><a href="#resumen">Abstract</a></li>
+      <li><a href="#pregunta">The question</a></li>
+      <li><a href="#mundo">The world</a></li>
+      <li><a href="#organismo">The organism</a></li>
+      <li><a href="#aprende">How it learns</a></li>
+      <li><a href="#resultado">Main result</a></li>
+      <li><a href="#laboratorio">Try it live</a></li>
+      <li><a href="#estudios">Other studies</a></li>
+      <li><a href="#negativos">What did not work</a></li>
+      <li><a href="#cuerpo">Evolving body</a></li>
+      <li><a href="#metodo">Method</a></li>
+      <li><a href="#limites">Limitations</a></li>
+      <li><a href="#ruta">Roadmap</a></li>
+      <li><a href="#reproducir">Reproduce</a></li>
+      <li><a href="#referencias" class="hide-sm">References</a></li>
+    </ol>
+  </aside>
+
+  <main>
+
+    <!-- 1 -->
+    <section id="resumen">
+      <h2><span class="num">01</span>Abstract</h2>
+      <p>When a culture passes on <strong>reasons</strong> ("the sour one made me sick") instead of <strong>conclusions</strong> ("don't eat the red drop"), does it adapt better to a changing world, or does it get more stuck in false beliefs? We built an artificial organism whose knowledge can be inspected —every belief records where it came from— in a deterministic world, and we manipulated <em>what</em> is transmitted under an equal budget of items.</p>
+      <p>With the analysis frozen before running, we found that reasons are the best teacher while the world stays the same (40% fewer harmful bites than verdicts) and the worst inheritance when the world inverts: lineages that inherit reasons reach the inversion carrying more myths and lose <strong>22–27 percentage points more</strong> of that generation. Passing on the evidence together with the reasons keeps almost all of the teaching advantage and reduces myths and deaths, without removing them. The effect was confirmed in an abstract lab (11 of 11 hypotheses) and in the full game with body, space and night (3 of 3, same direction and similar size).</p>
+      <p>The same organism was used for nine other protocols —memory and sleep, concepts, diversity, social information, exploration, adaptive decision-making— whose results we report here in full, including those that did not support our hypotheses.</p>
+    </section>
+
+    <!-- 2 -->
+    <section id="pregunta">
+      <h2><span class="num">02</span>The question, and why no one has answered it</h2>
+      <blockquote>Does passing on reasons instead of conclusions make a culture more adaptable, or more superstitious?</blockquote>
+      <p>The literature pulls in two directions. In the "wheel" paradigm of Derex and colleagues (2019), passing on a theory did not speed up improvement and narrowed the learner's exploration; in 2025 they showed that transmitted theories guide learners whether they are correct or not. Roberts-Gaal, Bolic and Cushman (2025) found that when the world varies, people prefer to pass on goals and causes rather than procedures. Formal models (Beppu and Griffiths, 2009) predict that passing on beliefs beats passing on behavior. And the "hot stove" of Denrell and March (2001) explains why a learned avoidance is almost never corrected: whoever avoids something stops trying it.</p>
+      <p>What is missing is a <strong>controlled manipulation of what is transmitted under an equal budget</strong>, measuring both adaptation after a change and the persistence of false beliefs. In humans or animals this is almost impossible: you cannot know where each belief comes from, or run the same life twice. In Fagi you can.</p>
+      <div class="note"><b>Two rules that guide the whole project</b>Fagi is judged by <em>realism</em>, not survival: dying is fine if the cause is realistic; only artificial deaths are bugs (dying next to known water, getting stuck in a loop, sleeping while critically thirsty). And no claim counts without a protocol frozen before looking at the data.</div>
+    </section>
+
+    <!-- 3 -->
+    <section id="mundo">
+      <h2><span class="num">03</span>The world</h2>
+      <p>A 1280 × 860 pixel map that represents about 64 × 43 cm of ground. One second of game time equals about eight minutes in the organism's life. Everything is physics: the world does not know what is "good" or "bad", only what each thing does to the body.</p>
+      <div class="cards">
+        <div class="card"><h4>Fruit with hidden chemistry</h4><p>Each species is a secret mix of compounds that the tongue reads as seven tastes (sweet, umami, salty, sour, astringent, bitter, spicy), and only in the mouth. A bitter species is poisonous with probability 0.7; a non-bitter one, 0.1. Each map has two poisonous mimics of nutritious species. Old fruit rots and becomes toxic.</p><div class="where">src/chemistry.js · src/taste.js</div></div>
+        <div class="card"><h4>Water, wind and smell</h4><p>The pond never runs dry, but deep water traps. The wind turns slowly and each source gives off a scent plume that can only be sensed downwind and within 34 px. Rain, every 4–7 minutes of game time, leaves puddles and wipes out scents and pheromone.</p><div class="where">src/wind.js · src/smell.js · src/rain.js</div></div>
+        <div class="card"><h4>Day, night and temperature</h4><p>A day lasts 180 s. The air swings around 22 °C (10 °C at dawn, 34 °C in the afternoon). Its body prefers 25 °C, tolerates 15–33 °C and dies below 4 °C. The nest is at 24 °C; shade is 5 °C cooler. At night it keeps 45% of its sight.</p><div class="where">src/cycle.js · src/thermal.js</div></div>
+        <div class="card"><h4>Seasons</h4><p>A year lasts 3600 s (20 days). Winter takes up 45%: trees yield ×0.02 and the air drops 8 °C. There are hot years (+12 °C) and years with fruit far from the nest: pressures that can reverse direction.</p><div class="where">src/seasons.js</div></div>
+        <div class="card"><h4>Bodily needs</h4><p>Hunger (≈1250 s to death, one "week"), thirst (≈180 s, one "day"), energy, temperature, sleep pressure, salt and health: 100 points, reduced by stings (12) and poison (10), which slow it down, limit reproduction and kill at zero.</p><div class="where">src/needs.js · src/health.js</div></div>
+        <div class="card"><h4>Life, sex and generations</h4><p>Four founders. Adult at 360 s, they live 5400 s ±15%, and age at 75% of their lifespan. Eggs hatch in 240 s. Females are slower and have more energy; males the reverse. Daughters inherit their mother's genes and innate program, never what she learned.</p><div class="where">src/lifecycle.js · src/reproduction.js</div></div>
+      </div>
+      <p class="muted">The organism's modules (cycle, temperature, sex, sleep) start switched off in the configuration: with them off, the simulation is exactly the one the preregistered studies ran, down to the last random number. The game switches them on at startup.</p>
+    </section>
+
+    <!-- 4 -->
+    <section id="organismo">
+      <h2><span class="num">04</span>The organism</h2>
+      <p>Each file has a single responsibility: <code>movement.js</code> moves but does not decide, <code>decision.js</code> decides but does not draw, <code>render.js</code> draws but does not touch state. The full loop, from what it senses to what it passes on:</p>
+      <figure class="wide">
+        <div class="panel">
+          <svg viewBox="0 0 900 380" role="img" aria-label="Diagram of the loop perception, program, action, body, episode, memory, rules, with the night and the colony" style="width:100%;height:auto">
+            <defs>
+              <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-3)"/></marker>
+            </defs>
+            <g font-size="13" fill="var(--ink)">
+              <!-- row 1 -->
+              <rect x="20" y="40" width="150" height="62" rx="10" fill="var(--blue-soft)" stroke="var(--blue)"/>
+              <text x="95" y="66" text-anchor="middle" font-weight="600">Perception</text>
+              <text x="95" y="86" text-anchor="middle" font-size="11" fill="var(--ink-2)">sight · smell · taste</text>
+
+              <rect x="250" y="40" width="170" height="62" rx="10" fill="var(--accent-soft)" stroke="var(--accent)"/>
+              <text x="335" y="66" text-anchor="middle" font-weight="600">Program</text>
+              <text x="335" y="86" text-anchor="middle" font-size="11" fill="var(--ink-2)">lines in order; first one wins</text>
+
+              <rect x="500" y="40" width="150" height="62" rx="10" fill="var(--surface)" stroke="var(--ink-3)"/>
+              <text x="575" y="66" text-anchor="middle" font-weight="600">Action</text>
+              <text x="575" y="86" text-anchor="middle" font-size="11" fill="var(--ink-2)">eat · drink · carry</text>
+
+              <rect x="730" y="40" width="150" height="62" rx="10" fill="var(--surface)" stroke="var(--ink-3)"/>
+              <text x="805" y="66" text-anchor="middle" font-weight="600">Body</text>
+              <text x="805" y="86" text-anchor="middle" font-size="11" fill="var(--ink-2)">compared before and after</text>
+
+              <!-- row 2 -->
+              <rect x="730" y="180" width="150" height="62" rx="10" fill="var(--surface)" stroke="var(--ink-3)"/>
+              <text x="805" y="206" text-anchor="middle" font-weight="600">Episode</text>
+              <text x="805" y="226" text-anchor="middle" font-size="11" fill="var(--ink-2)">reward −1…+1, real</text>
+
+              <rect x="500" y="180" width="150" height="62" rx="10" fill="var(--surface)" stroke="var(--ink-3)"/>
+              <text x="575" y="206" text-anchor="middle" font-weight="600">Memory</text>
+              <text x="575" y="226" text-anchor="middle" font-size="11" fill="var(--ink-2)">value + confidence</text>
+
+              <rect x="250" y="180" width="170" height="62" rx="10" fill="var(--leaf-soft)" stroke="var(--leaf)"/>
+              <text x="335" y="206" text-anchor="middle" font-weight="600">Readable rules</text>
+              <text x="335" y="226" text-anchor="middle" font-size="11" fill="var(--ink-2)">born · self · night · told · saw</text>
+
+              <!-- row 3 -->
+              <rect x="20" y="300" width="300" height="62" rx="10" fill="var(--surface)" stroke="var(--ink-3)" stroke-dasharray="4 3"/>
+              <text x="170" y="326" text-anchor="middle" font-weight="600">Night in the nest</text>
+              <text x="170" y="346" text-anchor="middle" font-size="11" fill="var(--ink-2)">sorts the day · questions for tomorrow</text>
+
+              <rect x="390" y="300" width="300" height="62" rx="10" fill="var(--surface)" stroke="var(--ink-3)" stroke-dasharray="4 3"/>
+              <text x="540" y="326" text-anchor="middle" font-weight="600">Colony</text>
+              <text x="540" y="346" text-anchor="middle" font-size="11" fill="var(--ink-2)">trophallaxis · watching · teaching the brood</text>
+            </g>
+            <g stroke="var(--ink-3)" stroke-width="1.5" fill="none" marker-end="url(#ar)">
+              <path d="M170 71 H246"/>
+              <path d="M420 71 H496"/>
+              <path d="M650 71 H726"/>
+              <path d="M805 102 V176"/>
+              <path d="M730 211 H654"/>
+              <path d="M500 211 H424"/>
+              <path d="M335 180 V106"/>
+              <path d="M300 242 L210 296"/>
+              <path d="M380 242 L470 296"/>
+            </g>
+          </svg>
+        </div>
+        <figcaption><b>Figure 1.</b> Eating or drinking opens an episode with a snapshot of the body; when it closes, the comparison yields a reward computed from real changes (hunger, thirst, health), never from a hand-written number. Memory turns it into value and confidence; once the belief weighs enough, a readable rule is written (or revised, or withdrawn) with its origin. Dashed lines are processes that can be switched off for experiments.</figcaption>
+      </figure>
+
+      <h3>A hierarchy that comes from a single directive</h3>
+      <p>Everything it does comes from "survive", ordered in four tiers: <strong>survive now</strong> (drink, eat, draw on the larder); <strong>endure</strong> (rest, because without strength there is no later); <strong>provide</strong> (carry what it does not need to the nest, and chase what it sees); <strong>explore</strong> (with no needs or cues, knowing the map is the only thing that prepares for the rest). This hierarchy is not code that only a person can change: it is data the ant carries, one line per behavior, and the first line that responds wins.</p>
+
+      <h3>Knowledge you can read</h3>
+      <p>Nothing is evaluated with <code>eval</code>. Rules and program are printed as real JavaScript and read back with a closed grammar, so any belief can be inspected, traced to its origin and exported.</p>
+<pre><code><span class="c">// a rule it wrote itself after getting sick</span>
+<span class="k">rule</span>(<span class="s">'avoid-bitter'</span>, { "do": "avoid", "if": { "taste": "bitter" }, "source": "self", ... })
+
+<span class="c">// a line of its program: rest before chasing if energy drops below 35</span>
+<span class="k">line</span>(<span class="s">'rest-before-pursue-energyBelow35'</span>, { "tier": "endure", "from": "rest", "over": "pursue", ... })</code></pre>
+
+      <h3>Social</h3>
+      <p>In the nest, sisters pass rules to each other by trophallaxis (they trust them at 0.6 of the teller's confidence); watching a sister eat teaches at 0.4; veterans teach newborns. Every copy keeps its <code>origin</code>. A told rule that the ant's own experience contradicts more than it confirms dies.</p>
+    </section>
+
+    <!-- 5 -->
+    <section id="aprende">
+      <h2><span class="num">05</span>How it learns, step by step</h2>
+      <ol>
+        <li><strong>Try.</strong> It is born not knowing which trees give food; it sees appearances, not species.</li>
+        <li><strong>Feel.</strong> Taste exists only in the mouth. A bad bite brings sickness and an aversion to that smell after a single trial, as in Garcia and Koelling (1966).</li>
+        <li><strong>Remember.</strong> Each experience shifts value and confidence with a Rescorla-Wagner-style rule, from short to long term (short-term confidence fades in ≈1 simulated day; long-term, over weeks).</li>
+        <li><strong>Write.</strong> If a belief crosses a threshold it becomes a rule, with hysteresis so it does not flicker.</li>
+        <li><strong>Sleep.</strong> Once a night, asleep in the nest, it sorts the day and turns its doubts into questions that it answers the next day with a test bite.</li>
+        <li><strong>Group.</strong> With things that have no innate category (only color, shape and texture), it forms concepts that predict new species and withdraws them when they fail; after a surprise, it doubts everything for a while (Behrens et al., 2007).</li>
+        <li><strong>Transmit.</strong> To sisters and to the next generation, in the format the experiment sets: nothing, verdicts, reasons, or reasons with evidence.</li>
+      </ol>
+    </section>
+
+    <!-- 6 -->
+    <section id="resultado">
+      <h2><span class="num">06</span>Main result: reasons versus conclusions</h2>
+      <p><span class="tag conf">Confirmatory</span> &nbsp;Protocol frozen at commit <code>9d222c3</code> before any run.</p>
+
+      <h3>Design</h3>
+      <ul>
+        <li><strong>Unit of analysis:</strong> the lineage (12 generations of colonies of 5). Rows from one lineage are never treated as independent.</li>
+        <li><strong>Four formats</strong> with the same budget of 4 items: <em>nothing</em>; <em>verdicts</em> (per-fruit conclusions about fruit the teacher knew); <em>reasons</em> (rules about traits); <em>reasons + evidence</em> (rules and the bites that back them).</li>
+        <li><strong>World change</strong> at generation 6: none, inversion (poisonous becomes nutritious and vice versa), rotation, or shift to another dimension.</li>
+        <li><strong>Lab:</strong> 64 cells × 200 lineages, seeds 1001–1200, 12,800 lineages in 281 s. Paired cells: each lineage has a twin in every other cell living the same worlds.</li>
+        <li><strong>Game:</strong> 75 lineages per format, seeds 5000–5074, lifespans of 1800 s, inversion at generation 4; ≈40 min on 18 cores.</li>
+        <li><strong>Analysis:</strong> paired permutation tests with 10,000 sign flips, Holm correction, 95% bootstrap intervals and effect size <em>d<sub>z</sub></em>.</li>
+      </ul>
+
+      <figure class="wide">
+        <div class="panel">
+          <div class="seg" role="tablist">
+            <button type="button" class="on" data-results="lab">Lab</button>
+            <button type="button" data-results="game">Full game</button>
+          </div>
+          <div class="legend">
+            <span><i style="background:var(--s-none)"></i>nothing</span>
+            <span><i style="background:var(--s-verdict)"></i>verdicts</span>
+            <span><i style="background:var(--s-rule)"></i>reasons</span>
+            <span><i style="background:var(--s-evidence)"></i>reasons + evidence</span>
+          </div>
+          <div id="result-charts" class="chart-row"></div>
+        </div>
+        <figcaption><b>Figure 2.</b> Means per lineage. <span id="result-source"></span>. Reasons teach better while the world stays the same (left) but leave fewer survivors when it inverts (center), because they arrive with more myths —false beliefs never lived through— (right).</figcaption>
+      </figure>
+
+
+      <figure class="wide">
+        <div class="panel">
+          <div class="seg" role="tablist">
+            <button type="button" class="on" data-curve="alive">Survivors</button>
+            <button type="button" data-curve="myths">Myths</button>
+            <button type="button" data-curve="harmful">Harmful bites</button>
+            <button type="button" data-curve="acc">What gets taught</button>
+          </div>
+          <div class="legend">
+            <span><i style="background:var(--s-none)"></i>nothing</span>
+            <span><i style="background:var(--s-verdict)"></i>verdicts</span>
+            <span><i style="background:var(--s-rule)"></i>reasons</span>
+            <span><i style="background:var(--s-evidence)"></i>reasons + evidence</span>
+          </div>
+          <div class="chart"><h5 id="curves-title"></h5><div id="curves-chart"></div></div>
+        </div>
+        <figcaption><b>Figure 3.</b> The main cell generation by generation: one-trait chemistry, lifespans of 1800 s, inversion at generation 6, means of 200 lineages per format (seeds 1001–1200). Generated with <code>node scripts/site-data.js</code> from the same study code; generation 6 exactly reproduces the preregistered table. Everything runs level until the change: then the reasons line drops on its own, and recovers in the next generation.</figcaption>
+      </figure>
+
+      <h3>The eleven lab hypotheses</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Hypothesis</th><th>Contrast</th><th>Measure</th><th class="n">Difference [95% CI]</th><th class="n">d<sub>z</sub></th></tr></thead>
+          <tbody>
+            <tr><td>H1 · reasons teach better in a stable world</td><td>verdict − reason</td><td>harmful bites</td><td class="n">0.224 [0.204, 0.247]</td><td class="n">1.46</td></tr>
+            <tr><td>H2a · reasons leave fewer survivors at the inversion</td><td>verdict − reason</td><td>survivors</td><td class="n">0.274 [0.219, 0.329]</td><td class="n">0.68</td></tr>
+            <tr><td>H2b · … fewer than transmitting nothing</td><td>nothing − reason</td><td>survivors</td><td class="n">0.300 [0.245, 0.356]</td><td class="n">0.73</td></tr>
+            <tr><td>H3 · reasons carry more myths into the inversion</td><td>reason − verdict</td><td>myths</td><td class="n">0.863 [0.672, 1.048]</td><td class="n">0.63</td></tr>
+            <tr><td>H4a · evidence carries fewer myths than reasons</td><td>reason − evidence</td><td>myths</td><td class="n">2.000 [1.809, 2.199]</td><td class="n">1.41</td></tr>
+            <tr><td>H4b · evidence leaves more survivors than reasons</td><td>evidence − reason</td><td>survivors</td><td class="n">0.150 [0.086, 0.211]</td><td class="n">0.33</td></tr>
+            <tr><td>H4c · evidence teaches better than verdicts</td><td>verdict − evidence</td><td>harmful bites</td><td class="n">0.253 [0.234, 0.273]</td><td class="n">1.79</td></tr>
+            <tr><td>H5a · the H2a gap is larger under inversion than rotation</td><td>(v − r) inv − rot</td><td>survivors</td><td class="n">0.265 [0.209, 0.321]</td><td class="n">0.65</td></tr>
+            <tr><td>H5b · … than under dimension shift</td><td>(v − r) inv − shift</td><td>survivors</td><td class="n">0.277 [0.220, 0.333]</td><td class="n">0.68</td></tr>
+            <tr><td>H6a · the H2a gap grows with 1800 s lifespans versus 900 s</td><td>(v − r) 1800 − 900</td><td>survivors</td><td class="n">0.206 [0.147, 0.263]</td><td class="n">0.49</td></tr>
+            <tr><td>H6b · the H3 difference holds with 900 s lifespans</td><td>reason − verdict</td><td>myths</td><td class="n">0.771 [0.583, 0.965]</td><td class="n">0.56</td></tr>
+          </tbody>
+          <caption>One-sided, Holm over eleven. With 10,000 permutations the smallest reachable p is 0.0001, so every adjusted p is 0.0011. Measures are per ant.</caption>
+        </table>
+      </div>
+
+      <h3>Confirmation in the game</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Hypothesis</th><th class="n">n</th><th class="n">Difference [95% CI]</th><th class="n">d<sub>z</sub></th><th class="n">p (Holm)</th><th class="n">lab</th></tr></thead>
+          <tbody>
+            <tr><td>H1 · reasons teach better (gen. 1–3)</td><td class="n">75</td><td class="n">0.332 [0.243, 0.411]</td><td class="n">0.91</td><td class="n">0.0003</td><td class="n">0.224</td></tr>
+            <tr><td>H2a · fewer survivors at the inversion (gen. 4)</td><td class="n">75</td><td class="n">0.223 [0.133, 0.317]</td><td class="n">0.54</td><td class="n">0.0003</td><td class="n">0.274</td></tr>
+            <tr><td>H3 · more myths at the end of gen. 4</td><td class="n">75</td><td class="n">0.827 [0.630, 1.027]</td><td class="n">0.92</td><td class="n">0.0003</td><td class="n">0.863</td></tr>
+          </tbody>
+          <caption>Two-sided, Holm over three. The preregistration required lab and game to agree in direction on H1, H2a and H3: they agree, with similar sizes.</caption>
+        </table>
+      </div>
+
+      <h3>What exploration shows (not preregistered)</h3>
+      <ul>
+        <li><strong>The trap needs an inversion.</strong> If the poison rotates to another value or moves to another dimension, reasons lineages also carry more myths (1.3–2.5 times), but no one dies from them: 98–100% survival in every format. Only inversion makes the old reason point right at the new food, and rejection turns into starvation.</li>
+        <li><strong>Conjunctive chemistry</strong> (poison = color AND smell): same pattern, smaller (80% versus 92% survivors).</li>
+        <li><strong>Recovery.</strong> After any change, what is taught to newborns takes longer to correct with reasons (1.7–2.1 generations versus 1.2–1.7).</li>
+        <li><strong>Short lifespans</strong> reduce deaths but not myths: the belief is just as false, there is simply no time to starve because of it.</li>
+        <li><strong>After the inversion</strong> reasons lineages are again the ones that suffer least harm: the survivors relearn.</li>
+      </ul>
+      <div class="note warn"><b>A limitation found while reading the results</b>Each lineage's catalog is drawn so that every epoch has at least two poisons and two foods, so the world before the change depends on which change comes after. Comparisons between formats are not affected (they are paired within the same world); the H5a/H5b interactions are not a pure common-random-numbers contrast.</div>
+    </section>
+
+    <!-- live lab -->
+    <section id="laboratorio">
+      <h2><span class="num">07</span>Try it: the lab in your browser</h2>
+      <p>This is not an animation: it is the study code running in your browser. Each button launches four lineages of 12 generations —one per format— in <strong>the same world</strong> (same chemistry, same catalog, same maps), with the game's brain, body and social code. The same seed always gives the same result, here and in <code>node research/run.js</code>.</p>
+      <form id="lab-form" class="lab wide" autocomplete="off">
+        <div class="lab-controls">
+          <label>World change at generation 6
+            <select name="change">
+              <option value="invert" selected>inversion: poisonous becomes nutritious and vice versa</option>
+              <option value="rotate">rotation: the poison moves to another value</option>
+              <option value="shift">shift: the poison moves to another dimension</option>
+              <option value="none">none: the world stays the same</option>
+            </select>
+          </label>
+          <label>Seed
+            <span class="seed-row"><input name="seed" type="number" min="1" value="1033" inputmode="numeric" /><button type="button" id="lab-dice" class="icon-btn" title="Another random seed" aria-label="Another random seed">⚄</button></span>
+          </label>
+          <button type="submit" class="btn primary">Run the 4 formats</button>
+          <span id="lab-status" class="lab-status" aria-live="polite"></span>
+        </div>
+        <div class="lab-grid">
+          <div class="panel">
+            <div class="seg">
+              <button type="button" class="on" data-lab-line="alive">Survivors</button>
+              <button type="button" data-lab-line="myths">Myths</button>
+              <button type="button" data-lab-line="harmful">Harm</button>
+            </div>
+            <div class="chart" id="lab-lines"></div>
+            <div class="lab-summary" id="lab-summary"></div>
+          </div>
+          <div class="panel">
+            <div class="seg">
+              <button type="button" data-lab-tree="verdict">Verdicts</button>
+              <button type="button" class="on" data-lab-tree="rule">Reasons</button>
+              <button type="button" data-lab-tree="evidence">+ Evidence</button>
+            </div>
+            <div class="chart" id="lab-tree"></div>
+            <p class="lab-note"><span id="lab-tree-note"></span>. <i class="sw ok"></i>true in that world <i class="sw bad"></i>false; thickness is how many ants carry it.</p>
+          </div>
+        </div>
+      </form>
+      <p class="muted">The default seed (1033) is a clear case, chosen on purpose from the study's seeds. A single lineage is noisy: with other seeds, such as 1001, reasons lose no one. The study's effect is a mean of 200 lineages per cell (Figure 3). The genealogy on the right is the "phylogeny" of the culture: each row is one specific belief, born in one ant and passed mouth to mouth and mother to daughter; after the inversion, reasons that were true become false without changing a letter.</p>
+    </section>
+
+    <!-- 7 -->
+    <section id="estudios">
+      <h2><span class="num">08</span>Other studies with the same organism</h2>
+      <p>Each one has its protocol frozen in <code>docs/research/</code> and its report in <code>research/results/</code>.</p>
+      <div class="cards">
+        <div class="card">
+          <h4>Memory, sleep and consolidation <span class="tag conf">frozen</span></h4>
+          <p>14 conditions × 2 worlds × 120 lives. Learning matters: judgment 0.852 versus 0.500 for a Fagi that does not learn (d<sub>z</sub> 3.6); it lives 2069 s versus 344 s for a random agent. With fixed learning, 9 of 12 populations go extinct; with full learning, 2 of 12.</p>
+          <p><strong>Follow-up (4 of 4 supported):</strong> interleaved nightly replay <em>worsens</em> judgment (0.928 without it versus 0.904) and consolidation slows adaptation after a change. That is why replay is off by default.</p>
+          <div class="where">organism-protocol.md · organism2-protocol.md</div>
+        </div>
+        <div class="card">
+          <h4>Concepts <span class="tag conf">4 of 4</span></h4>
+          <p>Faced with things that have no innate category, it correctly names new species at first sight (0.967 versus 0.25 by chance, d<sub>z</sub> 10.2), concepts save it stings (0.042 versus 1.450), it drinks new sap before examining it, and doubting after a surprise helps when the world turns (0.847 versus 0.392).</p>
+          <div class="where">concepts-protocol.md</div>
+        </div>
+        <div class="card">
+          <h4>Diversity in the face of change <span class="tag conf">3 of 4</span></h4>
+          <p>4 founders, 8 species, chemistry inverted at mid-life. The population recovers (judgment 0.810 at the end versus 0.402 after the change) and keeps genetic diversity (0.189 versus 0.152). What was not supported: the clonal population did not die more from poison (0.132 versus 0.121).</p>
+          <div class="where">diversity-protocol.md</div>
+        </div>
+        <div class="card">
+          <h4>The misinformed sister <span class="tag conf">2 of 3</span></h4>
+          <p>A sister who tells false rules does not harm the colony's judgment (0.800 versus 0.813), and only 26% of the false rules adopted are still standing at the end. But a well-informed sister did not reduce the poison eaten either.</p>
+          <div class="where">social-protocol.md</div>
+        </div>
+        <div class="card">
+          <h4>Explore or return <span class="tag conf">2 of 6</span></h4>
+          <p>10 conditions × 120 colonies. Sisters whose first foraging trips paid off explore more later (r = 0.455, 596 sisters) and after a full nest wait longer before foraging again (983 s versus 153 s). Learned choice did not eat more than fixed rules and did not explore more in short-lived worlds.</p>
+          <div class="where">forage-protocol.md</div>
+        </div>
+        <div class="card">
+          <h4>Caution in the game <span class="tag conf">2 of 2</span></h4>
+          <p>Two lines —test new species first, leave what harmed you— raised survival from 0.882 to 0.955 (+0.073 [0.033, 0.111]) with 200 worlds per profile; poison deaths fell from 29 to 4, at the cost of 4 starvation deaths that did not happen before. Today they are the default behavior.</p>
+          <div class="where">caution-protocol.md</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section id="negativos">
+      <h2><span class="num">09</span>What did not work</h2>
+      <p>We publish it with the same detail as what worked. A project whose end goal is for the organism to rewrite its own code has to say clearly where it stands today.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Idea</th><th>Result</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>An adaptive decision model beats the current heuristic</td><td>It beats the current version (+0.056 [0.024, 0.089]) but <strong>loses to a simple heuristic</strong> (−0.030); planning two steps ahead adds nothing (−0.004). Verdict: prefer the heuristic.</td><td><span class="tag neg">not supported</span></td></tr>
+            <tr><td>Behavior rules written by the ant itself, within one life</td><td>Two variants: −0.080 and −0.072 versus the current Fagi.</td><td><span class="tag neg">worse</span></td></tr>
+            <tr><td>… across lineages</td><td>≈ −0.23; with prohibitions "with an exit", −0.254 and −0.232.</td><td><span class="tag neg">worse</span></td></tr>
+            <tr><td>Rewriting its program within a life</td><td>With logs from 24 lives pooled, the innate order is a local optimum. It repairs a sabotaged program only with a lot of evidence: sharing moments between sisters in the nest makes it possible (8 of 8 colonies reproduce, versus 0 without sharing).</td><td><span class="tag expl">exploratory</span></td></tr>
+            <tr><td>Night mind that proposes rules</td><td>+0.060 in the lab with color-and-smell chemistry; no gain in the game.</td><td><span class="tag expl">exploratory</span></td></tr>
+            <tr><td>Nightly consolidation improves judgment</td><td>0.852 versus 0.838, p 0.229.</td><td><span class="tag neg">not supported</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note"><b>Where we stand on self-rewriting</b>Today the organism writes <em>rules</em> about what to eat, with confirmed success, and it can reorder lines of its program with a fixed grammar. That it can invent new behavior structure that beats the human design is not yet shown.</div>
+    </section>
+
+    <!-- 9 -->
+    <section id="cuerpo">
+      <h2><span class="num">10</span>In progress: an evolving body</h2>
+      <p><span class="tag wip">in progress</span> &nbsp;Six heritable organs —brain, gut, muscle, eyes, antennae, size— each a multiplier with a benefit and an energy cost. Costs grow faster than linearly and metabolism scales with mass to the ¾ (Kleiber, 1932). A large brain costs about 18 times as much as muscle per gram (Elia, 1992) and, as in the fish of Kotrschal et al. (2013), shrinks the gut and the offspring. Within a life, each organ can adjust by up to ±25%, but only when experience moves outside the typical.</p>
+      <p>We compare three forms of inheritance: <strong>Darwinian</strong> (genes only), <strong>Baldwin</strong> (the capacity to adjust is inherited) and <strong>epigenetic</strong> (part of the mother's adjustment is inherited, like the learned avoidance that <em>C. elegans</em> keeps for about 4 generations; Moore et al., 2019).</p>
+      <ul>
+        <li><span class="tag expl">exploratory</span> With cold winters, cold became the cause of half or more of the deaths (before, 100% were old age); epigenetic inheritance had fewer cold deaths. With 3 seeds per cell, no difference is firm.</li>
+        <li><span class="tag neg">not confirmed</span> The prediction of de Bruin et al. (2026) —inheriting what was lived pays off more when change is predictable— was not confirmed in 90 runs with 10 seeds: 4.4 [−15.8, 24.6]. Body size does track cold and hot years in all three modes (temperature-size rule, Atkinson 1994).</li>
+      </ul>
+    </section>
+
+    <!-- 10 -->
+    <section id="metodo">
+      <h2><span class="num">11</span>Method and rigor</h2>
+      <div class="grid2">
+        <div>
+          <h3>Determinism and fingerprints</h3>
+          <p>Every random number comes from a seed. A lineage depends only on its seed and its options: run alone or inside a batch, it comes out identical byte for byte. Seeded lives are reduced to a fingerprint of decisions; the tests compare them against fingerprints recorded before each architecture change, so a refactor cannot silently change what the ant does.</p>
+          <h3>Preregistration</h3>
+          <p>Hypotheses, measures, contrasts, direction, correction and success criterion are frozen in a commit before running. Anything that was not there is reported as exploratory. Execution deviations are documented (a container restarted and the runs were relaunched per lineage, with an identity check).</p>
+        </div>
+        <div>
+          <h3>Statistics</h3>
+          <p>Unit = lineage or colony, never the row. Cells with common random numbers: the same worlds in every condition, paired contrasts. Paired sign permutations (10,000), Holm for multiple tests, 95% bootstrap, <em>d<sub>z</sub></em> and lineages needed for 80% power. Latin hypercube designs over the hand-tuned parameters to see whether an effect keeps its sign.</p>
+          <h3>Lab versus game</h3>
+          <p>The lab removes space, water, nest and larder, but keeps everything that is learned and everything that is transmitted, with the same code. It runs about 20 lineages of 12 generations per second on 4 cores. Every lab result is then checked in the full game.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section id="limites">
+      <h2><span class="num">12</span>Limitations</h2>
+      <ul>
+        <li><strong>Formats are matched by items, not by bits.</strong> A rule about a trait and a verdict about a fruit cost one each. Matching by information about the chemistry is still pending (Prystawski et al., 2025, show that channel rate matters).</li>
+        <li><strong>A verdict only covers fruit the teacher knew.</strong> That is the nature of a conclusion, and also why it generalizes less.</li>
+        <li><strong>The pilot shaped the hypotheses.</strong> Confirmatory tests use new seeds, but some hypotheses (explore or return, diversity) were written after seeing a pilot.</li>
+        <li><strong>Survivorship bias.</strong> In the self-rewriting studies deaths are not yet logged, which biases what is learned toward those who survive.</li>
+        <li><strong>It is a toy ant.</strong> Parameters are inspired by the literature but tuned by hand; external validity comes from the direction of the effects, not their magnitudes.</li>
+        <li><strong>A single author.</strong> External review is missing; this site exists partly to get it.</li>
+      </ul>
+    </section>
+
+    <!-- 12 -->
+    <section id="ruta">
+      <h2><span class="num">13</span>Roadmap</h2>
+      <ol>
+        <li><strong>Realism metrics.</strong> Tyrrell's (1993) 14 action-selection requirements as the main measure of how "alive" it behaves.</li>
+        <li><strong>A scientific night.</strong> Sleep that poses questions and designs the next day's experiments with the current body.</li>
+        <li><strong>Learned drives.</strong> Wanting versus liking: <em>W = κ·V</em> (Zhang and Berridge, 2009).</li>
+        <li><strong>Free-flow selection</strong> as the decision controller, versus the current hierarchy.</li>
+        <li><strong>Evolving body</strong> with pressures that reverse direction and ≥10 seeds per cell.</li>
+        <li><strong>Match formats by information</strong> in the reasons versus conclusions study.</li>
+      </ol>
+    </section>
+
+    <!-- 13 -->
+    <section id="reproducir">
+      <h2><span class="num">14</span>Reproduce</h2>
+      <p>Raw rows are not versioned; each <code>manifest.json</code> stores the design, the seeds and the commit, enough to regenerate them exactly. Node ≥ 22.</p>
+<pre><code><span class="c"># main lab study (12,800 lineages, ~5 min)</span>
+node research/run.js --design research/designs/main.json
+node research/confirm.js research/results/main
+
+<span class="c"># sensitivity over the hand-tuned parameters</span>
+node research/run.js --design research/designs/sensitivity.json
+node research/sensitivity.js research/results/sensitivity --a verdict --b rule
+
+<span class="c"># all tests, including the decision fingerprints</span>
+npm test</code></pre>
+    </section>
+
+    <!-- 14 -->
+    <section id="referencias">
+      <h2><span class="num">15</span>References</h2>
+      <p class="muted">Grouped by the idea the project takes from each one. The full review is in <code>reports/Razones frente a conclusiones culturales.md</code>, which worked mostly from abstracts.</p>
+
+      <h3>Transmitting theories and cumulative culture</h3>
+      <ol class="refs">
+        <li>Derex, M., Bonnefon, J.-F., Boyd, R. and Mesoudi, A. (2019). Causal understanding is not necessary for the improvement of culturally evolving technology. <em>Nature Human Behaviour</em>, 3, 446–452. <span class="why">Passing on a theory did not speed up improvement and narrowed exploration.</span></li>
+        <li>Derex, M., Bonnefon, J.-F., Boyd, R., McElreath, R. and Mesoudi, A. (2025). <em>Proceedings of the Royal Society B</em>, 292, 20242499. <span class="why">Transmitted theories guide learners, whether correct or misleading.</span></li>
+        <li>Osiurak, F. et al. (2021, 2022). <em>Nature Human Behaviour</em>; <em>Science Advances</em>, 8, eabl7446. <span class="why">Partial replication: understanding grew with performance.</span></li>
+        <li>Roberts-Gaal, X., Bolic, A. and Cushman, F. (2025). <em>PNAS</em>, 122(28). <span class="why">When the world varies, people pass on goals and causes, not procedures.</span></li>
+        <li>Harris, J. A., Boyd, R. and Wood, B. M. (2021). <em>Current Biology</em>. <span class="why">The causal theories of Hadza archers are incomplete and culturally learned.</span></li>
+        <li>Saral, A. S., Derex, M. and Ibáñez de Aldecoa, P. (2026). <em>PNAS Nexus</em>, 5, pgag090. <span class="why">Causal reasoning speeds up early gains and then fades.</span></li>
+      </ol>
+
+      <h3>Formal models of transmission</h3>
+      <ol class="refs">
+        <li>Rogers, A. R. (1988). Does biology constrain culture? <em>American Anthropologist</em>. <span class="why">Rogers' paradox: copying does not raise mean fitness in a changing world.</span></li>
+        <li>Enquist, M., Eriksson, K. and Ghirlanda, S. (2007). <span class="why">Critical social learning —copy, then check— resolves the paradox.</span></li>
+        <li>Rendell, L. et al. (2010). Why copy others? <em>Science</em>, 328, 208–213. <span class="why">Copying wins because demonstrators filter.</span></li>
+        <li>Kalish, M., Griffiths, T. and Lewandowsky, S. (2007). <span class="why">Transmission chains converge to the learner's prior biases.</span></li>
+        <li>Kirby, S., Cornish, H. and Smith, K. (2008). <em>PNAS</em>, 105, 10681. <span class="why">Rule systems become regular and compressed as they are transmitted.</span></li>
+        <li>Beppu, A. and Griffiths, T. (2009). <span class="why">Passing on beliefs beats passing on behavior.</span></li>
+        <li>Prystawski, B., Arumugam, D. and Goodman, N. (2025). <span class="why">Channel rate has nonlinear effects: the basis for matching budgets.</span></li>
+      </ol>
+
+      <h3>Avoidance, the hot stove and epistemic vigilance</h3>
+      <ol class="refs">
+        <li>Denrell, J. and March, J. G. (2001). Adaptation as information restriction: the hot stove effect. <em>Organization Science</em>, 12, 523–538. <span class="why">Overestimates get corrected; underestimates do not.</span></li>
+        <li>Denrell, J. (2007). <em>Psychological Review</em>, 114, 177–187. <span class="why">Adaptive sampling and systematic biases.</span></li>
+        <li>Denrell, J. and Le Mens, G. (2017). <em>Management Science</em>, 63, 528–547. <span class="why">Sampling what is popular creates lasting collective illusions.</span></li>
+        <li>Toyokawa, W. and Gaissmaier, W. (2022). <em>eLife</em>, 11, e75308. <span class="why">Conformity can rescue a group from the hot stove trap.</span></li>
+        <li>Laland, K. N. and Williams, K. (1998). <em>Behavioral Ecology</em>, 9, 493–499. <span class="why">A maladaptive tradition in guppies outlived its founders.</span></li>
+        <li>Galef, B. G. (1985). <span class="why">Rats learn socially what to eat, not what to avoid.</span></li>
+        <li>Sperber, D. et al. (2010). Epistemic vigilance. <em>Mind &amp; Language</em>, 25, 359–393.</li>
+        <li>O'Connor, C. and Weatherall, J. O. (2018). <em>European Journal for Philosophy of Science</em>, 8, 855–875. <span class="why">Weighting by trust can produce stable false polarization.</span></li>
+        <li>Doyle, J. (1979). A truth maintenance system. <span class="why">Beliefs with recorded justifications: the idea behind <code>origin</code>.</span></li>
+      </ol>
+
+      <h3>Learning, memory and sleep</h3>
+      <ol class="refs">
+        <li>Garcia, J. and Koelling, R. A. (1966). <span class="why">Sickness is attributed to taste more than to appearance; aversion after one trial.</span></li>
+        <li>Rescorla, R. A. and Wagner, A. R. (1972). <span class="why">The value-learning rule.</span></li>
+        <li>Kalat, J. W. and Rozin, P. (1973). <span class="why">Learned safety.</span></li>
+        <li>McClelland, J. L., McNaughton, B. L. and O'Reilly, R. C. (1995). <span class="why">Interleaved nightly replay against interference.</span></li>
+        <li>Behrens, T. E. J. et al. (2007). <span class="why">Volatility: surprise breeds doubt.</span></li>
+        <li>Charnov, E. L. (1976). Optimal foraging, the marginal value theorem. <span class="why">When to leave a patch.</span></li>
+        <li>Seeley, T. D. <span class="why">Bees switch tasks when no one unloads them.</span></li>
+      </ol>
+
+      <h3>Action selection and motivation</h3>
+      <ol class="refs">
+        <li>Tyrrell, T. (1993). Computational mechanisms for action selection. PhD thesis, University of Edinburgh. <span class="why">Free-flow selection and 14 requirements.</span></li>
+        <li>Lorenz, K. (1950); Hinde, R. A. (1956, 1960). <span class="why">The hydraulic model of drive and its critique.</span></li>
+        <li>Brooks, R. A. (1986, 1991); Maes, P. (1989). <span class="why">Reactive and subsumption architectures.</span></li>
+        <li>Zhang, J. and Berridge, K. C. (2009). <span class="why">Wanting versus liking: W = κ·V.</span></li>
+        <li>Keramati, M. and Gutkin, B. (2014). <span class="why">Homeostatic reinforcement learning.</span></li>
+        <li>Cabanac, M. (1971). Alliesthesia; Sterling, P. (2012). Allostasis.</li>
+        <li>Oudeyer, P.-Y. et al. (2007). <span class="why">Curiosity driven by learning progress.</span></li>
+      </ol>
+
+      <h3>Body, cost and inheritance</h3>
+      <ol class="refs">
+        <li>Kleiber, M. (1932). <span class="why">Metabolism scales with mass to the ¾.</span></li>
+        <li>Elia, M. (1992). <span class="why">Brain costs about 18 times as much as muscle per gram.</span></li>
+        <li>Niven, J. E. et al. (2007); Chittka, L. and Niven, J. (2009). <span class="why">The benefits of larger organs saturate.</span></li>
+        <li>Kotrschal, A. et al. (2013, 2019). <span class="why">Large brain: smaller gut, fewer offspring, shorter life.</span></li>
+        <li>Atkinson, D. (1994). <span class="why">Temperature-size rule.</span></li>
+        <li>Hinton, G. E. and Nowlan, S. J. (1987). How learning can guide evolution. <span class="why">Baldwin effect.</span></li>
+        <li>Moore, R. S., Kaletsky, R. and Murphy, C. T. (2019). <span class="why"><em>C. elegans</em> inherits a learned avoidance for about 4 generations.</span></li>
+        <li>de Bruin et al. (2026). <span class="why">Predictable versus unpredictable change for inheriting what was lived.</span></li>
+      </ol>
+
+      <h3>Related systems</h3>
+      <ol class="refs">
+        <li>Grand, S. and Cliff, D. (1998). Creatures. <span class="why">The closest precedent of creatures that learn.</span></li>
+        <li>Yaeger, L. (1994). PolyWorld.</li>
+        <li>Ackley, D. and Littman, M. (1991). <span class="why">Interaction between learning and evolution.</span></li>
+        <li>Todd, P. M. and Miller, G. F. (1991). <span class="why">Learning toxicity from cues in simulated creatures.</span></li>
+        <li>Blount, Z. D., Borland, C. Z. and Lenski, R. E. (2008). <em>PNAS</em>, 105, 7899. <span class="why">Replaying evolution from frozen clones: the logic of paired seeds.</span></li>
+        <li>Park, J. S. et al. (2023). Generative agents. <span class="why">Societies of LLM agents.</span></li>
+      </ol>
+      <p class="muted">Some 2025–2026 references were taken from abstracts and are marked as unverified in the repository's research notes.</p>
+    </section>
+  </main>
+</div>
+
+<footer>
+  Fagi · first-agi · an artificial life experiment. Code, protocols and regenerable data are in the project repository.<br />
+  Results marked as exploratory were not preregistered and should be read as description.
+</footer>
+
+<script type="module" src="../site.js"></script>
+</body>
+</html>

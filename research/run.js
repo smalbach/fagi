@@ -144,7 +144,7 @@ async function main() {
     if (!header) { appendFileSync(rowsFile, `${Object.keys(lines[0]).join(',')}\n`); header = true; }
     appendFileSync(rowsFile, lines.map((l) => Object.values(l).map(csvValue).join(',')).join('\n') + '\n');
     if (result.genealogy.length) {
-      appendFileSync(genFile, result.genealogy.map((g) => JSON.stringify({ ...lead, ...g })).join('\n') + '\n');
+      appendFileSync(genFile, result.genealogy.map(({ trail, ...g }) => JSON.stringify({ ...lead, ...g })).join('\n') + '\n');
     }
   };
 
