@@ -3,7 +3,7 @@
 // "factory" in the game means organism on.
 
 import { enableOrganism } from '../organism.js';
-import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD } from '../config.js';
+import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES } from '../config.js';
 import { CAUTION_LINES } from '../learned/conduct.js';
 
 enableOrganism();
@@ -27,8 +27,13 @@ PHERO.life = 60;
 // With that many in the nest, two sisters exchange what they know only when
 // close enough to touch, mouth to mouth, not anywhere in it: the exchanges stay
 // local, as in a real nest, and the cost stops growing with every pair.
-LIFE.maxPopulation = 60;
 SOCIAL.touch = 24;
+
+// Three colonies, each a nest of up to 30 (90 in all), competing for fruit:
+// the colonies that do well spread (COLONIES). Measured: with them, muscle
+// evolves the same way in 7 of 8 seeds in four years.
+COLONIES.count = 3;
+LIFE.maxPopulation = 30;
 
 // The evolving body (morph.js): organs inherited with what they give and cost,
 // drawn on her. The settings turn it off; research keeps it off.
