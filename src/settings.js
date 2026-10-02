@@ -9,7 +9,7 @@ import {
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
   CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI, CONCEPT,
   LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES, CHOICE, LARDER, CONDUCT,
-  PROGRAM, MOVEMENT, CASTES,
+  PROGRAM, MOVEMENT, CASTES, MORPH,
 } from './config.js';
 import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
@@ -434,6 +434,14 @@ const GROUPS = [
     n(GEN, 'mutation', 'Mutation of each bias', 'Mutación de cada sesgo', 0, 1, 0.01),
     b(GEN, 'blend', 'Biases averaged from both parents', 'Sesgos promediados de ambos padres'),
     n(GEN, 'bodyMutation', 'Mutation of each body gene', 'Mutación de cada gen del cuerpo', 0, 0.3, 0.005),
+  ]},
+  { title: { en: 'Evolving body', es: 'Cuerpo evolutivo' }, cat: 'colony', fieldsOf: [
+    b(MORPH, 'enabled', 'Inherited organs: brain, gut, muscle, eyes, antennae, size', 'Órganos heredados: cerebro, estómago, músculo, ojos, antenas, tamaño'),
+    n(MORPH, 'mutation', 'Mutation of each organ (factor)', 'Mutación de cada órgano (factor)', 0, 0.3, 0.005),
+    n(MORPH, 'founders', 'Spread of the founders\' organs', 'Variación de los órganos de las fundadoras', 0, 0.3, 0.005),
+    n(MORPH, 'costPower', 'How fast a bigger organ costs more', 'Qué tan rápido cuesta más un órgano mayor', 1, 3, 0.05),
+    n(MORPH, 'brainLife', 'Life a bigger brain costs', 'Vida que cuesta un cerebro mayor', 0, 3, 0.1),
+    n(MORPH, 'brainBrood', 'Breeding a bigger brain slows', 'Cuánto frena la cría un cerebro mayor', 0, 3, 0.1),
   ]},
   { title: { en: 'Tastes', es: 'Sabores' }, cat: 'food', fieldsOf: [
     b(TASTE, 'enabled', 'Tastes and hidden chemistry', 'Sabores y química oculta'),

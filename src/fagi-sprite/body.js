@@ -15,7 +15,8 @@ const GRAIN = 0x5f3a1c7b;
 // `fill` scales the gaster from where it joins the waist: wider on a female,
 // slimmer on a male, and shrunk when she is starving, since an ant's gaster is
 // where the food she has eaten goes.
-export function drawBody(ctx, c, leaf, L, alive, fill = { x: 1, y: 1 }) {
+// `shape` (fagi-sprite.js, shapeOf): how big her thorax and head are drawn.
+export function drawBody(ctx, c, leaf, L, alive, fill = { x: 1, y: 1 }, shape = null) {
   const rnd = seededRng(GRAIN);
 
   ctx.save();
@@ -26,8 +27,20 @@ export function drawBody(ctx, c, leaf, L, alive, fill = { x: 1, y: 1 }) {
   drawLeaf(ctx, leaf, L);
   ctx.restore();
   petiole(ctx, c, L);
-  mesosoma(ctx, c, L);
-  head(ctx, c, L, alive, rnd);
+  scaledAt(ctx, 2.0, shape?.thorax ?? 1, () => mesosoma(ctx, c, L));
+  // The head grows from the neck forward.
+  scaledAt(ctx, 5.7, shape?.head ?? 1, () => head(ctx, c, L, alive, rnd, shape?.eyes ?? 1));
+}
+
+// Draws `paint` scaled by `k` about the point (x, 0) of the body's axis.
+function scaledAt(ctx, x, k, paint) {
+  if (k === 1) return paint();
+  ctx.save();
+  ctx.translate(x, 0);
+  ctx.scale(k, k);
+  ctx.translate(-x, 0);
+  paint();
+  ctx.restore();
 }
 
 // The gaster: the big piece, and the one that catches the most light. It has

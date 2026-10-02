@@ -9,12 +9,14 @@ import { ellipse, line } from './stroke.js';
 // look, not a snail's.
 // Asleep they fold back along the head and stop searching. A male's are a
 // touch longer.
-export function drawAntennas(ctx, fagi, step, c, L, alive, asleep = false) {
+export function drawAntennas(ctx, fagi, step, c, L, alive, asleep = false, shape = null) {
   const tracking = fagi.targetKind === 'scent';
   const opens = asleep ? 1.25 : tracking ? 0.85 : 0.6;
   const bias = tracking && !asleep ? fagi.castSide * 0.2 : 0;
   const tremble = !alive ? -0.35 : asleep ? 0 : Math.sin(step * 0.8) * 0.13;
-  const long = fagi.sex === 'male' ? 1.08 : 1;
+  const long = (fagi.sex === 'male' ? 1.08 : 1) * (shape?.antennae ?? 1);
+  // They sit on the head, which grows from the neck (5.7) forward.
+  const headAt = shape?.headAt ?? 1;
   const fold = asleep ? 0.75 : 1;
 
   const dark = mix(c.legs, '#120a05', 0.35);
@@ -23,8 +25,8 @@ export function drawAntennas(ctx, fagi, step, c, L, alive, asleep = false) {
 
   for (const sideOf of [-1, 1]) {
     const a = (opens + tremble) * sideOf + bias;
-    const bx = 10.0;
-    const by = 1.6 * sideOf;
+    const bx = headAt === 1 ? 10.0 : 5.7 + 4.3 * headAt;
+    const by = 1.6 * sideOf * headAt;
     // Scape: the first segment, straight and thick, from the antennal socket.
     const elbowX = bx + Math.cos(a) * 5.4 * fold;
     const elbowY = by + Math.sin(a) * 5.4 * fold;

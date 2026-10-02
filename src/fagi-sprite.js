@@ -21,6 +21,11 @@
 // turn the opposite way (`localLight`), or when she turned around the shine
 // would follow her and read as plastic.
 //
+// With MORPH her organs show (`shapeOf`): a bigger brain, a bigger head; a
+// bigger gut, a fuller gaster; stronger muscle, a broader thorax and thicker
+// legs; bigger eyes and longer antennae; a bigger body, a bigger ant. With
+// every organ at 1 she is drawn exactly as before.
+//
 // Each part lives in its own module under `fagi-sprite/`; here they are just
 // assembled in order.
 
@@ -59,8 +64,9 @@ export function drawFagi(ctx, fagi) {
 
   shadow(ctx, L, alive, hot ? 1.5 : 1);
 
-  // The cold makes her draw in a little; a juvenile is smaller.
-  const size = (cold ? 0.94 : 1) * (fagi.lifeStage === 'juvenile' ? 0.72 : 1);
+  // The cold makes her draw in a little; a juvenile is smaller; a bigger body is bigger.
+  const shape = shapeOf(fagi);
+  const size = (cold ? 0.94 : 1) * (fagi.lifeStage === 'juvenile' ? 0.72 : 1) * shape.size;
   ctx.scale(size, size);
 
   // Walking is not just moving the legs: the body pitches with each tripod. Very
@@ -69,9 +75,9 @@ export function drawFagi(ctx, fagi) {
   ctx.rotate(wobble);
 
   const pose = { fold: sleeping ? 1 : cold ? 0.5 : 0, stilt: hot ? 1 : 0 };
-  drawLegs(ctx, step, c, L, alive, pose);
-  drawBody(ctx, c, leaf, L, alive, gasterFill(fagi));
-  drawAntennas(ctx, fagi, step, c, L, alive, sleeping);
+  drawLegs(ctx, step, c, L, alive, pose, shape.legs);
+  drawBody(ctx, c, leaf, L, alive, gasterFill(fagi, shape.gaster), shape);
+  drawAntennas(ctx, fagi, step, c, L, alive, sleeping, shape);
   if (fagi.carrying) drawCarried(ctx, fagi.carrying.type, L);
 
   if (CASTES.enabled && fagi.casteProfile) {
@@ -103,10 +109,32 @@ export function drawFagi(ctx, fagi) {
 
 // How full the gaster is drawn: a female's is broader, a male's slimmer, and
 // hunger empties it.
-function gasterFill(fagi) {
-  const sex = fagi.sex === 'female' ? 1.06 : fagi.sex === 'male' ? 0.92 : 1;
+function gasterFill(fagi, gut = 1) {
+  const sex = (fagi.sex === 'female' ? 1.06 : fagi.sex === 'male' ? 0.92 : 1) * gut;
   const empty = fagi.alive ? Math.min(1, (fagi.hunger ?? 0) / 100) * 0.14 : 0;
   return { x: sex * (1 - empty * 0.5), y: sex * (1 - empty) };
+}
+
+// How her organs (fagi.morph, MORPH) show, as scales of each part. Volumes
+// grow as length cubed, so a part's drawn size goes with the cube root of the
+// organ, a little exaggerated so a change of a tenth can be seen.
+const NO_SHAPE = Object.freeze({ size: 1, head: 1, gaster: 1, thorax: 1, legs: 1, eyes: 1, antennae: 1, headAt: 1 });
+const drawn = (v, k = 0.5) => (v ?? 1) ** k;
+
+export function shapeOf(fagi) {
+  const m = fagi.morph;
+  if (!m) return NO_SHAPE;
+  const head = drawn(m.brain, 0.6);
+  return {
+    size: drawn(m.size, 1 / 3),
+    head,
+    gaster: drawn(m.gut, 0.45),
+    thorax: drawn(m.muscle, 0.4),
+    legs: drawn(m.muscle, 0.6),
+    eyes: drawn(m.eyes, 0.7),
+    antennae: drawn(m.antennae, 0.6),
+    headAt: head,
+  };
 }
 
 function faded(colors) {

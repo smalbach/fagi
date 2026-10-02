@@ -306,6 +306,7 @@ function paintFagi(f, world, main, isMain, canFollow) {
     row(L('Energy capacity', 'Capacidad de energía'), `×${num(b.energyMax, 2)}`),
     row(L('Metabolism', 'Metabolismo'), `×${num(b.metabolism, 2)}`),
     row(L('Insulation', 'Aislamiento'), `×${num(b.insulation, 2)}`),
+    f.morph ? row(L('Organs', 'Órganos'), morphLine(f.morph), 'ins-wrap') : '',
     fx.length ? row(t('panel.effects'), fx.map((e) => `${t(`fx.${e.stat}`)} ×${e.mult} (${formatDuration(e.time, { precise: true })})`).join(', '), 'ins-wrap') : '',
   ].join('') : '';
 
@@ -566,4 +567,13 @@ function paintObject(o, world, main) {
   }
 
   return head(`${esc(labelOf(o.type))} <small>#${o.id}</small>`, sub, type.color ?? '#999', actions) + `<div class="ins-body">${body}</div>`;
+}
+
+// Her inherited organs (MORPH), as she carries them: × today's Fagi.
+const MORPH_LABEL = {
+  brain: ['brain', 'cerebro'], gut: ['gut', 'estómago'], muscle: ['muscle', 'músculo'],
+  eyes: ['eyes', 'ojos'], antennae: ['antennae', 'antenas'], size: ['size', 'tamaño'],
+};
+function morphLine(m) {
+  return Object.entries(MORPH_LABEL).map(([k, [en, es]]) => `${L(en, es)} ×${num(m[k] ?? 1, 2)}`).join(', ');
 }

@@ -13,7 +13,8 @@ const LEGS = [
 
 // `pose`: `fold` 0-1 draws the legs in under the body (cold, asleep); `stilt`
 // 0-1 straightens them, as ants do on hot ground to lift the body off it.
-export function drawLegs(ctx, step, c, L, alive, pose = {}) {
+// `thick` (MORPH muscle) widens the femur and tibia.
+export function drawLegs(ctx, step, c, L, alive, pose = {}, thick = 1) {
   const dark = mix(c.legs, '#120a05', 0.45);
   const clear = mix(c.legs, '#ffe2b4', 0.4);
   ctx.lineJoin = 'round';
@@ -26,8 +27,8 @@ export function drawLegs(ctx, step, c, L, alive, pose = {}) {
 
       footprint(ctx, p, L);
 
-      legSegment(ctx, leg.x, 0, p.kneeX, p.kneeY, 2.4, dark, clear, L);
-      legSegment(ctx, p.kneeX, p.kneeY, p.ankleX, p.ankleY, 1.7, dark, clear, L);
+      legSegment(ctx, leg.x, 0, p.kneeX, p.kneeY, 2.4 * thick, dark, clear, L);
+      legSegment(ctx, p.kneeX, p.kneeY, p.ankleX, p.ankleY, 1.7 * thick, dark, clear, L);
 
       // The tarsus is thin and has no highlight: almost a hair.
       ctx.strokeStyle = dark;

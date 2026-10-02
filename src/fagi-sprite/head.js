@@ -5,7 +5,7 @@ import { shell, edgeLine, outline } from './light.js';
 import { headPath } from './silhouettes.js';
 import { ellipse, point, line } from './stroke.js';
 
-export function head(ctx, c, L, alive, rnd) {
+export function head(ctx, c, L, alive, rnd, eyeScale = 1) {
   ctx.save();
   headPath(ctx);
   ctx.clip();
@@ -38,14 +38,14 @@ export function head(ctx, c, L, alive, rnd) {
   ctx.quadraticCurveTo(10.9, 0, 10.2, -1.9);
   ctx.fill();
 
-  eyes(ctx, L, alive);
+  eyes(ctx, L, alive, eyeScale);
   mandibles(ctx, c);
 }
 
 // Compound eyes: small, matte and on the sides of the head, not the front.
 // A worker's eye is a tiny pill; a shiny black marble turns the critter
 // into a doll.
-function eyes(ctx, L, alive) {
+function eyes(ctx, L, alive, k = 1) {
   for (const sideOf of [-1, 1]) {
     const x = 7.9;
     const y = 3.5 * sideOf;
@@ -54,6 +54,7 @@ function eyes(ctx, L, alive) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(turn);
+    if (k !== 1) ctx.scale(k, k);
 
     // The rim: the eye is set into the head, not stuck on top.
     ellipse(ctx, 0, 0, 1.55, 1.2, 'rgba(46,24,10,0.5)');
