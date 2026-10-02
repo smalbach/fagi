@@ -154,7 +154,7 @@ function forageNeed(fagi, hungerU) {
 function buildCandidates(fagi, world, {
   hungerU, thirstU, range, visible, pool, place: placeOf, visibleSource, source, smelledSource, sourceStrength,
 }) {
-  const nestObj = nestOf(world);
+  const nestObj = nestOf(world, fagi);
   const forage = forageNeed(fagi, hungerU);
   // If something comes in through both senses, sight wins (it's more precise).
   const byRef = new Map();
@@ -295,7 +295,7 @@ export function perceive(fagi, world) {
   return {
     thirstU, hungerU, range, visible, pool, candidates, seen, smelledOnes, best, ranked,
     energyU: fagi.energy / energyMax(fagi),
-    nest: nestOf(world), source, visibleSource,
+    nest: nestOf(world, fagi), source, visibleSource,
     inNest: Boolean(nestUnder(fagi, world)),
     waterPlace: placeOf,
     smellsWater: Boolean(pool) && smellsObject(fagi, visible ?? pool.ref, world),

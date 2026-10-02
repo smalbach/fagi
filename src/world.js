@@ -68,10 +68,19 @@ export function waterSource(world) {
   return world.objects.find((o) => o.type === 'water') ?? null;
 }
 
-// The nest: home, pantry and the best place to rest.
-export function nestOf(world) {
+// The nest: home, pantry and the best place to rest. With more than one
+// colony (COLONIES), each Fagi's is her own (fagi.home); without one given,
+// or with a single nest, the first on the map.
+export function nestOf(world, fagi = null) {
+  if (fagi?.home != null) {
+    const home = world.objects.find((o) => o.id === fagi.home);
+    if (home) return home;
+  }
   return world.objects.find((o) => OBJECT_TYPES[o.type].kind === 'nest') ?? null;
 }
+
+// Every nest on the map.
+export const nestsOf = (world) => world.objects.filter((o) => OBJECT_TYPES[o.type].kind === 'nest');
 
 // The two counts below work for ANY pantry: the nest's real one and
 // the one Fagi remembers (fagi.pantry). That's why they work on a bare stock and
@@ -143,8 +152,10 @@ export function nestRipeness(nestObj, type) {
 // Time runs in the pantry too, only NEST.keepFactor times more
 // slowly. Once its life is up, the ration spoils and disappears.
 export function updateNest(world, dt) {
-  const nestObj = nestOf(world);
-  if (!nestObj) return;
+  for (const nestObj of nestsOf(world)) spoilIn(world, nestObj, dt);
+}
+
+function spoilIn(world, nestObj, dt) {
   sync(nestObj);
   const step = dt / NEST.keepFactor;
 

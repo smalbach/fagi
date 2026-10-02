@@ -23,12 +23,12 @@
 //
 // Nothing here runs with LIFE off.
 
-import { LIFE, HUNGER, THIRST, THERMAL, CYCLE, GEN, MORPH } from './config.js';
-import { nestOf, takeFromNest, record } from './world.js';
+import { LIFE, HUNGER, THIRST, THERMAL, CYCLE, GEN, MORPH, COLONIES } from './config.js';
+import { nestOf, nestsOf, takeFromNest, record } from './world.js';
 import { nestUnder } from './nest.js';
 import { createProgram, innateOf } from './program.js';
 import { createFagi } from './fagi.js';
-import { assignSex, bodyFor, bodyMult, energyMax } from './biology.js';
+import { assignSex, bodyFor, bodyMult, energyMax, ensureBothSexes } from './biology.js';
 import { morphOn, founderMorph, baldwinOn, founderPlastic, epigeneticOn, epigeneticMark, maternalMark } from './morph.js';
 import { strengthOf } from './load.js';
 import { createGenome, recombine, applyGenome, teach } from './generations.js';
@@ -55,6 +55,28 @@ export function foundPopulation(world, colony) {
   world.lineage ??= {};
   colony.nextId = colony.ants.length + 1;
   colony.life = { matings: 0, laid: 0, hatched: 0, eggsLost: {}, deaths: {}, generations: 0, peak: colony.ants.length, extinctAt: null };
+  // More colonies (COLONIES): the ants given found the first nest; each
+  // further nest gets founders of its own, born here and set at their door.
+  const nests = nestsOf(world);
+  if (nests.length > 1) {
+    for (const f of colony.ants) f.home = nests[0].id;
+    for (const nest of nests.slice(1)) {
+      const group = [];
+      for (let i = 0; i < COLONIES.founders; i++) {
+        const f = createFagi();
+        f.id = colony.nextId++;
+        f.sister = true;
+        f.home = nest.id;
+        f.x = nest.x;
+        f.y = nest.y;
+        group.push(f);
+      }
+      ensureBothSexes(group);
+      colony.ants.push(...group);
+    }
+    colony.life.peak = colony.ants.length;
+    colony.life.founded = 0;
+  }
   for (const f of colony.ants) {
     f.startAge = LIFE.adultAt;
     f.generation = 0;
@@ -154,10 +176,10 @@ function ready(f, world, nest, crowd = 1) {
   return true;
 }
 
-export function nestTemperature(world) {
+export function nestTemperature(world, nest = nestOf(world)) {
   if (!THERMAL.enabled || !CYCLE.enabled) return null;
   const sky = cycleAt(world.time);
-  return THERMAL.nestBuffer * (THERMAL.nestTemp + nestWarmth(world)) + (1 - THERMAL.nestBuffer) * sky.ambient;
+  return THERMAL.nestBuffer * (THERMAL.nestTemp + nestWarmth(world, nest)) + (1 - THERMAL.nestBuffer) * sky.ambient;
 }
 
 // How fast an egg develops at this nest temperature: 0 in the cold, 1 warm.
@@ -169,6 +191,10 @@ export function eggPace(temp) {
 function living(colony) {
   return colony.ants.filter((f) => f.alive).length;
 }
+
+// Is she of this nest's colony? With one nest, everyone is.
+const memberOf = (f, nest, world) => (f.home ?? nestOf(world)?.id) === nest.id;
+const livingIn = (world, colony, nest) => colony.ants.filter((f) => f.alive && memberOf(f, nest, world)).length;
 
 function mate(world, colony, nest, mother, father) {
   const lineage = world.lineage;
@@ -207,13 +233,13 @@ function mate(world, colony, nest, mother, father) {
 }
 
 function matings(world, colony, nest) {
-  const alive = living(colony) + (nest.eggs?.length ?? 0);
+  const alive = livingIn(world, colony, nest) + (nest.eggs?.length ?? 0);
   if (alive >= LIFE.maxPopulation) return;
   const crowd = crowding(alive);
-  const females = colony.ants.filter((f) => f.sex === 'female' && ready(f, world, nest, crowd) && edibleCount(f, f.pantry) >= LIFE.mateStock
+  const females = colony.ants.filter((f) => f.sex === 'female' && memberOf(f, nest, world) && ready(f, world, nest, crowd) && edibleCount(f, f.pantry) >= LIFE.mateStock
     && (!LIFE.provision || (f.provided ?? 0) >= LIFE.provision));
   if (!females.length) return;
-  const males = colony.ants.filter((f) => f.sex === 'male' && ready(f, world, nest, crowd));
+  const males = colony.ants.filter((f) => f.sex === 'male' && memberOf(f, nest, world) && ready(f, world, nest, crowd));
   for (const mother of females) {
     const options = males.filter((m) => relatedness(world.lineage, mother.id, m.id) < LIFE.kinLimit && ready(m, world, nest, crowd));
     if (!options.length) continue;
@@ -221,7 +247,7 @@ function matings(world, colony, nest) {
     const appeal = (m) => looksWell(m) * (m.morph ? strengthOf(m) ** (MORPH.choice ?? 0) : 1);
     const father = options.reduce((best, m) => (appeal(m) > appeal(best) || (appeal(m) === appeal(best) && m.id < best.id) ? m : best));
     mate(world, colony, nest, mother, father);
-    if (living(colony) + nest.eggs.length >= LIFE.maxPopulation) return;
+    if (livingIn(world, colony, nest) + nest.eggs.length >= LIFE.maxPopulation) return;
   }
 }
 
@@ -240,6 +266,7 @@ function hatch(world, colony, nest, egg) {
   child.lifespan = lifespanOf(child);
   child.generation = egg.generation;
   child.lifeStage = 'juvenile';
+  if (nestsOf(world).length > 1) child.home = nest.id;   // born into her mother's colony
   if (GEN.culture && mother?.alive) teach(child, mother);
   colony.ants.push(child);
   world.lineage[child.id] = { mother: egg.mother, father: egg.father, bornAt: world.time, generation: egg.generation, sex: egg.sex, inbreeding: egg.inbreeding, name };
@@ -258,7 +285,7 @@ function lose(world, colony, nest, egg, reason) {
 }
 
 function incubate(world, colony, nest, dt) {
-  const pace = eggPace(nestTemperature(world));
+  const pace = eggPace(nestTemperature(world, nest));
   for (const egg of [...(nest.eggs ?? [])]) {
     if (egg.progress < 1) {
       egg.progress = Math.min(1, egg.progress + (pace * dt) / LIFE.incubation);
@@ -281,29 +308,54 @@ function incubate(world, colony, nest, dt) {
 export function updateLife(world, colony, dt) {
   if (!LIFE.enabled) return;
   if (!colony.life) foundPopulation(world, colony);
-  const nest = nestOf(world);
-  if (!nest) return;
+  const nests = nestsOf(world);
+  if (!nests.length) return;
   for (const f of colony.ants) {
     if (!f.alive && !f.counted) {
       f.counted = true;
       colony.life.deaths[f.cause || 'unknown'] = (colony.life.deaths[f.cause || 'unknown'] ?? 0) + 1;
     }
   }
-  incubate(world, colony, nest, dt);
-  matings(world, colony, nest);
-  if (!colony.life.extinctAt && !living(colony) && !(nest.eggs?.length)) {
+  for (const nest of nests) {
+    incubate(world, colony, nest, dt);
+    matings(world, colony, nest);
+  }
+  if (nests.length > 1) refound(world, colony, nests);
+  if (!colony.life.extinctAt && !living(colony) && !nests.some((n) => n.eggs?.length)) {
     colony.life.extinctAt = world.time;
     record(world, 'extinct', { at: world.time });
+  }
+}
+
+// An emptied nest (no one of hers alive, no egg) is refounded by a pair from
+// the fullest colony, if it is at least COLONIES.foundAt full: a fertile
+// female and an unrelated male move their home there and walk to it. So the
+// colonies that do well spread, and those that fail leave room.
+function refound(world, colony, nests) {
+  if (world.time < (colony.nextFoundAt ?? 0)) return;
+  colony.nextFoundAt = world.time + COLONIES.every;
+  for (const empty of nests) {
+    if (livingIn(world, colony, empty) || empty.eggs?.length) continue;
+    const source = nests
+      .filter((n) => n !== empty && livingIn(world, colony, n) >= COLONIES.foundAt * LIFE.maxPopulation)
+      .sort((a, b) => livingIn(world, colony, b) - livingIn(world, colony, a))[0];
+    if (!source) continue;
+    const adults = colony.ants.filter((f) => f.alive && memberOf(f, source, world) && f.lifeStage === 'adult' && fertility(f) > 0);
+    const female = adults.find((f) => f.sex === 'female');
+    const male = female && adults.find((f) => f.sex === 'male' && relatedness(world.lineage, female.id, f.id) < LIFE.kinLimit);
+    if (!female || !male) continue;
+    for (const f of [female, male]) { f.home = empty.id; f.pantry = {}; }
+    colony.life.founded = (colony.life.founded ?? 0) + 1;
+    record(world, 'colony_found', { from: source.id, to: empty.id, female: female.id, male: male.id });
   }
 }
 
 // A snapshot for reports and the HUD.
 export function census(world, colony) {
   const alive = colony.ants.filter((f) => f.alive);
-  const nest = nestOf(world);
   return {
     alive: alive.length,
-    eggs: nest?.eggs?.length ?? 0,
+    eggs: nestsOf(world).reduce((n, nest) => n + (nest.eggs?.length ?? 0), 0),
     stages: alive.reduce((a, f) => ({ ...a, [f.lifeStage]: (a[f.lifeStage] ?? 0) + 1 }), {}),
     females: alive.filter((f) => f.sex === 'female').length,
     males: alive.filter((f) => f.sex === 'male').length,

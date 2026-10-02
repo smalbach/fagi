@@ -14,7 +14,7 @@ import { lookInLarder, larderFull, nestFull } from './larder.js';
 import { judge, chewing } from './decision/bite.js';
 
 export function nestUnder(fagi, world) {
-  const nestObj = nestOf(world);
+  const nestObj = nestOf(world, fagi);   // her own nest: she does not go into another colony's
   if (!nestObj) return null;
   return Math.hypot(nestObj.x - fagi.x, nestObj.y - fagi.y) <= radiusOf(nestObj) ? nestObj : null;
 }

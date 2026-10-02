@@ -94,7 +94,7 @@ export function line(fagi, world, ctx) {
     return { action: 'lineNest', reason: reasonOf('reason.lineNest'), target: ctx.nest, targetKind: 'nest', trailKey: null };
   }
   if (pressing(ctx) || fagi.carrying || fagi.thermalFeel) return null;
-  if ((nestOf(world)?.lining?.length ?? 0) >= CONCEPT.lining) return null;
+  if ((nestOf(world, fagi)?.lining?.length ?? 0) >= CONCEPT.lining) return null;
   const best = believed(fagi, world, ctx, 'warm')[0];
   if (!best) return null;
   return { action: 'haul', reason: reasonOf(`reason.haul.${via(best.b)}`), target: best.ref, targetKind: 'thing', trailKey: null };

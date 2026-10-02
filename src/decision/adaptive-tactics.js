@@ -23,7 +23,7 @@ export function zigzagTactic(fagi, world, ctx, dt) {
 // fulfilled, scouting for fresh resource drops or hazards.
 export function patrolTactic(fagi, world, ctx, dt) {
   if (!fagi.tactics?.patrol && !fagi.activeTactic?.patrol) return null;
-  const nest = nestOf(world);
+  const nest = nestOf(world, fagi);
   if (!nest) return null;
   const r = 160;
   const ang = (world.time * 0.4) % (Math.PI * 2);
@@ -37,7 +37,7 @@ export function patrolTactic(fagi, world, ctx, dt) {
 export function shelterRetreatTactic(fagi, world, ctx, dt) {
   if (!fagi.tactics?.shelterRetreat && !fagi.activeTactic?.shelterRetreat) return null;
   if (!fagi.raining && !fagi.dark && (fagi.thermalStress ?? 0) <= 0) return null;
-  const nest = nestOf(world);
+  const nest = nestOf(world, fagi);
   const nestDist = nest ? Math.hypot(nest.x - fagi.x, nest.y - fagi.y) : Infinity;
   // Look for a closer tree or rock
   let nearest = null;

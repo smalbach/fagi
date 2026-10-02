@@ -272,10 +272,12 @@ function paintFagi(f, world, main, isMain, canFollow) {
     THERMAL.enabled && f.thermalStress != null ? bar(t('stat.thermalStress'), f.thermalStress / THERMAL.maxStress, pct(f.thermalStress / THERMAL.maxStress), '#e0875a') : '',
   ].join('');
 
-  const nest = nestOf(world);
+  const nest = nestOf(world, f);
   const inNest = nest && f.x != null && nestUnder(f, world);
   const state = [
     row(L('Doing', 'Haciendo'), now ? esc(now) : null),
+    f.home != null ? row(L('Colony', 'Colonia'), `${L('nest', 'nido')} #${f.home}`) : null,
+    f.carrying?.weight != null ? row(L('Load', 'Carga'), `×${num(f.carrying.weight, 2)} ${L('weight', 'peso')}, ×${num(f.carrying.hardness ?? 1, 2)} ${L('hardness', 'dureza')}`) : null,
     caste ? row(L('Colony role', 'Rol en la colonia'), `${caste.icon} ${L(caste.name.en, caste.name.es)} (${Math.round(caste.affinity * 100)}% ${L('affinity', 'afinidad')})`) : null,
     row(L('Why', 'Por qué'), f.thought?.reason ? esc(tx(f.thought.reason)) : null, 'ins-wrap'),
     row(L('Decided by', 'Lo decide'), f.thought?.tier ? `${f.thought.tier} · ${f.thought.rule}` : null),

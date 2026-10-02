@@ -1,7 +1,7 @@
 // Generates the map: pools and rocks scattered at random, without overlapping each other
 // and leaving free the spot where Fagi spawns.
 
-import { WORLD, MAPGEN, OBJECT_TYPES, CONCEPT, POINT_TYPES } from './config.js';
+import { WORLD, MAPGEN, OBJECT_TYPES, CONCEPT, POINT_TYPES, COLONIES } from './config.js';
 import { addObject, record } from './world.js';
 import { createChemistry, createSpecies, registerSpecies } from './chemistry.js';
 import { radiusOf } from './obstacles.js';
@@ -125,6 +125,28 @@ function placeCustomTrees(world) {
   }
 }
 
+// More colonies (COLONIES.count): each further nest a site like the first,
+// with its own water close and its own trees at the same distances, the
+// nests at least COLONIES.spacing apart. Draws nothing with one colony.
+function placeColonies(world, first) {
+  const nests = [first];
+  const r = OBJECT_TYPES.nest.radius;
+  for (let n = 1; n < COLONIES.count; n++) {
+    for (let attempt = 0; attempt < 400; attempt++) {
+      const x = MAPGEN.margin + r + Math.random() * (WORLD.width - 2 * (MAPGEN.margin + r));
+      const y = MAPGEN.margin + r + Math.random() * (WORLD.height - 2 * (MAPGEN.margin + r));
+      if (nests.some((o) => Math.hypot(o.x - x, o.y - y) < COLONIES.spacing)) continue;
+      if (!fits(world, x, y, r)) continue;
+      const nest = addObject(world, x, y, 'nest', undefined, 'map');
+      nests.push(nest);
+      const away = Math.atan2(y - first.y, x - first.x);
+      placeFarFrom(world, 'water', 1, nest, 120, 220, away + Math.PI / 2, Math.PI);
+      placeFarFrom(world, 'tree', MAPGEN.trees, nest, MAPGEN.treeMinNestDistance, MAPGEN.treeMaxNestDistance, away, 2.4);
+      break;
+    }
+  }
+}
+
 export function generateMap(world, { chemistry = null } = {}) {
   // The nest goes first and close to where Fagi spawns: it's her starting point.
   const cx = WORLD.width / 2;
@@ -147,6 +169,7 @@ export function generateMap(world, { chemistry = null } = {}) {
       MAPGEN.treeMinNestDistance, MAPGEN.treeMaxNestDistance, ang + Math.PI,
     );
   }
+  placeColonies(world, nest);
   placeCustomTrees(world);
   // A bigger map keeps the same rocks per square pixel; density scales it.
   const rockDensity = MAPGEN.density ?? 1;

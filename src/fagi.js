@@ -147,7 +147,7 @@ export function createFagi(born = {}) {
 // While carrying she marks the path with her pheromone.
 function markTrail(fagi, world, dt) {
   if (!fagi.carrying) return;
-  const nestObj = nestOf(world);
+  const nestObj = nestOf(world, fagi);
   if (!nestObj) return;
   fagi.pheroTimer -= dt;
   if (fagi.pheroTimer > 0) return;

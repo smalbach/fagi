@@ -202,9 +202,8 @@ export function lineNest(fagi, world, nest) {
 }
 
 // °C the nest's lining adds to its temperature.
-export function nestWarmth(world) {
+export function nestWarmth(world, nest = nestOf(world)) {
   if (!CONCEPT.enabled) return 0;
-  const nest = nestOf(world);
   let heat = 0;
   for (const item of nest?.lining ?? []) {
     const aff = affordanceOf(world.thingChemistry, item.look);

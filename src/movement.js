@@ -190,7 +190,7 @@ export function explore(fagi, world, dt) {
 
   if (!valid || fagi.exploreResume) {
     const prior = fagi.exploreResume && valid && destination.inView ? destination : null;
-    fagi.exploreTarget = waypointInView(fagi, fagi.explored, nestOf(world), world, prior);
+    fagi.exploreTarget = waypointInView(fagi, fagi.explored, nestOf(world, fagi), world, prior);
     fagi.exploreLegs = (fagi.exploreLegs ?? 0) + 1;
     fagi.exploreTimer = EXPLORE.giveUp;
     if (prior) {

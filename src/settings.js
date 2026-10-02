@@ -9,7 +9,7 @@ import {
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
   CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI, CONCEPT,
   LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES, CHOICE, LARDER, CONDUCT,
-  PROGRAM, MOVEMENT, CASTES, MORPH, SEASONS, LOAD,
+  PROGRAM, MOVEMENT, CASTES, MORPH, SEASONS, LOAD, COLONIES,
 } from './config.js';
 import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
@@ -84,6 +84,7 @@ const GROUPS = [
     { ...n(SEASONS, 'hotYears', 'Share of hot years', 'Parte de años calurosos', 0, 1, 0.05), id: 'seasons.hotYears' },
     { ...n(SEASONS, 'summerHeat', 'Degrees a hot summer adds', 'Grados que suma un verano caluroso', 0, 20, 1), id: 'seasons.summerHeat' },
     { ...n(SEASONS, 'persist', 'Chance a year repeats the last kind', 'Probabilidad de que un año repita el tipo del anterior', 0, 1, 0.05), id: 'seasons.persist' },
+    { ...n(COLONIES, 'count', 'Colonies (nests) on a new map', 'Colonias (nidos) en un mapa nuevo', 1, 6, 1), id: 'colonies.count' },
     { ...b(LOAD, 'enabled', 'Fruit weighs and resists (carrying and chewing cost)', 'La fruta pesa y resiste (cargar y masticar cuesta)'), id: 'load.enabled' },
     n(CYCLE, 'minLight', 'Light at night', 'Luz de noche', 0, 1, 0.02),
     n(CYCLE, 'nightSight', 'Sight left at night (fraction)', 'Vista que le queda de noche (fracción)', 0.1, 1, 0.05),

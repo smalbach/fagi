@@ -719,6 +719,25 @@ export const TREE = {
   life: 0,            // seconds a tree lives (0 = forever)
 };
 
+// More than one colony (reproduction.js, mapgen.js): nests that each raise
+// their own brood from their own pantry, competing for the same fruit. A
+// colony that thrives sends out a pair to refound an emptied nest, so the
+// colonies that do well spread: selection between colonies, the way ants
+// evolve (each colony's pantry is shared inside it, not across).
+//   count    : nests on the map (1 = one colony, as always)
+//   founders : founders of each further nest
+//   spacing  : px at least between two nests
+//   foundAt  : a colony this full (share of LIFE.maxPopulation, per nest) may
+//              send a pair to an empty nest
+//   every    : seconds between looks for an empty nest to refound
+export const COLONIES = {
+  count: 1,
+  founders: 4,
+  spacing: 380,
+  foundAt: 0.5,
+  every: 60,
+};
+
 // The weight and hardness of fruit (load.js): what carrying and eating ask of
 // her body. Off, every fruit weighs and gives the same.
 //   range     : a fruit's weight, × a typical one, drawn when it falls (log-uniform)
@@ -1152,7 +1171,7 @@ export const NIGHTAI = {
 //   eggStarve      : seconds a ready egg waits for a ration to hatch before it dies
 //   kinLimit       : relatedness (0-1) from which two do not mate (0.5 = parent
 //                    and child, full siblings)
-//   maxPopulation  : the nest holds this many, eggs included
+//   maxPopulation  : a nest holds this many, eggs included
 //   gradual        : 1 = fertility fades through old age, and a crowded nest slows
 //                    every brood before the ceiling (0 = senescents never breed and
 //                    the ceiling is the only brake, as measured up to §25.12)
@@ -1178,7 +1197,7 @@ export const LIFE = {
   eggWarm: 22,
   eggStarve: 180,
   kinLimit: 0.5,
-  maxPopulation: 16,  // the game uses 60 (app/organism-on.js)
+  maxPopulation: 16,  // per nest; the game uses 60 (app/organism-on.js)
   gradual: 1,
 };
 
