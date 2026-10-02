@@ -390,6 +390,21 @@ export const GEN = {
 //                 (Withers et al. 1993); eyes with daylight, antennae with
 //                 scents, wasting when unused (Moran et al. 2015); size is set by
 //                 how well she was fed while young, then fixed
+//   inherit     : what a daughter inherits of what her parents lived:
+//                 0 darwin     only their genes; what they lived dies with them
+//                 1 baldwin    how much she can change is a gene of its own
+//                              (genome.plastic), inherited and selected; keeping
+//                              that capacity costs (Hinton & Nowlan 1987; Paenke
+//                              et al. 2007)
+//                 2 epigenetic a mark of what her parents lived moves where her
+//                              organs start and settle, fading each generation
+//                              (C. elegans keeps a learned avoidance ~4
+//                              generations: Moore et al. 2019)
+//   baldwin     : mutation and founders' spread of the plasticity gene, its
+//                 range, and what each unit of it above 1 costs in resting burn
+//   epigenetic  : share of what a parent lived that reaches the mark, and
+//                 how much of a parent's own mark is kept (0.7^4 ≈ a quarter
+//                 left after four generations)
 export const MORPH = {
   enabled: 0,
   range: [0.5, 2],
@@ -411,6 +426,9 @@ export const MORPH = {
     ref: { move: 0.53, out: 0.59, light: 0.52, smell: 0.11, eat: 0.31, fed: 0.7 },
     amp: { muscle: 0.5, gut: 0.4, brain: 0.4, eyes: 0.5, antennae: 0.5, size: 0.6 },
   },
+  inherit: 0,
+  baldwin: { mutation: 0.08, founders: 0.15, range: [0, 2.5], cost: 0.05 },
+  epigenetic: { share: 0.5, keep: 0.7 },
 };
 
 // Explanations (learned/explain.js): why she thinks what she thinks of a fruit.

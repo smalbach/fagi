@@ -10,7 +10,7 @@
 // run without the organism is the preregistered one to the last digit.
 
 import { ENERGY, SEX, GEN } from './config.js';
-import { morphOn, morphBody } from './morph.js';
+import { morphOn, morphBody, plasticCost } from './morph.js';
 import { givenName } from './names.js';
 
 export const SEXES = ['female', 'male'];
@@ -37,8 +37,9 @@ export function bodyFor(sex, genome = null, morph = genome?.morph) {
     const m = morphBody(morph);
     body.speed *= m.speed;
     body.energyMax *= m.energyMax;
-    body.drain = body.metabolism * m.drain;
-    body.metabolism *= m.metabolism;
+    const keep = plasticCost(genome);   // Baldwin: being able to change costs
+    body.drain = body.metabolism * m.drain * keep;
+    body.metabolism *= m.metabolism * keep;
     for (const k of ['view', 'smell', 'memory', 'digest', 'tolerance', 'life', 'brood']) body[k] = m[k];
   }
   return body;

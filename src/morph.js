@@ -30,6 +30,46 @@ const clampGene = (v) => Math.max(MORPH.range[0], Math.min(MORPH.range[1], v));
 const gauss = (rnd) => Math.sqrt(-2 * Math.log(1 - rnd())) * Math.cos(2 * Math.PI * rnd());
 
 export const morphOn = () => Boolean(MORPH.enabled);
+export const INHERIT = { darwin: 0, baldwin: 1, epigenetic: 2 };
+export const baldwinOn = () => morphOn() && MORPH.inherit === INHERIT.baldwin;
+export const epigeneticOn = () => morphOn() && MORPH.inherit === INHERIT.epigenetic;
+
+// --- inheritance of what was lived (MORPH.inherit) ---------------------------
+
+const clampPlastic = (v) => Math.max(MORPH.baldwin.range[0], Math.min(MORPH.baldwin.range[1], v));
+
+// Baldwin: how much she can change, a gene around 1 (1 = MORPH.plastic as set).
+export function founderPlastic(rnd = Math.random) {
+  return round(clampPlastic(1 + gauss(rnd) * MORPH.baldwin.founders));
+}
+export function inheritPlastic(mother = 1, father = mother, rnd = Math.random) {
+  return round(clampPlastic(((mother ?? 1) + (father ?? 1)) / 2 + gauss(rnd) * MORPH.baldwin.mutation));
+}
+
+// What keeping that capacity costs: resting burn, 1 at a plasticity gene of 1.
+export const plasticCost = (genome) => (baldwinOn() && genome?.plastic != null ? Math.max(0.5, 1 + MORPH.baldwin.cost * (genome.plastic - 1)) : 1);
+
+// Epigenetic: the mark a child gets at conception, organ by organ. From each
+// parent, what she lived beyond where she started (carried / (gene × her own
+// mark)) to the power MORPH.epigenetic.share, times her own mark faded
+// (keep); the child's is the geometric mean of both parents', kept within
+// the plastic range.
+export function epigeneticMark(mother, father = null) {
+  const E = MORPH.epigenetic;
+  const max = MORPH.plastic.max;
+  const of = (p, k) => {
+    if (!p?.morph || !p.genome?.morph) return 1;
+    const mark = p.epi?.[k] ?? 1;
+    const lived = (p.morph[k] ?? 1) / ((p.genome.morph[k] ?? 1) * mark);
+    return mark ** E.keep * lived ** E.share;
+  };
+  const out = {};
+  for (const k of MORPH_TRAITS) {
+    const v = father ? Math.sqrt(of(mother, k) * of(father, k)) : of(mother, k);
+    out[k] = round(Math.max(1 - max, Math.min(1 + max, v)));
+  }
+  return out;
+}
 
 // A founder's genes: around 1, a little apart, so there is something to select.
 export function founderMorph(rnd = Math.random) {
@@ -103,10 +143,11 @@ const SHARE = { size: 0.3 };   // what growing her whole body costs, as a share 
 
 export const plasticOn = () => Boolean(MORPH.enabled && MORPH.plastic?.enabled);
 
-// What each organ's use asks of it, as a factor on her gene.
-export function targetOf(k, use) {
+// What each organ's use asks of it, as a factor on her gene. `gain` scales
+// how strongly it follows (her plasticity gene, with Baldwin; else 1).
+export function targetOf(k, use, gain = 1) {
   const P = MORPH.plastic;
-  const ask = 1 + P.amp[k] * ((use[USE_OF[k]] ?? P.ref[USE_OF[k]]) / P.ref[USE_OF[k]] - 1);
+  const ask = 1 + gain * P.amp[k] * ((use[USE_OF[k]] ?? P.ref[USE_OF[k]]) / P.ref[USE_OF[k]] - 1);
   return Math.max(1 - P.max, Math.min(1 + P.max, ask));
 }
 
@@ -130,12 +171,17 @@ export function updatePlasticity(fagi, out, dt) {
   if (young) use.fed += ((1 - Math.min(1, (fagi.hunger ?? 0) / 100)) - use.fed) * k;
 
   const step = Math.min(1, dt / P.tau);
+  // Baldwin: how strongly she follows her use is hers. Epigenetic: her
+  // parents' mark moves where each organ settles.
+  const gain = baldwinOn() ? fagi.genome.plastic ?? 1 : 1;
+  const marks = epigeneticOn() ? fagi.epi : null;
   let moved = 0;
   for (const o of MORPH_TRAITS) {
     if (o === 'size' && !young) continue;   // grown: her size is set
     const gene = fagi.genome.morph[o] ?? 1;
     const now = fagi.morph[o] ?? gene;
-    const goal = gene * targetOf(o, use);
+    const settle = Math.max(1 - P.max, Math.min(1 + P.max, (marks?.[o] ?? 1) * targetOf(o, use, gain)));
+    const goal = gene * settle;
     const next = now + (goal - now) * step;
     if (next > now) {
       // Building tissue costs: hunger, by the organ's share of her burn.

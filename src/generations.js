@@ -28,7 +28,7 @@ import { TRAITS } from './chemistry.js';
 import { pass } from './social.js';
 import { restoreHabits, habitsSnapshot } from './habits.js';
 import { BODY_TRAITS, bodyFor, energyMax } from './biology.js';
-import { morphOn, inheritMorph } from './morph.js';
+import { morphOn, inheritMorph, baldwinOn, inheritPlastic } from './morph.js';
 import { programOf, line } from './program.js';
 
 // Every trait a fruit can have, rotten fruit's smell included.
@@ -85,6 +85,7 @@ export function mutate(genome, rnd = Math.random) {
   }
   // Her organs (MORPH), from her one parent's.
   if (morphOn()) out.morph = inheritMorph(genome.morph, null, rnd);
+  if (baldwinOn()) out.plastic = inheritPlastic(genome.plastic, genome.plastic, rnd);
   return out;
 }
 
@@ -117,6 +118,7 @@ export function recombine(mother, father, rnd = Math.random, parents = null) {
   }
   // Her organs (MORPH): between her parents', then a step.
   if (morphOn()) out.morph = inheritMorph(mother.morph, father.morph, rnd);
+  if (baldwinOn()) out.plastic = inheritPlastic(mother.plastic, father.plastic, rnd);
   return parents ? { ...out, parents } : out;
 }
 
@@ -142,8 +144,12 @@ export function diversity(genomes) {
 // as if she had met it GEN.innateN times. Body genes shape her body.
 export function applyGenome(fagi, genome) {
   fagi.genome = genome;
-  // What she carries of her organs starts as what she inherited (MORPH).
-  if (genome.morph) fagi.morph = { ...genome.morph };
+  // What she carries of her organs starts as what she inherited (MORPH),
+  // moved by her parents' mark if one came with her (epigenetic inheritance).
+  if (genome.morph) {
+    fagi.epi = genome.epi ? { ...genome.epi } : null;
+    fagi.morph = Object.fromEntries(Object.entries(genome.morph).map(([k, v]) => [k, genome.epi ? v * (genome.epi[k] ?? 1) : v]));
+  }
   if (genome.body || genome.morph) {
     fagi.body = bodyFor(fagi.sex, genome, fagi.morph);
     fagi.energy = energyMax(fagi);

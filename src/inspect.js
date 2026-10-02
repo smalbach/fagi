@@ -307,6 +307,8 @@ function paintFagi(f, world, main, isMain, canFollow) {
     row(L('Metabolism', 'Metabolismo'), `×${num(b.metabolism, 2)}`),
     row(L('Insulation', 'Aislamiento'), `×${num(b.insulation, 2)}`),
     f.morph ? row(L('Organs (inherited)', 'Órganos (heredado)'), morphLine(f.morph, f.genome?.morph), 'ins-wrap') : '',
+    f.genome?.plastic != null ? row(L('Plasticity gene', 'Gen de plasticidad'), `×${num(f.genome.plastic, 2)}`) : '',
+    f.epi ? row(L('Mark from her parents', 'Marca de sus padres'), morphLine(f.epi), 'ins-wrap') : '',
     fx.length ? row(t('panel.effects'), fx.map((e) => `${t(`fx.${e.stat}`)} ×${e.mult} (${formatDuration(e.time, { precise: true })})`).join(', '), 'ins-wrap') : '',
   ].join('') : '';
 

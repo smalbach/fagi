@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { MORPH, LIFE, SEX } from '../src/config.js';
-import { MORPH_TRAITS, tissueLoad, morphBody, inheritMorph, founderMorph, updatePlasticity, targetOf } from '../src/morph.js';
+import { MORPH_TRAITS, tissueLoad, morphBody, inheritMorph, founderMorph, updatePlasticity, targetOf, epigeneticMark } from '../src/morph.js';
 import { bodyFor, bodyMult } from '../src/biology.js';
 import { createFagi } from '../src/fagi.js';
 import { createWorld, addObject, storeInNest } from '../src/world.js';
@@ -171,5 +171,50 @@ test('a grown body keeps its size; a young one is sized by how well she is fed',
     young.hunger = 90;
     live(young, 3000);
     assert.ok(young.morph.size < 1);
+  });
+});
+
+// --- inheritance of what was lived --------------------------------------------
+
+test('darwin: a daughter starts from her genes, whatever her parents lived', () => {
+  withMorph(() => {
+    const mom = grown({ ...ones(), muscle: 1 });
+    mom.morph.muscle = 1.2;
+    const g = recombine(mom.genome, mom.genome, seeded(9));
+    assert.equal(g.epi, undefined);
+    assert.equal(g.plastic, undefined);
+  });
+});
+
+test('baldwin: the capacity to change is a gene, inherited and paid for', () => {
+  withMorph(() => {
+    MORPH.inherit = 1;
+    try {
+      const g = recombine({ cues: {}, morph: ones(), plastic: 1.5 }, { cues: {}, morph: ones(), plastic: 1.5 }, seeded(11));
+      assert.ok(Math.abs(g.plastic - 1.5) < 0.5);
+      // More plastic, more strongly she follows her use.
+      const use = { ...MORPH.plastic.ref, move: 0.6 };
+      assert.ok(targetOf('muscle', use, 2) > targetOf('muscle', use, 1));
+      // And keeping it costs resting burn.
+      const cheap = bodyFor(null, { cues: {}, morph: ones(), plastic: 1 });
+      const dear = bodyFor(null, { cues: {}, morph: ones(), plastic: 2 });
+      assert.ok(dear.metabolism > cheap.metabolism);
+    } finally { MORPH.inherit = 0; }
+  });
+});
+
+test('epigenetic: a daughter starts where her parents lived toward, and the mark fades', () => {
+  withMorph(() => {
+    MORPH.inherit = 2;
+    try {
+      const mom = grown(); mom.morph.muscle = 1.2;
+      const dad = grown(); dad.morph.muscle = 1.2;
+      const mark = epigeneticMark(mom, dad);
+      assert.ok(mark.muscle > 1 && mark.muscle < 1.2, `mark ${mark.muscle}`);
+      // A daughter who lives as typical passes on less than she got.
+      const girl = grown(); girl.epi = { ...mark }; girl.morph.muscle = 1 * mark.muscle;
+      const next = epigeneticMark(girl, girl);
+      assert.ok(next.muscle < mark.muscle && next.muscle > 1);
+    } finally { MORPH.inherit = 0; }
   });
 });

@@ -29,7 +29,7 @@ import { nestUnder } from './nest.js';
 import { createProgram, innateOf } from './program.js';
 import { createFagi } from './fagi.js';
 import { assignSex, bodyFor, bodyMult, energyMax } from './biology.js';
-import { morphOn, founderMorph } from './morph.js';
+import { morphOn, founderMorph, baldwinOn, founderPlastic, epigeneticOn, epigeneticMark } from './morph.js';
 import { createGenome, recombine, applyGenome, teach } from './generations.js';
 import { drawLifespan, lifeAge, fertility } from './lifecycle.js';
 import { cycleAt } from './cycle.js';
@@ -61,6 +61,7 @@ export function foundPopulation(world, colony) {
     // The founders' organs (MORPH): around today's Fagi, a little apart.
     if (morphOn() && !f.genome.morph) {
       f.genome.morph = founderMorph();
+      if (baldwinOn()) f.genome.plastic = founderPlastic();
       f.morph = { ...f.genome.morph };
       f.body = bodyFor(f.sex, f.genome, f.morph);
       f.energy = energyMax(f);
@@ -190,6 +191,8 @@ function mate(world, colony, nest, mother, father) {
     inbreeding: r2(inbreeding),
     laidAt: world.time, progress: 0, readyAt: null,
   };
+  // Epigenetic inheritance (MORPH.inherit): a mark of what both lived, set now.
+  if (epigeneticOn()) egg.genome.epi = epigeneticMark(mother, father);
   (nest.eggs ??= []).push(egg);
   colony.life.matings += 1;
   colony.life.laid += 1;

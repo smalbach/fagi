@@ -442,6 +442,11 @@ const GROUPS = [
     n(MORPH, 'costPower', 'How fast a bigger organ costs more', 'Qué tan rápido cuesta más un órgano mayor', 1, 3, 0.05),
     n(MORPH, 'brainLife', 'Life a bigger brain costs', 'Vida que cuesta un cerebro mayor', 0, 3, 0.1),
     n(MORPH, 'brainBrood', 'Breeding a bigger brain slows', 'Cuánto frena la cría un cerebro mayor', 0, 3, 0.1),
+    { ...b(MORPH.plastic, 'enabled', 'What she lives changes her organs', 'Lo que vive cambia sus órganos'), id: 'plastic.enabled' },
+    c(MORPH, 'inherit', 'What daughters inherit of what was lived', 'Qué heredan las hijas de lo vivido',
+      [['Only genes (Darwin)', 'Solo genes (Darwin)'], ['How much she can change (Baldwin)', 'Cuánto puede cambiar (Baldwin)'], ['A fading mark (epigenetic)', 'Una marca que se diluye (epigenética)']]),
+    { ...n(MORPH.epigenetic, 'share', 'Share of what was lived in the mark', 'Parte de lo vivido en la marca', 0, 1, 0.05), id: 'epigenetic.share' },
+    { ...n(MORPH.epigenetic, 'keep', 'Share of a mark kept each generation', 'Parte de la marca que se conserva por generación', 0, 1, 0.05), id: 'epigenetic.keep' },
   ]},
   { title: { en: 'Tastes', es: 'Sabores' }, cat: 'food', fieldsOf: [
     b(TASTE, 'enabled', 'Tastes and hidden chemistry', 'Sabores y química oculta'),
