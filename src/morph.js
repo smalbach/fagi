@@ -1,0 +1,82 @@
+// The evolving body (MORPH; docs/research/libera/cuerpo-evolutivo.md): organs
+// she inherits, each a multiplier around 1, with what it gives and what it
+// costs, as in a real body:
+//
+//   brain     remembers longer (memory fades slower)   costly tissue; shorter life, slower breeding
+//   gut       more from each fruit, tolerates poison   costly tissue
+//   muscle    faster                                   the largest tissue to keep
+//   eyes      sees farther                             costly even when unused
+//   antennae  smells farther                           a little
+//   size      more reserves; less burn per gram        more burn in all; slower; needs more fruit
+//
+// Every cost is paid in her resting burn: hunger rises and energy drains
+// faster the more tissue she keeps. Organs cost more than linearly as they
+// grow (MORPH.costPower), so past a point a bigger one does not pay: that,
+// and MORPH.range, is the physical limit. Benefits grow less than linearly
+// (MORPH.gain).
+//
+// What she inherits is genome.morph; what she carries is fagi.morph, which is
+// where what she lives will later move it (plasticity). Both are folded into
+// fagi.body (biology.js) once, when they change, so the rest of the code reads
+// one multiplier per thing. With MORPH off nobody has morph genes, every
+// multiplier is 1 and no random number is drawn here.
+
+import { MORPH } from './config.js';
+
+export const MORPH_TRAITS = ['brain', 'gut', 'muscle', 'eyes', 'antennae', 'size'];
+
+const round = (v) => Math.round(v * 1000) / 1000;
+const clampGene = (v) => Math.max(MORPH.range[0], Math.min(MORPH.range[1], v));
+const gauss = (rnd) => Math.sqrt(-2 * Math.log(1 - rnd())) * Math.cos(2 * Math.PI * rnd());
+
+export const morphOn = () => Boolean(MORPH.enabled);
+
+// A founder's genes: around 1, a little apart, so there is something to select.
+export function founderMorph(rnd = Math.random) {
+  const out = {};
+  for (const k of MORPH_TRAITS) out[k] = round(clampGene(Math.exp(gauss(rnd) * MORPH.founders)));
+  return out;
+}
+
+// A child's genes from one parent (clonal) or two: each gene the geometric
+// mean of the parents', then a log-normal step.
+export function inheritMorph(mother, father = null, rnd = Math.random) {
+  const out = {};
+  for (const k of MORPH_TRAITS) {
+    const m = mother?.[k] ?? 1;
+    const f = father ? father[k] ?? 1 : m;
+    out[k] = round(clampGene(Math.sqrt(m * f) * Math.exp(gauss(rnd) * MORPH.mutation)));
+  }
+  return out;
+}
+
+// What her organs cost at rest, relative to today's Fagi (1 with every organ
+// at 1): the body's own share plus each organ's, growing faster than the organ.
+// Written as 1 plus what each organ adds over its share, so all ones is exactly 1.
+export function tissueLoad(m) {
+  let load = 1;
+  for (const [k, w] of Object.entries(MORPH.tissue)) load += w * ((m[k] ?? 1) ** MORPH.costPower - 1);
+  return load;
+}
+
+// Her organs as multipliers on what the body does (biology.js folds them in).
+// Hunger is measured against a fixed scale, so a bigger body (more reserves)
+// feels the same burn as less hunger, and the same fruit as less relief.
+export function morphBody(m) {
+  const g = MORPH.gain;
+  const size = m.size ?? 1;
+  const load = tissueLoad(m);
+  return {
+    metabolism: load * size ** (MORPH.kleiber - 1),   // hunger per second, on the fixed scale
+    drain: load * size ** MORPH.kleiber,               // energy per second (her reserve grows with size)
+    energyMax: size,
+    speed: (m.muscle ?? 1) ** g.speed * size ** -MORPH.sizeSpeed,
+    view: (m.eyes ?? 1) ** g.view,
+    smell: (m.antennae ?? 1) ** g.smell,
+    memory: (m.brain ?? 1) ** g.memory,
+    digest: (m.gut ?? 1) ** g.digest / size,
+    tolerance: (m.gut ?? 1) ** g.tolerance,
+    life: (m.brain ?? 1) ** -MORPH.brainLife,
+    brood: (m.brain ?? 1) ** MORPH.brainBrood,
+  };
+}

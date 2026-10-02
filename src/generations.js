@@ -28,6 +28,7 @@ import { TRAITS } from './chemistry.js';
 import { pass } from './social.js';
 import { restoreHabits, habitsSnapshot } from './habits.js';
 import { BODY_TRAITS, bodyFor, energyMax } from './biology.js';
+import { morphOn, inheritMorph } from './morph.js';
 import { programOf, line } from './program.js';
 
 // Every trait a fruit can have, rotten fruit's smell included.
@@ -77,10 +78,14 @@ export function mutate(genome, rnd = Math.random) {
     const w = clamp((genome.cues[c] ?? 0) + g * GEN.mutation);
     if (Math.abs(w) >= 0.01) cues[c] = round(w);
   }
-  if (!forageGenesOn()) return { cues };
-  const forage = {};
-  for (const k of FORAGE_GENES) forage[k] = round(clamp((genome.forage?.[k] ?? 0) + gauss(rnd) * GEN.mutation));
-  return { cues, forage };
+  const out = { cues };
+  if (forageGenesOn()) {
+    out.forage = {};
+    for (const k of FORAGE_GENES) out.forage[k] = round(clamp((genome.forage?.[k] ?? 0) + gauss(rnd) * GEN.mutation));
+  }
+  // Her organs (MORPH), from her one parent's.
+  if (morphOn()) out.morph = inheritMorph(genome.morph, null, rnd);
+  return out;
 }
 
 // A child's genome from two parents: recombined first, mutated after, and
@@ -110,6 +115,8 @@ export function recombine(mother, father, rnd = Math.random, parents = null) {
       out.forage[k] = round(clamp(allele + gauss(rnd) * GEN.mutation));
     }
   }
+  // Her organs (MORPH): between her parents', then a step.
+  if (morphOn()) out.morph = inheritMorph(mother.morph, father.morph, rnd);
   return parents ? { ...out, parents } : out;
 }
 
@@ -135,8 +142,10 @@ export function diversity(genomes) {
 // as if she had met it GEN.innateN times. Body genes shape her body.
 export function applyGenome(fagi, genome) {
   fagi.genome = genome;
-  if (genome.body) {
-    fagi.body = bodyFor(fagi.sex, genome);
+  // What she carries of her organs starts as what she inherited (MORPH).
+  if (genome.morph) fagi.morph = { ...genome.morph };
+  if (genome.body || genome.morph) {
+    fagi.body = bodyFor(fagi.sex, genome, fagi.morph);
     fagi.energy = energyMax(fagi);
   }
   if (!GEN.genes) return;

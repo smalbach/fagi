@@ -10,6 +10,7 @@ import { applyEffects } from './effects.js';
 import { snapshotBody } from './interoception.js';
 import { openEpisode } from './episodes.js';
 import { verdict } from './learned/rules.js';
+import { bodyMult } from './biology.js';
 import { onAgenda, answered } from './experiment.js';
 import { canEat, afterBite, aversive } from './appetite.js';
 import { EXPERIMENT } from './config.js';
@@ -117,7 +118,10 @@ export function eat(fagi, type, { hunger = null, portion: meant = 1, variant = n
   // In the mouth (TASTE, taste.js): she may spit most of it out.
   const mouth = atMouth(fagi, type, meant, spec.taste);
   const portion = mouth.portion;
-  const added = (hunger ?? spec.hunger) * portion;
+  // Her gut (MORPH): a bigger one takes more from a meal and bears more of a
+  // poison; a bigger body needs more for the same relief.
+  const raw = (hunger ?? spec.hunger) * portion;
+  const added = raw < 0 ? raw * bodyMult(fagi, 'digest') : raw > 0 ? raw / bodyMult(fagi, 'tolerance') : raw;
   const hungerBefore = fagi.hunger;
   fagi.hunger = Math.min(HUNGER.max, Math.max(0, fagi.hunger + added));
   if (TASTE.enabled) {
@@ -137,7 +141,7 @@ export function eat(fagi, type, { hunger = null, portion: meant = 1, variant = n
   const meal = noteMeal(fagi, { key: type, portion, before: hungerBefore, after: fagi.hunger });   // CONDUCT only
   if (meal) learnConduct(fagi, meal);
   afterBite(fagi, ep.reward, added, type);
-  if (added > 0) hurt(fagi, HEALTH.poison * portion, 'poison');   // poison harms her too (health.js)
+  if (added > 0) hurt(fagi, HEALTH.poison * portion / bodyMult(fagi, 'tolerance'), 'poison');   // poison harms her too (health.js)
   fagi.lastMeal = {
     n: fagi.eaten, type, variant,
     beliefBefore: ep.change.before.value,

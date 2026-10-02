@@ -7,6 +7,7 @@
 
 import { specOf, FAGI, PLUME, WORLD, TREE, RAIN } from './config.js';
 import { statMult } from './effects.js';
+import { bodyMult } from './biology.js';
 import { distanceTo, normalizeAngle } from './vision.js';
 import { radiusOf, isTree, isWater } from './obstacles.js';
 import { sameScent } from './percept.js';
@@ -14,7 +15,7 @@ import { sameScent } from './percept.js';
 // Fagi's total sensitivity applied to something's aroma.
 export function aromaOf(fagi, key) {
   const aroma = specOf(key)?.aroma ?? 0;
-  return aroma * FAGI.smell * statMult(fagi, 'smell');
+  return aroma * FAGI.smell * statMult(fagi, 'smell') * bodyMult(fagi, 'smell');
 }
 
 function maxNodes(key) {
@@ -110,7 +111,7 @@ export function updateTrails(world, dt) {
 // Intensity arriving from ONE specific source. Keeping this calculation separate
 // avoids attributing the plume of a single fruit to all fruits of the same type.
 export function scentFromSourceAt(fagi, source, x, y) {
-  const sens = FAGI.smell * statMult(fagi, 'smell');
+  const sens = FAGI.smell * statMult(fagi, 'smell') * bodyMult(fagi, 'smell');
   const r = PLUME.radius * sens;
   const r2 = r * r;
   const { src, extra = 0 } = source;

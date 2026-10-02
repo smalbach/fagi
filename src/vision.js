@@ -2,6 +2,7 @@
 
 import { FAGI, CYCLE } from './config.js';
 import { statMult } from './effects.js';
+import { bodyMult } from './biology.js';
 import { segmentBlocked } from './obstacles.js';
 
 // Normalizes an angle to the range [-PI, PI].
@@ -31,7 +32,7 @@ function darkness(fagi) {
 
 // Current range and angle, with buffs (and the dark) already applied.
 export function viewRangeOf(fagi) {
-  return FAGI.viewRange * statMult(fagi, 'viewRange') * darkness(fagi);
+  return FAGI.viewRange * statMult(fagi, 'viewRange') * bodyMult(fagi, 'view') * darkness(fagi);
 }
 
 export function fovOf(fagi) {

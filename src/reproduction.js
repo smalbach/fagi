@@ -28,7 +28,8 @@ import { nestOf, takeFromNest, record } from './world.js';
 import { nestUnder } from './nest.js';
 import { createProgram, innateOf } from './program.js';
 import { createFagi } from './fagi.js';
-import { assignSex, energyMax } from './biology.js';
+import { assignSex, bodyFor, bodyMult, energyMax } from './biology.js';
+import { morphOn, founderMorph } from './morph.js';
 import { createGenome, recombine, applyGenome, teach } from './generations.js';
 import { drawLifespan, lifeAge, fertility } from './lifecycle.js';
 import { cycleAt } from './cycle.js';
@@ -55,9 +56,16 @@ export function foundPopulation(world, colony) {
   colony.life = { matings: 0, laid: 0, hatched: 0, eggsLost: {}, deaths: {}, generations: 0, peak: colony.ants.length, extinctAt: null };
   for (const f of colony.ants) {
     f.startAge = LIFE.adultAt;
-    f.lifespan = drawLifespan();
     f.generation = 0;
     f.genome ??= createGenome();
+    // The founders' organs (MORPH): around today's Fagi, a little apart.
+    if (morphOn() && !f.genome.morph) {
+      f.genome.morph = founderMorph();
+      f.morph = { ...f.genome.morph };
+      f.body = bodyFor(f.sex, f.genome, f.morph);
+      f.energy = energyMax(f);
+    }
+    f.lifespan = lifespanOf(f);
     world.lineage[f.id] = { mother: null, father: null, bornAt: 0, generation: 0, sex: f.sex, name: f.name };
   }
 }
@@ -113,10 +121,18 @@ export function crowding(n) {
 }
 
 // Seconds after mating before she may again: her sex's recovery, longer as her
-// fertility fades and as the nest fills.
+// fertility fades and as the nest fills; for a mother, longer with a costlier
+// brain (MORPH).
 function recovery(f, crowd) {
-  const base = f.sex === 'female' ? LIFE.femaleRecover : LIFE.maleRecover;
+  const base = f.sex === 'female' ? LIFE.femaleRecover * bodyMult(f, 'brood') : LIFE.maleRecover;
   return base * crowd / Math.max(0.01, fertility(f));
+}
+
+// Her lifespan: the species' draw, shorter with a costlier brain (MORPH).
+function lifespanOf(f) {
+  const span = drawLifespan();
+  const life = bodyMult(f, 'life');
+  return span == null || life === 1 ? span : Math.round(span * life);
 }
 
 // Can she breed right now (§10.1)? `nest` is the nest object.
@@ -158,7 +174,7 @@ function mate(world, colony, nest, mother, father) {
   mother.energy -= LIFE.mateCost;
   father.energy -= LIFE.mateCost;
   mother.hunger = Math.min(HUNGER.max, mother.hunger + LIFE.eggCost);
-  mother.nextMateAt = mother.age + LIFE.femaleRecover;
+  mother.nextMateAt = mother.age + LIFE.femaleRecover * bodyMult(mother, 'brood');
   father.nextMateAt = father.age + LIFE.maleRecover;
   mother.lastMatedAt = mother.age;
   father.lastMatedAt = father.age;
@@ -209,7 +225,7 @@ function hatch(world, colony, nest, egg) {
   child.id = colony.nextId++;
   child.sister = true;
   child.startAge = 0;
-  child.lifespan = drawLifespan();
+  child.lifespan = lifespanOf(child);
   child.generation = egg.generation;
   child.lifeStage = 'juvenile';
   if (GEN.culture && mother?.alive) teach(child, mother);

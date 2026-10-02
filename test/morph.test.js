@@ -1,0 +1,103 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+
+import { MORPH, LIFE, SEX } from '../src/config.js';
+import { MORPH_TRAITS, tissueLoad, morphBody, inheritMorph, founderMorph } from '../src/morph.js';
+import { bodyFor, bodyMult } from '../src/biology.js';
+import { createFagi } from '../src/fagi.js';
+import { createWorld, addObject, storeInNest } from '../src/world.js';
+import { createColony } from '../src/colony.js';
+import { foundPopulation } from '../src/reproduction.js';
+import { mutate, recombine } from '../src/generations.js';
+import { viewRangeOf } from '../src/vision.js';
+
+const ones = () => Object.fromEntries(MORPH_TRAITS.map((k) => [k, 1]));
+const withMorph = (fn) => { MORPH.enabled = 1; try { return fn(); } finally { MORPH.enabled = 0; } };
+// A seeded source, so the steps are the same every run.
+function seeded(s = 7) { return () => ((s = (s * 16807) % 2147483647) / 2147483647); }
+
+test('today\'s Fagi is the all-ones body: every organ at 1 changes nothing', () => {
+  assert.equal(tissueLoad(ones()), 1);
+  for (const [k, v] of Object.entries(morphBody(ones()))) assert.ok(Math.abs(v - 1) < 1e-12, `${k} = ${v}`);
+  const plain = bodyFor(null, null);
+  const all1 = withMorph(() => bodyFor(null, { cues: {}, morph: ones() }));
+  for (const k of ['speed', 'energyMax', 'metabolism', 'insulation']) assert.ok(Math.abs(all1[k] - plain[k]) < 1e-12, k);
+});
+
+test('MORPH off: nobody carries organs and no gene is drawn', () => {
+  const g = mutate({ cues: {}, morph: { brain: 1.5 } }, seeded());
+  assert.equal(g.morph, undefined);
+  const b = bodyFor(null, { cues: {}, morph: { brain: 1.5, eyes: 2 } });
+  assert.equal(b.view, undefined);
+  assert.equal(bodyMult({ body: b }, 'view'), 1);
+});
+
+test('a bigger brain remembers longer but costs: more burn, shorter life, slower breeding', () => {
+  const big = morphBody({ ...ones(), brain: 1.4 });
+  assert.ok(big.memory > 1);
+  assert.ok(big.metabolism > 1 && big.drain > 1);
+  assert.ok(big.life < 1);
+  assert.ok(big.brood > 1);
+});
+
+test('organs cost more than linearly: doubling one costs more than twice its share', () => {
+  const w = MORPH.tissue.eyes;
+  const extra = tissueLoad({ ...ones(), eyes: 2 }) - 1;
+  assert.ok(extra > w, `extra ${extra} vs share ${w}`);
+});
+
+test('size: more reserves, less hunger per second on the fixed scale, but each fruit relieves less', () => {
+  const big = morphBody({ ...ones(), size: 1.5 });
+  assert.equal(big.energyMax, 1.5);
+  assert.ok(big.metabolism < 1, 'Kleiber: less burn per gram');
+  assert.ok(big.drain > 1, 'more burn in all');
+  assert.ok(big.digest < 1, 'the same fruit fills a bigger body less');
+  assert.ok(big.speed < 1, 'heavier, slower');
+});
+
+test('genes stay inside the physical range, and children sit between their parents', () => {
+  const rnd = seeded(3);
+  for (let i = 0; i < 200; i++) {
+    const m = inheritMorph({ ...ones(), brain: 1.9 }, { ...ones(), brain: 0.6 }, rnd);
+    for (const k of MORPH_TRAITS) assert.ok(m[k] >= MORPH.range[0] && m[k] <= MORPH.range[1], `${k} ${m[k]}`);
+  }
+  let sum = 0;
+  for (let i = 0; i < 400; i++) sum += Math.log(inheritMorph({ brain: 1.6 }, { brain: 0.8 }, rnd).brain);
+  assert.ok(Math.abs(Math.exp(sum / 400) - Math.sqrt(1.6 * 0.8)) < 0.03);
+});
+
+test('with MORPH on, clonal and sexual children inherit organs', () => {
+  withMorph(() => {
+    const rnd = seeded(5);
+    assert.ok(mutate({ cues: {}, morph: ones() }, rnd).morph);
+    assert.ok(recombine({ cues: {}, morph: ones() }, { cues: {}, morph: ones() }, rnd).morph);
+  });
+});
+
+test('her eyes reach her sight', () => {
+  const f = createFagi();
+  const base = viewRangeOf(f);
+  withMorph(() => { f.body = bodyFor(f.sex, { cues: {} }, { ...ones(), eyes: 1.44 }); });
+  assert.ok(Math.abs(viewRangeOf(f) / base - 1.2) < 1e-9);
+});
+
+test('founders of a breeding population get organs a little apart', () => {
+  LIFE.enabled = 1; SEX.enabled = 1;
+  try {
+    withMorph(() => {
+      const world = createWorld();
+      const nest = addObject(world, 400, 400, 'nest');
+      storeInNest(nest, 'nectar');
+      const colony = createColony(4);
+      world.colony = colony;
+      foundPopulation(world, colony);
+      for (const f of colony.ants) {
+        assert.ok(f.genome.morph && f.morph);
+        assert.ok(f.body.view > 0 && f.energy > 0);
+      }
+      const brains = colony.ants.map((f) => f.morph.brain);
+      assert.ok(new Set(brains).size > 1, 'not all the same');
+    });
+  } finally { LIFE.enabled = 0; SEX.enabled = 0; }
+  assert.ok(founderMorph(seeded()).brain > 0);
+});

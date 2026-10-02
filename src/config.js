@@ -353,6 +353,40 @@ export const GEN = {
   bodyRange: [0.8, 1.25], // how far a body gene can drift from 1
 };
 
+// The evolving body (morph.js; docs/research/libera/cuerpo-evolutivo.md):
+// organs she inherits, each a multiplier around 1 (1 = today's Fagi), with
+// what it gives and what it costs. Off, nobody carries them and nothing
+// changes. Needs a breeding population (LIFE) to evolve at all.
+//   traits      : brain, gut, muscle, eyes, antennae, size
+//   range       : how far a gene may go; past ~1.5 the cost makes it unviable
+//   mutation    : spread of each gene's step, as a factor (log-normal)
+//   founders    : spread of the founders' genes, so selection has something to choose
+//   tissue      : share of her resting burn each organ takes at 1; the rest is
+//                 the body itself. Brain per gram ~18× muscle (Elia 1992), eyes up
+//                 to 15% of the resting burn (Moran et al. 2015)
+//   costPower   : how much faster than linear an organ costs as it grows: past a
+//                 point a bigger one is not worth it
+//   kleiber     : total burn ∝ size^kleiber (Kleiber 1932): a bigger body burns
+//                 more, but less per gram, and holds more reserves
+//   gain        : how much each benefit grows with its organ (< 1: diminishing
+//                 returns; Niven et al. 2007, Chittka & Niven 2009)
+//   brainLife / brainBrood: a bigger brain shortens life and slows breeding
+//                 (Kotrschal et al. 2013, 2019); elasticities, gentler than the guppies'
+//   sizeSpeed   : a heavier body is slower per unit of muscle
+export const MORPH = {
+  enabled: 0,
+  range: [0.5, 2],
+  mutation: 0.05,
+  founders: 0.08,
+  tissue: { brain: 0.2, gut: 0.15, muscle: 0.3, eyes: 0.08, antennae: 0.04 },
+  costPower: 1.5,
+  kleiber: 0.75,
+  gain: { memory: 0.7, digest: 0.5, tolerance: 0.7, speed: 0.5, view: 0.5, smell: 0.5 },
+  brainLife: 1,
+  brainBrood: 1,
+  sizeSpeed: 0.15,
+};
+
 // Explanations (learned/explain.js): why she thinks what she thinks of a fruit.
 export const EXPLAIN = {
   log: 80,            // experiences with fruit she keeps to point at

@@ -38,7 +38,7 @@ import { senseWeather } from './weather.js';
 import { refreshRules } from './learned/synth.js';
 import { edibleCount } from './learned/rules.js';
 import { observeHabits, deathLesson } from './habits.js';
-import { assignSex, bodyFor, energyMax } from './biology.js';
+import { assignSex, bodyFor, bodyMult, energyMax } from './biology.js';
 import { updateStage } from './lifecycle.js';
 import { senseBody } from './thermal.js';
 import { updateSleep } from './sleep.js';
@@ -180,7 +180,7 @@ export function updateFagi(fagi, world, dt) {
 
   updateEffects(fagi, dt);
   resolveEpisodes(fagi, dt);     // is it known yet how the last thing she ate agreed with her?
-  decayMemory(fagi.brain, dt);   // confidence drops on its own and places blur
+  decayMemory(fagi.brain, dt / bodyMult(fagi, 'memory'));   // confidence drops on its own and places blur
   decaySites(fagi, dt);          // and so do the food sites (SITES)
   tickLearnedCode(fagi, dt);     // and the learned code reflects it, once per second
   decaySynapses(fagi.brain.synapses, dt, fagi.age);   // and unused connections weaken

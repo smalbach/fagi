@@ -10,6 +10,7 @@
 // run without the organism is the preregistered one to the last digit.
 
 import { ENERGY, SEX, GEN } from './config.js';
+import { morphOn, morphBody } from './morph.js';
 import { givenName } from './names.js';
 
 export const SEXES = ['female', 'male'];
@@ -25,14 +26,27 @@ export function assignSex(rnd = Math.random) {
 
 const clampGene = (v) => Math.max(GEN.bodyRange[0], Math.min(GEN.bodyRange[1], v));
 
-// Sex × genes, trait by trait.
-export function bodyFor(sex, genome = null) {
+// Sex × genes, trait by trait; with MORPH, her organs on top (morph.js):
+// `morph` is what she carries, her genes unless she has lived it otherwise.
+export function bodyFor(sex, genome = null, morph = genome?.morph) {
   const bySex = SEX.enabled && sex ? SEX[sex] ?? NEUTRAL : NEUTRAL;
   const genes = genome?.body ?? {};
   const body = {};
   for (const k of BODY_TRAITS) body[k] = (bySex[k] ?? 1) * clampGene(genes[k] ?? 1);
+  if (morphOn() && morph) {
+    const m = morphBody(morph);
+    body.speed *= m.speed;
+    body.energyMax *= m.energyMax;
+    body.drain = body.metabolism * m.drain;
+    body.metabolism *= m.metabolism;
+    for (const k of ['view', 'smell', 'memory', 'digest', 'tolerance', 'life', 'brood']) body[k] = m[k];
+  }
   return body;
 }
+
+// One of her body's multipliers, 1 if her body has none (MORPH off, or a body
+// from before it).
+export const bodyMult = (fagi, k) => fagi.body?.[k] ?? 1;
 
 export const bodyOf = (fagi) => fagi.body ?? NEUTRAL;
 
