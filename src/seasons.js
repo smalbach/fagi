@@ -29,7 +29,7 @@
 import { SEASONS } from './config.js';
 import { record } from './world.js';
 
-const NONE = Object.freeze({ on: false, year: 1, depth: 0, fruit: 1, cold: 0, name: 'none' });
+const NONE = Object.freeze({ on: false, year: 1, depth: 0, fruit: 1, cold: 0, far: null, name: 'none' });
 let current = NONE;
 
 // The season of the world being stepped (one world at a time).
@@ -46,6 +46,7 @@ function yearOf(world, n) {
       width: SEASONS.winter * (1 + draw() * s * 0.5),
       hard: Math.max(0, 1 + draw() * s),
       hot: kindOf(world, n),
+      far: reachOf(world, n),
     };
   }
   return world.years[n];
@@ -57,6 +58,16 @@ function kindOf(world, n) {
   const p = SEASONS.hotYears ?? 0;
   if (!p) return false;
   const before = n > 1 ? yearOf(world, n - 1).hot : null;
+  if (before != null && Math.random() < (SEASONS.persist ?? 0)) return before;
+  return Math.random() < p;
+}
+
+// Whether year n's fruit is far from the nest, near it, or neither (null,
+// farYears off). Same rule as kindOf: kept with chance `persist`, else drawn.
+function reachOf(world, n) {
+  const p = SEASONS.farYears ?? 0;
+  if (!p) return null;
+  const before = n > 1 ? yearOf(world, n - 1).far : null;
   if (before != null && Math.random() < (SEASONS.persist ?? 0)) return before;
   return Math.random() < p;
 }
@@ -90,6 +101,7 @@ export function updateSeasons(world) {
     fruit: SEASONS.summerFruit + (SEASONS.winterFruit - SEASONS.summerFruit) * depth,
     cold: w.hot ? -SEASONS.summerHeat * summerAt(w, t) : SEASONS.winterCold * depth,
     hot: w.hot,
+    far: w.far ?? null,
     name,
   };
   if (world.season?.name !== name) record(world, 'season', { name, year: n });

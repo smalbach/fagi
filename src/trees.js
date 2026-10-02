@@ -1,7 +1,7 @@
 // Trees: they drop fruit around their crown every so often.
 // It's the only way food shows up without the player placing it.
 
-import { TREE, POINT_TYPES, FORAGE } from './config.js';
+import { TREE, POINT_TYPES, FORAGE, SEASONS } from './config.js';
 import { addPoint, removeObject, record } from './world.js';
 import { drawVariant } from './chemistry.js';
 import { seasonNow } from './seasons.js';
@@ -28,9 +28,25 @@ function fruitNear(world, tree) {
   return n;
 }
 
+// A year whose fruit is far (or near) the nest (SEASONS.farYears): the trees
+// on the other side of the middle distance bear only reachLow of their rate.
+// The middle distance is worked out once, from the trees there are then.
+function reachOf(world, tree, far) {
+  if (far == null) return 1;
+  const nest = world.objects.find((o) => o.type === 'nest');
+  if (!nest) return 1;
+  if (world.reachSplit == null) {
+    const d = treesOf(world).map((t) => Math.hypot(t.x - nest.x, t.y - nest.y)).sort((a, b) => a - b);
+    world.reachSplit = d[Math.floor(d.length / 2)] ?? 0;
+  }
+  const isFar = Math.hypot(tree.x - nest.x, tree.y - nest.y) >= world.reachSplit;
+  return isFar === far ? 1 : SEASONS.reachLow;
+}
+
 export function updateTrees(world, dt) {
   // The time of year sets how fast every tree bears (SEASONS; 1 without them).
-  const bears = dt * seasonNow().fruit;
+  const season = seasonNow();
+  const bears = dt * season.fruit;
   for (const tree of treesOf(world)) {
     // Trees have their time too: if TREE.life > 0, they dry up and fall.
     tree.age = (tree.age ?? 0) + dt;
@@ -42,7 +58,7 @@ export function updateTrees(world, dt) {
     // A seasonal tree gone bare drops nothing until its rest is over (FORAGE).
     if (FORAGE.enabled && seasonal(tree) && resting(world, tree, dt)) continue;
 
-    tree.timer -= bears;
+    tree.timer -= bears * reachOf(world, tree, season.far);
     if (tree.timer > 0) continue;
     // Its fruit was a made one the person has since deleted: it bears nothing.
     if (!POINT_TYPES[fruitOf(tree)]) { tree.timer = TREE.interval; continue; }

@@ -721,6 +721,10 @@ export const TREE = {
 //   persist     : chance a year is the same kind as the one before. High, a
 //                 mother's year foretells her daughter's (predictable); 0, each
 //                 year is a fresh draw (de Bruin et al. 2026)
+//   farYears    : share of years whose fruit is far: the trees farther from the nest
+//                 than the middle one bear, the nearer ones only reachLow of their
+//                 rate; the other years, the opposite. A far year pays the walker
+//                 (muscle), a near one the one who keeps no more muscle than she needs
 export const SEASONS = {
   enabled: 0,
   year: 3600,         // 20 days: a winter longer than she can fast (~7 days), so it tells
@@ -734,6 +738,8 @@ export const SEASONS = {
   hotYears: 0,       // share of years that come hot: a mild winter, a scorching summer (0 = none)
   summerHeat: 12,    // °C the heart of a hot year's summer adds to the air
   persist: 0,        // chance a year is the same kind as the one before (predictable runs when high)
+  farYears: 0,       // share of years whose fruit is far from the nest (the rest, near; 0 = off)
+  reachLow: 0.1,     // what the trees on the wrong side bear in such a year (× their rate)
 };
 
 // Explore or come back (phase 9, spec §12.11): a world where going back to

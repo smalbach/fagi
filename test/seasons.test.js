@@ -81,3 +81,22 @@ test('hot years: a summer that scorches, a winter lean but not cold; persist kee
     } finally { SEASONS.hotYears = 0; SEASONS.persist = 0; }
   });
 });
+
+test('far years: only the trees beyond the middle distance bear; near years, only the nearer', async () => {
+  const { addObject } = await import('../src/world.js');
+  const { updateTrees } = await import('../src/trees.js');
+  on(() => {
+    SEASONS.farYears = 1; SEASONS.persist = 1;
+    try {
+      const w = createWorld();
+      addObject(w, 100, 100, 'nest');
+      const near = addObject(w, 150, 100, 'tree');
+      const far = addObject(w, 900, 600, 'tree');
+      at(w, SEASONS.year * ((SEASONS.winterAt + 0.5) % 1));
+      assert.equal(seasonNow().far, true);
+      near.timer = far.timer = 1000;
+      updateTrees(w, 10);
+      assert.ok(1000 - far.timer > 1000 - near.timer, `far ${far.timer} near ${near.timer}`);
+    } finally { SEASONS.farYears = 0; SEASONS.persist = 0; }
+  });
+});
