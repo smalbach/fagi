@@ -3,7 +3,7 @@
 // "factory" in the game means organism on.
 
 import { enableOrganism } from '../organism.js';
-import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL } from '../config.js';
+import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH } from '../config.js';
 import { CAUTION_LINES } from '../learned/conduct.js';
 
 enableOrganism();
@@ -29,6 +29,10 @@ PHERO.life = 60;
 // local, as in a real nest, and the cost stops growing with every pair.
 LIFE.maxPopulation = 60;
 SOCIAL.touch = 24;
+
+// The evolving body (morph.js): organs inherited with what they give and cost,
+// drawn on her. The settings turn it off; research keeps it off.
+MORPH.enabled = 1;
 
 // Caution when eating (docs/research/caution-protocol.md): she is born with
 // two lines of conduct — a kind she never ate, a trial bite first; a kind that
