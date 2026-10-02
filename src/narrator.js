@@ -6,6 +6,7 @@
 
 import { MEMORY, BRAIN, WATER, POINT_TYPES, CYCLE } from './config.js';
 import { dayAt } from './cycle.js';
+import { seasonNow } from './seasons.js';
 import { explain, lines, stance } from './learned/explain.js';
 
 const MIN_SCORE = BRAIN.minScore;
@@ -470,6 +471,12 @@ function narrateOrganism(narr, fagi, p) {
       else push(narr, fagi, 'night', { key: 'log.day', params: { day: dayAt(fagi.age) } }, { key: 'log.daySub' });
     }
     p.dark = Boolean(fagi.dark);
+  }
+  // The time of year (SEASONS): only a change is news.
+  const season = seasonNow();
+  if (season.on && season.name !== p.season) {
+    if (p.season) push(narr, fagi, 'night', { key: `log.season.${season.name}`, params: { year: season.year } }, { key: `log.season.${season.name}Sub` });
+    p.season = season.name;
   }
   const lesson = (last, seen, title, sub, params = {}) => {
     if (!last || last.n === p[seen]) return;

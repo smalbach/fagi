@@ -9,7 +9,7 @@ import {
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
   CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI, CONCEPT,
   LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES, CHOICE, LARDER, CONDUCT,
-  PROGRAM, MOVEMENT, CASTES, MORPH,
+  PROGRAM, MOVEMENT, CASTES, MORPH, SEASONS,
 } from './config.js';
 import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
@@ -74,6 +74,13 @@ const GROUPS = [
     b(CYCLE, 'enabled', 'Day and night', 'Día y noche'),
     n(CYCLE, 'seconds', 'Seconds in a day', 'Segundos que dura un día', 30, 1800, 10),
     n(CYCLE, 'start', 'Hour the session starts (0 midnight, 0.5 noon)', 'Hora a la que empieza (0 medianoche, 0.5 mediodía)', 0, 0.99, 0.01),
+    { ...b(SEASONS, 'enabled', 'Seasons: lean, cold winters', 'Estaciones: inviernos escasos y fríos'), id: 'seasons.enabled' },
+    { ...n(SEASONS, 'year', 'Seconds in a year', 'Segundos que dura un año', 600, 14400, 60), id: 'seasons.year' },
+    { ...n(SEASONS, 'winter', 'Share of the year that is winter', 'Parte del año que es invierno', 0, 0.9, 0.05), id: 'seasons.winter' },
+    { ...n(SEASONS, 'winterFruit', 'What trees bear in deep winter (×)', 'Lo que dan los árboles en pleno invierno (×)', 0, 1, 0.01), id: 'seasons.winterFruit' },
+    { ...n(SEASONS, 'summerFruit', 'What trees bear in summer (×)', 'Lo que dan los árboles en verano (×)', 0.5, 3, 0.05), id: 'seasons.summerFruit' },
+    { ...n(SEASONS, 'winterCold', 'Degrees winter takes off', 'Grados que quita el invierno', 0, 25, 1), id: 'seasons.winterCold' },
+    { ...b(SEASONS, 'unpredictable', 'Every winter different', 'Cada invierno distinto'), id: 'seasons.unpredictable' },
     n(CYCLE, 'minLight', 'Light at night', 'Luz de noche', 0, 1, 0.02),
     n(CYCLE, 'nightSight', 'Sight left at night (fraction)', 'Vista que le queda de noche (fracción)', 0.1, 1, 0.05),
     n(CYCLE, 'dawn', 'Dawn (phase of the day, 0-1)', 'Amanecer (fase del día, 0-1)', 0.05, 0.45, 0.01),
