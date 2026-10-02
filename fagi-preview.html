@@ -2,7 +2,7 @@
 <body style="margin:0;background:#222630;font:12px system-ui,sans-serif;color:#cfd3dc">
 <canvas id="c" width="1180" height="700" style="width:100%"></canvas>
 <script type="module">
-import { drawFagi, drawFagiGlow } from '/src/fagi-sprite.js';
+import { drawFagi } from '/src/fagi-sprite.js';
 
 const ctx = document.getElementById('c').getContext('2d');
 
@@ -48,13 +48,10 @@ function frame(ms) {
   critter(fagi(900, 630, 0.2), 2.4, t, 'adult');
   critter(fagi(1000, 630, 0.2, { lifeStage: 'senescent' }), 2.4, t, 'old');
 
-  // At night: the core is the light.
-  ctx.fillStyle = '#141a33'; ctx.fillRect(0, 560, 700, 140);
-  for (const [x, v] of [[120, 10], [300, 60], [480, 90]]) {
-    const f = fagi(x, 630, 0.4, { hunger: v, age: t });
-    critter(f, 2.4, t);
-    drawFagiGlow(ctx, f, 1);
-  }
+  // Hunger empties the gaster; a male side by side with a female.
+  critter(fagi(120, 630, 0.4, { hunger: 0 }), 2.4, t, 'fed');
+  critter(fagi(300, 630, 0.4, { hunger: 95 }), 2.4, t, 'starving');
+  critter(fagi(480, 630, 0.4, { sex: 'male', hunger: 0 }), 2.4, t, 'male fed');
   // And at real size, which is how she looks on the map.
   critter(fagi(1100, 630, 0.2), 1, t, 'real size');
   critter(fagi(1140, 630, 2.4, { sex: 'male' }), 1, t);

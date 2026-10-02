@@ -1,39 +1,54 @@
 // Fagi's drawing. It only paints: it knows nothing about rules or decisions.
 //
-// Fagi is not an animal that exists (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md
-// §5.2): an oval mantle with a core that glows with how she is doing, four
-// soft filaments she walks on in diagonal pairs, two sensory stalks at the
-// front, and side membranes that spread in the heat and fold in the cold.
-// What she carries rides on her back. Female and male differ a little in
-// shape and hue. Asleep in the open she tucks in and her core breathes slowly;
-// dead she curls up, flat and grey, with the core gone dark, so she reads as
-// dead by her shape and not only by her color.
+// Fagi is an ant, and she is drawn as one: three real parts —gaster,
+// mesosoma and head— joined by the petiole, the waist only ants have and
+// what gives them away most from above. Six three-segment legs that walk
+// in a tripod gait, elbowed antennae —scape and funiculus, like real ones—
+// and a green leaf on her back, which gives her character and doubles as
+// the logo.
+//
+// Everything else reads from the state she is in: a female has a fuller
+// gaster, a male is slimmer, darker and longer in the antennae; a starving
+// ant's gaster shrinks; the cold draws her legs in and hot ground puts her on
+// stilts; asleep in the open she folds legs and antennae and stops rocking; a
+// juvenile is small and an old one fades; dead she is grey with curled legs.
 //
 // She is painted with strokes, not a stored image: the camera zooms her up to
-// four times.
+// four times and a stretched ant would show before anything else.
 //
 // The light is the SAME as the ground's, the rock's and the tree's: top left
 // of the world. Since the body turns, inside the drawing the light has to
 // turn the opposite way (`localLight`), or when she turned around the shine
 // would follow her and read as plastic.
+//
+// Each part lives in its own module under `fagi-sprite/`; here they are just
+// assembled in order.
 
-import { POINT_TYPES, CASTES } from './config.js';
+import { CASTES } from './config.js';
 import { casteOf } from './castes.js';
 import { mix } from './sprite-kit.js';
+import { SKIN, SKIN_MALE, DEAD, LEAF, DEAD_LEAF } from './fagi-sprite/palette.js';
 import { localLight, shadow } from './fagi-sprite/light.js';
-import {
-  bodyShape, colorsOf, drawFilaments, drawMembranes, drawMantle, drawSenses, drawCore, drawCargo,
-  vitality, coreColor, asleep,
-} from './fagi-sprite/entity.js';
+import { drawLegs } from './fagi-sprite/legs.js';
+import { drawBody } from './fagi-sprite/body.js';
+import { drawAntennas } from './fagi-sprite/antennae.js';
+import { drawCarried } from './fagi-sprite/cargo.js';
 
 export { ellipse } from './fagi-sprite/stroke.js';
 
+// Is she asleep out in the open? (In the nest she is not drawn at all.)
+const asleep = (fagi) => fagi.alive && fagi.thought?.action === 'rest';
+
 export function drawFagi(ctx, fagi) {
   const alive = fagi.alive;
-  const step = alive ? fagi.stride * 0.07 : 0;
-  const shape = bodyShape(fagi);
-  // Old, her colors fade toward grey.
-  const colors = fagi.alive && fagi.lifeStage === 'senescent' ? faded(colorsOf(fagi)) : colorsOf(fagi);
+  const old = alive && fagi.lifeStage === 'senescent';
+  const skin = fagi.sex === 'male' ? SKIN_MALE : SKIN;
+  const c = !alive ? DEAD : old ? faded(skin) : skin;
+  const leaf = !alive ? DEAD_LEAF : old ? faded(LEAF) : LEAF;
+  const sleeping = asleep(fagi);
+  const step = alive && !sleeping ? fagi.stride * 0.07 : 0;
+  const cold = alive && fagi.thermalFeel === 'cold';
+  const hot = alive && fagi.thermalFeel === 'heat';
 
   ctx.save();
   ctx.translate(fagi.x, fagi.y);
@@ -41,21 +56,24 @@ export function drawFagi(ctx, fagi) {
 
   // The world's light, seen from inside the body.
   const L = localLight(fagi.angle);
-  shadow(ctx, L, alive);
 
-  // The cold makes her draw in a little; a juvenile is smaller; walking rocks
-  // her very slightly.
-  const cold = alive && fagi.thermalFeel === 'cold' ? 0.94 : 1;
-  const grown = fagi.lifeStage === 'juvenile' ? 0.72 : 1;
-  ctx.scale(cold * grown, cold * grown);
-  ctx.rotate(alive && !asleep(fagi) ? Math.sin(step) * 0.03 : 0);
+  shadow(ctx, L, alive, hot ? 1.5 : 1);
 
-  drawFilaments(ctx, fagi, shape, step, colors);
-  drawMembranes(ctx, fagi, shape, colors);
-  drawMantle(ctx, fagi, shape, colors, L);
-  drawCore(ctx, fagi);
-  drawSenses(ctx, fagi, shape, colors, step);
-  if (fagi.carrying && POINT_TYPES[fagi.carrying.type]) drawCargo(ctx, POINT_TYPES[fagi.carrying.type], L);
+  // The cold makes her draw in a little; a juvenile is smaller.
+  const size = (cold ? 0.94 : 1) * (fagi.lifeStage === 'juvenile' ? 0.72 : 1);
+  ctx.scale(size, size);
+
+  // Walking is not just moving the legs: the body pitches with each tripod. Very
+  // little —half a degree— but it is what separates walking from sliding.
+  const wobble = step ? Math.sin(step) * 0.035 : 0;
+  ctx.rotate(wobble);
+
+  const pose = { fold: sleeping ? 1 : cold ? 0.5 : 0, stilt: hot ? 1 : 0 };
+  drawLegs(ctx, step, c, L, alive, pose);
+  drawBody(ctx, c, leaf, L, alive, gasterFill(fagi));
+  drawAntennas(ctx, fagi, step, c, L, alive, sleeping);
+  if (fagi.carrying) drawCarried(ctx, fagi.carrying.type, L);
+
   if (CASTES.enabled && fagi.casteProfile) {
     const caste = casteOf(fagi);
     ctx.save();
@@ -63,7 +81,7 @@ export function drawFagi(ctx, fagi) {
     ctx.shadowColor = caste.color;
     ctx.shadowBlur = 4;
     ctx.beginPath();
-    ctx.arc(-shape.rx * 0.65, 0, 2.5, 0, Math.PI * 2);
+    ctx.arc(1.8, 0, 1.8, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
@@ -74,8 +92,8 @@ export function drawFagi(ctx, fagi) {
     ctx.lineWidth = 2;
     ctx.globalAlpha = Math.min(1, fagi.justLearnedCode / 3);
     ctx.beginPath();
-    const r = 16 + (3.0 - fagi.justLearnedCode) * 6;
-    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    const r = 20 + (3.0 - fagi.justLearnedCode) * 6;
+    ctx.arc(-2, 0, r, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
   }
@@ -83,24 +101,14 @@ export function drawFagi(ctx, fagi) {
   ctx.restore();
 }
 
-// The core's glow, painted over the night (render.js): in the dark she is the
-// light she gives off. `dark` is 0 by day, 1 at full night.
-export function drawFagiGlow(ctx, fagi, dark) {
-  if (!fagi.alive || dark <= 0.02) return;
-  const breath = 0.8 + 0.2 * Math.sin((fagi.age ?? 0) * (asleep(fagi) ? 0.9 : 2.2));
-  const g = ctx.createRadialGradient(fagi.x, fagi.y, 0, fagi.x, fagi.y, 16);
-  g.addColorStop(0, coreColor(vitality(fagi)));
-  g.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.save();
-  ctx.globalCompositeOperation = 'screen';
-  ctx.globalAlpha = dark * 0.55 * breath;
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(fagi.x, fagi.y, 16, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
+// How full the gaster is drawn: a female's is broader, a male's slimmer, and
+// hunger empties it.
+function gasterFill(fagi) {
+  const sex = fagi.sex === 'female' ? 1.06 : fagi.sex === 'male' ? 0.92 : 1;
+  const empty = fagi.alive ? Math.min(1, (fagi.hunger ?? 0) / 100) * 0.14 : 0;
+  return { x: sex * (1 - empty * 0.5), y: sex * (1 - empty) };
 }
 
 function faded(colors) {
-  return Object.fromEntries(Object.entries(colors).map(([k, c]) => [k, mix(c, '#9aa0a6', 0.35)]));
+  return Object.fromEntries(Object.entries(colors).map(([k, v]) => [k, mix(v, '#9aa0a6', 0.35)]));
 }

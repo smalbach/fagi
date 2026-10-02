@@ -1,17 +1,21 @@
-// Fagi's colors (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md §5.2).
+// Fagi's colors, alive and dead.
 //
-// A made-up organism, so no animal's colors: a soft teal mantle that stands
-// out against brown soil, membranes a shade lighter and see-through, and a
-// core that glows. Female and male differ a little in hue, never enough to
-// read as a costume. Dead, everything goes ash-grey and the core goes out.
-export const MANTLE = {
-  female: { base: '#3f8a86', rim: '#9fe0d2', dark: '#173d3c', membrane: '#7cc9bd' },
-  male: { base: '#3b7a93', rim: '#9fd3e6', dark: '#16344a', membrane: '#79b7d4' },
-  none: { base: '#3e8290', rim: '#9fdadc', dark: '#163a43', membrane: '#7bc0c9' },
+// Chitin: it is not a color, it is a material. Each tone yields the light of
+// the back, the dark of the edge and the specular shine, which is what makes
+// it read as a hard shell and not as painted rubber.
+export const SKIN = {
+  gaster: '#c9752f', thorax: '#d4833c', head: '#dd9146',
+  legs: '#8d5327', tip: '#f6d39b', shine: '#ffe9c4',
 };
-export const DEAD = { base: '#5a5f68', rim: '#8b909a', dark: '#2a2d33', membrane: '#6d727b' };
-
-// The core, from well (cool green) to failing (amber, then red).
-export const CORE = { well: '#8ff7d4', strained: '#ffc15e', failing: '#ff5d4d' };
-
-export const FILAMENT = { alive: '#27504f', dead: '#3b3e44' };
+// A male is a shade darker and duller, as in real colonies; never enough to
+// read as a different species.
+export const SKIN_MALE = {
+  gaster: '#a85d27', thorax: '#b56a31', head: '#bf763a',
+  legs: '#764420', tip: '#e6c08a', shine: '#f6dcb4',
+};
+export const DEAD = {
+  gaster: '#4e525f', thorax: '#555a67', head: '#5c6170',
+  legs: '#42464f', tip: '#787d8a', shine: '#9aa0ad',
+};
+export const LEAF = { fill: '#5aa869', vein: '#3d7e4c', light: '#9fd9a4' };
+export const DEAD_LEAF = { fill: '#525c57', vein: '#414a46', light: '#77827c' };
