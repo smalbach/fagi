@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fagi · Investigación</title>
+  <meta name="description" content="Fagi: un organismo artificial que aprende de su cuerpo, escribe sus propias reglas y las transmite a su colonia. Preguntas, métodos, resultados preregistrados y referencias." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script>
+    // Theme before first paint, so a saved choice never flashes the other one.
+    try { const t = localStorage.getItem('fagi-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
+  </script>
+  <link rel="stylesheet" href="./site.css" />
+</head>
+<body>
+<div class="bg-glow" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="brand" href="#top"><span class="dot"></span>fagi <em>/ investigación</em></a>
+  <nav>
+    <a href="#mundo" class="hide-sm">Mundo</a>
+    <a href="#organismo" class="hide-sm">Organismo</a>
+    <a href="#resultado">Resultados</a>
+    <a href="#referencias" class="hide-sm">Referencias</a>
+  </nav>
+  <div class="theme-switch" role="radiogroup" aria-label="Tema">
+    <button type="button" data-theme-set="light" role="radio" aria-label="Claro" title="Claro">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+    </button>
+    <button type="button" data-theme-set="auto" role="radio" aria-label="Según el sistema" title="Según el sistema">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M8.5 20h7M12 16.5V20"/></svg>
+    </button>
+    <button type="button" data-theme-set="dark" role="radio" aria-label="Oscuro" title="Oscuro">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+    </button>
+  </div>
+  <a class="btn-play" href="/">Jugar <span aria-hidden="true">↗</span></a>
+</header>
+
+<div class="hero" id="top">
+  <div class="hero-text">
+    <div class="pill"><span class="live"></span>Investigación en curso · actualizado 2 oct 2026</div>
+    <h1>Un organismo que <span class="grad">aprende de su cuerpo</span> y le enseña a su colonia</h1>
+    <p class="lede">Fagi es una hormiga simulada que nace sin saber qué se come. Prueba, enferma, duerme, recuerda, escribe sus conclusiones como código legible y las pasa a sus hermanas e hijas. Su mundo es nuestro laboratorio para preguntas que no se pueden manipular en animales reales.</p>
+    <div class="cta">
+      <a class="btn primary" href="#resultado">Ver resultados</a>
+      <a class="btn ghost" href="#resumen">Leer el resumen</a>
+    </div>
+    <p class="byline">Por <b>Snheidert Smalbach</b> · vida artificial · aprendizaje · transmisión cultural</p>
+  </div>
+  <figure class="hero-art">
+    <canvas id="hero-canvas" aria-label="Varias hormigas Fagi caminan entre el nido y los frutos dejando un rastro"></canvas>
+    <figcaption>Sprites reales del juego, dibujados en vivo. El movimiento es decorativo.</figcaption>
+  </figure>
+</div>
+
+<div class="stats">
+  <div class="stat"><b data-count="12800">12 800</b><span>linajes simulados en el estudio principal</span></div>
+  <div class="stat"><b>11<small>/11</small></b><span>hipótesis confirmadas en laboratorio; 3/3 en el juego</span></div>
+  <div class="stat"><b data-count="10">10</b><span>protocolos congelados antes de correr, negativos incluidos</span></div>
+  <div class="stat"><b>100<small>%</small></b><span>determinista: cada vida se reproduce byte a byte</span></div>
+</div>
+
+<div class="layout">
+  <aside class="toc" aria-label="Contenido">
+    <b>Contenido</b>
+    <ol>
+      <li><a href="#resumen">Resumen</a></li>
+      <li><a href="#pregunta">La pregunta</a></li>
+      <li><a href="#mundo">El mundo</a></li>
+      <li><a href="#organismo">El organismo</a></li>
+      <li><a href="#aprende">Cómo aprende</a></li>
+      <li><a href="#resultado">Resultado principal</a></li>
+      <li><a href="#estudios">Otros estudios</a></li>
+      <li><a href="#negativos">Lo que no funcionó</a></li>
+      <li><a href="#cuerpo">Cuerpo evolutivo</a></li>
+      <li><a href="#metodo">Método</a></li>
+      <li><a href="#limites">Limitaciones</a></li>
+      <li><a href="#ruta">Hoja de ruta</a></li>
+      <li><a href="#reproducir">Reproducir</a></li>
+      <li><a href="#referencias" class="hide-sm">Referencias</a></li>
+    </ol>
+  </aside>
+
+  <main>
+
+    <!-- 1 -->
+    <section id="resumen">
+      <h2><span class="num">01</span>Resumen</h2>
+      <p>Cuando una cultura transmite <strong>razones</strong> («lo agrio me enfermó») en lugar de <strong>conclusiones</strong> («no comas la gota roja»), ¿se adapta mejor a un mundo que cambia, o queda más atrapada en creencias falsas? Construimos un organismo artificial cuyo conocimiento es inspeccionable —cada creencia guarda de dónde vino— y cuyo mundo es determinista, y manipulamos <em>qué</em> se transmite con un presupuesto igual de elementos.</p>
+      <p>Con el análisis congelado antes de correr, encontramos que las razones son el mejor maestro mientras el mundo se mantiene (40 % menos bocados dañinos que los veredictos) y la peor herencia cuando el mundo se invierte: los linajes que heredan razones llegan a la inversión cargando más mitos y pierden <strong>22–27 puntos porcentuales más</strong> de esa generación. Transmitir la evidencia junto con las razones conserva casi toda la ventaja de enseñanza y reduce mitos y muertes, sin eliminarlos. El efecto se confirmó en un laboratorio abstracto (11 de 11 hipótesis) y en el juego completo con cuerpo, espacio y noche (3 de 3, misma dirección y tamaño parecido).</p>
+      <p>El mismo organismo sirvió para otros nueve protocolos —memoria y sueño, conceptos, diversidad, información social, exploración, decisión adaptativa— cuyos resultados reportamos aquí completos, incluidos los que no apoyaron nuestras hipótesis.</p>
+    </section>
+
+    <!-- 2 -->
+    <section id="pregunta">
+      <h2><span class="num">02</span>La pregunta y por qué nadie la ha respondido</h2>
+      <blockquote>¿Transmitir razones en vez de conclusiones hace a una cultura más adaptable o más supersticiosa?</blockquote>
+      <p>La literatura tira en dos direcciones. En el paradigma de la «rueda» de Derex y colaboradores (2019), transmitir una teoría no aceleró la mejora y estrechó la exploración de quien aprendía; en 2025 mostraron que las teorías transmitidas guían a los aprendices sean correctas o no. Roberts-Gaal, Bolic y Cushman (2025) encontraron que, cuando el mundo varía, las personas prefieren pasar metas y causas en lugar de procedimientos. Los modelos formales (Beppu y Griffiths, 2009) predicen que pasar creencias supera a pasar conducta. Y la «estufa caliente» de Denrell y March (2001) explica por qué una evitación aprendida casi nunca se corrige: quien evita algo deja de probarlo.</p>
+      <p>Lo que falta es una <strong>manipulación controlada de qué se transmite con presupuesto igual</strong>, midiendo a la vez la adaptación tras un cambio y la persistencia de creencias falsas. En humanos o animales eso es casi imposible: no se puede saber de dónde viene cada creencia ni repetir la misma vida dos veces. En Fagi sí.</p>
+      <div class="note"><b>Dos reglas que guían todo el proyecto</b>Fagi se juzga por <em>realismo</em>, no por supervivencia: morir está bien si la causa es realista; solo son errores las muertes artificiales (morir junto a agua conocida, quedarse en un bucle, dormir con sed crítica). Y ninguna afirmación vale sin un protocolo congelado antes de mirar los datos.</div>
+    </section>
+
+    <!-- 3 -->
+    <section id="mundo">
+      <h2><span class="num">03</span>El mundo</h2>
+      <p>Un mapa de 1280 × 860 píxeles que representa unos 64 × 43 cm de suelo. Un segundo de juego equivale a unos ocho minutos en la vida del organismo. Todo es física: el mundo no sabe qué es «bueno» ni «malo»; solo qué le hace cada cosa al cuerpo.</p>
+      <div class="cards">
+        <div class="card"><h4>Frutos con química oculta</h4><p>Cada especie es una mezcla secreta de compuestos que la lengua lee como siete sabores (dulce, umami, salado, agrio, astringente, amargo, picante), y solo en la boca. Una especie amarga es venenosa con probabilidad 0,7; una no amarga, 0,1. Cada mapa tiene dos imitadoras venenosas de especies nutritivas. El fruto viejo se pudre y se vuelve tóxico.</p><div class="where">src/chemistry.js · src/taste.js</div></div>
+        <div class="card"><h4>Agua, viento y olor</h4><p>El estanque no se agota, pero el agua profunda atrapa. El viento gira despacio y cada fuente emite una pluma de olor que solo se percibe a favor del viento y a menos de 34 px. La lluvia, cada 4–7 minutos de juego, deja charcos y borra olores y feromona.</p><div class="where">src/wind.js · src/smell.js · src/rain.js</div></div>
+        <div class="card"><h4>Día, noche y temperatura</h4><p>Un día dura 180 s. El aire oscila alrededor de 22 °C (10 °C al alba, 34 °C por la tarde). Su cuerpo prefiere 25 °C, tolera 15–33 °C y muere por debajo de 4 °C. El nido está a 24 °C; la sombra, 5 °C más fresca. De noche conserva el 45 % de la vista.</p><div class="where">src/cycle.js · src/thermal.js</div></div>
+        <div class="card"><h4>Estaciones</h4><p>Un año dura 3600 s (20 días). El invierno ocupa el 45 %: los árboles dan ×0,02 y el aire baja 8 °C. Hay años calurosos (+12 °C) y años con el fruto lejos del nido: presiones que pueden invertir su dirección.</p><div class="where">src/seasons.js</div></div>
+        <div class="card"><h4>Necesidades del cuerpo</h4><p>Hambre (≈1250 s hasta morir, una «semana»), sed (≈180 s, un «día»), energía, temperatura, presión de sueño, sal y salud: 100 puntos que restan picaduras (12) y veneno (10), que la frenan, condicionan la reproducción y matan en cero.</p><div class="where">src/needs.js · src/health.js</div></div>
+        <div class="card"><h4>Vida, sexo y generaciones</h4><p>Cuatro fundadoras. Adultas a los 360 s, viven 5400 s ±15 %, envejecen al 75 % de la vida. Los huevos incuban 240 s. Hembras más lentas y con más energía; machos al revés. Las hijas heredan genes y el programa innato de su madre, nunca lo que ella aprendió.</p><div class="where">src/lifecycle.js · src/reproduction.js</div></div>
+      </div>
+      <p class="muted">Los bloques del organismo (ciclo, temperatura, sexo, sueño) arrancan apagados en la configuración: con ellos apagados, la simulación es exactamente la que corrieron los estudios preregistrados, hasta el último número aleatorio. El juego los enciende al arrancar.</p>
+    </section>
+
+    <!-- 4 -->
+    <section id="organismo">
+      <h2><span class="num">04</span>El organismo</h2>
+      <p>Cada archivo tiene una sola responsabilidad: <code>movement.js</code> mueve pero no decide, <code>decision.js</code> decide pero no dibuja, <code>render.js</code> dibuja pero no toca el estado. El circuito completo, de lo que percibe a lo que transmite:</p>
+      <figure class="wide">
+        <div class="panel">
+          <svg viewBox="0 0 900 380" role="img" aria-label="Diagrama del ciclo percepción, programa, acción, cuerpo, episodio, memoria, reglas, con la noche y la colonia" style="width:100%;height:auto">
+            <defs>
+              <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-3)"/></marker>
+            </defs>
+            <g font-size="13" fill="var(--ink)">
+              <!-- row 1 -->
+              <rect x="20" y="40" width="150" height="62" rx="10" fill="var(--blue-soft)" stroke="var(--blue)"/>
+              <text x="95" y="66" text-anchor="middle" font-weight="600">Percepción</text>
+              <text x="95" y="86" text-anchor="middle" font-size="11" fill="var(--ink-2)">vista · olor · gusto</text>
+
+              <rect x="250" y="40" width="170" height="62" rx="10" fill="var(--accent-soft)" stroke="var(--accent)"/>
+              <text x="335" y="66" text-anchor="middle" font-weight="600">Programa</text>
+              <text x="335" y="86" text-anchor="middle" font-size="11" fill="var(--ink-2)">líneas en orden; gana la primera</text>
+
+              <rect x="500" y="40" width="150" height="62" rx="10" fill="var(--surface)" stroke="var(--ink-3)"/>
+              <text x="575" y="66" text-anchor="middle" font-weight="600">Acción</text>
+              <text x="575" y="86" text-anchor="middle" font-size="11" fill="var(--ink-2)">comer · beber · cargar</text>
+
+              <rect x="730" y="40" width="150" height="62" rx="10" fill="var(--surface)" stroke="var(--ink-3)"/>
+              <text x="805" y="66" text-anchor="middle" font-weight="600">Cuerpo</text>
+              <text x="805" y="86" text-anchor="middle" font-size="11" fill="var(--ink-2)">se compara antes y después</text>
+
+              <!-- row 2 -->
+              <rect x="730" y="180" width="150" height="62" rx="10" fill="var(--surface)" stroke="var(--ink-3)"/>
+              <text x="805" y="206" text-anchor="middle" font-weight="600">Episodio</text>
+              <text x="805" y="226" text-anchor="middle" font-size="11" fill="var(--ink-2)">recompensa −1…+1, real</text>
+
+              <rect x="500" y="180" width="150" height="62" rx="10" fill="var(--surface)" stroke="var(--ink-3)"/>
+              <text x="575" y="206" text-anchor="middle" font-weight="600">Memoria</text>
+              <text x="575" y="226" text-anchor="middle" font-size="11" fill="var(--ink-2)">valor + confianza</text>
+
+              <rect x="250" y="180" width="170" height="62" rx="10" fill="var(--leaf-soft)" stroke="var(--leaf)"/>
+              <text x="335" y="206" text-anchor="middle" font-weight="600">Reglas legibles</text>
+              <text x="335" y="226" text-anchor="middle" font-size="11" fill="var(--ink-2)">born · self · night · told · saw</text>
+
+              <!-- row 3 -->
+              <rect x="20" y="300" width="300" height="62" rx="10" fill="var(--surface)" stroke="var(--ink-3)" stroke-dasharray="4 3"/>
+              <text x="170" y="326" text-anchor="middle" font-weight="600">Noche en el nido</text>
+              <text x="170" y="346" text-anchor="middle" font-size="11" fill="var(--ink-2)">ordena el día · preguntas para mañana</text>
+
+              <rect x="390" y="300" width="300" height="62" rx="10" fill="var(--surface)" stroke="var(--ink-3)" stroke-dasharray="4 3"/>
+              <text x="540" y="326" text-anchor="middle" font-weight="600">Colonia</text>
+              <text x="540" y="346" text-anchor="middle" font-size="11" fill="var(--ink-2)">trofalaxia · observar · enseñar a la cría</text>
+            </g>
+            <g stroke="var(--ink-3)" stroke-width="1.5" fill="none" marker-end="url(#ar)">
+              <path d="M170 71 H246"/>
+              <path d="M420 71 H496"/>
+              <path d="M650 71 H726"/>
+              <path d="M805 102 V176"/>
+              <path d="M730 211 H654"/>
+              <path d="M500 211 H424"/>
+              <path d="M335 180 V106"/>
+              <path d="M300 242 L210 296"/>
+              <path d="M380 242 L470 296"/>
+            </g>
+          </svg>
+        </div>
+        <figcaption><b>Figura 1.</b> Comer o beber abre un episodio con una foto del cuerpo; al cerrarse, la comparación da una recompensa calculada de cambios reales (hambre, sed, salud), nunca de un número escrito a mano. La memoria la convierte en valor y confianza; cuando la creencia pesa lo bastante, se escribe (o revisa, o retira) una regla legible con su origen. Las líneas discontinuas son procesos que pueden apagarse para los experimentos.</figcaption>
+      </figure>
+
+      <h3>Una jerarquía que viene de una sola directiva</h3>
+      <p>Todo lo que hace sale de «sobrevivir», ordenado en cuatro niveles: <strong>sobrevivir ahora</strong> (beber, comer, tirar de la despensa); <strong>resistir</strong> (descansar, porque sin fuerza no hay después); <strong>proveer</strong> (llevar al nido lo que no necesita y perseguir lo que ve); <strong>explorar</strong> (sin necesidades ni pistas, conocer el mapa es lo único que prepara para lo demás). Esa jerarquía no es código que solo una persona puede cambiar: es un dato que ella carga, una línea por conducta, y la primera línea que responde gana.</p>
+
+      <h3>Conocimiento que se puede leer</h3>
+      <p>Nada se evalúa con <code>eval</code>. Reglas y programa se imprimen como JavaScript real y se leen de vuelta con una gramática cerrada, así que cualquier creencia se puede inspeccionar, rastrear hasta su origen y exportar.</p>
+<pre><code><span class="c">// una regla que escribió ella misma después de enfermar</span>
+<span class="k">rule</span>(<span class="s">'avoid-bitter'</span>, { "do": "avoid", "if": { "taste": "bitter" }, "source": "self", ... })
+
+<span class="c">// una línea de su programa: descansar antes de perseguir si la energía baja de 35</span>
+<span class="k">line</span>(<span class="s">'rest-before-pursue-energyBelow35'</span>, { "tier": "endure", "from": "rest", "over": "pursue", ... })</code></pre>
+
+      <h3>Social</h3>
+      <p>En el nido las hermanas se pasan reglas por trofalaxia (se confía en ellas al 0,6 de lo que confía quien las cuenta); ver a una hermana comer enseña a 0,4; las veteranas enseñan a las recién nacidas. Cada copia conserva su <code>origin</code>. Una regla contada que la experiencia propia contradice más de lo que confirma, muere.</p>
+    </section>
+
+    <!-- 5 -->
+    <section id="aprende">
+      <h2><span class="num">05</span>Cómo aprende, paso a paso</h2>
+      <ol>
+        <li><strong>Prueba.</strong> Nace sin saber qué árboles dan comida; ve apariencias, no especies.</li>
+        <li><strong>Siente.</strong> El sabor solo existe en la boca. Un mal bocado trae malestar y aversión a ese olor tras un solo ensayo, como en Garcia y Koelling (1966).</li>
+        <li><strong>Recuerda.</strong> Cada experiencia mueve valor y confianza con una regla tipo Rescorla-Wagner, de corto a largo plazo (la confianza a corto plazo se desvanece en ≈1 día simulado; la de largo plazo, en semanas).</li>
+        <li><strong>Escribe.</strong> Si una creencia cruza un umbral, se convierte en regla, con histéresis para que no parpadee.</li>
+        <li><strong>Duerme.</strong> Una vez por noche, dormida en el nido, ordena el día y convierte sus dudas en preguntas que al día siguiente responde con un bocado de prueba.</li>
+        <li><strong>Agrupa.</strong> Con cosas sin categoría innata (solo color, forma y textura), forma conceptos que predicen especies nuevas y los retira cuando fallan; tras una sorpresa, duda de todo un tiempo (Behrens y cols., 2007).</li>
+        <li><strong>Transmite.</strong> A hermanas y a la siguiente generación, con el formato que el experimento decida: nada, veredictos, razones o razones con evidencia.</li>
+      </ol>
+    </section>
+
+    <!-- 6 -->
+    <section id="resultado">
+      <h2><span class="num">06</span>Resultado principal: razones frente a conclusiones</h2>
+      <p><span class="tag conf">Confirmatorio</span> &nbsp;Protocolo congelado en el commit <code>9d222c3</code> antes de cualquier corrida.</p>
+
+      <h3>Diseño</h3>
+      <ul>
+        <li><strong>Unidad de análisis:</strong> el linaje (12 generaciones de colonias de 5). Las filas de un linaje nunca se tratan como independientes.</li>
+        <li><strong>Cuatro formatos</strong> con el mismo presupuesto de 4 elementos: <em>nada</em>; <em>veredictos</em> (conclusiones por fruto que quien enseña conoció); <em>razones</em> (reglas sobre rasgos); <em>razones + evidencia</em> (reglas y los bocados que las respaldan).</li>
+        <li><strong>Cambio del mundo</strong> en la generación 6: ninguno, inversión (lo venenoso pasa a nutritivo y viceversa), rotación o desplazamiento a otra dimensión.</li>
+        <li><strong>Laboratorio:</strong> 64 celdas × 200 linajes, semillas 1001–1200, 12 800 linajes en 281 s. Celdas pareadas: cada linaje tiene un gemelo en cada otra celda viviendo los mismos mundos.</li>
+        <li><strong>Juego:</strong> 75 linajes por formato, semillas 5000–5074, vidas de 1800 s, inversión en la generación 4; ≈40 min en 18 núcleos.</li>
+        <li><strong>Análisis:</strong> pruebas de permutación pareadas con 10 000 inversiones de signo, corrección de Holm, intervalos bootstrap del 95 % y tamaño de efecto <em>d<sub>z</sub></em>.</li>
+      </ul>
+
+      <figure class="wide">
+        <div class="panel">
+          <div class="seg" role="tablist">
+            <button type="button" class="on" data-results="lab">Laboratorio</button>
+            <button type="button" data-results="game">Juego completo</button>
+          </div>
+          <div class="legend">
+            <span><i style="background:var(--s-none)"></i>nada</span>
+            <span><i style="background:var(--s-verdict)"></i>veredictos</span>
+            <span><i style="background:var(--s-rule)"></i>razones</span>
+            <span><i style="background:var(--s-evidence)"></i>razones + evidencia</span>
+          </div>
+          <div id="result-charts" class="chart-row"></div>
+        </div>
+        <figcaption><b>Figura 2.</b> Medias por linaje. <span id="result-source"></span>. Las razones enseñan mejor mientras el mundo se mantiene (izquierda) pero dejan menos supervivientes cuando se invierte (centro), porque llegan con más mitos —creencias falsas nunca vividas— (derecha).</figcaption>
+      </figure>
+
+      <h3>Las once hipótesis del laboratorio</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Hipótesis</th><th>Contraste</th><th>Medida</th><th class="n">Diferencia [IC 95 %]</th><th class="n">d<sub>z</sub></th></tr></thead>
+          <tbody>
+            <tr><td>H1 · las razones enseñan mejor en un mundo estable</td><td>veredicto − razón</td><td>bocados dañinos</td><td class="n">0,224 [0,204; 0,247]</td><td class="n">1,46</td></tr>
+            <tr><td>H2a · las razones dejan menos supervivientes en la inversión</td><td>veredicto − razón</td><td>supervivientes</td><td class="n">0,274 [0,219; 0,329]</td><td class="n">0,68</td></tr>
+            <tr><td>H2b · … menos que no transmitir nada</td><td>nada − razón</td><td>supervivientes</td><td class="n">0,300 [0,245; 0,356]</td><td class="n">0,73</td></tr>
+            <tr><td>H3 · las razones llevan más mitos a la inversión</td><td>razón − veredicto</td><td>mitos</td><td class="n">0,863 [0,672; 1,048]</td><td class="n">0,63</td></tr>
+            <tr><td>H4a · la evidencia lleva menos mitos que las razones</td><td>razón − evidencia</td><td>mitos</td><td class="n">2,000 [1,809; 2,199]</td><td class="n">1,41</td></tr>
+            <tr><td>H4b · la evidencia deja más supervivientes que las razones</td><td>evidencia − razón</td><td>supervivientes</td><td class="n">0,150 [0,086; 0,211]</td><td class="n">0,33</td></tr>
+            <tr><td>H4c · la evidencia enseña mejor que los veredictos</td><td>veredicto − evidencia</td><td>bocados dañinos</td><td class="n">0,253 [0,234; 0,273]</td><td class="n">1,79</td></tr>
+            <tr><td>H5a · la brecha H2a es mayor en inversión que en rotación</td><td>(v − r) inv − rot</td><td>supervivientes</td><td class="n">0,265 [0,209; 0,321]</td><td class="n">0,65</td></tr>
+            <tr><td>H5b · … que en desplazamiento de dimensión</td><td>(v − r) inv − desp</td><td>supervivientes</td><td class="n">0,277 [0,220; 0,333]</td><td class="n">0,68</td></tr>
+            <tr><td>H6a · la brecha H2a crece con vidas de 1800 s frente a 900 s</td><td>(v − r) 1800 − 900</td><td>supervivientes</td><td class="n">0,206 [0,147; 0,263]</td><td class="n">0,49</td></tr>
+            <tr><td>H6b · la diferencia H3 se mantiene con vidas de 900 s</td><td>razón − veredicto</td><td>mitos</td><td class="n">0,771 [0,583; 0,965]</td><td class="n">0,56</td></tr>
+          </tbody>
+          <caption>Unilaterales, Holm sobre once. Con 10 000 permutaciones el p mínimo alcanzable es 0,0001, así que todo p ajustado es 0,0011. Medidas por hormiga.</caption>
+        </table>
+      </div>
+
+      <h3>Confirmación en el juego</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Hipótesis</th><th class="n">n</th><th class="n">Diferencia [IC 95 %]</th><th class="n">d<sub>z</sub></th><th class="n">p (Holm)</th><th class="n">laboratorio</th></tr></thead>
+          <tbody>
+            <tr><td>H1 · razones enseñan mejor (gen. 1–3)</td><td class="n">75</td><td class="n">0,332 [0,243; 0,411]</td><td class="n">0,91</td><td class="n">0,0003</td><td class="n">0,224</td></tr>
+            <tr><td>H2a · menos supervivientes en la inversión (gen. 4)</td><td class="n">75</td><td class="n">0,223 [0,133; 0,317]</td><td class="n">0,54</td><td class="n">0,0003</td><td class="n">0,274</td></tr>
+            <tr><td>H3 · más mitos al final de la gen. 4</td><td class="n">75</td><td class="n">0,827 [0,630; 1,027]</td><td class="n">0,92</td><td class="n">0,0003</td><td class="n">0,863</td></tr>
+          </tbody>
+          <caption>Bilaterales, Holm sobre tres. El preregistro exigía que laboratorio y juego coincidieran en dirección en H1, H2a y H3: coinciden, con tamaños parecidos.</caption>
+        </table>
+      </div>
+
+      <h3>Lo que se ve al explorar (no preregistrado)</h3>
+      <ul>
+        <li><strong>La trampa necesita una inversión.</strong> Si el veneno rota a otro valor o pasa a otra dimensión, los linajes de razones también cargan más mitos (1,3–2,5 veces), pero nadie muere por ellos: 98–100 % de supervivencia en todos los formatos. Solo la inversión hace que la vieja razón apunte justo a la comida nueva, y el rechazo se vuelve inanición.</li>
+        <li><strong>Química conjuntiva</strong> (veneno = color Y olor): mismo patrón, más pequeño (80 % frente a 92 % de supervivientes).</li>
+        <li><strong>Recuperación.</strong> Tras cualquier cambio, lo que se enseña a las recién nacidas tarda más en corregirse con razones (1,7–2,1 generaciones frente a 1,2–1,7).</li>
+        <li><strong>Vidas cortas</strong> reducen las muertes pero no los mitos: la creencia es igual de falsa, solo no hay tiempo de morir de hambre por ella.</li>
+        <li><strong>Después de la inversión</strong> los linajes de razones vuelven a ser los que menos daño sufren: las supervivientes reaprenden.</li>
+      </ul>
+      <div class="note warn"><b>Una limitación encontrada al leer los resultados</b>El catálogo de cada linaje se sortea para que cada época tenga al menos dos venenos y dos alimentos, así que el mundo antes del cambio depende de qué cambio viene después. Las comparaciones entre formatos no se afectan (son pareadas dentro del mismo mundo); las interacciones H5a/H5b no son un contraste puro de números aleatorios comunes.</div>
+    </section>
+
+    <!-- 7 -->
+    <section id="estudios">
+      <h2><span class="num">07</span>Otros estudios con el mismo organismo</h2>
+      <p>Cada uno tiene su protocolo congelado en <code>docs/research/</code> y su reporte en <code>research/results/</code>.</p>
+      <div class="cards">
+        <div class="card">
+          <h4>Memoria, sueño y consolidación <span class="tag conf">congelado</span></h4>
+          <p>14 condiciones × 2 mundos × 120 vidas. Aprender importa: juicio 0,852 frente a 0,500 de una Fagi que no aprende (d<sub>z</sub> 3,6); vive 2069 s frente a 344 s de un agente aleatorio. Con aprendizaje fijo, 9 de 12 poblaciones se extinguen; con el completo, 2 de 12.</p>
+          <p><strong>Seguimiento (4 de 4 apoyadas):</strong> la repetición nocturna intercalada <em>empeora</em> el juicio (0,928 sin ella frente a 0,904) y la consolidación frena la adaptación tras un cambio. Por eso la repetición está apagada por defecto.</p>
+          <div class="where">organism-protocol.md · organism2-protocol.md</div>
+        </div>
+        <div class="card">
+          <h4>Conceptos <span class="tag conf">4 de 4</span></h4>
+          <p>Ante cosas sin categoría innata, nombra bien especies nuevas a primera vista (0,967 frente a 0,25 de azar, d<sub>z</sub> 10,2), los conceptos le ahorran picaduras (0,042 frente a 1,450), bebe savia nueva antes de examinarla, y dudar tras una sorpresa ayuda cuando el mundo gira (0,847 frente a 0,392).</p>
+          <div class="where">concepts-protocol.md</div>
+        </div>
+        <div class="card">
+          <h4>Diversidad ante un cambio <span class="tag conf">3 de 4</span></h4>
+          <p>4 fundadoras, 8 especies, química invertida a mitad de vida. La población se recupera (juicio 0,810 al final frente a 0,402 tras el cambio) y mantiene diversidad genética (0,189 frente a 0,152). Lo que no se apoyó: la población clonal no murió más por veneno (0,132 frente a 0,121).</p>
+          <div class="where">diversity-protocol.md</div>
+        </div>
+        <div class="card">
+          <h4>La hermana mal informada <span class="tag conf">2 de 3</span></h4>
+          <p>Una hermana que cuenta reglas falsas no daña el juicio de la colonia (0,800 frente a 0,813), y solo el 26 % de las reglas falsas adoptadas sigue en pie al final. Pero una hermana bien informada tampoco redujo el veneno ingerido.</p>
+          <div class="where">social-protocol.md</div>
+        </div>
+        <div class="card">
+          <h4>Explorar o volver <span class="tag conf">2 de 6</span></h4>
+          <p>10 condiciones × 120 colonias. Las hermanas cuyas primeras búsquedas pagaron exploran más después (r = 0,455, 596 hermanas) y tras un nido lleno esperan más para volver a buscar (983 s frente a 153 s). La elección aprendida no comió más que reglas fijas y no exploró más en mundos efímeros.</p>
+          <div class="where">forage-protocol.md</div>
+        </div>
+        <div class="card">
+          <h4>Cautela en el juego <span class="tag conf">2 de 2</span></h4>
+          <p>Dos líneas —probar primero las especies nuevas, dejar lo que te dañó— subieron la supervivencia de 0,882 a 0,955 (+0,073 [0,033; 0,111]) con 200 mundos por perfil; las muertes por veneno bajaron de 29 a 4, a costa de 4 muertes por hambre que antes no había. Hoy son la conducta por defecto.</p>
+          <div class="where">caution-protocol.md</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section id="negativos">
+      <h2><span class="num">08</span>Lo que no funcionó</h2>
+      <p>Lo publicamos con el mismo detalle que lo que funcionó. Un proyecto cuyo objetivo final es que el organismo reescriba su propio código tiene que decir con claridad dónde está hoy.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Idea</th><th>Resultado</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>Un modelo de decisión adaptativa supera a la heurística actual</td><td>Supera a la versión actual (+0,056 [0,024; 0,089]) pero <strong>pierde frente a una heurística simple</strong> (−0,030); planear dos pasos no añade nada (−0,004). Veredicto: preferir la heurística.</td><td><span class="tag neg">no apoyado</span></td></tr>
+            <tr><td>Reglas de conducta escritas por ella misma, en una vida</td><td>Dos variantes: −0,080 y −0,072 frente a la Fagi actual.</td><td><span class="tag neg">peor</span></td></tr>
+            <tr><td>… a lo largo de linajes</td><td>≈ −0,23; con prohibiciones «con salida», −0,254 y −0,232.</td><td><span class="tag neg">peor</span></td></tr>
+            <tr><td>Reescribir su programa en vida</td><td>Con registros de 24 vidas juntas, el orden innato es un óptimo local. Repara un programa saboteado solo con mucha evidencia: compartir momentos entre hermanas en el nido lo hace posible (8 de 8 colonias que se reproducen, frente a 0 sin compartir).</td><td><span class="tag expl">exploratorio</span></td></tr>
+            <tr><td>Mente nocturna que propone reglas</td><td>+0,060 en laboratorio con química color-y-olor; sin ganancia en el juego.</td><td><span class="tag expl">exploratorio</span></td></tr>
+            <tr><td>La consolidación nocturna mejora el juicio</td><td>0,852 frente a 0,838, p 0,229.</td><td><span class="tag neg">no apoyado</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note"><b>Dónde estamos con la auto-reescritura</b>Hoy el organismo escribe <em>reglas</em> de qué comer con éxito confirmado, y puede reordenar líneas de su programa con una gramática fija. Que invente estructura de conducta nueva que supere al diseño humano todavía no está demostrado.</div>
+    </section>
+
+    <!-- 9 -->
+    <section id="cuerpo">
+      <h2><span class="num">09</span>En curso: un cuerpo que evoluciona</h2>
+      <p><span class="tag wip">en curso</span> &nbsp;Seis órganos heredables —cerebro, intestino, músculo, ojos, antenas, tamaño— cada uno un multiplicador con beneficio y coste energético. Los costes crecen más rápido que lineal y el metabolismo escala con la masa a la ¾ (Kleiber, 1932). Un cerebro grande cuesta unas 18 veces lo que el músculo por gramo (Elia, 1992) y, como en los peces de Kotrschal y cols. (2013), achica el intestino y la descendencia. Dentro de la vida, cada órgano puede ajustarse hasta ±25 %, pero solo cuando la experiencia sale de lo típico.</p>
+      <p>Comparamos tres formas de herencia: <strong>darwiniana</strong> (solo genes), <strong>Baldwin</strong> (se hereda la capacidad de ajustarse) y <strong>epigenética</strong> (se hereda parte del ajuste de la madre, como la evitación aprendida que <em>C. elegans</em> mantiene unas 4 generaciones; Moore y cols., 2019).</p>
+      <ul>
+        <li><span class="tag expl">exploratorio</span> Con inviernos fríos, el frío pasó a causar la mitad o más de las muertes (antes, el 100 % era vejez); la herencia epigenética tuvo menos muertes por frío. Con 3 semillas por celda, ninguna diferencia es firme.</li>
+        <li><span class="tag neg">no confirmado</span> La predicción de de Bruin y cols. (2026) —heredar lo vivido rinde más cuando el cambio es predecible— no se confirmó en 90 corridas con 10 semillas: 4,4 [−15,8; 24,6]. El tamaño corporal sí sigue a los años fríos y cálidos en los tres modos (regla temperatura-tamaño, Atkinson 1994).</li>
+      </ul>
+    </section>
+
+    <!-- 10 -->
+    <section id="metodo">
+      <h2><span class="num">10</span>Método y rigor</h2>
+      <div class="grid2">
+        <div>
+          <h3>Determinismo y huellas</h3>
+          <p>Todo número aleatorio sale de una semilla. Un linaje depende solo de su semilla y sus opciones: corrido solo o dentro de un lote, sale idéntico byte a byte. Vidas sembradas se reducen a una huella de decisiones; los tests las comparan contra huellas grabadas antes de cada cambio de arquitectura, así que un refactor no puede cambiar en silencio lo que ella hace.</p>
+          <h3>Preregistro</h3>
+          <p>Hipótesis, medidas, contrastes, dirección, corrección y criterio de éxito se congelan en un commit antes de correr. Lo que no estaba ahí se reporta como exploratorio. Las desviaciones de ejecución se documentan (un contenedor se reinició y las corridas se relanzaron por linaje, con verificación de identidad).</p>
+        </div>
+        <div>
+          <h3>Estadística</h3>
+          <p>Unidad = linaje o colonia, nunca la fila. Celdas con números aleatorios comunes: mismos mundos en cada condición, contrastes pareados. Permutaciones de signo pareadas (10 000), Holm para múltiples pruebas, bootstrap del 95 %, <em>d<sub>z</sub></em> y linajes necesarios para 80 % de potencia. Diseños de hipercubo latino sobre los parámetros afinados a mano para ver si un efecto conserva su signo.</p>
+          <h3>Laboratorio frente a juego</h3>
+          <p>El laboratorio quita espacio, agua, nido y despensa, pero conserva todo lo que aprende y todo lo que se transmite, con el mismo código. Corre unos 20 linajes de 12 generaciones por segundo en 4 núcleos. Cada resultado del laboratorio se comprueba después en el juego completo.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section id="limites">
+      <h2><span class="num">11</span>Limitaciones</h2>
+      <ul>
+        <li><strong>Los formatos se igualan por elementos, no por bits.</strong> Una regla sobre un rasgo y un veredicto sobre un fruto cuestan uno cada uno. Igualar por información sobre la química queda pendiente (Prystawski y cols., 2025, muestran que la tasa del canal importa).</li>
+        <li><strong>Un veredicto solo cubre frutos que quien enseña conoció.</strong> Es la naturaleza de una conclusión, y también por qué generaliza menos.</li>
+        <li><strong>El piloto dio forma a las hipótesis.</strong> Las pruebas confirmatorias usan semillas nuevas, pero algunas hipótesis (explorar o volver, diversidad) se escribieron después de ver un piloto.</li>
+        <li><strong>Supervivencia sesgada.</strong> En los estudios de auto-reescritura las muertes aún no quedan registradas, lo que sesga lo que se aprende hacia quien sobrevive.</li>
+        <li><strong>Es una hormiga de juguete.</strong> Los parámetros están inspirados en la literatura pero afinados a mano; la validez externa viene de la dirección de los efectos, no de sus magnitudes.</li>
+        <li><strong>Un solo autor.</strong> Falta revisión externa; este sitio existe en parte para conseguirla.</li>
+      </ul>
+    </section>
+
+    <!-- 12 -->
+    <section id="ruta">
+      <h2><span class="num">12</span>Hoja de ruta</h2>
+      <ol>
+        <li><strong>Métricas de realismo.</strong> Los 14 requisitos de selección de acción de Tyrrell (1993) como medida principal de qué tan «vivo» se comporta.</li>
+        <li><strong>Una noche científica.</strong> Que el sueño formule preguntas y diseñe los experimentos del día siguiente con el cuerpo actual.</li>
+        <li><strong>Impulsos aprendidos.</strong> Querer frente a gustar: <em>W = κ·V</em> (Zhang y Berridge, 2009).</li>
+        <li><strong>Selección de flujo libre</strong> como controlador de decisiones, frente a la jerarquía actual.</li>
+        <li><strong>Cuerpo evolutivo</strong> con presiones que inviertan su dirección y ≥10 semillas por celda.</li>
+        <li><strong>Igualar formatos por información</strong> en el estudio de razones frente a conclusiones.</li>
+      </ol>
+    </section>
+
+    <!-- 13 -->
+    <section id="reproducir">
+      <h2><span class="num">13</span>Reproducir</h2>
+      <p>Las filas crudas no se versionan; cada <code>manifest.json</code> guarda el diseño, las semillas y el commit, suficiente para regenerarlas exactamente. Node ≥ 22.</p>
+<pre><code><span class="c"># estudio principal de laboratorio (12 800 linajes, ~5 min)</span>
+node research/run.js --design research/designs/main.json
+node research/confirm.js research/results/main
+
+<span class="c"># sensibilidad sobre los parámetros afinados a mano</span>
+node research/run.js --design research/designs/sensitivity.json
+node research/sensitivity.js research/results/sensitivity --a verdict --b rule
+
+<span class="c"># todos los tests, incluidas las huellas de decisión</span>
+npm test</code></pre>
+    </section>
+
+    <!-- 14 -->
+    <section id="referencias">
+      <h2><span class="num">14</span>Referencias</h2>
+      <p class="muted">Agrupadas por la idea que el proyecto toma de cada una. La revisión completa está en <code>reports/Razones frente a conclusiones culturales.md</code>, que trabajó mayormente con resúmenes.</p>
+
+      <h3>Transmitir teorías y cultura acumulativa</h3>
+      <ol class="refs">
+        <li>Derex, M., Bonnefon, J.-F., Boyd, R. y Mesoudi, A. (2019). Causal understanding is not necessary for the improvement of culturally evolving technology. <em>Nature Human Behaviour</em>, 3, 446–452. <span class="why">Transmitir una teoría no aceleró la mejora y estrechó la exploración.</span></li>
+        <li>Derex, M., Bonnefon, J.-F., Boyd, R., McElreath, R. y Mesoudi, A. (2025). <em>Proceedings of the Royal Society B</em>, 292, 20242499. <span class="why">Las teorías transmitidas guían a los aprendices, sean correctas o engañosas.</span></li>
+        <li>Osiurak, F. y cols. (2021, 2022). <em>Nature Human Behaviour</em>; <em>Science Advances</em>, 8, eabl7446. <span class="why">Réplica parcial: la comprensión creció con el rendimiento.</span></li>
+        <li>Roberts-Gaal, X., Bolic, A. y Cushman, F. (2025). <em>PNAS</em>, 122(28). <span class="why">Cuando el mundo varía, las personas transmiten metas y causas, no procedimientos.</span></li>
+        <li>Harris, J. A., Boyd, R. y Wood, B. M. (2021). <em>Current Biology</em>. <span class="why">Las teorías causales de los arqueros hadza son incompletas y aprendidas culturalmente.</span></li>
+        <li>Saral, A. S., Derex, M. e Ibáñez de Aldecoa, P. (2026). <em>PNAS Nexus</em>, 5, pgag090. <span class="why">El razonamiento causal acelera las ganancias tempranas y luego se diluye.</span></li>
+      </ol>
+
+      <h3>Modelos formales de transmisión</h3>
+      <ol class="refs">
+        <li>Rogers, A. R. (1988). Does biology constrain culture? <em>American Anthropologist</em>. <span class="why">La paradoja de Rogers: copiar no sube la aptitud media en un mundo que cambia.</span></li>
+        <li>Enquist, M., Eriksson, K. y Ghirlanda, S. (2007). <span class="why">El aprendizaje social crítico —copiar y luego comprobar— resuelve la paradoja.</span></li>
+        <li>Rendell, L. y cols. (2010). Why copy others? <em>Science</em>, 328, 208–213. <span class="why">Copiar gana porque los demostradores filtran.</span></li>
+        <li>Kalish, M., Griffiths, T. y Lewandowsky, S. (2007). <span class="why">Las cadenas de transmisión convergen a los sesgos previos de quien aprende.</span></li>
+        <li>Kirby, S., Cornish, H. y Smith, K. (2008). <em>PNAS</em>, 105, 10681. <span class="why">Los sistemas de reglas se vuelven regulares y comprimidos al transmitirse.</span></li>
+        <li>Beppu, A. y Griffiths, T. (2009). <span class="why">Pasar creencias supera a pasar conducta.</span></li>
+        <li>Prystawski, B., Arumugam, D. y Goodman, N. (2025). <span class="why">La tasa del canal tiene efectos no lineales: base para igualar presupuestos.</span></li>
+      </ol>
+
+      <h3>Evitación, estufa caliente y vigilancia epistémica</h3>
+      <ol class="refs">
+        <li>Denrell, J. y March, J. G. (2001). Adaptation as information restriction: the hot stove effect. <em>Organization Science</em>, 12, 523–538. <span class="why">Las sobreestimaciones se corrigen; las subestimaciones, no.</span></li>
+        <li>Denrell, J. (2007). <em>Psychological Review</em>, 114, 177–187. <span class="why">Muestreo adaptativo y sesgos sistemáticos.</span></li>
+        <li>Denrell, J. y Le Mens, G. (2017). <em>Management Science</em>, 63, 528–547. <span class="why">Muestrear lo popular crea ilusiones colectivas duraderas.</span></li>
+        <li>Toyokawa, W. y Gaissmaier, W. (2022). <em>eLife</em>, 11, e75308. <span class="why">La conformidad puede rescatar a un grupo de la trampa de la estufa caliente.</span></li>
+        <li>Laland, K. N. y Williams, K. (1998). <em>Behavioral Ecology</em>, 9, 493–499. <span class="why">Una tradición desadaptativa en guppis sobrevivió a sus fundadores.</span></li>
+        <li>Galef, B. G. (1985). <span class="why">Las ratas aprenden socialmente qué comer, no qué evitar.</span></li>
+        <li>Sperber, D. y cols. (2010). Epistemic vigilance. <em>Mind &amp; Language</em>, 25, 359–393.</li>
+        <li>O'Connor, C. y Weatherall, J. O. (2018). <em>European Journal for Philosophy of Science</em>, 8, 855–875. <span class="why">Ponderar por confianza puede producir polarización falsa estable.</span></li>
+        <li>Doyle, J. (1979). A truth maintenance system. <span class="why">Creencias con justificaciones registradas: la idea detrás de <code>origin</code>.</span></li>
+      </ol>
+
+      <h3>Aprendizaje, memoria y sueño</h3>
+      <ol class="refs">
+        <li>Garcia, J. y Koelling, R. A. (1966). <span class="why">El malestar se atribuye al sabor más que a la apariencia; aversión tras un ensayo.</span></li>
+        <li>Rescorla, R. A. y Wagner, A. R. (1972). <span class="why">La regla de aprendizaje de valor.</span></li>
+        <li>Kalat, J. W. y Rozin, P. (1973). <span class="why">Seguridad aprendida.</span></li>
+        <li>McClelland, J. L., McNaughton, B. L. y O'Reilly, R. C. (1995). <span class="why">Repetición intercalada nocturna contra la interferencia.</span></li>
+        <li>Behrens, T. E. J. y cols. (2007). <span class="why">Volatilidad: la sorpresa hace dudar.</span></li>
+        <li>Charnov, E. L. (1976). Optimal foraging, the marginal value theorem. <span class="why">Cuándo abandonar una parcela.</span></li>
+        <li>Seeley, T. D. <span class="why">Las abejas cambian de tarea cuando nadie las descarga.</span></li>
+      </ol>
+
+      <h3>Selección de acción y motivación</h3>
+      <ol class="refs">
+        <li>Tyrrell, T. (1993). Computational mechanisms for action selection. Tesis, Universidad de Edimburgo. <span class="why">Selección de flujo libre y 14 requisitos.</span></li>
+        <li>Lorenz, K. (1950); Hinde, R. A. (1956, 1960). <span class="why">El modelo hidráulico del impulso y su crítica.</span></li>
+        <li>Brooks, R. A. (1986, 1991); Maes, P. (1989). <span class="why">Arquitecturas reactivas y de subsunción.</span></li>
+        <li>Zhang, J. y Berridge, K. C. (2009). <span class="why">Querer frente a gustar: W = κ·V.</span></li>
+        <li>Keramati, M. y Gutkin, B. (2014). <span class="why">Aprendizaje por refuerzo homeostático.</span></li>
+        <li>Cabanac, M. (1971). Alliesthesia; Sterling, P. (2012). Allostasis.</li>
+        <li>Oudeyer, P.-Y. y cols. (2007). <span class="why">Curiosidad por progreso de aprendizaje.</span></li>
+      </ol>
+
+      <h3>Cuerpo, coste y herencia</h3>
+      <ol class="refs">
+        <li>Kleiber, M. (1932). <span class="why">El metabolismo escala con la masa a la ¾.</span></li>
+        <li>Elia, M. (1992). <span class="why">El cerebro cuesta unas 18 veces el músculo por gramo.</span></li>
+        <li>Niven, J. E. y cols. (2007); Chittka, L. y Niven, J. (2009). <span class="why">Los beneficios de órganos más grandes se saturan.</span></li>
+        <li>Kotrschal, A. y cols. (2013, 2019). <span class="why">Cerebro grande: intestino menor, menos crías, vida más corta.</span></li>
+        <li>Atkinson, D. (1994). <span class="why">Regla temperatura-tamaño.</span></li>
+        <li>Hinton, G. E. y Nowlan, S. J. (1987). How learning can guide evolution. <span class="why">Efecto Baldwin.</span></li>
+        <li>Moore, R. S., Kaletsky, R. y Murphy, C. T. (2019). <span class="why"><em>C. elegans</em> hereda una evitación aprendida unas 4 generaciones.</span></li>
+        <li>de Bruin y cols. (2026). <span class="why">Cambio predecible frente a impredecible para la herencia de lo vivido.</span></li>
+      </ol>
+
+      <h3>Sistemas cercanos</h3>
+      <ol class="refs">
+        <li>Grand, S. y Cliff, D. (1998). Creatures. <span class="why">El precedente más cercano de criaturas que aprenden.</span></li>
+        <li>Yaeger, L. (1994). PolyWorld.</li>
+        <li>Ackley, D. y Littman, M. (1991). <span class="why">Interacción entre aprendizaje y evolución.</span></li>
+        <li>Todd, P. M. y Miller, G. F. (1991). <span class="why">Aprendizaje de toxicidad por pistas en criaturas simuladas.</span></li>
+        <li>Blount, Z. D., Borland, C. Z. y Lenski, R. E. (2008). <em>PNAS</em>, 105, 7899. <span class="why">Repetir la evolución desde clones congelados: la lógica de las semillas pareadas.</span></li>
+        <li>Park, J. S. y cols. (2023). Generative agents. <span class="why">Sociedades de agentes con LLM.</span></li>
+      </ol>
+      <p class="muted">Algunas referencias de 2025–2026 se tomaron de resúmenes y están marcadas como no verificadas en las notas de investigación del repositorio.</p>
+    </section>
+  </main>
+</div>
+
+<footer>
+  Fagi · first-agi · un experimento de vida artificial. Código, protocolos y datos regenerables en el repositorio del proyecto.<br />
+  Los resultados marcados como exploratorios no fueron preregistrados y deben leerse como descripción.
+</footer>
+
+<script type="module" src="./site.js"></script>
+</body>
+</html>

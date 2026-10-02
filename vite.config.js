@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import { readFileSync } from 'node:fs'
 import { execSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 
 // The build's version: the one in package.json (the .githooks hook bumps it on
 // every commit) and the commit it comes from. On Railway there is no .git, but
@@ -17,6 +18,16 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(version),
     __APP_COMMIT__: JSON.stringify(commit()),
     __APP_BUILT__: JSON.stringify(new Date().toISOString()),
+  },
+  // Two pages: the game (/) and the research site (/investigacion/), which
+  // draws Fagi with the game's own sprite code but loads nothing else of it.
+  build: {
+    rollupOptions: {
+      input: {
+        game: fileURLToPath(new URL('./index.html', import.meta.url)),
+        research: fileURLToPath(new URL('./investigacion/index.html', import.meta.url)),
+      },
+    },
   },
   server: {
     host: '0.0.0.0',
