@@ -7,8 +7,9 @@
 //   muscle    faster                                   the largest tissue to keep
 //   eyes      sees farther                             costly even when unused
 //   antennae  smells farther                           a little
-//   size      more reserves; less burn per gram;       more burn in all; slower; needs more fruit
-//             keeps its warmth better (Bergmann: less surface per volume)
+//   size      more reserves; less burn per gram;       more burn in all; slower; needs more fruit;
+//             keeps its warmth better (Bergmann:      suffers heat sooner (tracheae short of oxygen)
+//             less surface per volume)
 //
 // Every cost is paid in her resting burn: hunger rises and energy drains
 // faster the more tissue she keeps. Organs cost more than linearly as they
@@ -120,6 +121,7 @@ export function morphBody(m) {
     tolerance: (m.gut ?? 1) ** g.tolerance,
     life: (m.brain ?? 1) ** -MORPH.brainLife,
     brood: (m.brain ?? 1) ** MORPH.brainBrood,
+    heatShift: (MORPH.oxygen ?? 0) * (1 - size),   // °C on her heat limit
   };
 }
 
@@ -132,7 +134,7 @@ export function morphBody(m) {
 //   brain     time out foraging        (experience, not age)
 //   eyes      time out in daylight     (unused in the dark, they waste)
 //   antennae  time smelling something
-//   size      how well fed while young (fixed once she is grown)
+//   size      how well fed and how warm while young (fixed once she is grown)
 //
 // The organ she carries moves toward her gene × what its use asks, never
 // further than MORPH.plastic.max from her gene, slowly (MORPH.plastic.tau), and
@@ -147,14 +149,27 @@ export const plasticOn = () => Boolean(MORPH.enabled && MORPH.plastic?.enabled);
 
 // What each organ's use asks of it, as a factor on her gene. `gain` scales
 // how strongly it follows (her plasticity gene, with Baldwin; else 1).
+// A use within P.enough of typical asks nothing: only a life that goes past
+// that moves the organ, and only by what goes past it.
 export function targetOf(k, use, gain = 1) {
   const P = MORPH.plastic;
-  const ask = 1 + gain * P.amp[k] * ((use[USE_OF[k]] ?? P.ref[USE_OF[k]]) / P.ref[USE_OF[k]] - 1);
+  const off = (use[USE_OF[k]] ?? P.ref[USE_OF[k]]) / P.ref[USE_OF[k]] - 1;
+  const past = Math.sign(off) * Math.max(0, Math.abs(off) - (P.enough ?? 0));
+  const ask = 1 + gain * P.amp[k] * past;
   return Math.max(1 - P.max, Math.min(1 + P.max, ask));
 }
 
 // Once a frame, after she has acted. `out`: is she outside the nest. Returns
 // whether her organs moved enough that her body has to be worked out again.
+// The temperature-size rule: a juvenile raised warm grows smaller, cold
+// bigger, by MORPH.plastic.warmth per °C past enoughWarm from `warm`.
+export function warmthOf(use, gain = 1) {
+  const P = MORPH.plastic;
+  const off = (use.warm ?? P.warm) - P.warm;
+  const past = Math.sign(off) * Math.max(0, Math.abs(off) - P.enoughWarm);
+  return 1 - gain * P.warmth * past;
+}
+
 export function updatePlasticity(fagi, out, dt) {
   if (!plasticOn() || !fagi.morph || !fagi.genome?.morph) return false;
   const P = MORPH.plastic;
@@ -170,7 +185,10 @@ export function updatePlasticity(fagi, out, dt) {
   use.bites = fagi.eaten ?? 0;
   use.eat += ((dt > 0 ? (bites * 180) / dt : 0) - use.eat) * k;
   const young = fagi.lifeStage === 'juvenile';
-  if (young) use.fed += ((1 - Math.min(1, (fagi.hunger ?? 0) / 100)) - use.fed) * k;
+  if (young) {
+    use.fed += ((1 - Math.min(1, (fagi.hunger ?? 0) / 100)) - use.fed) * k;
+    use.warm = (use.warm ?? P.warm) + ((fagi.temperature ?? P.warm) - (use.warm ?? P.warm)) * k;
+  }
 
   const step = Math.min(1, dt / P.tau);
   // Baldwin: how strongly she follows her use is hers. Epigenetic: her
@@ -182,7 +200,8 @@ export function updatePlasticity(fagi, out, dt) {
     if (o === 'size' && !young) continue;   // grown: her size is set
     const gene = fagi.genome.morph[o] ?? 1;
     const now = fagi.morph[o] ?? gene;
-    const settle = Math.max(1 - P.max, Math.min(1 + P.max, (marks?.[o] ?? 1) * targetOf(o, use, gain)));
+    const ask = targetOf(o, use, gain) * (o === 'size' ? warmthOf(use, gain) : 1);
+    const settle = Math.max(1 - P.max, Math.min(1 + P.max, (marks?.[o] ?? 1) * ask));
     const goal = gene * settle;
     const next = now + (goal - now) * step;
     if (next > now) {

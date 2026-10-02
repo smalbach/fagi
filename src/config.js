@@ -373,9 +373,16 @@ export const GEN = {
 //   brainLife / brainBrood: a bigger brain shortens life and slows breeding
 //                 (Kotrschal et al. 2013, 2019); elasticities, gentler than the guppies'
 //   sizeSpeed   : a heavier body is slower per unit of muscle
+//   oxygen      : °C her heat limit (THERMAL.safeMax) drops per unit of size over 1:
+//                 a bigger body's tracheae fall short of oxygen first when it is hot
+//                 (the temperature-size rule, Atkinson 1994; Harrison et al. 2010).
+//                 Bergmann's side, a bigger body keeping its warmth, is insulation
 //   plastic     : what she lives moves the organs she carries (morph.js,
 //                 updatePlasticity), never her genes:
 //     enabled   : 0 = she carries exactly what she inherited
+//     enough    : how far from typical a use must be, as a fraction, before her
+//                 organ moves at all: a life like most lives leaves the body as it
+//                 was born, and only what goes past that changes it
 //     max       : how far from her gene an organ can move, as a fraction
 //     window    : seconds over which she averages how much she uses each organ
 //     tau       : seconds an organ takes to move most of the way to what its use asks
@@ -390,6 +397,10 @@ export const GEN = {
 //                 (Withers et al. 1993); eyes with daylight, antennae with
 //                 scents, wasting when unused (Moran et al. 2015); size is set by
 //                 how well she was fed while young, then fixed
+//     warm / warmth / enoughWarm: the temperature-size rule (Atkinson 1994): a
+//                 juvenile raised warmer than `warm` °C grows into a smaller adult,
+//                 `warmth` per °C (~2.5 % in arthropods), colder a bigger one; within
+//                 enoughWarm °C of it, her size is not moved
 //   inherit     : what a daughter inherits of what her parents lived:
 //                 0 darwin     only their genes; what they lived dies with them
 //                 1 baldwin    how much she can change is a gene of its own
@@ -417,14 +428,19 @@ export const MORPH = {
   brainLife: 1,
   brainBrood: 1,
   sizeSpeed: 0.15,
+  oxygen: 30,
   plastic: {
     enabled: 1,
+    enough: 0.15,
     max: 0.25,
     window: 540,
     tau: 900,
     build: 1,
     ref: { move: 0.53, out: 0.59, light: 0.52, smell: 0.11, eat: 0.31, fed: 0.7 },
     amp: { muscle: 0.5, gut: 0.4, brain: 0.4, eyes: 0.5, antennae: 0.5, size: 0.6 },
+    warm: 25,
+    warmth: 0.025,
+    enoughWarm: 1,
   },
   inherit: 0,
   baldwin: { mutation: 0.08, founders: 0.15, range: [0, 2.5], cost: 0.05 },
@@ -699,6 +715,12 @@ export const TREE = {
 //   unpredictable: 0 = every winter the same; 1 = each year draws how hard,
 //                  how long and when its winter comes, within ± spread
 //   spread      : how much one year's winter may differ from another's
+//   hotYears    : share of years that come hot instead: a mild winter (no cold,
+//                 still lean) and a summer summerHeat °C hotter at its heart. A
+//                 cold year favours a big body, a hot one a small one
+//   persist     : chance a year is the same kind as the one before. High, a
+//                 mother's year foretells her daughter's (predictable); 0, each
+//                 year is a fresh draw (de Bruin et al. 2026)
 export const SEASONS = {
   enabled: 0,
   year: 3600,         // 20 days: a winter longer than she can fast (~7 days), so it tells
@@ -709,6 +731,9 @@ export const SEASONS = {
   winterCold: 8,
   unpredictable: 0,
   spread: 0.5,
+  hotYears: 0,       // share of years that come hot: a mild winter, a scorching summer (0 = none)
+  summerHeat: 12,    // °C the heart of a hot year's summer adds to the air
+  persist: 0,        // chance a year is the same kind as the one before (predictable runs when high)
 };
 
 // Explore or come back (phase 9, spec §12.11): a world where going back to

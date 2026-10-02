@@ -53,10 +53,11 @@ export function targetTemperature(fagi, world, sky, inNest) {
   return target;
 }
 
-// °C outside the safe range: > 0 cold or hot, 0 comfortable.
-export function discomfort(temp) {
+// °C outside the safe range: > 0 cold or hot, 0 comfortable. `shift` moves
+// her own heat limit (a bigger body suffers heat sooner, MORPH.oxygen).
+export function discomfort(temp, shift = 0) {
   if (temp < THERMAL.safeMin) return { kind: COLD_KEY, deg: THERMAL.safeMin - temp };
-  if (temp > THERMAL.safeMax) return { kind: HEAT_KEY, deg: temp - THERMAL.safeMax };
+  if (temp > THERMAL.safeMax + shift) return { kind: HEAT_KEY, deg: temp - THERMAL.safeMax - shift };
   return { kind: null, deg: 0 };
 }
 
@@ -64,7 +65,7 @@ export function discomfort(temp) {
 // thirst and speed. All ones while comfortable (or with THERMAL off).
 export function thermalFactors(fagi) {
   if (!THERMAL.enabled) return { hunger: 1, thirst: 1, speed: 1 };
-  const { kind, deg } = discomfort(fagi.temperature ?? THERMAL.preferred);
+  const { kind, deg } = discomfort(fagi.temperature ?? THERMAL.preferred, bodyOf(fagi).heatShift ?? 0);
   return {
     hunger: kind === COLD_KEY ? 1 + THERMAL.coldHunger * deg : 1,
     thirst: kind === HEAT_KEY ? 1 + THERMAL.heatThirst * deg : 1,
@@ -91,7 +92,7 @@ function exchange(fagi, target, inNest, dt) {
 }
 
 function stress(fagi, dt) {
-  const { kind, deg } = discomfort(fagi.temperature);
+  const { kind, deg } = discomfort(fagi.temperature, bodyOf(fagi).heatShift ?? 0);
   if (fagi.temperature <= THERMAL.lethalMin || fagi.temperature >= THERMAL.lethalMax) {
     fagi.thermalStress = THERMAL.maxStress;
   } else if (deg > 0) {

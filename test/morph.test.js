@@ -10,6 +10,8 @@ import { createColony } from '../src/colony.js';
 import { foundPopulation } from '../src/reproduction.js';
 import { mutate, recombine } from '../src/generations.js';
 import { viewRangeOf } from '../src/vision.js';
+import { discomfort } from '../src/thermal.js';
+import { THERMAL } from '../src/config.js';
 
 const ones = () => Object.fromEntries(MORPH_TRAITS.map((k) => [k, 1]));
 const withMorph = (fn) => { MORPH.enabled = 1; try { return fn(); } finally { MORPH.enabled = 0; } };
@@ -18,7 +20,7 @@ function seeded(s = 7) { return () => ((s = (s * 16807) % 2147483647) / 21474836
 
 test('today\'s Fagi is the all-ones body: every organ at 1 changes nothing', () => {
   assert.equal(tissueLoad(ones()), 1);
-  for (const [k, v] of Object.entries(morphBody(ones()))) assert.ok(Math.abs(v - 1) < 1e-12, `${k} = ${v}`);
+  for (const [k, v] of Object.entries(morphBody(ones()))) assert.ok(Math.abs(v - (k === 'heatShift' ? 0 : 1)) < 1e-12, `${k} = ${v}`);
   const plain = bodyFor(null, null);
   const all1 = withMorph(() => bodyFor(null, { cues: {}, morph: ones() }));
   for (const k of ['speed', 'energyMax', 'metabolism', 'insulation']) assert.ok(Math.abs(all1[k] - plain[k]) < 1e-12, k);
@@ -193,7 +195,7 @@ test('baldwin: the capacity to change is a gene, inherited and paid for', () => 
       const g = recombine({ cues: {}, morph: ones(), plastic: 1.5 }, { cues: {}, morph: ones(), plastic: 1.5 }, seeded(11));
       assert.ok(Math.abs(g.plastic - 1.5) < 0.5);
       // More plastic, more strongly she follows her use.
-      const use = { ...MORPH.plastic.ref, move: 0.6 };
+      const use = { ...MORPH.plastic.ref, move: 0.7 };
       assert.ok(targetOf('muscle', use, 2) > targetOf('muscle', use, 1));
       // And keeping it costs resting burn.
       const cheap = bodyFor(null, { cues: {}, morph: ones(), plastic: 1 });
@@ -222,4 +224,32 @@ test('epigenetic: a daughter starts where her parents lived toward, and the mark
 test('a bigger body keeps its warmth better (Bergmann)', () => {
   assert.ok(morphBody({ ...ones(), size: 1.5 }).insulation > 1);
   assert.equal(morphBody(ones()).insulation, 1);
+});
+
+test('a bigger body suffers heat sooner (its tracheae fall short), a smaller one later', () => {
+  const big = morphBody({ ...ones(), size: 1.3 });
+  const small = morphBody({ ...ones(), size: 0.8 });
+  assert.ok(big.heatShift < 0 && small.heatShift > 0);
+  assert.equal(morphBody(ones()).heatShift, 0);
+  const t = THERMAL.safeMax + 1;
+  assert.equal(discomfort(t, small.heatShift).kind, null);
+  assert.equal(discomfort(t, big.heatShift).kind, 'heat');
+});
+
+test('a life like most lives leaves the organ as born: only use past "enough" moves it', () => {
+  const P = MORPH.plastic;
+  const near = { ...P.ref, move: P.ref.move * (1 + P.enough * 0.9) };
+  assert.equal(targetOf('muscle', near), 1);
+  const far = { ...P.ref, move: P.ref.move * (1 + P.enough + 0.2) };
+  assert.ok(Math.abs(targetOf('muscle', far) - (1 + P.amp.muscle * 0.2)) < 1e-9);
+});
+
+test('temperature-size rule: a juvenile raised warm grows smaller, cold bigger, near typical as born', () => {
+  withMorph(() => {
+    const P = MORPH.plastic;
+    const raise = (temp) => { const f = grown(); f.lifeStage = 'juvenile'; f.hunger = (1 - P.ref.fed) * 100; f.temperature = temp; live(f, 4000); return f.morph.size; };
+    assert.ok(raise(P.warm + 8) < 0.9);
+    assert.ok(raise(P.warm - 8) > 1.1);
+    assert.ok(Math.abs(raise(P.warm + P.enoughWarm * 0.5) - 1) < 1e-6);
+  });
 });

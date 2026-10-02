@@ -41,7 +41,7 @@ export function bodyFor(sex, genome = null, morph = genome?.morph) {
     const keep = plasticCost(genome);   // Baldwin: being able to change costs
     body.drain = body.metabolism * m.drain * keep;
     body.metabolism *= m.metabolism * keep;
-    for (const k of ['view', 'smell', 'memory', 'digest', 'tolerance', 'life', 'brood']) body[k] = m[k];
+    for (const k of ['view', 'smell', 'memory', 'digest', 'tolerance', 'life', 'brood', 'heatShift']) body[k] = m[k];
   }
   return body;
 }
