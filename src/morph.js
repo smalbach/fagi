@@ -7,7 +7,8 @@
 //   muscle    faster                                   the largest tissue to keep
 //   eyes      sees farther                             costly even when unused
 //   antennae  smells farther                           a little
-//   size      more reserves; less burn per gram        more burn in all; slower; needs more fruit
+//   size      more reserves; less burn per gram;       more burn in all; slower; needs more fruit
+//             keeps its warmth better (Bergmann: less surface per volume)
 //
 // Every cost is paid in her resting burn: hunger rises and energy drains
 // faster the more tissue she keeps. Organs cost more than linearly as they
@@ -110,6 +111,7 @@ export function morphBody(m) {
     metabolism: load * size ** (MORPH.kleiber - 1),   // hunger per second, on the fixed scale
     drain: load * size ** MORPH.kleiber,               // energy per second (her reserve grows with size)
     energyMax: size,
+    insulation: size ** (1 / 3),   // surface ∝ size^(2/3) over volume ∝ size
     speed: (m.muscle ?? 1) ** g.speed * size ** -MORPH.sizeSpeed,
     view: (m.eyes ?? 1) ** g.view,
     smell: (m.antennae ?? 1) ** g.smell,

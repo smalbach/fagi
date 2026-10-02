@@ -37,6 +37,7 @@ export function bodyFor(sex, genome = null, morph = genome?.morph) {
     const m = morphBody(morph);
     body.speed *= m.speed;
     body.energyMax *= m.energyMax;
+    body.insulation *= m.insulation;
     const keep = plasticCost(genome);   // Baldwin: being able to change costs
     body.drain = body.metabolism * m.drain * keep;
     body.metabolism *= m.metabolism * keep;

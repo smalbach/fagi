@@ -15,6 +15,7 @@ import { updateSisters } from './colony.js';
 import { CYCLE, CONCEPT } from './config.js';
 import { sproutThings } from './things.js';
 import { dayAt } from './cycle.js';
+import { updateSeasons } from './seasons.js';
 
 export function stepWorld(world, dt) {
   world.time = (world.time ?? 0) + dt;
@@ -23,6 +24,7 @@ export function stepWorld(world, dt) {
     const day = dayAt(world.time);
     if (day !== world.day) { world.day = day; record(world, 'day', { day }); }
   }
+  updateSeasons(world);          // the time of year (SEASONS): how lean, how cold
   updateWind(world.wind, dt);
   updateRain(world, dt);
   updateTrees(world, dt);

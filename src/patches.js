@@ -7,10 +7,11 @@ import { FORAGE, TREE, MAPGEN } from './config.js';
 import { addPoint, nestOf, record } from './world.js';
 import { drawVariant } from './chemistry.js';
 import { objectAt, waterZone } from './obstacles.js';
+import { seasonNow } from './seasons.js';
 
 export function updatePatches(world, dt) {
   if (!FORAGE.enabled || FORAGE.patchEvery <= 0) return;
-  world.patchTimer = (world.patchTimer ?? FORAGE.patchEvery) - dt;
+  world.patchTimer = (world.patchTimer ?? FORAGE.patchEvery) - dt * seasonNow().fruit;   // fewer windfalls in winter (SEASONS)
   if (world.patchTimer > 0) return;
   world.patchTimer = FORAGE.patchEvery;
   dropPatch(world);

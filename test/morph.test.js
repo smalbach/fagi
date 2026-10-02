@@ -218,3 +218,8 @@ test('epigenetic: a daughter starts where her parents lived toward, and the mark
     } finally { MORPH.inherit = 0; }
   });
 });
+
+test('a bigger body keeps its warmth better (Bergmann)', () => {
+  assert.ok(morphBody({ ...ones(), size: 1.5 }).insulation > 1);
+  assert.equal(morphBody(ones()).insulation, 1);
+});

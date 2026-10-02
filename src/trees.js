@@ -4,6 +4,7 @@
 import { TREE, POINT_TYPES, FORAGE } from './config.js';
 import { addPoint, removeObject, record } from './world.js';
 import { drawVariant } from './chemistry.js';
+import { seasonNow } from './seasons.js';
 import { isTree, radiusOf, waterZone } from './obstacles.js';
 
 export function treesOf(world) {
@@ -28,6 +29,8 @@ function fruitNear(world, tree) {
 }
 
 export function updateTrees(world, dt) {
+  // The time of year sets how fast every tree bears (SEASONS; 1 without them).
+  const bears = dt * seasonNow().fruit;
   for (const tree of treesOf(world)) {
     // Trees have their time too: if TREE.life > 0, they dry up and fall.
     tree.age = (tree.age ?? 0) + dt;
@@ -39,7 +42,7 @@ export function updateTrees(world, dt) {
     // A seasonal tree gone bare drops nothing until its rest is over (FORAGE).
     if (FORAGE.enabled && seasonal(tree) && resting(world, tree, dt)) continue;
 
-    tree.timer -= dt;
+    tree.timer -= bears;
     if (tree.timer > 0) continue;
     // Its fruit was a made one the person has since deleted: it bears nothing.
     if (!POINT_TYPES[fruitOf(tree)]) { tree.timer = TREE.interval; continue; }

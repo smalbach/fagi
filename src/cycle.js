@@ -8,6 +8,7 @@
 // she feels the light and the cold (thermal.js). What they announce she learns.
 
 import { CYCLE, THERMAL } from './config.js';
+import { seasonNow } from './seasons.js';
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 // Smooth 0→1 between a and b, flat outside.
@@ -49,7 +50,7 @@ export function cycleAt(time) {
     day: dayAt(time),
     phase,
     light,
-    ambient: ambientAt(phase),
+    ambient: ambientAt(phase) - seasonNow().cold,   // winter takes degrees off (SEASONS)
     isNight: phase < CYCLE.dawn || phase >= CYCLE.dusk,
     on: true,
   };

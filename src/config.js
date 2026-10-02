@@ -688,6 +688,29 @@ export const TREE = {
   life: 0,            // seconds a tree lives (0 = forever)
 };
 
+// Seasons (seasons.js): years with a lean, cold winter and a generous summer,
+// the selection pressure an evolving body needs (docs/research/libera/
+// cuerpo-evolutivo.md). Off, every day of the year is the same.
+//   year        : seconds in a year (3600 = 20 days of 180 s)
+//   winter      : share of the year the winter takes, at its centre (winterAt)
+//   winterFruit : what trees bear at the depth of winter (× their rate)
+//   summerFruit : what they bear in the heart of summer (× their rate)
+//   winterCold  : °C the depth of winter takes off the air (with CYCLE)
+//   unpredictable: 0 = every winter the same; 1 = each year draws how hard,
+//                  how long and when its winter comes, within ± spread
+//   spread      : how much one year's winter may differ from another's
+export const SEASONS = {
+  enabled: 0,
+  year: 3600,         // 20 days: a winter longer than she can fast (~7 days), so it tells
+  winter: 0.45,
+  winterAt: 0.75,
+  winterFruit: 0.02,
+  summerFruit: 1.6,
+  winterCold: 8,
+  unpredictable: 0,
+  spread: 0.5,
+};
+
 // Explore or come back (phase 9, spec §12.11): a world where going back to
 // the last good place is not always right. With it off, every tree bears
 // forever and no fruit shows up on its own, as before.
