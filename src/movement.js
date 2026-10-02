@@ -1,6 +1,7 @@
 // How Fagi moves: turning, advancing, dodging, exploring and tracking a smell.
 // None of this decides WHERE to go; it only carries out the movement.
 
+import { loadSpeed } from './load.js';
 import { FAGI, ENERGY, EXPLORE, WORLD, WATER, INSTINCT, MOVEMENT } from './config.js';
 import { angleTo, normalizeAngle } from './vision.js';
 import { statMult } from './effects.js';
@@ -86,7 +87,7 @@ export function advance(fagi, world, dt) {
   const weakness = fagi.energy <= 0 ? ENERGY.weakSpeed : 1;
   // Her own legs (biology.js) and the cold stiffening them (thermal.js).
   const body = bodyOf(fagi).speed * thermalFactors(fagi).speed * lifeSpeed(fagi) * healthSpeed(fagi) * saltSpeed(fagi);
-  let speed = FAGI.speed * statMult(fagi, 'speed') * weakness * drag(world, fagi) * body;
+  let speed = FAGI.speed * statMult(fagi, 'speed') * weakness * drag(world, fagi) * body * loadSpeed(fagi);
   if (fagi.cautious) speed *= (MOVEMENT?.crawlSpeed ?? 0.5);
   else if (fagi.sprinting) speed *= (MOVEMENT?.sprintMult ?? 1.35);
   const before = { x: fagi.x, y: fagi.y };

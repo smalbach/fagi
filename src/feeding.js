@@ -1,5 +1,6 @@
 // Eating and carrying. The rule is simple: when hungry you eat, when not hungry you work.
 
+import { heft, hardTake } from './load.js';
 import { HUNGER, THIRST, CARRY, POINT_TYPES, HEALTH, TASTE } from './config.js';
 import { atMouth, dominantTaste, noteFlavor, saltBite } from './taste.js';
 import { specOfFruit, tasteCuesOf } from './chemistry.js';
@@ -47,11 +48,11 @@ export function tryPickOrEat(fagi, world) {
   const mayEat = canEat(fagi, p.type);
   // One of last night's questions, and she came for it: a trial bite.
   if (fagi.target === p && mayEat && fagi.thought?.action === 'taste' && onAgenda(fagi, p.type)) {
-    eat(fagi, p.type, { portion: EXPERIMENT.portion, variant: p.variant });
+    eat(fagi, p.type, { portion: EXPERIMENT.portion, variant: p.variant, ...heft(p) });
     answered(fagi, p.type);
     removePoint(world, p, 'tasted');
   } else if (hungry && mayEat) {
-    eat(fagi, p.type, { variant: p.variant });
+    eat(fagi, p.type, { variant: p.variant, ...heft(p) });
     removePoint(world, p, 'eaten');
   } else if (verdict(fagi, 'store', p.type) === 'avoid') {
     // Trying it out of curiosity is one thing; filling the pantry with what she believes
@@ -62,7 +63,7 @@ export function tryPickOrEat(fagi, world) {
   } else if (!fagi.carrying && !p.refuse && pantryEstimate(fagi) < habit(fagi, 'reserve') && roomAtHome(fagi) && !aversive(fagi, p.type)) {
     // The fruit keeps the age it already had: storing it preserves it, it doesn't
     // make it younger.
-    fagi.carrying = { type: p.type, age: p.age ?? 0, ...(p.variant ? { variant: p.variant } : {}) };
+    fagi.carrying = { type: p.type, age: p.age ?? 0, ...(p.variant ? { variant: p.variant } : {}), ...heft(p) };
     fagi.picked = (fagi.picked ?? 0) + 1;
     removePoint(world, p, 'picked');
   } else {
@@ -78,14 +79,14 @@ export function tryPickOrEat(fagi, world) {
 function judged(fagi, world, p, answer) {
   if ((answer === 'eat' || answer === 'taste') && chewing(fagi)) return;
   if (answer === 'eat') {
-    eat(fagi, p.type, { variant: p.variant });
+    eat(fagi, p.type, { variant: p.variant, ...heft(p) });
     removePoint(world, p, 'eaten');
   } else if (answer === 'taste') {
-    eat(fagi, p.type, { portion: EXPERIMENT.portion, variant: p.variant });
+    eat(fagi, p.type, { portion: EXPERIMENT.portion, variant: p.variant, ...heft(p) });
     if (onAgenda(fagi, p.type)) answered(fagi, p.type);
     removePoint(world, p, 'tasted');
   } else if (answer === 'carry' && !fagi.carrying) {
-    fagi.carrying = { type: p.type, age: p.age ?? 0, ...(p.variant ? { variant: p.variant } : {}) };
+    fagi.carrying = { type: p.type, age: p.age ?? 0, ...(p.variant ? { variant: p.variant } : {}), ...heft(p) };
     fagi.picked = (fagi.picked ?? 0) + 1;
     removePoint(world, p, 'picked');
   }
@@ -95,11 +96,11 @@ function judged(fagi, world, p, answer) {
 // looking for another. In an emergency she tries it, just as she would with food on the ground.
 export function eatCarried(fagi) {
   if (!fagi.carrying) return false;
-  const { type, variant } = fagi.carrying;
+  const { type, variant, weight, hardness } = fagi.carrying;
   const j = judge();
   if (!POINT_TYPES[type] || (j ? chewing(fagi) || !j.carried(fagi, type) : !canEat(fagi, type))) return false;
   fagi.carrying = null;
-  eat(fagi, type, { variant });
+  eat(fagi, type, { variant, weight, hardness });
   return true;
 }
 
@@ -111,7 +112,9 @@ export function eatCarried(fagi) {
 // noisy outcomes: the same fruit does not always do the same).
 // `portion` below 1 is a trial bite (experiment.js): that share of the hunger,
 // and each effect that much weaker and shorter.
-export function eat(fagi, type, { hunger = null, portion: meant = 1, variant = null } = {}) {
+// `weight` and `hardness` (LOAD): a heavier fruit is more food in her gut's
+// work; a harder one gives less than her gut can match (load.js).
+export function eat(fagi, type, { hunger = null, portion: meant = 1, variant = null, weight = 1, hardness = 1 } = {}) {
   // This very fruit: its kind, or a look-alike of it (TASTE; same look, another mix).
   const spec = specOfFruit(type, variant);
   const before = snapshotBody(fagi);
@@ -121,7 +124,7 @@ export function eat(fagi, type, { hunger = null, portion: meant = 1, variant = n
   // Her gut (MORPH): a bigger one takes more from a meal and bears more of a
   // poison; a bigger body needs more for the same relief.
   const raw = (hunger ?? spec.hunger) * portion;
-  const added = raw < 0 ? raw * bodyMult(fagi, 'digest') : raw > 0 ? raw / bodyMult(fagi, 'tolerance') : raw;
+  const added = raw < 0 ? raw * bodyMult(fagi, 'digest') * hardTake(fagi, hardness) : raw > 0 ? raw / bodyMult(fagi, 'tolerance') : raw;
   const hungerBefore = fagi.hunger;
   fagi.hunger = Math.min(HUNGER.max, Math.max(0, fagi.hunger + added));
   if (TASTE.enabled) {
@@ -138,6 +141,7 @@ export function eat(fagi, type, { hunger = null, portion: meant = 1, variant = n
   fagi.brain.tasting = null;
   if (TASTE.enabled && spec.taste) noteFlavor(fagi, type, spec.taste);
   fagi.eaten += 1;
+  fagi.chewed = (fagi.chewed ?? 0) + weight * hardness * portion;   // her gut's work (MORPH plasticity)
   const meal = noteMeal(fagi, { key: type, portion, before: hungerBefore, after: fagi.hunger });   // CONDUCT only
   if (meal) learnConduct(fagi, meal);
   afterBite(fagi, ep.reward, added, type);

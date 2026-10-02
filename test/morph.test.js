@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { MORPH, LIFE, SEX } from '../src/config.js';
+import { MORPH, LIFE, SEX, LOAD } from '../src/config.js';
 import { MORPH_TRAITS, tissueLoad, morphBody, inheritMorph, founderMorph, updatePlasticity, targetOf, epigeneticMark } from '../src/morph.js';
 import { bodyFor, bodyMult } from '../src/biology.js';
 import { createFagi } from '../src/fagi.js';
@@ -195,7 +195,7 @@ test('baldwin: the capacity to change is a gene, inherited and paid for', () => 
       const g = recombine({ cues: {}, morph: ones(), plastic: 1.5 }, { cues: {}, morph: ones(), plastic: 1.5 }, seeded(11));
       assert.ok(Math.abs(g.plastic - 1.5) < 0.5);
       // More plastic, more strongly she follows her use.
-      const use = { ...MORPH.plastic.ref, move: 0.7 };
+      const use = { ...MORPH.plastic.ref, work: 0.7 };
       assert.ok(targetOf('muscle', use, 2) > targetOf('muscle', use, 1));
       // And keeping it costs resting burn.
       const cheap = bodyFor(null, { cues: {}, morph: ones(), plastic: 1 });
@@ -238,9 +238,9 @@ test('a bigger body suffers heat sooner (its tracheae fall short), a smaller one
 
 test('a life like most lives leaves the organ as born: only use past "enough" moves it', () => {
   const P = MORPH.plastic;
-  const near = { ...P.ref, move: P.ref.move * (1 + P.enough * 0.9) };
+  const near = { ...P.ref, work: P.ref.work * (1 + P.enough * 0.9) };
   assert.equal(targetOf('muscle', near), 1);
-  const far = { ...P.ref, move: P.ref.move * (1 + P.enough + 0.2) };
+  const far = { ...P.ref, work: P.ref.work * (1 + P.enough + 0.2) };
   assert.ok(Math.abs(targetOf('muscle', far) - (1 + P.amp.muscle * 0.2)) < 1e-9);
 });
 
@@ -251,5 +251,28 @@ test('temperature-size rule: a juvenile raised warm grows smaller, cold bigger, 
     assert.ok(raise(P.warm + 8) < 0.9);
     assert.ok(raise(P.warm - 8) > 1.1);
     assert.ok(Math.abs(raise(P.warm + P.enoughWarm * 0.5) - 1) < 1e-6);
+  });
+});
+
+test('hauling a heavy fruit builds muscle where walking empty-handed would not', () => {
+  withMorph(() => {
+    LOAD.enabled = 1;
+    try {
+      const P = MORPH.plastic;
+      const empty = grown();
+      empty.moving = true;
+      const hauler = grown();
+      hauler.moving = true;
+      hauler.carrying = { type: 'nectar', weight: 1.8 };
+      for (let t = 0; t < 4000; t++) {
+        // Both walk the typical share of the time; only one is loaded.
+        const walking = (t % 100) < P.ref.work * 100;
+        empty.moving = hauler.moving = walking;
+        updatePlasticity(empty, true, 1);
+        updatePlasticity(hauler, true, 1);
+      }
+      assert.ok(hauler.morph.muscle > 1.05, `hauler ${hauler.morph.muscle}`);
+      assert.ok(Math.abs(empty.morph.muscle - 1) < 0.02, `empty ${empty.morph.muscle}`);
+    } finally { LOAD.enabled = 0; }
   });
 });

@@ -8,6 +8,7 @@ import { addPoint, nestOf, record } from './world.js';
 import { drawVariant } from './chemistry.js';
 import { objectAt, waterZone } from './obstacles.js';
 import { seasonNow } from './seasons.js';
+import { weighFruit } from './load.js';
 
 export function updatePatches(world, dt) {
   if (!FORAGE.enabled || FORAGE.patchEvery <= 0) return;
@@ -49,7 +50,7 @@ export function dropPatch(world) {
     const x = at.x + Math.cos(ang) * d;
     const y = at.y + Math.sin(ang) * d;
     if (waterZone(world, x, y)) continue;
-    const p = addPoint(world, x, y, kind, 'patch');
+    const p = weighFruit(addPoint(world, x, y, kind, 'patch'));
     const variant = drawVariant(p.type);   // a look-alike's fruit (TASTE), as on a tree
     if (variant) p.variant = variant;
     n++;

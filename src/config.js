@@ -372,6 +372,8 @@ export const GEN = {
 //                 returns; Niven et al. 2007, Chittka & Niven 2009)
 //   brainLife / brainBrood: a bigger brain shortens life and slows breeding
 //                 (Kotrschal et al. 2013, 2019); elasticities, gentler than the guppies'
+//   fecundity   : a bigger mother breeds faster: her rest between broods ∝ size^-this
+//                 (insect fecundity grows about in proportion to body mass, Honěk 1993)
 //   sizeSpeed   : a heavier body is slower per unit of muscle
 //   oxygen      : °C her heat limit (THERMAL.safeMax) drops per unit of size over 1:
 //                 a bigger body's tracheae fall short of oxygen first when it is hot
@@ -389,7 +391,7 @@ export const GEN = {
 //                 (days: a gut remodels in about a week, Dekinga et al. 2001)
 //     build     : hunger growing tissue costs, per unit of its share of her burn
 //     ref       : the use at which an organ stays as inherited (measured on the
-//                 game's colony): moving, out of the nest, out in daylight,
+//                 game's colony): moving, work (moving, × 1 + her load), out of the nest, out in daylight,
 //                 smelling something, bites a day, and a juvenile's nourishment
 //     amp       : how strongly each organ follows its use. Muscle grows with
 //                 walking; the gut with eating, shrinking in a fast (Piersma &
@@ -427,6 +429,7 @@ export const MORPH = {
   gain: { memory: 0.7, digest: 0.5, tolerance: 0.7, speed: 0.5, view: 0.5, smell: 0.5 },
   brainLife: 1,
   brainBrood: 1,
+  fecundity: 1,
   sizeSpeed: 0.15,
   oxygen: 30,
   plastic: {
@@ -436,7 +439,7 @@ export const MORPH = {
     window: 540,
     tau: 900,
     build: 1,
-    ref: { move: 0.53, out: 0.59, light: 0.52, smell: 0.11, eat: 0.31, fed: 0.7 },
+    ref: { move: 0.53, work: 0.5, out: 0.59, light: 0.52, smell: 0.11, eat: 0.27, fed: 0.7 },
     amp: { muscle: 0.5, gut: 0.4, brain: 0.4, eyes: 0.5, antennae: 0.5, size: 0.6 },
     warm: 25,
     warmth: 0.025,
@@ -702,6 +705,24 @@ export const TREE = {
   dropRadius: 1.9,    // where it falls: tree radius × this
   maxNear: 5,         // if this much of its fruit is already lying uncollected, it stops dropping
   life: 0,            // seconds a tree lives (0 = forever)
+};
+
+// The weight and hardness of fruit (load.js): what carrying and eating ask of
+// her body. Off, every fruit weighs and gives the same.
+//   range     : a fruit's weight, × a typical one, drawn when it falls (log-uniform)
+//   hardRange : how hard it is, likewise
+//   sizePower : strength ∝ muscle × size^this (muscle cross-section, 2/3)
+//   slow      : speed lost per unit of load over strength: 1 / (1 + slow × load)
+//   effort    : extra energy per second walking, per unit of load over strength
+//   hardGain  : a fruit harder than her gut gives × (gut / hardness)^this
+export const LOAD = {
+  enabled: 0,
+  range: [0.5, 2],
+  hardRange: [0.5, 2],
+  sizePower: 0.67,
+  slow: 0.35,
+  effort: 0.8,
+  hardGain: 1,
 };
 
 // Seasons (seasons.js): years with a lean, cold winter and a generous summer,

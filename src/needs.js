@@ -1,5 +1,6 @@
 // The three gauges that keep Fagi alive (or not): hunger, thirst and energy.
 
+import { loadEffort } from './load.js';
 import { HUNGER, THIRST, ENERGY, WATER, RAIN, NEST } from './config.js';
 import { statMult } from './effects.js';
 import { waterZone } from './obstacles.js';
@@ -87,7 +88,7 @@ export function spendEnergy(fagi, world, dt, isMoving) {
   } else if (isMoving) {
     // In the rain, outside the nest, every drop shakes her about: it costs more.
     const drops = fagi.raining && !inNest ? RAIN.effort : 1;
-    fagi.energy -= ENERGY.drain * statMult(fagi, 'speed') * drops * (bodyOf(fagi).drain ?? bodyOf(fagi).metabolism) * dt;
+    fagi.energy -= ENERGY.drain * statMult(fagi, 'speed') * drops * (bodyOf(fagi).drain ?? bodyOf(fagi).metabolism) * loadEffort(fagi) * dt;
   } else {
     fagi.energy += (inNest ? ENERGY.restNest : ENERGY.restOutside) * dt;
   }

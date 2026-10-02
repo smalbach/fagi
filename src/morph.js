@@ -24,6 +24,7 @@
 // multiplier is 1 and no random number is drawn here.
 
 import { MORPH } from './config.js';
+import { burden } from './load.js';
 
 export const MORPH_TRAITS = ['brain', 'gut', 'muscle', 'eyes', 'antennae', 'size'];
 
@@ -120,7 +121,7 @@ export function morphBody(m) {
     digest: (m.gut ?? 1) ** g.digest / size,
     tolerance: (m.gut ?? 1) ** g.tolerance,
     life: (m.brain ?? 1) ** -MORPH.brainLife,
-    brood: (m.brain ?? 1) ** MORPH.brainBrood,
+    brood: (m.brain ?? 1) ** MORPH.brainBrood * size ** -(MORPH.fecundity ?? 0),
     heatShift: (MORPH.oxygen ?? 0) * (1 - size),   // °C on her heat limit
   };
 }
@@ -129,8 +130,10 @@ export function morphBody(m) {
 //
 // Each organ follows its own use, averaged over MORPH.plastic.window seconds:
 //
-//   muscle    walking                  (more walking, more muscle)
-//   gut       bites a day              (more eating, a bigger gut; a fast shrinks it)
+//   muscle    work: walking, and more so loaded (LOAD: what she carries over her
+//             strength); a long haul with a heavy fruit builds it, idling wastes it
+//   gut       its work a day: bites, × how heavy and hard each was (LOAD); a
+//             fast shrinks it (Dekinga et al. 2001: hard food grows it)
 //   brain     time out foraging        (experience, not age)
 //   eyes      time out in daylight     (unused in the dark, they waste)
 //   antennae  time smelling something
@@ -142,7 +145,7 @@ export function morphBody(m) {
 // inherit is her genome (darwinian inheritance). Nothing here draws a random
 // number, and with MORPH or its plasticity off nothing runs.
 
-const USE_OF = { muscle: 'move', gut: 'eat', brain: 'out', eyes: 'light', antennae: 'smell', size: 'fed' };
+const USE_OF = { muscle: 'work', gut: 'eat', brain: 'out', eyes: 'light', antennae: 'smell', size: 'fed' };
 const SHARE = { size: 0.3 };   // what growing her whole body costs, as a share of her burn
 
 export const plasticOn = () => Boolean(MORPH.enabled && MORPH.plastic?.enabled);
@@ -173,16 +176,17 @@ export function warmthOf(use, gain = 1) {
 export function updatePlasticity(fagi, out, dt) {
   if (!plasticOn() || !fagi.morph || !fagi.genome?.morph) return false;
   const P = MORPH.plastic;
-  const use = (fagi.use ??= { ...P.ref, bites: fagi.eaten ?? 0 });
+  const use = (fagi.use ??= { ...P.ref, bites: fagi.chewed ?? 0 });
   const k = Math.min(1, dt / P.window);
   const smelled = (fagi.perceived?.smelledOnes?.length ?? 0) > 0;
   use.move += ((fagi.moving ? 1 : 0) - use.move) * k;
+  use.work = (use.work ?? P.ref.work) + ((fagi.moving ? 1 + burden(fagi) : 0) - (use.work ?? P.ref.work)) * k;
   use.out += ((out ? 1 : 0) - use.out) * k;
   use.light += ((out && !fagi.dark ? 1 : 0) - use.light) * k;
   use.smell += ((smelled ? 1 : 0) - use.smell) * k;
-  // Bites a day (180 s), as a running rate.
-  const bites = (fagi.eaten ?? 0) - use.bites;
-  use.bites = fagi.eaten ?? 0;
+  // Her gut's work a day (180 s), as a running rate: bites × weight × hardness.
+  const bites = (fagi.chewed ?? 0) - use.bites;
+  use.bites = fagi.chewed ?? 0;
   use.eat += ((dt > 0 ? (bites * 180) / dt : 0) - use.eat) * k;
   const young = fagi.lifeStage === 'juvenile';
   if (young) {
