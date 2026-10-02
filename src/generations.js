@@ -148,7 +148,8 @@ export function applyGenome(fagi, genome) {
   // moved by her parents' mark if one came with her (epigenetic inheritance).
   if (genome.morph) {
     fagi.epi = genome.epi ? { ...genome.epi } : null;
-    fagi.morph = Object.fromEntries(Object.entries(genome.morph).map(([k, v]) => [k, genome.epi ? v * (genome.epi[k] ?? 1) : v]));
+    // And by what her mother lived as she laid her (maternal effects).
+    fagi.morph = Object.fromEntries(Object.entries(genome.morph).map(([k, v]) => [k, v * (genome.epi?.[k] ?? 1) * (genome.maternal?.[k] ?? 1)]));
   }
   if (genome.body || genome.morph) {
     fagi.body = bodyFor(fagi.sex, genome, fagi.morph);

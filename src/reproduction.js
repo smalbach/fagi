@@ -23,13 +23,14 @@
 //
 // Nothing here runs with LIFE off.
 
-import { LIFE, HUNGER, THIRST, THERMAL, CYCLE, GEN } from './config.js';
+import { LIFE, HUNGER, THIRST, THERMAL, CYCLE, GEN, MORPH } from './config.js';
 import { nestOf, takeFromNest, record } from './world.js';
 import { nestUnder } from './nest.js';
 import { createProgram, innateOf } from './program.js';
 import { createFagi } from './fagi.js';
 import { assignSex, bodyFor, bodyMult, energyMax } from './biology.js';
-import { morphOn, founderMorph, baldwinOn, founderPlastic, epigeneticOn, epigeneticMark } from './morph.js';
+import { morphOn, founderMorph, baldwinOn, founderPlastic, epigeneticOn, epigeneticMark, maternalMark } from './morph.js';
+import { strengthOf } from './load.js';
 import { createGenome, recombine, applyGenome, teach } from './generations.js';
 import { drawLifespan, lifeAge, fertility } from './lifecycle.js';
 import { cycleAt } from './cycle.js';
@@ -193,6 +194,11 @@ function mate(world, colony, nest, mother, father) {
   };
   // Epigenetic inheritance (MORPH.inherit): a mark of what both lived, set now.
   if (epigeneticOn()) egg.genome.epi = epigeneticMark(mother, father);
+  // Maternal effects: what she has lived up to this brood (MORPH.maternal).
+  const born = maternalMark(mother);
+  if (born) egg.genome.maternal = born;
+  // She provisioned this brood herself (LIFE.provision).
+  if (LIFE.provision) mother.provided = Math.max(0, (mother.provided ?? 0) - LIFE.provision);
   (nest.eggs ??= []).push(egg);
   colony.life.matings += 1;
   colony.life.laid += 1;
@@ -204,13 +210,16 @@ function matings(world, colony, nest) {
   const alive = living(colony) + (nest.eggs?.length ?? 0);
   if (alive >= LIFE.maxPopulation) return;
   const crowd = crowding(alive);
-  const females = colony.ants.filter((f) => f.sex === 'female' && ready(f, world, nest, crowd) && edibleCount(f, f.pantry) >= LIFE.mateStock);
+  const females = colony.ants.filter((f) => f.sex === 'female' && ready(f, world, nest, crowd) && edibleCount(f, f.pantry) >= LIFE.mateStock
+    && (!LIFE.provision || (f.provided ?? 0) >= LIFE.provision));
   if (!females.length) return;
   const males = colony.ants.filter((f) => f.sex === 'male' && ready(f, world, nest, crowd));
   for (const mother of females) {
     const options = males.filter((m) => relatedness(world.lineage, mother.id, m.id) < LIFE.kinLimit && ready(m, world, nest, crowd));
     if (!options.length) continue;
-    const father = options.reduce((best, m) => (looksWell(m) > looksWell(best) || (looksWell(m) === looksWell(best) && m.id < best.id) ? m : best));
+    // How he looks, × how strong his body is (MORPH.choice; 1 without organs).
+    const appeal = (m) => looksWell(m) * (m.morph ? strengthOf(m) ** (MORPH.choice ?? 0) : 1);
+    const father = options.reduce((best, m) => (appeal(m) > appeal(best) || (appeal(m) === appeal(best) && m.id < best.id) ? m : best));
     mate(world, colony, nest, mother, father);
     if (living(colony) + nest.eggs.length >= LIFE.maxPopulation) return;
   }

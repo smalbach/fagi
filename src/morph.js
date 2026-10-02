@@ -74,6 +74,24 @@ export function epigeneticMark(mother, father = null) {
   return out;
 }
 
+// Maternal effects (MORPH.maternal): the mark an egg gets from what its
+// mother has lived up to now, organ by organ (all of it, not only past
+// `enough`: the egg reads her state, it does not wait for her body to move),
+// and, for size, how well fed she is as she lays it. null when off.
+export function maternalMark(mother) {
+  const M = MORPH.maternal;
+  if (!morphOn() || !M?.share || !mother?.use) return null;
+  const P = MORPH.plastic;
+  const out = {};
+  for (const k of MORPH_TRAITS) {
+    const v = k === 'size'
+      ? 1 + M.fed * ((1 - Math.min(1, (mother.hunger ?? 0) / 100)) - P.ref.fed)
+      : targetOf(k, mother.use, 1, 0);
+    out[k] = round(Math.max(1 - M.max, Math.min(1 + M.max, Math.max(0.01, v) ** M.share)));
+  }
+  return out;
+}
+
 // A founder's genes: around 1, a little apart, so there is something to select.
 export function founderMorph(rnd = Math.random) {
   const out = {};
@@ -154,10 +172,10 @@ export const plasticOn = () => Boolean(MORPH.enabled && MORPH.plastic?.enabled);
 // how strongly it follows (her plasticity gene, with Baldwin; else 1).
 // A use within P.enough of typical asks nothing: only a life that goes past
 // that moves the organ, and only by what goes past it.
-export function targetOf(k, use, gain = 1) {
+export function targetOf(k, use, gain = 1, enough = MORPH.plastic.enough ?? 0) {
   const P = MORPH.plastic;
   const off = (use[USE_OF[k]] ?? P.ref[USE_OF[k]]) / P.ref[USE_OF[k]] - 1;
-  const past = Math.sign(off) * Math.max(0, Math.abs(off) - (P.enough ?? 0));
+  const past = Math.sign(off) * Math.max(0, Math.abs(off) - enough);
   const ask = 1 + gain * P.amp[k] * past;
   return Math.max(1 - P.max, Math.min(1 + P.max, ask));
 }
@@ -205,7 +223,8 @@ export function updatePlasticity(fagi, out, dt) {
     const gene = fagi.genome.morph[o] ?? 1;
     const now = fagi.morph[o] ?? gene;
     const ask = targetOf(o, use, gain) * (o === 'size' ? warmthOf(use, gain) : 1);
-    const settle = Math.max(1 - P.max, Math.min(1 + P.max, (marks?.[o] ?? 1) * ask));
+    const born = fagi.genome.maternal?.[o] ?? 1;   // what her mother lived as she laid her
+    const settle = Math.max(1 - P.max, Math.min(1 + P.max, (marks?.[o] ?? 1) * born * ask));
     const goal = gene * settle;
     const next = now + (goal - now) * step;
     if (next > now) {

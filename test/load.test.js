@@ -55,3 +55,18 @@ test('a bigger mother breeds faster (fecundity grows with size)', () => {
   assert.ok(morphBody({ ...ones, size: 1.3 }).brood < morphBody({ ...ones, size: 1 }).brood);
   assert.equal(MORPH.fecundity > 0, true);
 });
+
+test('what she brings home counts as her own provision, by its weight', async () => {
+  const { createWorld, addObject } = await import('../src/world.js');
+  const { createFagi } = await import('../src/fagi.js');
+  const { useNest } = await import('../src/nest.js');
+  on(() => {
+    const world = createWorld();
+    const nest = addObject(world, 400, 400, 'nest');
+    const f = createFagi();
+    f.x = nest.x; f.y = nest.y;
+    f.carrying = { type: 'nectar', age: 0, weight: 1.5, hardness: 1 };
+    useNest(f, world);
+    assert.equal(f.provided, 1.5);
+  });
+});

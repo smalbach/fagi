@@ -276,3 +276,39 @@ test('hauling a heavy fruit builds muscle where walking empty-handed would not',
     } finally { LOAD.enabled = 0; }
   });
 });
+
+// --- maternal effects and choosing a mate ----------------------------------------
+
+test('maternal effects: what the mother lived as she lays shapes the egg; off, nothing', async () => {
+  const { maternalMark } = await import('../src/morph.js');
+  withMorph(() => {
+    const mom = grown();
+    mom.use = { ...MORPH.plastic.ref };
+    assert.equal(maternalMark(mom), null, 'off by default');
+    MORPH.maternal.share = 1;
+    try {
+      // A typical, well-fed life: an egg like her genes.
+      mom.hunger = (1 - MORPH.plastic.ref.fed) * 100;
+      for (const v of Object.values(maternalMark(mom))) assert.ok(Math.abs(v - 1) < 1e-9);
+      // Later she hauls far and goes hungry: this brood comes out with more muscle, smaller.
+      const later = grown();
+      later.use = { ...MORPH.plastic.ref, work: MORPH.plastic.ref.work * 1.5 };
+      later.hunger = 90;
+      const m = maternalMark(later);
+      assert.ok(m.muscle > 1 && m.size < 1);
+      for (const v of Object.values(m)) assert.ok(v >= 1 - MORPH.maternal.max - 1e-9 && v <= 1 + MORPH.maternal.max + 1e-9);
+    } finally { MORPH.maternal.share = 0; }
+  });
+});
+
+test('a daughter starts and settles where her mother\'s mark puts her', async () => {
+  const { applyGenome } = await import('../src/generations.js');
+  withMorph(() => {
+    const f = createFagi();
+    applyGenome(f, { cues: {}, morph: ones(), maternal: { ...ones(), muscle: 1.2 } });
+    assert.ok(Math.abs(f.morph.muscle - 1.2) < 1e-9);
+    f.lifeStage = 'adult';
+    live(f, 4000, { moving: true, out: true });
+    assert.ok(f.morph.muscle > 1.1, 'the mark holds while her life is typical or more');
+  });
+});

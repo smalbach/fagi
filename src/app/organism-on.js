@@ -42,6 +42,13 @@ SEASONS.enabled = 1;
 // muscle, a hard one for a gut up to it.
 LOAD.enabled = 1;
 
+// What decides a brood is hers (morph.js, reproduction.js): a mother lays only
+// after bringing home food herself, picks the stronger male, and what she has
+// lived up to each brood shapes it (maternal effects), so her first and fifth
+// broods can come out different.
+LIFE.provision = 1;
+MORPH.maternal.share = 1;
+
 // Caution when eating (docs/research/caution-protocol.md): she is born with
 // two lines of conduct — a kind she never ate, a trial bite first; a kind that
 // harmed her as often as it fed her, never again — applied at the bite point

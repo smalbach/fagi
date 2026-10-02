@@ -44,6 +44,8 @@ export function useNest(fagi, world) {
     const total = storeInNest(nestObj, t, fagi.carrying.age ?? 0);
     record(world, 'nest_store', { what: t, age: fagi.carrying.age ?? 0 });
     fagi.stored = (fagi.stored ?? 0) + 1;
+    // What she brought home herself, in typical fruits (LIFE.provision).
+    fagi.provided = (fagi.provided ?? 0) + (fagi.carrying.weight ?? 1);
     fagi.lastDeposit = { n: fagi.stored, type: t, total };
     fagi.carrying = null;
   }

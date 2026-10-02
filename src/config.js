@@ -374,6 +374,16 @@ export const GEN = {
 //                 (Kotrschal et al. 2013, 2019); elasticities, gentler than the guppies'
 //   fecundity   : a bigger mother breeds faster: her rest between broods ∝ size^-this
 //                 (insect fecundity grows about in proportion to body mass, Honěk 1993)
+//   choice      : a female picks, among the males who can, the one who looks best ×
+//                 his strength (muscle × size^⅔) to this power: females of many
+//                 insects prefer bigger, stronger males (0 = condition only)
+//   maternal    : maternal effects. What the mother lived up to the moment she lays
+//                 an egg (her organs' use, against typical) and how well fed she is
+//                 then shape where her daughter's organs start and settle, to the
+//                 power `share` (0 = off), within ±max; `fed` is how much her
+//                 hunger sets the egg's provisioning, hence the daughter's size. Not
+//                 passed on further: each brood gets what its mother lives then, so
+//                 her first and fifth broods can come out different
 //   sizeSpeed   : a heavier body is slower per unit of muscle
 //   oxygen      : °C her heat limit (THERMAL.safeMax) drops per unit of size over 1:
 //                 a bigger body's tracheae fall short of oxygen first when it is hot
@@ -430,6 +440,8 @@ export const MORPH = {
   brainLife: 1,
   brainBrood: 1,
   fecundity: 1,
+  choice: 1,
+  maternal: { share: 0, max: 0.25, fed: 0.6 },
   sizeSpeed: 0.15,
   oxygen: 30,
   plastic: {
@@ -1127,6 +1139,10 @@ export const NIGHTAI = {
 //   mateEnergy     : energy (fraction of her maximum) both need to mate
 //   mateNeed       : hunger and thirst (fraction) both must be under
 //   mateStock      : edible rations the nest must hold: no brood in a lean time
+//   provision      : fruit (in typical weights) a mother must have brought home herself
+//                    since her last brood before she lays again: she provisions her own
+//                    brood, as solitary and primitively social insects do (0 = off: the
+//                    common pantry is enough)
 //   mateCost       : energy mating costs each
 //   eggCost        : hunger the female pays to lay (the egg is made of her)
 //   femaleRecover / maleRecover: seconds before each may mate again
@@ -1152,6 +1168,7 @@ export const LIFE = {
   mateEnergy: 0.6,
   mateNeed: 0.45,
   mateStock: 2,
+  provision: 0,
   mateCost: 15,
   eggCost: 12,
   femaleRecover: 360,

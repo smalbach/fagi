@@ -1813,7 +1813,7 @@
    ]
   },
   "colony": {
-   "digest": "56e50a267d1ab0465213389fed7e9fe1",
+   "digest": "c8b2574e34172b8c08ae9adca17fc08e",
    "steps": 12000,
    "end": {
     "t": 600,
@@ -1822,19 +1822,18 @@
     "causes": []
    },
    "rules": {
-    "clues/memory": 860,
-    "clues/scent": 343,
-    "endure/shelter": 2384,
-    "endure/sleep": 15897,
-    "endure/thermal": 2029,
-    "explore/explore": 8940,
-    "provide/carry": 2521,
-    "provide/pursue": 4930,
+    "clues/memory": 826,
+    "clues/scent": 327,
+    "endure/shelter": 1464,
+    "endure/sleep": 16044,
+    "endure/thermal": 2152,
+    "explore/explore": 10231,
+    "provide/carry": 2363,
+    "provide/pursue": 4639,
     "provide/thirstSearch": 629,
-    "survive/drink": 2566,
-    "survive/eatCarried": 1,
+    "survive/drink": 2564,
     "survive/swimOut": 6,
-    "survive/urgency": 172,
+    "survive/urgency": 33,
     "undefined/undefined": 1
    },
    "checkpoints": [
@@ -1914,49 +1913,49 @@
      "t": 420,
      "alive": 4,
      "id": 1,
-     "x": 740.67,
-     "y": 603.92,
-     "action": "drink",
-     "rule": "drink",
-     "hunger": 36.9,
-     "thirst": 19.5,
-     "energy": 93
+     "x": 658.95,
+     "y": 816.67,
+     "action": "explore",
+     "rule": "explore",
+     "hunger": 38.6,
+     "thirst": 2.8,
+     "energy": 88.3
     },
     {
      "t": 480,
      "alive": 4,
      "id": 1,
-     "x": 678.56,
-     "y": 393.32,
+     "x": 660.82,
+     "y": 383.72,
      "action": "rest",
      "rule": "sleep",
-     "hunger": 26.9,
-     "thirst": 7.4,
+     "hunger": 42.4,
+     "thirst": 22.7,
      "energy": 93
     },
     {
      "t": 540,
      "alive": 4,
      "id": 1,
-     "x": 1179.49,
-     "y": 547.95,
-     "action": "explore",
-     "rule": "explore",
-     "hunger": 29.7,
-     "thirst": 2.1,
-     "energy": 90
+     "x": 189.08,
+     "y": 315.49,
+     "action": "seekFood",
+     "rule": "pursue",
+     "hunger": 45.1,
+     "thirst": 33,
+     "energy": 83.8
     },
     {
      "t": 600,
      "alive": 4,
      "id": 1,
-     "x": 131.02,
-     "y": 756.02,
+     "x": 1138.93,
+     "y": 725.9,
      "action": "explore",
      "rule": "explore",
-     "hunger": 30.2,
-     "thirst": 17.6,
-     "energy": 69.8
+     "hunger": 32.4,
+     "thirst": 13.3,
+     "energy": 75.3
     }
    ]
   },
