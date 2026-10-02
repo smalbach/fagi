@@ -84,7 +84,24 @@ function coancestry(lineage, a, b, memo = new Map(), depth = 0) {
   return f;
 }
 
-export const relatedness = (lineage, a, b) => 2 * coancestry(lineage ?? {}, a, b);
+// A pedigree never changes for those already in it (an entry is written once,
+// at birth), so how related two of them are is worked out once per pair and
+// kept with that pedigree. Without it every mating check walked the tree
+// again, for every female against every male. Kept beside the pedigree, not
+// in it, so a saved world carries nothing new; a cache past KIN_KEEP pairs
+// starts over, so a long game does not grow it without end.
+const KIN_KEEP = 100000;
+const kinOf = new WeakMap();
+
+export function relatedness(lineage, a, b) {
+  if (!lineage) return 2 * coancestry({}, a, b);
+  let kept = kinOf.get(lineage);
+  if (!kept || kept.size >= KIN_KEEP) kinOf.set(lineage, kept = new Map());
+  const key = a < b ? `${a}|${b}` : `${b}|${a}`;
+  let r = kept.get(key);
+  if (r === undefined) kept.set(key, r = 2 * coancestry(lineage, a, b));
+  return r;
+}
 
 // How much a crowded nest slows every brood (LIFE.gradual): 1 while it is
 // less than a quarter full, growing as it fills, as a crowd competes for food

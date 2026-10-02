@@ -160,13 +160,17 @@ export function tell(giver, receiver, now) {
 
 // Sisters in the nest at the same time, each pair at most every SOCIAL.every s:
 // their rules (SOCIAL.share) and what their lines cost them (PROGRAM.share,
-// program/share.js).
+// program/share.js). With SOCIAL.touch, only two close enough to touch
+// exchange (trophallaxis is mouth to mouth); 0 = any two in the nest, as the
+// preregistered studies ran.
 function trophallaxis(colony, world, now) {
   if (!SOCIAL.share && !PROGRAM.share) return;
   const home = colony.ants.filter((f) => f.alive && nestUnder(f, world));
+  const touch = SOCIAL.touch;
   for (let i = 0; i < home.length; i++) {
     for (let j = i + 1; j < home.length; j++) {
       const [a, b] = [home[i], home[j]];
+      if (touch > 0 && Math.hypot(a.x - b.x, a.y - b.y) > touch) continue;
       const pair = `${Math.min(a.id, b.id)}-${Math.max(a.id, b.id)}`;
       if (now - (colony.lastExchange[pair] ?? -Infinity) < SOCIAL.every) continue;
       colony.lastExchange[pair] = now;

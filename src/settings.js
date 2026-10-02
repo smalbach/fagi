@@ -203,6 +203,7 @@ const GROUPS = [
   { title: { en: 'Colony (new sessions)', es: 'Colonia (sesiones nuevas)' }, cat: 'colony', fieldsOf: [
     n(SOCIAL, 'size', 'Individuals in the colony (1 = Fagi alone)', 'Individuos en la colonia (1 = Fagi sola)', 1, 8, 1),
     b(SOCIAL, 'share', 'Tell each other rules in the nest', 'Contarse reglas en el nido'),
+    n(SOCIAL, 'touch', 'Distance to exchange in the nest (0 = anywhere)', 'Distancia para intercambiar en el nido (0 = en cualquier parte)', 0, 90, 2),
     b(CASTES, 'enabled', 'Emergent division of labor (castes)', 'División emergente del trabajo (castas)'),
     b(GEN, 'cultureProgram', 'Elders teach self-written code to juveniles', 'Veteranas enseñan código propio a juveniles'),
     n(SOCIAL, 'observe', 'Learning from watching a sister eat', 'Aprender de ver comer a una hermana', 0, 1, 0.05),

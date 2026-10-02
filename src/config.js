@@ -314,6 +314,7 @@ export const SOCIAL = {
   trust: 0.6,         // a rule told is trusted this fraction of the teller's own trust
   minTrust: 0.3,      // below this, a rule is not worth passing on
   every: 20,          // seconds before the same two sisters exchange again
+  touch: 0,           // px two sisters in the nest must be within to exchange; 0 = anywhere in the nest (the game uses 24, app/organism-on.js)
   seeRange: 1,        // fraction of her view range at which she notices a sister eat
   format: 'rule',     // what is passed on (social.js): 'rule' | 'verdict' | 'evidence'
   budget: 0,          // items passed in one exchange (a rule, a verdict, a bite); 0 = no cap
@@ -1007,7 +1008,7 @@ export const LIFE = {
   eggWarm: 22,
   eggStarve: 180,
   kinLimit: 0.5,
-  maxPopulation: 16,
+  maxPopulation: 16,  // the game uses 60 (app/organism-on.js)
   gradual: 1,
 };
 

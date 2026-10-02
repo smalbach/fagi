@@ -3,7 +3,7 @@
 // "factory" in the game means organism on.
 
 import { enableOrganism } from '../organism.js';
-import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT } from '../config.js';
+import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL } from '../config.js';
 import { CAUTION_LINES } from '../learned/conduct.js';
 
 enableOrganism();
@@ -22,6 +22,13 @@ ENERGY.drain = 0.6;
 SLEEP.nightly = 1;
 CONCEPT.enabled = 0;
 PHERO.life = 60;
+
+// A colony that can grow: the nest holds 60, eggs included (research keeps 16).
+// With that many in the nest, two sisters exchange what they know only when
+// close enough to touch, mouth to mouth, not anywhere in it: the exchanges stay
+// local, as in a real nest, and the cost stops growing with every pair.
+LIFE.maxPopulation = 60;
+SOCIAL.touch = 24;
 
 // Caution when eating (docs/research/caution-protocol.md): she is born with
 // two lines of conduct — a kind she never ate, a trial bite first; a kind that
