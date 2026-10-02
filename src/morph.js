@@ -80,3 +80,73 @@ export function morphBody(m) {
     brood: (m.brain ?? 1) ** MORPH.brainBrood,
   };
 }
+
+// --- plasticity: what she lives moves the organs she carries ----------------
+//
+// Each organ follows its own use, averaged over MORPH.plastic.window seconds:
+//
+//   muscle    walking                  (more walking, more muscle)
+//   gut       bites a day              (more eating, a bigger gut; a fast shrinks it)
+//   brain     time out foraging        (experience, not age)
+//   eyes      time out in daylight     (unused in the dark, they waste)
+//   antennae  time smelling something
+//   size      how well fed while young (fixed once she is grown)
+//
+// The organ she carries moves toward her gene × what its use asks, never
+// further than MORPH.plastic.max from her gene, slowly (MORPH.plastic.tau), and
+// growing tissue costs hunger. Her genes do not change: what her daughters
+// inherit is her genome (darwinian inheritance). Nothing here draws a random
+// number, and with MORPH or its plasticity off nothing runs.
+
+const USE_OF = { muscle: 'move', gut: 'eat', brain: 'out', eyes: 'light', antennae: 'smell', size: 'fed' };
+const SHARE = { size: 0.3 };   // what growing her whole body costs, as a share of her burn
+
+export const plasticOn = () => Boolean(MORPH.enabled && MORPH.plastic?.enabled);
+
+// What each organ's use asks of it, as a factor on her gene.
+export function targetOf(k, use) {
+  const P = MORPH.plastic;
+  const ask = 1 + P.amp[k] * ((use[USE_OF[k]] ?? P.ref[USE_OF[k]]) / P.ref[USE_OF[k]] - 1);
+  return Math.max(1 - P.max, Math.min(1 + P.max, ask));
+}
+
+// Once a frame, after she has acted. `out`: is she outside the nest. Returns
+// whether her organs moved enough that her body has to be worked out again.
+export function updatePlasticity(fagi, out, dt) {
+  if (!plasticOn() || !fagi.morph || !fagi.genome?.morph) return false;
+  const P = MORPH.plastic;
+  const use = (fagi.use ??= { ...P.ref, bites: fagi.eaten ?? 0 });
+  const k = Math.min(1, dt / P.window);
+  const smelled = (fagi.perceived?.smelledOnes?.length ?? 0) > 0;
+  use.move += ((fagi.moving ? 1 : 0) - use.move) * k;
+  use.out += ((out ? 1 : 0) - use.out) * k;
+  use.light += ((out && !fagi.dark ? 1 : 0) - use.light) * k;
+  use.smell += ((smelled ? 1 : 0) - use.smell) * k;
+  // Bites a day (180 s), as a running rate.
+  const bites = (fagi.eaten ?? 0) - use.bites;
+  use.bites = fagi.eaten ?? 0;
+  use.eat += ((dt > 0 ? (bites * 180) / dt : 0) - use.eat) * k;
+  const young = fagi.lifeStage === 'juvenile';
+  if (young) use.fed += ((1 - Math.min(1, (fagi.hunger ?? 0) / 100)) - use.fed) * k;
+
+  const step = Math.min(1, dt / P.tau);
+  let moved = 0;
+  for (const o of MORPH_TRAITS) {
+    if (o === 'size' && !young) continue;   // grown: her size is set
+    const gene = fagi.genome.morph[o] ?? 1;
+    const now = fagi.morph[o] ?? gene;
+    const goal = gene * targetOf(o, use);
+    const next = now + (goal - now) * step;
+    if (next > now) {
+      // Building tissue costs: hunger, by the organ's share of her burn.
+      const share = MORPH.tissue[o] ?? SHARE[o] ?? 0;
+      fagi.hunger = Math.min(100, (fagi.hunger ?? 0) + P.build * share * ((next - now) / gene) * 100);
+    }
+    fagi.morph[o] = next;
+    moved += Math.abs(next - now);
+  }
+  fagi.morphMoved = (fagi.morphMoved ?? 0) + moved;
+  if (fagi.morphMoved < 0.01) return false;
+  fagi.morphMoved = 0;
+  return true;
+}

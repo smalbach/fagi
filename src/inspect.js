@@ -306,7 +306,7 @@ function paintFagi(f, world, main, isMain, canFollow) {
     row(L('Energy capacity', 'Capacidad de energía'), `×${num(b.energyMax, 2)}`),
     row(L('Metabolism', 'Metabolismo'), `×${num(b.metabolism, 2)}`),
     row(L('Insulation', 'Aislamiento'), `×${num(b.insulation, 2)}`),
-    f.morph ? row(L('Organs', 'Órganos'), morphLine(f.morph), 'ins-wrap') : '',
+    f.morph ? row(L('Organs (inherited)', 'Órganos (heredado)'), morphLine(f.morph, f.genome?.morph), 'ins-wrap') : '',
     fx.length ? row(t('panel.effects'), fx.map((e) => `${t(`fx.${e.stat}`)} ×${e.mult} (${formatDuration(e.time, { precise: true })})`).join(', '), 'ins-wrap') : '',
   ].join('') : '';
 
@@ -574,6 +574,11 @@ const MORPH_LABEL = {
   brain: ['brain', 'cerebro'], gut: ['gut', 'estómago'], muscle: ['muscle', 'músculo'],
   eyes: ['eyes', 'ojos'], antennae: ['antennae', 'antenas'], size: ['size', 'tamaño'],
 };
-function morphLine(m) {
-  return Object.entries(MORPH_LABEL).map(([k, [en, es]]) => `${L(en, es)} ×${num(m[k] ?? 1, 2)}`).join(', ');
+// What she carries, and in brackets what she inherited when what she lived moved it.
+function morphLine(m, gene = null) {
+  return Object.entries(MORPH_LABEL).map(([k, [en, es]]) => {
+    const now = num(m[k] ?? 1, 2);
+    const was = gene ? num(gene[k] ?? 1, 2) : now;
+    return `${L(en, es)} ×${now}${was !== now ? ` (${was})` : ''}`;
+  }).join(', ');
 }

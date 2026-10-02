@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { MORPH, LIFE, SEX } from '../src/config.js';
-import { MORPH_TRAITS, tissueLoad, morphBody, inheritMorph, founderMorph } from '../src/morph.js';
+import { MORPH_TRAITS, tissueLoad, morphBody, inheritMorph, founderMorph, updatePlasticity, targetOf } from '../src/morph.js';
 import { bodyFor, bodyMult } from '../src/biology.js';
 import { createFagi } from '../src/fagi.js';
 import { createWorld, addObject, storeInNest } from '../src/world.js';
@@ -100,4 +100,76 @@ test('founders of a breeding population get organs a little apart', () => {
     });
   } finally { LIFE.enabled = 0; SEX.enabled = 0; }
   assert.ok(founderMorph(seeded()).brain > 0);
+});
+
+// --- plasticity --------------------------------------------------------------
+
+
+function grown(morph = ones()) {
+  const f = createFagi();
+  f.genome = { cues: {}, morph: { ...morph } };
+  f.morph = { ...morph };
+  f.lifeStage = 'adult';
+  return f;
+}
+function live(f, seconds, { moving = false, out = false, dark = false } = {}) {
+  f.moving = moving;
+  f.dark = dark;
+  for (let t = 0; t < seconds; t += 1) updatePlasticity(f, out, 1);
+}
+
+test('used as typical, every organ stays as inherited', () => {
+  const P = MORPH.plastic;
+  for (const o of MORPH_TRAITS) assert.equal(targetOf(o, P.ref), 1);
+});
+
+test('plasticity off, or MORPH off: she carries exactly what she inherited', () => {
+  const f = grown();
+  live(f, 3000, { moving: true, out: true });
+  assert.deepEqual(f.morph, ones(), 'MORPH off');
+  withMorph(() => {
+    MORPH.plastic.enabled = 0;
+    try { live(f, 3000, { moving: true, out: true }); } finally { MORPH.plastic.enabled = 1; }
+  });
+  assert.deepEqual(f.morph, ones(), 'plasticity off');
+});
+
+test('walking all day builds muscle, a still life wastes it, never past the limit', () => {
+  withMorph(() => {
+    const walker = grown();
+    live(walker, 6000, { moving: true, out: true });
+    const still = grown();
+    live(still, 6000, { moving: false, out: false });
+    assert.ok(walker.morph.muscle > 1.1, `walker ${walker.morph.muscle}`);
+    assert.ok(still.morph.muscle < 0.9, `still ${still.morph.muscle}`);
+    const P = MORPH.plastic;
+    assert.ok(walker.morph.muscle <= 1 + P.max + 1e-9 && still.morph.muscle >= 1 - P.max - 1e-9);
+    assert.equal(walker.genome.morph.muscle, 1, 'her genes do not change');
+  });
+});
+
+test('eyes waste in the dark; growing an organ costs hunger', () => {
+  withMorph(() => {
+    const blind = grown();
+    live(blind, 6000, { out: true, dark: true });
+    assert.ok(blind.morph.eyes < 0.9);
+    const f = grown();
+    f.hunger = 0;
+    live(f, 600, { moving: true, out: true });
+    assert.ok(f.hunger > 0);
+  });
+});
+
+test('a grown body keeps its size; a young one is sized by how well she is fed', () => {
+  withMorph(() => {
+    const adult = grown();
+    adult.hunger = 95;
+    live(adult, 3000);
+    assert.equal(adult.morph.size, 1);
+    const young = grown();
+    young.lifeStage = 'juvenile';
+    young.hunger = 90;
+    live(young, 3000);
+    assert.ok(young.morph.size < 1);
+  });
 });

@@ -373,6 +373,23 @@ export const GEN = {
 //   brainLife / brainBrood: a bigger brain shortens life and slows breeding
 //                 (Kotrschal et al. 2013, 2019); elasticities, gentler than the guppies'
 //   sizeSpeed   : a heavier body is slower per unit of muscle
+//   plastic     : what she lives moves the organs she carries (morph.js,
+//                 updatePlasticity), never her genes:
+//     enabled   : 0 = she carries exactly what she inherited
+//     max       : how far from her gene an organ can move, as a fraction
+//     window    : seconds over which she averages how much she uses each organ
+//     tau       : seconds an organ takes to move most of the way to what its use asks
+//                 (days: a gut remodels in about a week, Dekinga et al. 2001)
+//     build     : hunger growing tissue costs, per unit of its share of her burn
+//     ref       : the use at which an organ stays as inherited (measured on the
+//                 game's colony): moving, out of the nest, out in daylight,
+//                 smelling something, bites a day, and a juvenile's nourishment
+//     amp       : how strongly each organ follows its use. Muscle grows with
+//                 walking; the gut with eating, shrinking in a fast (Piersma &
+//                 Lindström 1997); the brain with foraging experience, not age
+//                 (Withers et al. 1993); eyes with daylight, antennae with
+//                 scents, wasting when unused (Moran et al. 2015); size is set by
+//                 how well she was fed while young, then fixed
 export const MORPH = {
   enabled: 0,
   range: [0.5, 2],
@@ -385,6 +402,15 @@ export const MORPH = {
   brainLife: 1,
   brainBrood: 1,
   sizeSpeed: 0.15,
+  plastic: {
+    enabled: 1,
+    max: 0.25,
+    window: 540,
+    tau: 900,
+    build: 1,
+    ref: { move: 0.53, out: 0.59, light: 0.52, smell: 0.11, eat: 0.31, fed: 0.7 },
+    amp: { muscle: 0.5, gut: 0.4, brain: 0.4, eyes: 0.5, antennae: 0.5, size: 0.6 },
+  },
 };
 
 // Explanations (learned/explain.js): why she thinks what she thinks of a fruit.

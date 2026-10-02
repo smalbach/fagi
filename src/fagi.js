@@ -39,6 +39,7 @@ import { refreshRules } from './learned/synth.js';
 import { edibleCount } from './learned/rules.js';
 import { observeHabits, deathLesson } from './habits.js';
 import { assignSex, bodyFor, bodyMult, energyMax } from './biology.js';
+import { updatePlasticity } from './morph.js';
 import { updateStage } from './lifecycle.js';
 import { senseBody } from './thermal.js';
 import { updateSleep } from './sleep.js';
@@ -210,6 +211,12 @@ export function updateFagi(fagi, world, dt) {
   useThing(fagi, world);         // a touch or a nibble, once she reaches it (CONCEPT)
   resolveTrail(fagi);            // did the trail she was following lead her to food?
   increaseNeeds(fagi, world, dt);
+  // What she lives moves the organs she carries (MORPH): her body follows.
+  if (updatePlasticity(fagi, !ctx.inNest, dt)) {
+    const full = fagi.energy / energyMax(fagi);
+    fagi.body = bodyFor(fagi.sex, fagi.genome, fagi.morph);
+    fagi.energy = full * energyMax(fagi);
+  }
   updateHealth(fagi, dt, fagi.thought?.action === 'rest');   // harm and mending (health.js; HEALTH only)
   updateSodium(fagi, dt);        // sodium runs out (taste.js; TASTE only)
   updateSleep(fagi, world, dt);  // pressure, and the night's sorting once she has slept enough
