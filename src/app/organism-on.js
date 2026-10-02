@@ -23,8 +23,8 @@ SLEEP.nightly = 1;
 CONCEPT.enabled = 0;
 PHERO.life = 60;
 
-// A colony that can grow: the nest holds 60, eggs included (research keeps 16).
-// With that many in the nest, two sisters exchange what they know only when
+// Colonies that can grow (research keeps one nest of 16).
+// With that many in a nest, two sisters exchange what they know only when
 // close enough to touch, mouth to mouth, not anywhere in it: the exchanges stay
 // local, as in a real nest, and the cost stops growing with every pair.
 SOCIAL.touch = 24;
