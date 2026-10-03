@@ -22,6 +22,12 @@
 //                       kinds on one scale, and a mild hunger made loud by κ
 //                       and the bonus outvoted exhaustion (H2b)
 //
+//   SELECT.sequence     seconds a won act may keep the floor: no vote until
+//                       what it was after is done (a bite, a drink, rest
+//                       begun or ended, something stored), the line stops
+//                       answering, or a critical need it does not serve comes
+//                       up (Tyrrell's contiguity; Bryson's sequences). 0 = off
+//
 // The survival tier stays a reflex, first to answer wins, as in any animal: a
 // body drowning does not deliberate. The full vote is held every SELECT.every
 // seconds; in between, the winning line acts on its own (cheaper, and what an
@@ -96,6 +102,9 @@ function voteOf(fagi, need, lv) {
   return level + SELECT.floor;
 }
 
+// What she consumes when she reaches it.
+const CONSUMED = new Set(['food', 'water']);
+
 // Same act on the same target: one proposal.
 const keyOf = (intent) => `${intent.action}|${intent.target?.id ?? (intent.target ? `${Math.round(intent.target.x)},${Math.round(intent.target.y)}` : '-')}`;
 
@@ -110,9 +119,11 @@ function vote(fagi, world, ctx, dt, lines, from, holds, executeLine, only = null
     if (!res) continue;
     if (only && SERVES[res.step] !== only) continue;
     const k = keyOf(res.intent);
-    // What is within reach is to be consumed, not looked for (Tyrrell 4–5).
+    // What is within reach is to be consumed, not looked for (Tyrrell 4–5):
+    // food or water, not the trail mark under her feet (always within reach,
+    // and following it is looking).
     const t0 = res.intent.target;
-    const near = t0 && t0.x != null && Math.hypot(t0.x - fagi.x, t0.y - fagi.y) <= SELECT.reach;
+    const near = CONSUMED.has(res.intent.targetKind) && t0 && t0.x != null && Math.hypot(t0.x - fagi.x, t0.y - fagi.y) <= SELECT.reach;
     const v = voteOf(fagi, SERVES[res.step] ?? 'colony', lv) * (near ? 1 + SELECT.consume : 1);
     const t = tally.get(k) ?? { votes: 0, line: l, index: i, top: -Infinity };
     t.votes += v;
@@ -128,6 +139,11 @@ function vote(fagi, world, ctx, dt, lines, from, holds, executeLine, only = null
   return best;
 }
 
+// What would close a sequence: a bite, a drink, rest or sleep begun or ended,
+// something stored at home. (A line that stops answering closes it too.)
+const markOf = (fagi) => `${fagi.eaten ?? 0}|${!!fagi.drinking}|${!!fagi.resting}|${!!fagi.sleeping}|${fagi.stored ?? 0}`;
+const done = (fagi, held) => held.mark != null && markOf(fagi) !== held.mark;
+
 // The free-flow walk: the survival reflexes first (first to answer wins), then
 // the vote. Returns the walk record decision.js expects, or null to let the
 // program's own walk go on (nothing voted).
@@ -141,11 +157,13 @@ export function selectByVotes(fagi, world, ctx, dt, lines, { holds, executeLine 
     if (res) { fagi.selected = null; return { intent: res.intent, who: { tier: l.tier, rule: res.step, line: l.id }, kind: 'line', line: l, index: i }; }
   }
   // A critical need is not voted on: the lines that serve it, if any answers.
-  const critical = SELECT.veto ? criticalNeeds(fagi) : [];
+  // It also breaks a sequence.
+  const critical = SELECT.veto || SELECT.sequence ? criticalNeeds(fagi) : [];
   // Between votes, the winner goes on acting while it still answers (unless a
-  // critical need it does not serve has come up).
+  // critical need it does not serve has come up). In a sequence, until what
+  // it was after is done.
   const held = fagi.selected;
-  if (held && (fagi.age ?? 0) < held.until && (!critical.length || critical.includes(held.serves))) {
+  if (held && (fagi.age ?? 0) < held.until && (!critical.length || critical.includes(held.serves)) && !done(fagi, held)) {
     const i = lines.findIndex((x) => x.id === held.line);
     const l = lines[i];
     if (l && !l.retired && holds(l, fagi, ctx)) {
@@ -160,6 +178,10 @@ export function selectByVotes(fagi, world, ctx, dt, lines, { holds, executeLine 
   // The winner acts for real now (what she imagined, she does).
   const res = executeLine(best.line, fagi, world, ctx, dt);
   if (!res) { fagi.selected = null; return null; }
-  fagi.selected = { key: best.key, line: best.line.id, serves: SERVES[res.step] ?? 'colony', until: (fagi.age ?? 0) + SELECT.every };
+  fagi.selected = {
+    key: best.key, line: best.line.id, serves: SERVES[res.step] ?? 'colony',
+    until: (fagi.age ?? 0) + (SELECT.sequence || SELECT.every),
+    mark: SELECT.sequence ? markOf(fagi) : null,
+  };
   return { intent: res.intent, who: { tier: best.line.tier, rule: res.step, line: best.line.id }, kind: 'line', line: best.line, index: best.index };
 }

@@ -515,6 +515,8 @@ export const STOMACH = {
 //   reach     : px from her at which a target is within reach
 //   veto      : 1 = a need past its critical threshold is not voted on: only
 //               the lines that serve it may win while it lasts (H2c)
+//   sequence  : seconds a won act keeps the floor, unvoted, until what it was
+//               after is done or the line stops answering (0 = off; H2d)
 export const SELECT = {
   mode: 'program',
   every: 0.5,
@@ -524,6 +526,7 @@ export const SELECT = {
   consume: 0,
   reach: 40,
   veto: 0,
+  sequence: 0,
 };
 
 // Drives (drive.js; LIBERA phase 2): how much a need makes what relieves it

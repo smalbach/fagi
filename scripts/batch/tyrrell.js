@@ -16,7 +16,10 @@
 //   7      contiguous         action changes a minute; switches that come back
 //                             to the previous action within 3 s (dithering), and
 //                             the same leaving out a bite or drink on the way
-//                             (that is opportunism, 9, not dithering)
+//                             (that is opportunism, 9, not dithering); and
+//                             both by goal: following her own trail and
+//                             heading for the fruit she sees on it are one
+//                             trip, not two acts
 //   8      interrupt          seconds from cold or heat felt outside to an act
 //                             that answers it
 //   9      opportunism        meals taken on the way to something else
@@ -59,6 +62,13 @@ function consuming(fagi) {
   return null;
 }
 
+// What she is after: the need an act tends, or the act itself. Her own trail
+// leads to food, so following it is after food.
+function goalOf(fagi, action) {
+  if (action === 'pheromone') return 'hunger';
+  return tends(fagi) ?? consuming(fagi) ?? action;
+}
+
 function foodWithinReach(fagi, world) {
   for (const p of world.points) if (Math.hypot(p.x - fagi.x, p.y - fagi.y) <= REACH) return true;
   return false;
@@ -73,7 +83,7 @@ export function newTyrrellFollow(opts) {
     pairs: Object.fromEntries(NEEDS_OF.map((k) => [k, []])),
     reach: null, reachN: 0, reachAte: 0,
     rules: {}, decisions: 0,
-    last: null, lastAt: 0, prev: null, prevAt: -Infinity, switches: 0, dithers: 0, dithersPure: 0, consumedAt: -Infinity,
+    last: null, lastAt: 0, prev: null, prevAt: -Infinity, switches: 0, dithers: 0, dithersPure: 0, ditherPairs: {}, goal: null, goalPrev: null, goalPrevAt: -Infinity, goalSwitches: 0, goalDithers: 0, consumedAt: -Infinity,
     threat: null, latencies: [],
     eaten: null, meals: 0, opportune: 0, recent: [],
     before: null, compromise: 0,
@@ -141,12 +151,28 @@ export function noteTyrrell(s, fagi, world, dt) {
         s.dithers++;
         // Back after eating or drinking on the way is opportunism (9), not
         // dithering: the pure count leaves those out.
-        if (!(s.consumedAt > s.prevAt)) s.dithersPure++;
+        if (!(s.consumedAt > s.prevAt)) {
+          s.dithersPure++;
+          const pair = `${s.last}↔${action}`;
+          s.ditherPairs[pair] = (s.ditherPairs[pair] ?? 0) + 1;
+        }
       }
       s.prev = s.last;
       s.prevAt = s.t;
     }
     s.last = action;
+  }
+
+  // 7, by goal.
+  const goal = goalOf(fagi, action);
+  if (goal !== s.goal) {
+    if (s.goal != null) {
+      s.goalSwitches++;
+      if (goal === s.goalPrev && s.t - s.goalPrevAt <= DITHER && !(s.consumedAt > s.goalPrevAt)) s.goalDithers++;
+      s.goalPrev = s.goal;
+      s.goalPrevAt = s.t;
+    }
+    s.goal = goal;
   }
 
   // 8. Cold or heat felt outside: how long until she answers it.
@@ -201,6 +227,9 @@ export function tyrrellSummary(s) {
     r7Switches: round(s.switches / Math.max(1 / 60, s.t / 60), 2),
     r7Dither: s.switches ? round(s.dithers / s.switches, 3) : 0,
     r7DitherPure: s.switches ? round(s.dithersPure / s.switches, 3) : 0,
+    r7GoalSwitches: round(s.goalSwitches / Math.max(1e-9, s.t / 60), 2),
+    r7GoalDither: s.goalSwitches ? round(s.goalDithers / s.goalSwitches, 3) : 0,
+    r7Pairs: Object.fromEntries(Object.entries(s.ditherPairs).sort((a, b) => b[1] - a[1]).slice(0, 6)),
     r8Latency: s.latencies.length ? round(mean(s.latencies), 2) : null,
     r9Opportune: s.meals ? round(s.opportune / s.meals, 3) : null,
     r1112Compromise: round(s.compromise / Math.max(1, s.t), 4),
@@ -224,6 +253,7 @@ export function reportTyrrell(runs) {
     `  4–5   eats food within reach   ${fmt(m((r) => r.r45Eat), 3)}`,
     `  6     busiest line's share     ${fmt(m((r) => r.r6Top), 3)}`,
     `  7     switches a minute        ${fmt(m((r) => r.r7Switches))} (dithering ${fmt(m((r) => r.r7Dither), 3)}; leaving out a bite or drink on the way ${fmt(m((r) => r.r7DitherPure), 3)})`,
+    `        by goal                  ${fmt(m((r) => r.r7GoalSwitches))} a minute (dithering ${fmt(m((r) => r.r7GoalDither), 3)})`,
     `  8     answers cold/heat in     ${fmt(m((r) => r.r8Latency))} s`,
     `  9     meals on the way         ${fmt(m((r) => r.r9Opportune), 3)}`,
     `  10    no winner-take-all       not measured (program picks one line by design)`,
