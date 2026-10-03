@@ -8,7 +8,7 @@
 // Once per night, after SLEEP.minSleep seconds asleep in the nest, the day is
 // sorted (consolidation.js). Not awake, not the moment she walks in, not twice.
 
-import { SLEEP, CYCLE, NIGHTAI } from './config.js';
+import { SLEEP, CYCLE, NIGHTAI, SCIENCE } from './config.js';
 import { cycleAt, nightOf } from './cycle.js';
 import { nestUnder } from './nest.js';
 import { consolidate } from './consolidation.js';
@@ -27,7 +27,11 @@ function nightId(fagi, world) {
 
 function sortTheDay(fagi, world) {
   const night = nightId(fagi, world);
-  const report = consolidate(fagi, { night, now: fagi.age, since: fagi.consolidatedAt ?? -Infinity });
+  const since = fagi.consolidatedAt ?? -Infinity;
+  const report = consolidate(fagi, { night, now: fagi.age, since });
+  // The scientific night: yesterday's experiments come back as verdicts on
+  // what she had predicted, with where the question came from (SCIENCE).
+  if (SCIENCE.enabled) report.verdicts = (fagi.verdicts ?? []).filter((v) => v.at > since);
   fagi.consolidatedAt = fagi.age;
   fagi.consolidatedNight = night;
   fagi.consolidations = (fagi.consolidations ?? 0) + 1;

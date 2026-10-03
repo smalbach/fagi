@@ -1099,6 +1099,26 @@ export const EXPERIMENT = {
   agenda: 6,
 };
 
+// The scientific night (experiment.js; LIBERA phase 1, docs/research/libera/
+// README.md): every question of the night carries what her traits predict of
+// the fruit, the agenda is ordered by how much she expects to learn from each
+// times how safe it looks (Oudeyer, Kaplan & Hafner 2007), and each answer
+// comes back the next night as a verdict on that prediction.
+//   enabled : 0 = the agenda as before (most asked first, no predictions)
+//   order   : 'asked' keeps today's order and only adds predictions and
+//             verdicts; 'lp' orders by expected learning progress × safety
+//   window  : errors kept per trait, to tell progress from noise
+//   noisy   : a trait whose recent error stays above this, with no progress,
+//             is noise for now: questions that rest on it go last
+//   novelty : the progress she expects of a trait she never tested
+export const SCIENCE = {
+  enabled: 0,
+  order: 'lp',
+  window: 6,
+  noisy: 0.35,
+  novelty: 0.5,
+};
+
 // Appetite (appetite.js): what the body lets her eat, and when; and thirst
 // that sends her looking for water before it is critical.
 //   handling    : seconds a bite takes before the next one
