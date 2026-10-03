@@ -495,12 +495,18 @@ export const BACKEND = {
 //   hold      : what the act she is on gets on top, with a central selector
 //   floor     : a vote's least, so a line with nothing pressing still speaks
 //   curiosity : how loud curiosity is (experiments, probing)
+//   consume   : a proposal whose target is within `reach` px (the act that
+//               consumes, not the one that looks for it) votes × 1 + this
+//               (Tyrrell's 4–5: consummatory over appetitive)
+//   reach     : px from her at which a target is within reach
 export const SELECT = {
   mode: 'program',
   every: 0.5,
   hold: 0.15,
   floor: 0.05,
   curiosity: 0.15,
+  consume: 0,
+  reach: 40,
 };
 
 // Drives (drive.js; LIBERA phase 2): how much a need makes what relieves it

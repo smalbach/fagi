@@ -14,7 +14,9 @@
 //                             eats it within 5 s rather than walking on
 //   6      balanced lines     share of decisions the busiest line takes
 //   7      contiguous         action changes a minute; switches that come back
-//                             to the previous action within 3 s (dithering)
+//                             to the previous action within 3 s (dithering), and
+//                             the same leaving out a bite or drink on the way
+//                             (that is opportunism, 9, not dithering)
 //   8      interrupt          seconds from cold or heat felt outside to an act
 //                             that answers it
 //   9      opportunism        meals taken on the way to something else
@@ -87,7 +89,7 @@ export function newTyrrellFollow(opts) {
     pairs: Object.fromEntries(NEEDS_OF.map((k) => [k, []])),
     reach: null, reachN: 0, reachAte: 0,
     rules: {}, decisions: 0,
-    last: null, lastAt: 0, prev: null, prevAt: -Infinity, switches: 0, dithers: 0,
+    last: null, lastAt: 0, prev: null, prevAt: -Infinity, switches: 0, dithers: 0, dithersPure: 0, consumedAt: -Infinity,
     threat: null, latencies: [],
     eaten: null, meals: 0, opportune: 0, recent: [],
     before: null, compromise: 0,
@@ -139,6 +141,7 @@ export function noteTyrrell(s, fagi, world, dt) {
   // 4–5. Food within reach while hungry: does she eat it?
   const eatenNow = fagi.eaten ?? 0;
   const ate = s.eaten != null && eatenNow > s.eaten;
+  if (ate || fagi.drinking) s.consumedAt = s.t;
   if (s.reach && ate) { s.reachAte++; s.reach = null; }
   if (s.reach && s.t - s.reach > TO_EAT) s.reach = null;
   if (!s.reach && d.hunger >= CARRY.eatBelow / HUNGER.max && foodWithinReach(fagi, world)) { s.reach = s.t; s.reachN++; }
@@ -150,7 +153,12 @@ export function noteTyrrell(s, fagi, world, dt) {
   if (action !== s.last) {
     if (s.last != null) {
       s.switches++;
-      if (action === s.prev && s.t - s.prevAt <= DITHER) s.dithers++;
+      if (action === s.prev && s.t - s.prevAt <= DITHER) {
+        s.dithers++;
+        // Back after eating or drinking on the way is opportunism (9), not
+        // dithering: the pure count leaves those out.
+        if (!(s.consumedAt > s.prevAt)) s.dithersPure++;
+      }
       s.prev = s.last;
       s.prevAt = s.t;
     }
@@ -208,6 +216,7 @@ export function tyrrellSummary(s) {
     r6Top: s.decisions ? round(top / s.decisions, 3) : null,
     r7Switches: round(s.switches / Math.max(1 / 60, s.t / 60), 2),
     r7Dither: s.switches ? round(s.dithers / s.switches, 3) : 0,
+    r7DitherPure: s.switches ? round(s.dithersPure / s.switches, 3) : 0,
     r8Latency: s.latencies.length ? round(mean(s.latencies), 2) : null,
     r9Opportune: s.meals ? round(s.opportune / s.meals, 3) : null,
     r1112Compromise: round(s.compromise / Math.max(1, s.t), 4),
@@ -230,7 +239,7 @@ export function reportTyrrell(runs) {
     `  3     tending ∝ need (r)       hunger ${fmt(m((r) => r.r3.hunger))} · thirst ${fmt(m((r) => r.r3.thirst))} · energy ${fmt(m((r) => r.r3.energy))} · thermal ${fmt(m((r) => r.r3.thermal))}`,
     `  4–5   eats food within reach   ${fmt(m((r) => r.r45Eat), 3)}`,
     `  6     busiest line's share     ${fmt(m((r) => r.r6Top), 3)}`,
-    `  7     switches a minute        ${fmt(m((r) => r.r7Switches))} (dithering ${fmt(m((r) => r.r7Dither), 3)})`,
+    `  7     switches a minute        ${fmt(m((r) => r.r7Switches))} (dithering ${fmt(m((r) => r.r7Dither), 3)}; leaving out a bite or drink on the way ${fmt(m((r) => r.r7DitherPure), 3)})`,
     `  8     answers cold/heat in     ${fmt(m((r) => r.r8Latency))} s`,
     `  9     meals on the way         ${fmt(m((r) => r.r9Opportune), 3)}`,
     `  10    no winner-take-all       not measured (program picks one line by design)`,

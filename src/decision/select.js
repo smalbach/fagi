@@ -74,7 +74,10 @@ function vote(fagi, world, ctx, dt, lines, from, holds, executeLine) {
     const res = imagine(fagi, (her) => executeLine(l, her, world, ctx, dt));
     if (!res) continue;
     const k = keyOf(res.intent);
-    const v = voteOf(fagi, SERVES[res.step] ?? 'colony', lv);
+    // What is within reach is to be consumed, not looked for (Tyrrell 4–5).
+    const t0 = res.intent.target;
+    const near = t0 && t0.x != null && Math.hypot(t0.x - fagi.x, t0.y - fagi.y) <= SELECT.reach;
+    const v = voteOf(fagi, SERVES[res.step] ?? 'colony', lv) * (near ? 1 + SELECT.consume : 1);
     const t = tally.get(k) ?? { votes: 0, line: l, index: i, top: -Infinity };
     t.votes += v;
     if (v > t.top) { t.top = v; t.line = l; t.index = i; }   // the line that speaks for it: its loudest voter
