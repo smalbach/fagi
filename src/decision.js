@@ -36,6 +36,7 @@ import { decideOn, decisionPoint, seenFood } from './decision/point.js';
 import { BEHAVIORS, programOf, holds, rootOf } from './program.js';
 import { watch, trialOf } from './program/watch.js';
 import { imagine } from './program/imagine.js';
+import { selectOn, selectByVotes } from './decision/select.js';
 import { BASELINE, PROGRAM } from './config.js';
 
 // Exported: the cortex uses it to know whether an external directive can
@@ -122,6 +123,12 @@ function firstToAnswer(fagi, world, ctx, dt) {
   // The random baseline (BASELINE.policy, scripts/evaluate.js) decides nothing.
   if (BASELINE.policy === 'random') return { intent: wander(fagi, world, dt), who: { tier: 'explore', rule: 'random' }, kind: 'random' };
   fagi.decided = null;
+  // Free-flow (SELECT): the lines past the survival reflexes vote.
+  if (selectOn()) {
+    const voted = selectByVotes(fagi, world, ctx, dt, programOf(fagi).lines, { holds, executeLine });
+    if (voted) return voted;
+    return { intent: exploreRule(fagi, world, ctx), who: { tier: 'explore', rule: 'explore' }, kind: 'none', line: null, index: programOf(fagi).lines.length };
+  }
   let asked = !decideOn();
   const trial = trialOf(fagi);
   const lines = programOf(fagi).lines;

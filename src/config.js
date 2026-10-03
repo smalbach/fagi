@@ -485,6 +485,24 @@ export const BACKEND = {
   idleAfter: 8,       // seconds of just exploring before asking
 };
 
+// Free-flow selection (decision/select.js; LIBERA phase 3): past the survival
+// reflexes, her lines vote instead of the first one winning.
+//   mode      : 'program' = the first line that answers wins (as always);
+//               'freeflow' = the lines vote, each by the need it serves × what
+//               that need is worth (κ); 'freeflow+central' = and the act she is
+//               on gets `hold` more, so a near tie does not flip her
+//   every     : seconds between votes; in between, the winner acts on its own
+//   hold      : what the act she is on gets on top, with a central selector
+//   floor     : a vote's least, so a line with nothing pressing still speaks
+//   curiosity : how loud curiosity is (experiments, probing)
+export const SELECT = {
+  mode: 'program',
+  every: 0.5,
+  hold: 0.15,
+  floor: 0.05,
+  curiosity: 0.15,
+};
+
 // Drives (drive.js; LIBERA phase 2): how much a need makes what relieves it
 // worth, W = κ·V.
 //   mode  : 'innate' = κ a fixed curve of the need (as always); 'learned' = κ
