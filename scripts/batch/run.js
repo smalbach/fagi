@@ -14,6 +14,7 @@ import { isHarmful, isHelpful, ruleTruth } from '../../src/chemistry.js';
 import { explain, stance } from '../../src/learned/explain.js';
 import { habit, HABIT_IDS, habitsSnapshot, restoreHabits } from '../../src/habits.js';
 import { newOrganismFollow, noteOrganism, organismSummary } from './organism.js';
+import { newTyrrellFollow, noteTyrrell, tyrrellSummary } from './tyrrell.js';
 import { sitesSummary } from '../../src/sites.js';
 import { choiceSummary } from '../../src/choice.js';
 import { larderSummary } from '../../src/larder.js';
@@ -69,6 +70,7 @@ export function runOnce(opts, fagiSeed, startHabits = null) {
     noteVisits(s.visitedList, fagi, world);
     noteLearning(s.learning, fagi);
     noteOrganism(s.organism, fagi, world, opts.dt);
+    noteTyrrell(s.tyrrell, fagi, world, opts.dt);
   }
 
   return runSummary(fagiSeed, fagi, world, s);
@@ -107,6 +109,7 @@ export function runColony(opts, fagiSeed) {
       noteVisits(s.visitedList, fagi, world);
       noteLearning(s.learning, fagi);
       noteOrganism(s.organism, fagi, world, opts.dt);
+      noteTyrrell(s.tyrrell, fagi, world, opts.dt);
     });
     if (i % Math.round(MYTH_EVERY / opts.dt) === 0) noteMyths(myths, colony, world.time);
   }
@@ -181,6 +184,7 @@ function newFollow(opts, fagi) {
     milestones: { firstDrink: null, firstMeal: null, firstPick: null, firstStore: null },
     visitedList: [],         // ids of map objects in the order she steps on them
     organism: newOrganismFollow(),  // null without --organism
+    tyrrell: newTyrrellFollow(opts),  // null without --tyrrell
     nextPath: 0,
     // Learning: how long she takes to reach water once thirst becomes
     // urgent (NEEDS.critical), which is when she really starts looking for it.
@@ -343,6 +347,7 @@ function runSummary(fagiSeed, fagi, world, s) {
     path: s.path,
     fingerprint: fingerprintOf(fagi, world),
     ...(s.organism ? { organism: organismSummary(s.organism, fagi) } : {}),
+    ...(s.tyrrell ? { tyrrell: tyrrellSummary(s.tyrrell) } : {}),
     // Only with SITES on: every other run keeps its output byte for byte.
     ...(CONFIG.SITES.enabled ? { sites: sitesSummary(fagi) } : {}),
     ...(CONFIG.CHOICE.enabled ? { choice: choiceSummary(fagi) } : {}),

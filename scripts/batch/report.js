@@ -2,6 +2,7 @@
 
 import { round, mean, stdev, cosine, similarSplit, divergence, pairs } from './stats.js';
 import { reportOrganism } from './organism.js';
+import { reportTyrrell } from './tyrrell.js';
 
 function pad(s, n) { s = String(s); return s.length >= n ? s : s + ' '.repeat(n - s.length); }
 
@@ -16,6 +17,7 @@ export function report(opts, runs) {
   L.push(...reportHabits(runs));
   L.push(...reportColony(runs));
   L.push(...reportOrganism(runs));
+  L.push(...reportTyrrell(runs));
   L.push(...reportActions(runs));
   L.push(...reportFirsts(runs));
   L.push(...reportPhases(opts, runs));

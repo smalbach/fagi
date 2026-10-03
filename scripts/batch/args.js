@@ -26,6 +26,7 @@ export function args(argv) {
     else if (a === '--habits-in') o.habitsIn = next();
     else if (a === '--habits-out') o.habitsOut = next();
     else if (a === '--organism') o.organism = true;
+    else if (a === '--tyrrell') o.tyrrell = true;
     else if (a === '--profile') o.sets.push(...profile(next()));
     else if (a === '--set') o.sets.push(assignment(next()));
     else if (a === '-h' || a === '--help') { console.log(help()); process.exit(0); }
@@ -56,6 +57,7 @@ function help() {
                    inherit culture and/or genes (GEN.culture, GEN.genes)
   --switch-at G    generation at which the chemistry turns over      [G/2]
   --chain          each Fagi starts with the habits the previous one ended with
+  --tyrrell        measures Tyrrell's requirements for action selection
                    (lives one after another, as with "Recover what it learned")
   --habits-in FILE the habits the first Fagi starts with (JSON from --habits-out)
   --habits-out FILE saves the habits the last Fagi ended with
