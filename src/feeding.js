@@ -1,5 +1,6 @@
 // Eating and carrying. The rule is simple: when hungry you eat, when not hungry you work.
 
+import { stomachOn, fill, feltHunger } from './stomach.js';
 import { heft, hardTake } from './load.js';
 import { HUNGER, THIRST, CARRY, POINT_TYPES, HEALTH, TASTE } from './config.js';
 import { atMouth, dominantTaste, noteFlavor, saltBite } from './taste.js';
@@ -42,7 +43,7 @@ export function tryPickOrEat(fagi, world) {
   // A fruit she has never tasted may be eaten sooner than carried: that is a
   // habit (habits.js), learned from storing what turned out to harm her.
   const tasted = (fagi.brain.facts[p.type]?.tries ?? 0) > 0;
-  const hungry = fagi.hunger >= (tasted ? CARRY.eatBelow : habit(fagi, 'tasteAt'));
+  const hungry = feltHunger(fagi) >= (tasted ? CARRY.eatBelow : habit(fagi, 'tasteAt'));
   // Still chewing the last bite, or sick from it (appetite.js): she does not
   // eat it now.
   const mayEat = canEat(fagi, p.type);
@@ -126,7 +127,9 @@ export function eat(fagi, type, { hunger = null, portion: meant = 1, variant = n
   const raw = (hunger ?? spec.hunger) * portion;
   const added = raw < 0 ? raw * bodyMult(fagi, 'digest') * hardTake(fagi, hardness) : raw > 0 ? raw / bodyMult(fagi, 'tolerance') : raw;
   const hungerBefore = fagi.hunger;
-  fagi.hunger = Math.min(HUNGER.max, Math.max(0, fagi.hunger + added));
+  // With a stomach (STOMACH), what feeds her goes into it first, as much as fits.
+  if (stomachOn() && added < 0) fill(fagi, -added);
+  else fagi.hunger = Math.min(HUNGER.max, Math.max(0, fagi.hunger + added));
   if (TASTE.enabled) {
     // Salt makes her thirsty, juicy acid quenches a little; spicy burns.
     if (spec.thirst) fagi.thirst = Math.min(THIRST.max, Math.max(0, fagi.thirst + spec.thirst * portion));

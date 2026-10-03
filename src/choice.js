@@ -37,6 +37,7 @@
 // "provide" tier (decision/provide.js); the fixed hierarchy — survive,
 // endure — stays her safety net. Draws randomness only while choosing.
 
+import { feltHungerU } from './stomach.js';
 import { CHOICE, SITES, MEMORY, HUNGER, NEST, FAGI, DECIDE } from './config.js';
 import { distanceTo } from './vision.js';
 import { habit } from './habits.js';
@@ -236,7 +237,7 @@ function pick(fagi, options) {
 // How much she wants food now: her hunger or what the pantry lacks as she
 // remembers it, whichever is greater.
 export function foodDrive(fagi) {
-  const hunger = fagi.hunger / HUNGER.max;
+  const hunger = feltHungerU(fagi);
   const missing = 1 - Math.min(1, pantryEstimate(fagi) / habit(fagi, 'reserve'));
   return Math.max(hunger, NEST.forageDrive * missing);
 }

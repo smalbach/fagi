@@ -1,5 +1,6 @@
 // The nest: home, pantry and resting place.
 
+import { feltHunger } from './stomach.js';
 import { CARRY } from './config.js';
 import { nestOf, storeInNest, takeFromNest, record } from './world.js';
 import { radiusOf } from './obstacles.js';
@@ -52,7 +53,7 @@ export function useNest(fagi, world) {
 
   // When hungry she draws on the pantry: she picks what she remembers best of what's stored,
   // but never serves something she learned disagrees with her.
-  if (fagi.hunger >= CARRY.eatBelow) {
+  if (feltHunger(fagi) >= CARRY.eatBelow) {
     // Which one, if any: a judge's call with the bite point on (decision/bite.js).
     const j = judge();
     const stocked = Object.keys(nestObj.stock).filter((k) => nestObj.stock[k] > 0);

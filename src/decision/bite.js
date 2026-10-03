@@ -17,6 +17,7 @@
 // night's questions), moved here unchanged: with it the episodes are the same
 // ones as with the bite point off. Research registers the others.
 
+import { feltHunger } from '../stomach.js';
 import { DECIDE, CARRY, APPETITE } from '../config.js';
 import { verdict } from '../learned/rules.js';
 import { canEat, aversive, uselessNow } from '../appetite.js';
@@ -39,7 +40,7 @@ export const current = {
     if (verdict(fagi, 'eat', p.type, { deliberate: fagi.target === p }) === 'avoid') return 'leave';
     // A fruit she has never tasted may be eaten sooner than carried (habits.js).
     const tasted = (fagi.brain.facts[p.type]?.tries ?? 0) > 0;
-    const hungry = fagi.hunger >= (tasted ? CARRY.eatBelow : habit(fagi, 'tasteAt'));
+    const hungry = feltHunger(fagi) >= (tasted ? CARRY.eatBelow : habit(fagi, 'tasteAt'));
     const mayEat = canEat(fagi, p.type);
     // One of last night's questions, and she came for it: a trial bite.
     if (fagi.target === p && mayEat && fagi.thought?.action === 'taste' && onAgenda(fagi, p.type)) return 'taste';
@@ -91,7 +92,7 @@ export const learned = {
     if (!r) return current.wants(fagi, c);
     if (r.do === 'leave' && c.via === 'sight' && breaksBan(fagi, c.ref, CARRY.eatBelow)) return true;
     if (r.do === 'leave' && c.via === 'sight' && noteDeclined(fagi, c.key, c.ref, CARRY.eatBelow)) reviewConduct(fagi);
-    if (r.do === 'leave') return knownOf(fagi, c.key).harms === 0 && fagi.hunger < CARRY.eatBelow && current.wants(fagi, c);
+    if (r.do === 'leave') return knownOf(fagi, c.key).harms === 0 && feltHunger(fagi) < CARRY.eatBelow && current.wants(fagi, c);
     return true;
   },
 };

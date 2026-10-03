@@ -1,5 +1,6 @@
 // The three gauges that keep Fagi alive (or not): hunger, thirst and energy.
 
+import { digest } from './stomach.js';
 import { loadEffort } from './load.js';
 import { HUNGER, THIRST, ENERGY, WATER, RAIN, NEST } from './config.js';
 import { statMult } from './effects.js';
@@ -30,6 +31,7 @@ export function increaseNeeds(fagi, world, dt) {
   const heat = thermalFactors(fagi);
   fagi.hunger += HUNGER.rate * statMult(fagi, 'hungerRate') * metabolism * heat.hunger * (sleeping ? NEST.restHunger : 1) * dt;
   fagi.thirst += THIRST.rate * heat.thirst * (sleeping ? NEST.restThirst : 1) * dt;
+  digest(fagi, dt);   // the stomach empties into her body (STOMACH)
 }
 
 export function resolveVitalFailure(fagi) {

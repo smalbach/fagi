@@ -26,6 +26,7 @@
 //
 // APPETITE.enabled = 0 leaves eating exactly as it was.
 
+import { feltHunger } from './stomach.js';
 import { APPETITE, HUNGER, CUES, CARRY } from './config.js';
 import { cuesOf, predict, wariness } from './learned/cues.js';
 
@@ -60,7 +61,7 @@ export function canEat(fagi, key) {
 // wants, not work). Chasing it would only leave her standing on it.
 export function uselessNow(fagi, key) {
   if (!APPETITE.enabled || canEat(fagi, key)) return false;
-  return Boolean(fagi.carrying) || fagi.hunger >= CARRY.eatBelow;
+  return Boolean(fagi.carrying) || feltHunger(fagi) >= CARRY.eatBelow;
 }
 
 // After each bite: when the next may come, and whether it left her sick.

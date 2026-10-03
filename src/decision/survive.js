@@ -1,5 +1,6 @@
 // Tier 1, survive now: ease hunger and thirst, which are what kill.
 
+import { feltHunger } from '../stomach.js';
 import { FAGI, BRAIN, CARRY, NEEDS, HUNGER, THIRST, THERMAL } from '../config.js';
 import { statMult } from '../effects.js';
 import { waterZone, shorePoint, radiusOf } from '../obstacles.js';
@@ -44,7 +45,7 @@ function needAtRisk(fagi, ctx) {
 
 // A ration she's already carrying is the closest resource possible.
 export function eatCarriedFood(fagi) {
-  if (!fagi.carrying || fagi.hunger < CARRY.eatBelow) return null;
+  if (!fagi.carrying || feltHunger(fagi) < CARRY.eatBelow) return null;
   // Sick from the last bite, or still chewing: she keeps it for later (appetite.js).
   const j = judge();
   if (j ? chewing(fagi) || !j.carried(fagi, fagi.carrying.type) : !canEat(fagi, fagi.carrying.type)) return null;
@@ -109,7 +110,7 @@ export function goToPantry(fagi, world, ctx) {
     (candidate) => candidate.kind === 'food' && candidate.score > BRAIN.minScore
   );
   if (!ctx.nest || ctx.inNest || reachableFood) return null;
-  if (fagi.hunger < CARRY.eatBelow) return null;
+  if (feltHunger(fagi) < CARRY.eatBelow) return null;
   return pantryIntent(fagi, ctx);
 }
 

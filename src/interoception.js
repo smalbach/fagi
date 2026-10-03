@@ -8,6 +8,7 @@
 // This is the innate part. Which thing in the world produced the feeling she finds out
 // by trying, and that is the learned part.
 
+import { feltHunger } from './stomach.js';
 import { FEEL } from './config.js';
 import { statMult } from './effects.js';
 
@@ -19,7 +20,8 @@ export function snapshotBody(fagi) {
   for (const s of STATS) mults[s] = statMult(fagi, s);
   // A stat with an active effect that isn't on the list also counts.
   for (const s of Object.keys(fagi.effects ?? {})) if (!(s in mults)) mults[s] = statMult(fagi, s);
-  return { hunger: fagi.hunger, thirst: fagi.thirst, energy: fagi.energy, mults, ...(fagi.sodium != null ? { sodium: fagi.sodium } : {}) };
+  // Hunger as she feels it: a full stomach is felt at once (STOMACH).
+  return { hunger: feltHunger(fagi), thirst: fagi.thirst, energy: fagi.energy, mults, ...(fagi.sodium != null ? { sodium: fagi.sodium } : {}) };
 }
 
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));

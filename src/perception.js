@@ -3,6 +3,7 @@
 // Gathers into ONE list everything chaseable: food seen, food smelled and the water.
 // Each candidate carries which sense it came in through, so whoever decides knows it.
 
+import { feltHungerU } from './stomach.js';
 import { FAGI, BRAIN, THIRST, HUNGER, ENERGY, MEMORY, TREE, NEST, RAIN, CONCEPT, SOURCES, SITES } from './config.js';
 import { seenPoints, seesObject, viewRangeOf, distanceTo } from './vision.js';
 import { smelledPoints, smellsObject, aromaOf, scentStrengthOfObject } from './smell.js';
@@ -278,7 +279,7 @@ function seeThings(fagi, world) {
 // Full snapshot of the situation, ready for the rules to decide on.
 export function perceive(fagi, world) {
   const thirstU = fagi.thirst / THIRST.max;
-  const hungerU = fagi.hunger / HUNGER.max;
+  const hungerU = feltHungerU(fagi);   // as she feels it (STOMACH)
   const range = viewRangeOf(fagi);
   const visible = nearestWater(fagi, world);
   const { pool, place: placeOf } = rememberWater(fagi, world, visible, range);

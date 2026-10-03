@@ -485,6 +485,20 @@ export const BACKEND = {
   idleAfter: 8,       // seconds of just exploring before asking
 };
 
+// The stomach in two stages (stomach.js; LIBERA phase 4, H6): a bite fills
+// the stomach, which empties into her body at `rate`; she feels the full
+// stomach at once (anticipatory satiety).
+//   capacity : hunger points a full stomach holds (× her gut with MORPH)
+//   rate     : hunger points it digests per second
+//   satiety  : how much of what is in it she feels as fed (0 = none: she feels
+//              only what has reached her body)
+export const STOMACH = {
+  enabled: 0,
+  capacity: 50,
+  rate: 1,
+  satiety: 1,
+};
+
 // Free-flow selection (decision/select.js; LIBERA phase 3): past the survival
 // reflexes, her lines vote instead of the first one winning.
 //   mode      : 'program' = the first line that answers wins (as always);

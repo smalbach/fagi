@@ -22,6 +22,7 @@
 // Each learns her own rate from her own visits, so two sisters that come home
 // at different times end up expecting different pantries.
 
+import { feltHunger } from './stomach.js';
 import { LARDER, HUNGER } from './config.js';
 import { addPoint, record, stockCount, takeFromNest } from './world.js';
 import { edibleCount, verdict } from './learned/rules.js';
@@ -113,7 +114,7 @@ export function nestFull(fagi, world, nestObj) {
   fagi.carrying = null;
   l.fullAt = stockCount(nestObj.stock);
   let did;
-  if (fagi.hunger / HUNGER.max >= LARDER.eatIfHunger) {
+  if (feltHunger(fagi) / HUNGER.max >= LARDER.eatIfHunger) {
     eat(fagi, load.type, { variant: load.variant });
     l.ate += 1;
     did = 'ate';
