@@ -485,6 +485,20 @@ export const BACKEND = {
   idleAfter: 8,       // seconds of just exploring before asking
 };
 
+// Drives (drive.js; LIBERA phase 2): how much a need makes what relieves it
+// worth, W = κ·V.
+//   mode  : 'innate' = κ a fixed curve of the need (as always); 'learned' = κ
+//           learned from how good relief felt at each level of need
+//   bins  : levels of need κ is kept at
+//   rate  : how fast κ follows what she felt
+//   prior : κ before she has felt anything (flat: she does not know yet)
+export const DRIVE = {
+  mode: 'innate',
+  bins: 5,
+  rate: 0.2,
+  prior: 0.5,
+};
+
 export const BRAIN = {
   learnRate: 0.45,    // how fast she updates her belief
   curiosityTries: 2,  // tries per type before she stops being curious

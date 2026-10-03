@@ -11,6 +11,7 @@ import { createSynapses, wire } from './synapses.js';
 import { logBite } from './learned/explain.js';
 import { createHabits } from './habits.js';
 import { smellOnly } from './percept.js';
+import { learnedDrives, needOfKind, kappaAt } from './drive.js';
 
 // A smell she has met fewer than BRAIN.curiosityTries times is still new.
 const smellIsNew = (brain, cues = []) => cues.every((c) => (brain.cues[c]?.n ?? 0) < BRAIN.curiosityTries);
@@ -60,7 +61,11 @@ export function evaluate(brain, candidates) {
     const isNew = blind ? smellIsNew(brain, c.cues) : curious(brain, c.key, BRAIN.curiosityTries);
     const curiosity = isNew ? BRAIN.curiosityBonus * (1 - wary) : 0;
     // Appetite follows need: when sated, what she knows is good barely pulls her.
-    const appetite = BRAIN.baseInterest + (1 - BRAIN.baseInterest) * c.urgency;
+    // With learned drives (drive.js) the curve is hers: κ at this need, and the
+    // need itself pulls by what she has learned it is worth.
+    const need = learnedDrives() ? needOfKind(c.kind) : null;
+    const appetite = need ? kappaAt(brain, need, c.urgency) : BRAIN.baseInterest + (1 - BRAIN.baseInterest) * c.urgency;
+    const pull = need ? appetite * c.urgency : c.urgency;
     const near = -BRAIN.distanceWeight * (c.dist / c.range);
     const penalty = -(c.penalty ?? 0); // smelling it without seeing it gives an imprecise position
 
@@ -70,9 +75,9 @@ export function evaluate(brain, candidates) {
       confidence: r.confidence,
       stage: r.stage,
       guess,
-      score: known * appetite + curiosity + c.urgency + near + penalty,
+      score: known * appetite + curiosity + pull + near + penalty,
       parts: {
-        belief: known * appetite, curiosity, need: c.urgency,
+        belief: known * appetite, curiosity, need: pull,
         distance: near, ...(penalty ? { smell: penalty } : {}),
       },
     };

@@ -12,6 +12,7 @@
 import { FEEL, NEEDS, HUNGER, THIRST, PHERO, TASTE } from './config.js';
 import { learn } from './brain.js';
 import { snapshotBody, feel } from './interoception.js';
+import { learnKappa } from './drive.js';
 
 const NEED_OF = { eat: 'hunger', drink: 'thirst' };
 
@@ -75,6 +76,8 @@ function feelNow(fagi, ep) {
   }
   ep.reward = reward;
   ep.sensations = sensations;
+  // How good relief felt at how needy she was (learned drives, drive.js).
+  learnKappa(fagi.brain, ep.need, needU(ep.before, ep.need), reward);
   ep.change = learnFrom(fagi, ep.key, reward, sensations);
 }
 
