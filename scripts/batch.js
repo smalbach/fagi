@@ -25,10 +25,14 @@ import { runLineage, reportGenerations } from './batch/generations.js';
 import { round } from './batch/stats.js';
 import { writeFileSync, readFileSync } from 'node:fs';
 import { enableOrganism } from '../src/organism.js';
+import { runInParallel } from './batch/jobs.js';
 
 // --- main -------------------------------------------------------------------
 
-const opts = args(process.argv.slice(2));
+const argv = process.argv.slice(2);
+const opts = args(argv);
+// Lives that do not hand anything on to the next can run at once.
+const parallel = opts.jobs > 1 && !opts.chain && !opts.habitsIn;
 // The organism first, so a --set can still turn one of its parts off.
 if (opts.organism) enableOrganism();
 applySets(opts.sets);
@@ -38,7 +42,8 @@ if (opts.generations > 0) {
   if (opts.colony < 2) opts.colony = 4;
   const t0 = Date.now();
   const lineages = [];
-  for (let i = 0; i < opts.runs; i++) {
+  if (parallel) lineages.push(...await runInParallel(argv, opts, opts.runs, (d, n) => process.stderr.write(`\rlineage ${d}/${n}`)));
+  else for (let i = 0; i < opts.runs; i++) {
     lineages.push(runLineage(opts, opts.seed0 + i));
     process.stderr.write(`\rlineage ${i + 1}/${opts.runs}`);
   }
@@ -51,7 +56,11 @@ if (opts.generations > 0) {
 const runs = [];
 const t0 = Date.now();
 let habits = opts.habitsIn ? JSON.parse(readFileSync(opts.habitsIn, 'utf8')) : null;
-for (let i = 0; i < opts.runs; i++) {
+if (parallel) {
+  for (const r of await runInParallel(argv, opts, opts.runs, (d, n) => process.stderr.write(`\rrun ${d}/${n}`))) {
+    if (Array.isArray(r)) runs.push(...r); else runs.push(r);
+  }
+} else for (let i = 0; i < opts.runs; i++) {
   // A colony gives one summary per ant: the report counts ants as runs.
   const r = opts.colony > 1 ? runColony(opts, opts.seed0 + i) : runOnce(opts, opts.seed0 + i, habits);
   if (Array.isArray(r)) runs.push(...r); else runs.push(r);

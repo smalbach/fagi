@@ -4,7 +4,7 @@ import * as CONFIG from '../../src/config.js';
 import { readFileSync } from 'node:fs';
 
 export function args(argv) {
-  const o = { mapSeed: 1, runs: 10, duration: 600, dt: 0.05, seed0: 1000, worldVaries: false, check: false, json: null, cell: 80, sets: [], block: null, rock: 30, chain: false, habitsIn: null, habitsOut: null, colony: 1, generations: 0, switchAt: null };
+  const o = { mapSeed: 1, runs: 10, duration: 600, dt: 0.05, seed0: 1000, worldVaries: false, check: false, json: null, cell: 80, sets: [], block: null, rock: 30, chain: false, habitsIn: null, habitsOut: null, colony: 1, generations: 0, switchAt: null, jobs: 1 };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     const next = () => argv[++i];
@@ -27,6 +27,7 @@ export function args(argv) {
     else if (a === '--habits-out') o.habitsOut = next();
     else if (a === '--organism') o.organism = true;
     else if (a === '--tyrrell') o.tyrrell = true;
+    else if (a === '--jobs') o.jobs = Math.max(1, Number(next()));
     else if (a === '--profile') o.sets.push(...profile(next()));
     else if (a === '--set') o.sets.push(assignment(next()));
     else if (a === '-h' || a === '--help') { console.log(help()); process.exit(0); }
@@ -57,6 +58,8 @@ function help() {
                    inherit culture and/or genes (GEN.culture, GEN.genes)
   --switch-at G    generation at which the chemistry turns over      [G/2]
   --chain          each Fagi starts with the habits the previous one ended with
+  --jobs N         runs (or lineages) at once, one per core; the results are
+                   the same as one after another (not with --chain)    [1]
   --tyrrell        measures Tyrrell's requirements for action selection
                    (lives one after another, as with "Recover what it learned")
   --habits-in FILE the habits the first Fagi starts with (JSON from --habits-out)

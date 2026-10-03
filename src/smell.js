@@ -108,6 +108,26 @@ export function updateTrails(world, dt) {
   }
 }
 
+// The box around a thread. Threads only grow or shorten at the tip, so the
+// count and the tip node tell whether it is still the same thread.
+const boxes = new WeakMap();
+function boxOf(trail) {
+  const nodes = trail.nodes;
+  const tip = nodes[nodes.length - 1];
+  const b = boxes.get(trail);
+  if (b && b.n === nodes.length && b.tip === tip) return b;
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const p of nodes) {
+    if (p.x < minX) minX = p.x;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.y > maxY) maxY = p.y;
+  }
+  const box = { n: nodes.length, tip, minX, maxX, minY, maxY };
+  boxes.set(trail, box);
+  return box;
+}
+
 // Intensity arriving from ONE specific source. Keeping this calculation separate
 // avoids attributing the plume of a single fruit to all fruits of the same type.
 export function scentFromSourceAt(fagi, source, x, y) {
@@ -120,17 +140,23 @@ export function scentFromSourceAt(fagi, source, x, y) {
   // Right next to the source itself she just smells it, wherever she comes from.
   if (distanceTo({ x, y }, src) - extra <= r) return 1;
 
-  let max = 0;
+  // Far outside the box around the whole thread, no node reaches her (only a
+  // shortcut: what passes is what the loop below would find anyway).
   const nodes = src.trail.nodes;
+  const bb = boxOf(src.trail);
+  const m = r + 1e-6;
+  if (x < bb.minX - m || x > bb.maxX + m || y < bb.minY - m || y > bb.maxY + m) return 0;
+
   for (let i = 0; i < nodes.length; i++) {
     const dx = nodes[i].x - x;
     const dy = nodes[i].y - y;
     if (dx * dx + dy * dy > r2) continue;
-    // The farther the segment is from the source, the more diluted the smell.
-    const force = 1 - (i / nodes.length) * PLUME.faint;
-    if (force > max) max = force;
+    // The farther the segment is from the source, the more diluted the smell:
+    // the first node that reaches her, the nearest to the source, is the
+    // strongest.
+    return 1 - (i / nodes.length) * PLUME.faint;
   }
-  return max;
+  return 0;
 }
 
 // Aggregate intensity of a TYPE. Tracking uses the combined gradient because
