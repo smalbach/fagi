@@ -3,7 +3,7 @@
 // "factory" in the game means organism on.
 
 import { enableOrganism } from '../organism.js';
-import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES } from '../config.js';
+import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE } from '../config.js';
 import { CAUTION_LINES } from '../learned/conduct.js';
 
 enableOrganism();
@@ -53,6 +53,12 @@ LOAD.enabled = 1;
 // broods can come out different.
 LIFE.provision = 1;
 MORPH.maternal.share = 1;
+
+// The scientific night (experiment.js): each night's question carries what
+// she expects of the fruit, she tries first what she expects to learn most
+// from and looks safest, and the answer comes back as a verdict. Measured
+// (H3c): she learns no faster, but survives more (+10 %).
+SCIENCE.enabled = 1;
 
 // Caution when eating (docs/research/caution-protocol.md): she is born with
 // two lines of conduct — a kind she never ate, a trial bite first; a kind that

@@ -1815,7 +1815,7 @@
    ]
   },
   "colony": {
-   "digest": "c951b40b0a8a95a80aad502f262e0b47",
+   "digest": "37e779a85a85cb0312131649e8a6da25",
    "steps": 12000,
    "end": {
     "t": 600,
@@ -1824,19 +1824,18 @@
     "causes": []
    },
    "rules": {
-    "clues/memory": 3596,
-    "clues/scent": 1134,
+    "clues/memory": 3624,
+    "clues/scent": 1133,
     "endure/shelter": 7088,
     "endure/sleep": 53802,
     "endure/thermal": 348,
-    "explore/explore": 38594,
-    "explore/taste": 584,
+    "explore/explore": 38557,
+    "explore/taste": 589,
     "provide/carry": 7506,
-    "provide/pursue": 18114,
-    "survive/drink": 9033,
+    "provide/pursue": 18182,
+    "survive/drink": 9123,
     "survive/eatCarried": 2,
     "survive/swimOut": 59,
-    "survive/urgency": 153,
     "undefined/undefined": 11
    },
    "checkpoints": [
