@@ -3,7 +3,7 @@
 // "factory" in the game means organism on.
 
 import { enableOrganism } from '../organism.js';
-import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE } from '../config.js';
+import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE, DRIVE } from '../config.js';
 import { CAUTION_LINES } from '../learned/conduct.js';
 
 enableOrganism();
@@ -59,6 +59,11 @@ MORPH.maternal.share = 1;
 // from and looks safest, and the answer comes back as a verdict. Measured
 // (H3c): she learns no faster, but survives more (+10 %).
 SCIENCE.enabled = 1;
+
+// Learned drives (drive.js): how much a need makes food or water worth is
+// learned from the relief she felt at each level of it, so a thirst she never
+// felt is not revalued at once (incentive learning; LIBERA phase 2, H5a).
+DRIVE.mode = 'learned';
 
 // Caution when eating (docs/research/caution-protocol.md): she is born with
 // two lines of conduct — a kind she never ate, a trial bite first; a kind that
