@@ -24,8 +24,8 @@
 //   11–12  compromise         time in which two needs fall at once
 //   13–14  real sensors, flexible combination: documented, not measured
 
-import { HUNGER, THIRST, NEEDS, THERMAL, CARRY, ENERGY } from '../../src/config.js';
-import { energyMax } from '../../src/biology.js';
+import { HUNGER, CARRY } from '../../src/config.js';
+import { criticalAt, deficits } from '../../src/decision/select.js';
 import { round, mean } from './stats.js';
 
 const WINDOW = 10;      // s, for requirement 3
@@ -36,24 +36,8 @@ const OPPORTUNE = 2;    // s: what she was doing just before a meal
 
 const NEEDS_OF = ['hunger', 'thirst', 'energy', 'thermal'];
 
-// When each need is critical, by the model's own thresholds: hunger and thirst
-// at NEEDS.critical, tiredness where she goes to rest (ENERGY.tired), thermal
-// stress where the reflex takes her home (THERMAL.reflex).
-const criticalAt = () => ({
-  hunger: NEEDS.critical,
-  thirst: NEEDS.critical,
-  energy: 1 - ENERGY.tired / ENERGY.max,
-  thermal: THERMAL.reflex,
-});
-
-function deficits(fagi) {
-  return {
-    hunger: fagi.hunger / HUNGER.max,
-    thirst: fagi.thirst / THIRST.max,
-    energy: 1 - fagi.energy / energyMax(fagi),
-    thermal: THERMAL.enabled ? (fagi.thermalStress ?? 0) / THERMAL.maxStress : 0,
-  };
-}
+// When each need is critical: the model's own thresholds, shared with the
+// selector's veto (decision/select.js).
 
 // Which need the act she is on tends (null: none, or not a need: exploring,
 // carrying for the pantry, lining the nest).

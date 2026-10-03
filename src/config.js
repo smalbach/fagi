@@ -513,6 +513,8 @@ export const STOMACH = {
 //               consumes, not the one that looks for it) votes × 1 + this
 //               (Tyrrell's 4–5: consummatory over appetitive)
 //   reach     : px from her at which a target is within reach
+//   veto      : 1 = a need past its critical threshold is not voted on: only
+//               the lines that serve it may win while it lasts (H2c)
 export const SELECT = {
   mode: 'program',
   every: 0.5,
@@ -521,6 +523,7 @@ export const SELECT = {
   curiosity: 0.15,
   consume: 0,
   reach: 40,
+  veto: 0,
 };
 
 // Drives (drive.js; LIBERA phase 2): how much a need makes what relieves it

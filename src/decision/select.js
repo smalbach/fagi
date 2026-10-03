@@ -14,13 +14,22 @@
 //                       back and forth (Tyrrell's persistence and contiguous
 //                       sequences, the two "?" of his table 10.1)
 //
+//   SELECT.veto         a critical need is not put to the vote: while one is
+//                       past its threshold (the model's own, as in Tyrrell's
+//                       requirement 1), only the lines that serve it may win,
+//                       the most pressing first; the vote goes on only if none
+//                       of them answers. Summed votes put needs of different
+//                       kinds on one scale, and a mild hunger made loud by κ
+//                       and the bonus outvoted exhaustion (H2b)
+//
 // The survival tier stays a reflex, first to answer wins, as in any animal: a
 // body drowning does not deliberate. The full vote is held every SELECT.every
 // seconds; in between, the winning line acts on its own (cheaper, and what an
 // animal committed to an act does). With SELECT.mode 'program' nothing here
 // runs.
 
-import { SELECT, NEST, THERMAL } from '../config.js';
+import { SELECT, NEST, THERMAL, HUNGER, THIRST, NEEDS, ENERGY } from '../config.js';
+import { energyMax } from '../biology.js';
 import { kappaAt } from '../drive.js';
 import { pantryEstimate } from '../larder.js';
 import { habit } from '../habits.js';
@@ -38,6 +47,32 @@ const SERVES = {
   carry: 'colony', line: 'colony', directive: 'colony', directiveEarly: 'colony', patrol: 'colony',
   taste: 'curiosity', probe: 'curiosity',
 };
+
+// When each need is critical, by the model's own thresholds: hunger and thirst
+// at NEEDS.critical, tiredness where she goes to rest (ENERGY.tired), thermal
+// stress where the reflex takes her home (THERMAL.reflex).
+export const criticalAt = () => ({
+  hunger: NEEDS.critical,
+  thirst: NEEDS.critical,
+  energy: 1 - ENERGY.tired / ENERGY.max,
+  thermal: THERMAL.reflex,
+});
+
+export function deficits(fagi) {
+  return {
+    hunger: fagi.hunger / HUNGER.max,
+    thirst: fagi.thirst / THIRST.max,
+    energy: 1 - fagi.energy / energyMax(fagi),
+    thermal: THERMAL.enabled ? (fagi.thermalStress ?? 0) / THERMAL.maxStress : 0,
+  };
+}
+
+// The needs past their threshold, the most pressing (furthest past it) first.
+export function criticalNeeds(fagi) {
+  const d = deficits(fagi);
+  const at = criticalAt();
+  return Object.keys(at).filter((k) => d[k] >= at[k]).sort((a, b) => d[b] / at[b] - d[a] / at[a]);
+}
 
 // How loud each need is right now (0-1), before what it is worth to her.
 function levels(fagi, ctx) {
@@ -65,7 +100,7 @@ function voteOf(fagi, need, lv) {
 const keyOf = (intent) => `${intent.action}|${intent.target?.id ?? (intent.target ? `${Math.round(intent.target.x)},${Math.round(intent.target.y)}` : '-')}`;
 
 // The vote, over the lines from `from` on. Returns the winning line or null.
-function vote(fagi, world, ctx, dt, lines, from, holds, executeLine) {
+function vote(fagi, world, ctx, dt, lines, from, holds, executeLine, only = null) {
   const lv = levels(fagi, ctx);
   const tally = new Map();
   for (let i = from; i < lines.length; i++) {
@@ -73,6 +108,7 @@ function vote(fagi, world, ctx, dt, lines, from, holds, executeLine) {
     if (l.retired || !holds(l, fagi, ctx)) continue;
     const res = imagine(fagi, (her) => executeLine(l, her, world, ctx, dt));
     if (!res) continue;
+    if (only && SERVES[res.step] !== only) continue;
     const k = keyOf(res.intent);
     // What is within reach is to be consumed, not looked for (Tyrrell 4–5).
     const t0 = res.intent.target;
@@ -104,9 +140,12 @@ export function selectByVotes(fagi, world, ctx, dt, lines, { holds, executeLine 
     const res = executeLine(l, fagi, world, ctx, dt);
     if (res) { fagi.selected = null; return { intent: res.intent, who: { tier: l.tier, rule: res.step, line: l.id }, kind: 'line', line: l, index: i }; }
   }
-  // Between votes, the winner goes on acting while it still answers.
+  // A critical need is not voted on: the lines that serve it, if any answers.
+  const critical = SELECT.veto ? criticalNeeds(fagi) : [];
+  // Between votes, the winner goes on acting while it still answers (unless a
+  // critical need it does not serve has come up).
   const held = fagi.selected;
-  if (held && (fagi.age ?? 0) < held.until) {
+  if (held && (fagi.age ?? 0) < held.until && (!critical.length || critical.includes(held.serves))) {
     const i = lines.findIndex((x) => x.id === held.line);
     const l = lines[i];
     if (l && !l.retired && holds(l, fagi, ctx)) {
@@ -114,11 +153,13 @@ export function selectByVotes(fagi, world, ctx, dt, lines, { holds, executeLine 
       if (res) return { intent: res.intent, who: { tier: l.tier, rule: res.step, line: l.id }, kind: 'line', line: l, index: i };
     }
   }
-  const best = vote(fagi, world, ctx, dt, lines, from, holds, executeLine);
+  let best = null;
+  for (const need of critical) if ((best = vote(fagi, world, ctx, dt, lines, from, holds, executeLine, need))) break;
+  best ??= vote(fagi, world, ctx, dt, lines, from, holds, executeLine);
   if (!best) { fagi.selected = null; return null; }
   // The winner acts for real now (what she imagined, she does).
   const res = executeLine(best.line, fagi, world, ctx, dt);
   if (!res) { fagi.selected = null; return null; }
-  fagi.selected = { key: best.key, line: best.line.id, until: (fagi.age ?? 0) + SELECT.every };
+  fagi.selected = { key: best.key, line: best.line.id, serves: SERVES[res.step] ?? 'colony', until: (fagi.age ?? 0) + SELECT.every };
   return { intent: res.intent, who: { tier: best.line.tier, rule: res.step, line: best.line.id }, kind: 'line', line: best.line, index: best.index };
 }
