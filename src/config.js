@@ -1111,12 +1111,15 @@ export const EXPERIMENT = {
 //   noisy   : a trait whose recent error stays above this, with no progress,
 //             is noise for now: questions that rest on it go last
 //   novelty : the progress she expects of a trait she never tested
+//   reach   : px of walking that halve what a question in sight is worth to her
+//             now ('lp': she goes for the question most worth it, not the nearest)
 export const SCIENCE = {
   enabled: 0,
   order: 'lp',
   window: 6,
   noisy: 0.35,
   novelty: 0.5,
+  reach: 200,
 };
 
 // Appetite (appetite.js): what the body lets her eat, and when; and thirst

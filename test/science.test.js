@@ -58,3 +58,21 @@ test('a trait whose errors stay high without progress is noise: its questions go
     assert.ok(fresh.worth > h.worth);
   });
 });
+
+test('with the learning-progress order she goes for the question most worth it, not the nearest', async () => {
+  const { taste } = await import('../src/decision/experiment.js');
+  const f = createFagi();
+  f.energy = 100;
+  f.agenda = ['toxic', 'nectar'];
+  f.hypotheses = { toxic: { worth: 0.1 }, nectar: { worth: 0.9 } };
+  const ctx = { ranked: [
+    { kind: 'food', key: 'toxic', ref: { x: 1, y: 1 }, dist: 40 },
+    { kind: 'food', key: 'nectar', ref: { x: 2, y: 2 }, dist: 120 },
+  ] };
+  EXPERIMENT.enabled = 1;
+  try {
+    assert.equal(taste(f, null, ctx).target, ctx.ranked[0].ref, 'off: the nearest');
+    SCIENCE.enabled = 1;
+    assert.equal(taste(f, null, ctx).target, ctx.ranked[1].ref, 'lp: the most worth it');
+  } finally { SCIENCE.enabled = 0; EXPERIMENT.enabled = 0; }
+});
