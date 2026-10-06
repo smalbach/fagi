@@ -129,4 +129,4 @@ Lineages (16 × 6 generations × 4 populations, dusk moved last and inherited th
 | 3 | 0.47 | 0.53 | 0.55 |
 | 5 | 0.53 | 0.58 | 0.63 |
 
-Gens 3–5: learn vs born 12/1 (p 0.003); inherit vs born 20/4 (p 0.002); inherit vs learn 18/13 (p 0.47). By generation 5, 63 of 64 daughters carry `dusk-before-pursue`. First result where what she learns, and what her mothers learned, raises survival. Inheritance adds to learning in trend, not yet significantly. Needs a preregistered run before any claim.
+Gens 3–5: learn vs born 12/1 (p 0.003); inherit vs born 20/4 (p 0.002); inherit vs learn 18/13 (p 0.47). By generation 5, 63 of 64 daughters carry `dusk-before-pursue`. First result where what she learns, and what her mothers learned, raises survival. Inheritance adds to learning in trend, not yet significantly. Needs a preregistered run before any claim. Preregistered run: docs/research/prereg-lineage-results.md (H1 supported, inherit 0.60 vs learn 0.49).

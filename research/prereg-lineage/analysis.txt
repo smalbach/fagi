@@ -1,0 +1,21 @@
+lives per arm: born 3072, learn 3072, inherit 3072, inheritAny 3072
+
+survival by generation
+  gen 0  born 0.477  learn 0.508  inherit 0.508  inheritAny 0.508
+  gen 1  born 0.426  learn 0.475  inherit 0.516  inheritAny 0.527
+  gen 2  born 0.502  learn 0.525  inherit 0.592  inheritAny 0.588
+  gen 3  born 0.486  learn 0.500  inherit 0.613  inheritAny 0.588
+  gen 4  born 0.479  learn 0.508  inherit 0.617  inheritAny 0.605
+  gen 5  born 0.449  learn 0.471  inherit 0.576  inheritAny 0.541
+
+generations 3-5
+  born       alive 0.471  lived 5425  eaten 8.32  carries dusk-before-* 0.000
+  learn      alive 0.493  lived 5703  eaten 8.80  carries dusk-before-* 0.686
+  inherit    alive 0.602  lived 6190  eaten 9.61  carries dusk-before-* 0.999
+  inheritAny alive 0.578  lived 6107  eaten 9.48  carries dusk-before-* 0.987
+
+hypotheses (one-sided exact sign test on discordant pairs, alpha 0.05)
+  H1 primary   inherit > learn: 224 better / 56 worse of 1536, diff 0.109, p 0.0000 -> SUPPORTED
+  H2 secondary learn > born: 72 better / 39 worse of 1536, diff 0.021, p 0.0011 -> SUPPORTED
+  H3 secondary inherit > inheritAny: 177 better / 140 worse of 1536, diff 0.024, p 0.0215 -> SUPPORTED
+  H4 secondary learning not worse than born by 0.05 (intact, 96 lives): diff -0.021, one-sided 95% lower bound -0.109 -> NOT SUPPORTED
