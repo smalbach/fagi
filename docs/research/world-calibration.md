@@ -130,3 +130,12 @@ Lineages (16 × 6 generations × 4 populations, dusk moved last and inherited th
 | 5 | 0.53 | 0.58 | 0.63 |
 
 Gens 3–5: learn vs born 12/1 (p 0.003); inherit vs born 20/4 (p 0.002); inherit vs learn 18/13 (p 0.47). By generation 5, 63 of 64 daughters carry `dusk-before-pursue`. First result where what she learns, and what her mothers learned, raises survival. Inheritance adds to learning in trend, not yet significantly. Needs a preregistered run before any claim. Preregistered run: docs/research/prereg-lineage-results.md (H1 supported, inherit 0.60 vs learn 0.49).
+
+## Is there anything to learn without sabotage? (2026-10-06, exploratory)
+
+`scripts/order-screen.js`: every move the learner can make (a born line put right in front of one above it, no condition; 171 moves), 24 lives each against the born order, paired by seed.
+
+- Scarce world (575 s): no move beats the born order. The best are +2 net of 24 (noise over 171 tests); 102 of 171 moves change nothing at all (the lines never compete); many are lethal (`pursue>rest`, `pursue>sleep`: 0 % alive).
+- Five more worlds, all scarce, 22 plausible moves, 24 lives each: warm nights (mean 26, swing 4; born 0.33), cold (18 ± 14; 0.71), long nights (dawn 0.35, dusk 0.65; 0.79), hot days (28 ± 12; 0.25), rain every 45 s (0.42). In warm and rainy worlds no move changes anything. The one recurring hint, `memory>thermal` (long nights 0.92 vs 0.79, 4/1), did not replicate on 48 new seeds (9/10).
+
+Reading: the born order is a robust local optimum across these worlds. Part of why: the behaviors carry their own learning (`dusk` acts only once the dark means cold to her, `thermal` only once she knows the nest helps), so the same order adapts by itself. Reordering lines has something to find only when the order is broken. For entities to find something new, the world must demand a priority nobody built in, or the grammar must let them build more than an order.
