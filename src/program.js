@@ -21,7 +21,7 @@
 //           read from what she feels and perceives (CONDITIONS), never from
 //           what the world is. The lines she is born with have none: their
 //           behaviors check for themselves
-// and its life: where it came from (source: born | self | night | told), when
+// and its life: where it came from (source: born | self | inherited | night | told), when
 // (learnedAt), why, and whether it was retired.
 //
 // She is born with INNATE: the hierarchy exactly as decision.js wrote it, in
@@ -134,7 +134,7 @@ export function condId(cond) {
 // The line a line grew out of, all the way back: a born line is its own root.
 export const rootOf = (l) => l.from ?? l.id;
 
-const SOURCES = ['born', 'self', 'night', 'told'];
+const SOURCES = ['born', 'self', 'inherited', 'night', 'told'];
 const VALID_ID = /^[A-Za-z][A-Za-z0-9-]{0,63}$/;
 
 function fail(msg) {
@@ -244,10 +244,12 @@ export function renderLine(l) {
 // exports it (learned/store.js), after what she learned.
 export function renderProgram(program) {
   const all = program.lines;
-  const own = all.filter((l) => l.source !== 'born').length;
+  const inherited = all.filter((l) => l.source === 'inherited').length;
+  const own = all.filter((l) => l.source !== 'born' && l.source !== 'inherited').length;
   const retired = all.filter((l) => l.retired).length;
   const header = '// Her program (src/program.js): what she tries, in order, each time she decides.\n'
-    + `// ${all.length} line(s): ${all.length - own} she was born with, ${own} her own, ${retired} retired. `
+    + `// ${all.length} line(s): ${all.length - own - inherited} she was born with, `
+    + (inherited ? `${inherited} inherited, ` : '') + `${own} her own, ${retired} retired. `
     + 'The first that answers wins; if none does, she explores.\n';
   // In her order, retired lines included: the order is what the program says.
   const body = all.map((l) => `  ${renderLine(l)}`).join(',\n');

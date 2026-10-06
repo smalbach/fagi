@@ -19,7 +19,7 @@ export function paintDecide(brushes, fagi, y) {
   const lineObj = fagi.brain?.program?.lines?.find((l) => l.id === th.line);
   if (lineObj && lineObj.source !== 'born' && x < W - pad - 55 * s) {
     const chipCol = lineObj.source === 'night' ? '#8f7fd0' : lineObj.source === 'told' ? '#3d8fd9' : '#8fd93d';
-    const chipLabel = lineObj.source === 'night' ? 'DREAM' : lineObj.source === 'told' ? 'CULTURE' : 'CODE';
+    const chipLabel = lineObj.source === 'inherited' ? 'GENOME' : lineObj.source === 'night' ? 'DREAM' : lineObj.source === 'told' ? 'CULTURE' : 'CODE';
     chip(chipLabel, x, y, chipCol, { filled: true, bold: true, size: 8 });
   }
   y += lineH;

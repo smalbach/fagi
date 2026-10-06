@@ -22,7 +22,8 @@ import { createColony, updateColony } from '../../src/colony.js';
 import { createChemistry, invertChemistry, speciesKeys, smellOf } from '../../src/chemistry.js';
 import { createGenome, mutate, recombine, diversity, applyGenome, teach, pick, fitness } from '../../src/generations.js';
 import { rng, withRng } from './random.js';
-import { POINT_TYPES, GEN, SEX } from '../../src/config.js';
+import { POINT_TYPES, GEN, SEX, PROGRAM } from '../../src/config.js';
+import { captureProgramGenome } from '../../src/program/genome.js';
 import { accuracy } from '../../research/lab/truth.js';
 import { round, mean } from './stats.js';
 import { noteLearning, learningSummary, createMythLog, noteMyths, mythSummary, isFalse } from './run.js';
@@ -101,7 +102,9 @@ export function runLineage(opts, seed) {
     const weights = colony.ants.map(fitness);
     genomes = colony.ants.map(() => {
       const parent = withRng(geneRng, () => pick(colony.ants, weights));
-      return mutate(parent.genome ?? createGenome(), geneRng);
+      const genome = mutate(parent.genome ?? createGenome(), geneRng);
+      if (PROGRAM.inherit) genome.program = captureProgramGenome(parent);
+      return genome;
     });
   }
   return out;
@@ -120,7 +123,9 @@ function conceive(colony, g, geneRng) {
     const father = withRng(geneRng, () => pick(males, males.map(fitness)));
     const mp = mother.genome?.parents ?? [];
     if (mp.length && mp.some((p) => father.genome?.parents?.includes(p))) siblings++;
-    return recombine(mother.genome ?? createGenome(), father.genome ?? createGenome(), geneRng, [tag(mother), tag(father)]);
+    const genome = recombine(mother.genome ?? createGenome(), father.genome ?? createGenome(), geneRng, [tag(mother), tag(father)]);
+    if (PROGRAM.inherit) genome.program = captureProgramGenome(mother);
+    return genome;
   });
   return { genomes, matings: { siblings, n: genomes.length } };
 }
@@ -222,4 +227,3 @@ function reportPopulation(lineages, G) {
   L.push(`extinct lineages: ${extinct}/${lineages.length}`);
   return L;
 }
-

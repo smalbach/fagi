@@ -23,10 +23,11 @@
 //
 // Nothing here runs with LIFE off.
 
-import { LIFE, HUNGER, THIRST, THERMAL, CYCLE, GEN, MORPH, COLONIES } from './config.js';
+import { LIFE, HUNGER, THIRST, THERMAL, CYCLE, GEN, MORPH, COLONIES, PROGRAM } from './config.js';
 import { nestOf, nestsOf, takeFromNest, record } from './world.js';
 import { nestUnder } from './nest.js';
 import { createProgram, innateOf } from './program.js';
+import { captureProgramGenome } from './program/genome.js';
 import { createFagi } from './fagi.js';
 import { assignSex, bodyFor, bodyMult, energyMax, ensureBothSexes } from './biology.js';
 import { morphOn, founderMorph, baldwinOn, founderPlastic, epigeneticOn, epigeneticMark, maternalMark } from './morph.js';
@@ -218,6 +219,8 @@ function mate(world, colony, nest, mother, father) {
     inbreeding: r2(inbreeding),
     laidAt: world.time, progress: 0, readyAt: null,
   };
+  // Snapshot at conception; subsequent maternal learning cannot change the egg.
+  if (PROGRAM.inherit) egg.genome.program = captureProgramGenome(mother);
   // Epigenetic inheritance (MORPH.inherit): a mark of what both lived, set now.
   if (epigeneticOn()) egg.genome.epi = epigeneticMark(mother, father);
   // Maternal effects: what she has lived up to this brood (MORPH.maternal).
@@ -257,7 +260,7 @@ function hatch(world, colony, nest, egg) {
   const name = childName(egg.sex, father?.name ?? world.lineage[egg.father]?.name, mother?.name ?? world.lineage[egg.mother]?.name);
   const child = createFagi({ sex: egg.sex, genome: egg.genome, name });
   applyGenome(child, egg.genome);
-  if (egg.program) child.brain.program = createProgram(egg.program);
+  if (egg.program && !egg.genome.program) child.brain.program = createProgram(egg.program);
   child.x = nest.x;
   child.y = nest.y;
   child.id = colony.nextId++;

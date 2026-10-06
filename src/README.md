@@ -78,10 +78,22 @@ recorded before the program existed.
 | `program/learn.js` | every minute, her record weighed pair by pair and clause by clause: when another line taking a leader's turn cost her clearly less there (a gate whose doubt grows with how much she asks), she writes that line in front of the leader, for that situation (`line('rest-before-pursue-energyBelow35', {..., "from":"rest","over":"pursue"})`); judged again at every look, and retired when what backed it is gone |
 | `program/share.js` | sisters in the nest tell each other their moments, lived or told, each known by who lived it and when (never taken twice); each weighs them like her own. Nobody passes on a line: a line changes only when what she holds clears her own doubt |
 
-A daughter is born with her mother's born lines (`innateOf`, through the egg
-in `reproduction.js`), never with what her mother wrote: what is learned is
-not in the egg, but a colony that shares its moments hands her, in the nest,
-what the colony lived.
+A daughter normally receives her mother's born lines (`innateOf`, through
+the egg in `reproduction.js`). With `PROGRAM.inherit = 1`, the egg instead
+carries the behavioral genome: the original base and the experience-backed
+revisions recorded by the learner. Accepted additions and retirements survive
+across generations. Descendants review inherited learned lines against their
+own observations; ancestral evidence remains provenance, not personal memory.
+This also applies to the batch generation runner. Unreviewed crisis templates
+and cultural suggestions do not automatically enter this genetic journal.
+
+`program/genome.js` validates, reconstructs, and serializes these genomes as
+English, data-only `.fagi` JSON. `program/evidence.js` records observed support,
+uncertainty, and representative episode references. A tie, missing evidence,
+or an imagined result cannot retire a rule. Enable **Inherit experience-backed
+program revisions** in the Adaptive program settings alongside learning to
+try the feature. The implementation plan and remaining interpreter work are
+in `docs/research/experience-driven-program-plan.md`.
 
 Nothing she was born with is touched: her lines go in front of born lines,
 for a situation. With `PROGRAM.watch = 2` she imagines every line below the one

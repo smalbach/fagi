@@ -16,6 +16,7 @@ import { LEARN } from '../config.js';
 import { renderModule, parseModule, modernWhen } from './dsl.js';
 import { createHabits, habitsSnapshot, restoreHabits } from '../habits.js';
 import { programOf, renderProgram } from '../program.js';
+import { captureProgramGenome, programFromGenome, parseProgramGenome, renderProgramGenome } from '../program/genome.js';
 
 const KEY = 'fagi.learning';
 
@@ -49,6 +50,7 @@ export function snapshot(fagi) {
     bites: fagi.brain.bites ?? [],
     // The habits she tuned, with why (habits.js).
     habits: habitsSnapshot(fagi.brain.habits),
+    ...(fagi.brain.program?.heredity ? { programGenome: captureProgramGenome(fagi) } : {}),
   };
 }
 
@@ -78,6 +80,7 @@ export function hasSnapshot(storage = safeStorage()) {
 // carrying. Spaced confirmations are reset (lastAt: -Infinity) so that
 // the first confirmation in the new game doesn't count as "back-to-back".
 export function restore(fagi, saved) {
+  const inheritedProgram = saved.programGenome ? programFromGenome(saved.programGenome) : null;
   const snap = modernize(saved);
   const facts = {};
   for (const [k, r] of Object.entries(snap.facts ?? {})) facts[k] = { ...r, lastAt: -Infinity };
@@ -93,6 +96,23 @@ export function restore(fagi, saved) {
   fagi.brain.bites = (snap.bites ?? []).map((b) => ({ ...b }));
   fagi.brain.habits = restoreHabits(snap.habits);
   fagi.brain.version = (fagi.brain.version ?? 0) + 1;
+  if (inheritedProgram) installProgram(fagi, inheritedProgram);
+}
+
+function installProgram(fagi, program) {
+  fagi.brain.program = program;
+  fagi.genome = { ...(fagi.genome ?? { cues: {} }), program: structuredClone(program.heredity) };
+  // Imported provenance must not be mistaken for observations of this program.
+  delete fagi.brain.watch;
+  fagi.brain.lastProgram = null;
+  fagi.brain.version = (fagi.brain.version ?? 0) + 1;
+}
+
+export const exportProgramText = (fagi) => renderProgramGenome(captureProgramGenome(fagi));
+
+export function importProgramText(fagi, text) {
+  const program = programFromGenome(parseProgramGenome(text));
+  installProgram(fagi, program);
 }
 
 // What she learned, and after it her program (program.js): the order in which
@@ -110,6 +130,7 @@ export function exportText(fagi) {
 // Reads an imported file and, if valid, replaces what was learned. Throws with
 // a readable reason if it isn't; in that case it doesn't touch Fagi's memory.
 export function importText(fagi, text) {
+  if (typeof text === 'string' && text.trimStart().startsWith('{')) return importProgramText(fagi, text);
   const { rules, facts, puddleLife, synapses, cues, bites, habits } = parseModule(text);
   restore(fagi, { facts, rules, puddleLife, synapses, cues, bites, habits });
 }

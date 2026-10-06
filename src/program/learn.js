@@ -38,66 +38,17 @@
 // Judge again. At every look, each line she wrote answers to her whole record
 // on its pair and its clause (her trials go on: now and then the line it went
 // in front of takes its turn back). Written on a clear difference, it is
-// retired only when none is left, when Y no longer costs her less than X there.
+// retired only when observed evidence supports a disadvantage. A tie or an
+// uncertain result leaves it intact. Inherited learned lines face the same review.
 
 import { PROGRAM } from '../config.js';
-import { programOf, line, meets, condId, CLAUSES } from '../program.js';
+import { programOf, line, condId, CLAUSES } from '../program.js';
+import { weigh, clears, receipt, between } from './evidence.js';
+import { recordRevision } from './genome.js';
+export { qnorm, weigh, clears } from './evidence.js';
 
 const r3 = (v) => Math.round(v * 1000) / 1000;
-const stat = () => ({ n: 0, sum: 0, sq: 0 });
-const mean = (s) => s.sum / s.n;
-const variance = (s) => (s.n > 1 ? Math.max(0, (s.sq - (s.sum * s.sum) / s.n) / (s.n - 1)) : 0);
 const ALWAYS = {};
-
-// The standard normal quantile (Acklam's rational approximation, error below
-// 1.2e-9): the z beyond which chance alone lands with probability 1 - p.
-export function qnorm(p) {
-  const a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
-  const b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01];
-  const c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
-  const d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00];
-  const tail = (q) => (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
-  if (p < 0.02425) return tail(Math.sqrt(-2 * Math.log(p)));
-  if (p > 1 - 0.02425) return -tail(Math.sqrt(-2 * Math.log(1 - p)));
-  const q = p - 0.5;
-  const r = q * q;
-  return ((((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q) / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
-}
-
-// Who acted in a moment where both x and y would have: 'x', 'y', or null if
-// the moment is not about the two of them.
-function between(m, x, y) {
-  if (m.root === x) return m.by === y ? 'y' : m.by === null && m.below.includes(y) ? 'x' : null;
-  if (m.root === y) return m.by === x ? 'x' : m.by === null && m.below.includes(x) ? 'y' : null;
-  return null;
-}
-
-// What her record says of x against y where `clause` held: the moments each
-// acted while the other would have, how much less y cost her (`diff` > 0: y
-// did better), her doubt about it (`se`) and what it would have spared her over
-// her record (`gain`).
-export function weigh(moments, x, y, clause) {
-  const sx = stat();
-  const sy = stat();
-  for (const m of moments) {
-    const who = between(m, x, y);
-    if (!who || !meets(clause, m.f)) continue;
-    const s = who === 'x' ? sx : sy;
-    s.n += 1; s.sum += m.cost; s.sq += m.cost * m.cost;
-  }
-  const out = { x: sx.n, y: sy.n };
-  if (sx.n < PROGRAM.minSupport || sy.n < PROGRAM.minSupport) return { ...out, enough: false };
-  const diff = mean(sx) - mean(sy);
-  const se = Math.sqrt(variance(sx) / sx.n + variance(sy) / sy.n);
-  return { ...out, enough: true, diff, se, gain: diff * (sx.n + sy.n) };
-}
-
-// Does a difference clear her doubt, when she weighed `asked` of them at once?
-export const clears = (v, asked) => {
-  const strictness = PROGRAM.strictness ?? 1.0;
-  const effectiveAsked = Math.max(1, asked ** strictness);
-  return v.diff > Math.max(PROGRAM.margin, qnorm(1 - PROGRAM.alpha / effectiveAsked) * v.se);
-};
 
 const bodyOf = ({ id, retired, retiredAt, ...spec }) => spec;
 const at = (fagi) => Math.round(fagi.age * 10) / 10;
@@ -120,7 +71,7 @@ const COMPLEMENTS = {
 const FLAG_CLAUSES = ['dark', 'raining', 'inNest', 'pressureFalling'].flatMap((flag) => [{ [flag]: true }, { [flag]: false }]);
 
 // Y's behavior, with the clause, right in front of X's line.
-function write(fagi, program, { x, y, clause, chain, v }) {
+function write(fagi, program, { x, y, clause, chain, v }, asked) {
   const over = program.lines.find((l) => l.id === x);
   const from = program.lines.find((l) => l.id === y);
   const cond = condId(clause);
@@ -129,20 +80,26 @@ function write(fagi, program, { x, y, clause, chain, v }) {
   const where = cond || 'always';
   const chainNote = chain && chain.length ? ` [macro: ${chain.join('->')}]` : '';
   const why = `${where}: ${r3(v.diff)} less distress when ${y} took ${x}'s turn (${v.y} times) than when ${x} acted (${v.x})${chainNote}`;
-  // A line she wrote before and retired, written again: the old one goes.
-  program.lines = program.lines.filter((l) => l.id !== id);
-  program.lines.splice(program.lines.indexOf(over), 0, line(id, {
+  const written = line(id, {
     tier: from.tier, ...(cond ? { if: clause } : {}), do: from.do,
     ...(chain ? { chain } : {}),
     source: 'self', learnedAt: at(fagi), from: y, over: x, why: why.slice(0, 160),
-  }));
+  });
+  const evidence = receipt(fagi, fagi.brain.watch.moments, x, y, clause, asked);
+  recordRevision(fagi, 'upsert', written, evidence, x);
+  // A line she wrote before and retired, written again: history stays in the genome.
+  program.lines = program.lines.filter((l) => l.id !== id);
+  program.lines.splice(program.lines.indexOf(over), 0, written);
   changed(fagi, program, { kind: 'written', id, from: y, over: x, where: cond, diff: r3(v.diff), nx: v.x, ny: v.y, why, ...(chain ? { chain } : {}), source: 'self' });
   fagi.justLearnedCode = 3.0;
 }
 
-function retire(fagi, program, own, v) {
-  program.lines = program.lines.map((l) => (l === own ? line(own.id, { ...bodyOf(own), retired: true, retiredAt: at(fagi) }) : l));
-  const why = `${own.from} no longer does better than ${own.over} there: ${r3(v.diff)} (${v.y} and ${v.x} times)`;
+function retire(fagi, program, own, evidence) {
+  const v = { diff: -evidence.improvement, x: evidence.baselineCount, y: evidence.alternativeCount };
+  const why = `${own.from} caused more distress than ${own.over} there: ${r3(evidence.improvement)} (${v.y} and ${v.x} times)`;
+  const retired = line(own.id, { ...bodyOf(own), retired: true, retiredAt: at(fagi), why: why.slice(0, 160) });
+  recordRevision(fagi, 'retire', retired, evidence);
+  program.lines = program.lines.map((l) => l === own ? retired : l);
   changed(fagi, program, { kind: 'retired', id: own.id, from: own.from, over: own.over, diff: r3(v.diff), nx: v.x, ny: v.y, why });
 }
 
@@ -166,20 +123,21 @@ export const involving = (moments, x, y) => moments.filter((m) => between(m, x, 
 export function review(fagi) {
   const moments = fagi.brain.watch?.moments ?? [];
   const program = programOf(fagi);
-  for (const own of program.lines) {
-    if (own.retired || own.source !== 'self' || !own.from || !own.over) continue;
-    const v = weigh(involving(moments, own.over, own.from), own.over, own.from, own.if ?? ALWAYS);
-    if (v.enough && v.diff <= 0) retire(fagi, program, own, v);
+  const learned = (l) => l.source === 'self' || l.source === 'inherited';
+  const reviewable = program.lines.filter((l) => !l.retired && learned(l) && l.from && l.over);
+  for (const own of reviewable) {
+    const evidence = receipt(fagi, moments, own.over, own.from, own.if ?? ALWAYS, reviewable.length, 'retire');
+    if (evidence) retire(fagi, program, own, evidence);
   }
   const live = program.lines.filter((l) => !l.retired);
-  if (live.filter((l) => l.source === 'self').length >= PROGRAM.maxOwn) return;
+  if (live.filter(learned).length >= PROGRAM.maxOwn) return;
   const born = new Map(live.filter((l) => l.source === 'born').map((l) => [l.id, l]));
   const weighed = [];
   for (const [x, y] of pairsOf(moments)) {
     // Only between lines she was born with, never in front of a survive line,
     // and not a pair she has already put in order.
     if (!born.has(x) || !born.has(y) || born.get(x).tier === 'survive') continue;
-    if (live.some((l) => l.source === 'self' && l.from === y && l.over === x)) continue;
+    if (live.some((l) => learned(l) && l.from === y && l.over === x)) continue;
     // Only where y would really go in front: x must stand before y.
     if (live.indexOf(born.get(x)) > live.indexOf(born.get(y))) continue;
     const theirs = involving(moments, x, y);
@@ -215,5 +173,5 @@ export function review(fagi) {
   }
   let best = null;
   for (const c of weighed) if (clears(c.v, weighed.length) && (!best || c.v.gain > best.v.gain)) best = c;
-  if (best) write(fagi, program, best);
+  if (best) write(fagi, program, best, weighed.length);
 }

@@ -973,9 +973,13 @@ export const CONDUCT = {
 export const PROGRAM = {
   watch: 0,
   learn: 0,
+  inherit: 0,         // copy the maternal base and evidence-backed revisions into each egg
   tick: 0.25,
   every: 20,           // seconds between reviewing her program (was 60)
   explore: 0.35,       // exploration probability for trials (was 0.3)
+  exploreByState: 0,   // 1 = the worse she is, the less she tries (program/watch.js exploreNow)
+  darkTrials: 0,       // 1 = in the dark, trials only toward endure lines (program/watch.js); 0 = no trials in the dark
+  judge: 0,            // what a moment costs her: 0 = distress (felt, worst need), 1 = reserves (all needs + food to come; program/watch.js)
   reconsider: 15,      // reconsider interval (was 20)
   trialMax: 20,        // trial duration cap (was 30)
   horizon: 15,         // consequence measurement window (was 60: tight credit assignment)
@@ -988,6 +992,9 @@ export const PROGRAM = {
   maxOwn: 8,           // lines she can write (was 6)
   compound: 1,         // enable conjunctive condition synthesis (e.g. need + flag)
   chaining: 1,         // enable macro-action and behavior routine chaining in self-programming
+  crisis: 0,           // one acute crisis lived can write one line (program/crisis.js); off by default
+  crisisThreshold: 0.6, // distress, as a share of the top, at which a crisis begins (0.35 caught ordinary tiredness)
+  crisisRise: 0.15,    // how much it must have risen over the last 20 s: acute, not a need that crept up
   share: 0,
   shareBudget: 100,
 };

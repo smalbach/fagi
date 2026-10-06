@@ -4,7 +4,7 @@
 // automatic, but taking what was learned into another game is a decision.
 
 import { t, onLangChange } from '../i18n.js';
-import { exportText, importText, load, restore, wipe } from './store.js';
+import { exportText, exportProgramText, importText, load, restore, wipe } from './store.js';
 
 const BACKEND_KEY = 'fagi.backend';
 const URL_KEY = 'fagi.backend.url';
@@ -23,6 +23,7 @@ export function createLearnedPanel(fagi, { onBackendChange } = {}) {
     status: document.getElementById('code-status'),
     recover: document.getElementById('btn-recover'),
     export: document.getElementById('btn-export'),
+    exportProgram: document.getElementById('btn-export-program'),
     import: document.getElementById('btn-import'),
     importFile: document.getElementById('btn-import-file'),
     forget: document.getElementById('btn-forget-code'),
@@ -68,6 +69,16 @@ export function createLearnedPanel(fagi, { onBackendChange } = {}) {
     const a = document.createElement('a');
     a.href = url;
     a.download = `fagi-learned-${Math.round(fagi.age)}s.js`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  el.exportProgram?.addEventListener('click', () => {
+    const blob = new Blob([exportProgramText(fagi)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fagi-behavior-${Math.round(fagi.age)}s.fagi`;
     a.click();
     URL.revokeObjectURL(url);
   });

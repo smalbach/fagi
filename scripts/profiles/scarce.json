@@ -1,0 +1,4 @@
+{
+  "_note": "Calibrated 2026-10-06 (scripts/calibrate-world.js, organism, varied maps, 48 lives of 7200 s): with one fruit every 575 s her born program survives 75%, and moving rest+sleep, warmth or food lines to the end drops it to 38-48%. Here what she does decides how she fares; in the default world (interval 8) every program survives. Use with --organism and lives of 7200 s.",
+  "TREE": { "interval": 575 }
+}

@@ -30,6 +30,7 @@ import { restoreHabits, habitsSnapshot } from './habits.js';
 import { BODY_TRAITS, bodyFor, energyMax } from './biology.js';
 import { morphOn, inheritMorph, baldwinOn, inheritPlastic } from './morph.js';
 import { programOf, line } from './program.js';
+import { programFromGenome } from './program/genome.js';
 
 // Every trait a fruit can have, rotten fruit's smell included.
 export const ALL_CUES = [
@@ -143,7 +144,11 @@ export function diversity(genomes) {
 // Born with her genome: each bias is a trait weight she already has, trusted
 // as if she had met it GEN.innateN times. Body genes shape her body.
 export function applyGenome(fagi, genome) {
-  fagi.genome = genome;
+  // Validate before changing the organism. Provenance stays in the genome;
+  // ancestral observations are never added to the child's personal watch log.
+  const inheritedProgram = genome.program ? programFromGenome(genome.program) : null;
+  fagi.genome = inheritedProgram ? { ...genome, program: structuredClone(inheritedProgram.heredity) } : genome;
+  if (inheritedProgram) fagi.brain.program = inheritedProgram;
   // What she carries of her organs starts as what she inherited (MORPH),
   // moved by her parents' mark if one came with her (epigenetic inheritance).
   if (genome.morph) {
@@ -182,6 +187,8 @@ export function teachProgram(child, elder) {
 
   let count = 0;
   for (const l of ownLines) {
+    // A cultural suggestion cannot silently undo an evidence-backed retirement.
+    if (childProg.heredity && childProg.lines.some((cl) => cl.id === l.id && cl.retired)) continue;
     if (childProg.lines.some((cl) => !cl.retired && cl.id === l.id)) continue;
     const overIdx = childProg.lines.findIndex((cl) => cl.id === l.over);
     if (overIdx < 0) continue;
