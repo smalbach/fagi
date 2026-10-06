@@ -34,6 +34,8 @@
 .dim { color: #6e7486; }
 #brainmap-status { font-size: 10.5px; margin: 2px 0 6px; }
 #brainmap { width: 100%; height: 200px; display: block; background: #12141a; border-radius: 6px; }
+#bodymap-status { font-size: 10.5px; margin: 2px 0 6px; }
+.map-canvas { width: 100%; height: 200px; display: block; background: #12141a; border-radius: 6px; }
 .pane-expand {
   width: auto; padding: 2px 7px; font-size: 11px; line-height: 1.2;
   background: #2a2e3a; border: 1px solid var(--line); color: var(--text); border-radius: 5px;

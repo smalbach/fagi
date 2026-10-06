@@ -243,6 +243,7 @@ entry point (it exports the usual things and keeps the caches) and the pieces go
 | `water-sprite.js` | `water-sprite/`: `lake` (photo or drawing), `realistic`, still canvas (`still` + `bed`), the living part (`surface`, `reeds`) and `shape` |
 | `rain-sprite.js` | `rain-sprite/`: `state` (the sky's level, one and only), `ground`, `puddles`, `drops`, `util` |
 | `brainmap.js` | `brainmap/`: one section per file (`feel`, `perceive`, `instinct`, `decide`, `learn`, `network`, `mental-map`) on top of the brushes in `brushes.js` |
+| `bodymap.js` | `bodymap/`: `organs` (what each organ reads now, how hard it works, and which line of her program it sets off) and `anatomy` (the exoskeleton from above with the organs glowing inside, and the signal from the organ that drives her to the brain and on to the legs). The *Body & mental map* tab shows it next to the mental map, painted with the brain map's brushes |
 
 When touching a sprite, **the order of the seeded random calls does not
 change**: every pixel comes from it.

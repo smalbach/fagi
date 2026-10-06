@@ -221,6 +221,7 @@
     <div id="console-tabs" role="tablist">
       <button class="tab" data-tab="live" role="tab" data-i18n="panel.tabLive">Console &amp; map</button>
       <button class="tab" data-tab="history" role="tab" data-i18n="panel.tabHistory">Code &amp; history</button>
+      <button class="tab" data-tab="body" role="tab" data-i18n="panel.tabBody">Body &amp; mental map</button>
     </div>
 
     <div class="tab-panel" data-panel="live">
@@ -248,6 +249,32 @@
           <div class="pane-body">
             <div id="brainmap-status" class="dim"></div>
             <canvas id="brainmap"></canvas>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="body" hidden>
+      <div class="split-pane" data-split="body">
+        <section class="pane" data-pane="bodymap">
+          <header class="pane-head">
+            <button class="pane-toggle" type="button" aria-expanded="true">▾</button>
+            <span class="pane-title" data-i18n="panel.bodymap">Body map</span>
+            <button id="bodymap-expand" class="pane-expand" type="button" data-i18n="brainmap.expand">Enlarge</button>
+          </header>
+          <div class="pane-body">
+            <div id="bodymap-status" class="dim"></div>
+            <canvas id="bodymap" class="map-canvas"></canvas>
+          </div>
+        </section>
+        <section class="pane" data-pane="mentalmap">
+          <header class="pane-head">
+            <button class="pane-toggle" type="button" aria-expanded="true">▾</button>
+            <span class="pane-title" data-i18n="panel.mentalmap">Mental map</span>
+            <button id="mentalmap-expand" class="pane-expand" type="button" data-i18n="brainmap.expand">Enlarge</button>
+          </header>
+          <div class="pane-body">
+            <canvas id="mentalmap" class="map-canvas"></canvas>
           </div>
         </section>
       </div>

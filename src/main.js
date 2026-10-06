@@ -30,6 +30,7 @@ import { createNarrator, narrate, followed } from './narrator.js';
 import { createConsole } from './console.js';
 import { createLearnedPanel } from './learned/panel.js';
 import { createBrainMap } from './brainmap.js';
+import { createBodyMap, createMentalMapPane } from './bodymap.js';
 import { initPanelLayout, initHudGroups, initContainerToggle } from './panel-layout.js';
 import { initLayout } from './layout.js';
 import { save, snapshot, load, restore } from './learned/store.js';
@@ -109,6 +110,8 @@ export function createGame({ onExit } = {}) {
   const console = createConsole();
   const learnedPanel = createLearnedPanel(fagi, { onBackendChange: mountBackend });
   const brainMap = createBrainMap(document.getElementById('brainmap'), document.getElementById('brainmap-status'), document.getElementById('brainmap-expand'));
+  const bodyMap = createBodyMap(document.getElementById('bodymap'), document.getElementById('bodymap-status'), document.getElementById('bodymap-expand'));
+  const mentalMap = createMentalMapPane(document.getElementById('mentalmap'), document.getElementById('mentalmap-expand'));
   createSettings(world, () => fagi);
   const phylogenyModal = createPhylogenyModal(() => (player?.world ?? world));
   // Fruit the person makes, and the map's size and water (setup only).
@@ -325,6 +328,8 @@ export function createGame({ onExit } = {}) {
     console.update(fagi, lines);
     learnedPanel.update();
     brainMap.update(fagi, world);
+    bodyMap.update(fagi);
+    mentalMap.update(fagi, world);
     ask.update(fagi);
     phylogenyModal.update();
   }
@@ -352,6 +357,8 @@ export function createGame({ onExit } = {}) {
     console.update(player.fagi, player.log);
     learnedPanel.update(player.fagi);
     brainMap.update(player.fagi, player.world);
+    bodyMap.update(player.fagi);
+    mentalMap.update(player.fagi, player.world);
     ask.update(player.fagi);
     phylogenyModal.update();
     onReplayFrame?.(player, replaying);
