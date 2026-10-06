@@ -18,7 +18,11 @@ scent plumes → pheromone → Fagi.
 | `needs.js` | hunger, thirst, energy: going up, going down, dying |
 | `perception.js` | what she sees and smells, all together in one scored list |
 | `attention.js` | what has just entered what she perceives; notes whether it made her keep or change her plan |
-| `decision.js` | walks her program in order; the first line that answers wins |
+| `decision.js` | walks her program in order; the first line that answers wins (with `SELECT`, past the survival reflexes her lines vote: `decision/select.js`) |
+| `decision/select.js` (`SELECT`) | free-flow selection: every line whose condition holds proposes what it would do (imagined), weighted by the need it serves × what that need is worth now (κ); proposals for the same act add up and the most voted wins. Optional: a central selector that holds on to the current act, a veto for a critical need, a bonus for consuming what is within reach, and sequences that keep the floor until done |
+| `drive.js` (`DRIVE`) | how much a need makes what relieves it worth (W = κ·V): an innate curve, or κ learned from how good relief felt at each level of need (incentive learning) |
+| `stomach.js` (`STOMACH`) | a stomach in two stages: a bite fills it and it digests into her body slowly; she feels the full stomach at once (anticipatory satiety), so she stops before the food has reached her |
+| `decision/bite.js` + `learned/conduct.js` (`DECIDE.eat`, `CONDUCT`) | the bite point: who judges a fruit in front of her. With her rules of conduct, lines about *how* to act with a fruit (`taste`, `leave`, `eat`, `carry`) apply over her usual judgment |
 | `program.js` | her program: the order in which she tries what she knows how to do, as data she carries (see below) |
 | `movement.js` | turning, moving forward, avoiding, exploring, tracking a smell |
 | `explore.js` | the coarse map of where she has been; exploring goes in legs towards a point she can see |
@@ -31,7 +35,7 @@ scent plumes → pheromone → Fagi.
 | `biology.js` | the body she was born with: sex and body genes, as multipliers worked out once |
 | `thermal.js` | her temperature, the light she feels, and what the cold, the nest and the dark teach her |
 | `sleep.js` + `consolidation.js` | sleep pressure, and sorting the day once per night asleep in the nest |
-| `experiment.js` | the night's questions become the next day's agenda; she answers them with a trial bite (`decision/experiment.js`) |
+| `experiment.js` | the night's questions become the next day's agenda; she answers them with a trial bite (`decision/experiment.js`). With `SCIENCE` each question carries what her traits predict, the agenda goes by expected learning progress × safety, and the answer comes back the next night as a verdict on the prediction |
 | `appetite.js` | what the body lets her eat and when: handling time, malaise after a bad bite, one-trial aversion to a smell, dying of poisoning; and thirst that sends her looking for water |
 | `percept.js` | what she perceives of a thing as opposed to what it is: by smell alone only the smell; the API reads traits, never names |
 | `taste.js` + `chemistry.js` (`TASTE`) | a wild fruit as a hidden mix of compounds the tongue reads as seven tastes, only in the mouth; innate liking, spitting out, acquired tastes and taste-consequence learning |
@@ -50,6 +54,17 @@ directive, survive:
 3. **provide** — take to the nest what she does not need now, and chase what she sees;
 4. **explore** — with no need, no clues and the pantry stocked, getting to know
    the map is the only thing that prepares for the three above.
+
+How a line wins depends on `SELECT.mode`. With `'program'` (the default and
+research's world) the first line that answers wins. With `'freeflow'` the
+survive tier stays a reflex, first to answer wins, and past it her lines vote
+(`decision/select.js`): each proposes what it would do, weighted by the need
+it serves times how much that need is worth to her now (`drive.js`, innate or
+learned), and the most voted act wins; `'freeflow+central'` gives the act she
+is on a little more so a near tie does not flip her. `SELECT.veto` keeps a
+critical need out of the vote, and `SELECT.sequence` lets a won act finish
+before the next vote. The settings dialog has them under *Mind → Choosing
+what to do* and *Drives*.
 
 That hierarchy is **her program** (`program.js`): not code only a person can
 change, but data she carries (`fagi.brain.program`), one line per behavior,
@@ -74,8 +89,10 @@ recorded before the program existed.
 | file | what it handles |
 |---|---|
 | `program/imagine.js` | asking a behavior what it would do now without anything of hers changing: it gets a shadow of her (reads fall through, writes stay), and what hangs deeper asks `imagining()` |
-| `program/watch.js` | each moment a line comes to lead: which other lines would have acted (imagined), whether the leader acted or one of those took its turn (a trial, now and then, never for a survive line, with something pressing, or in the dark), and what came of it: her distress over the next minute, from the worst of her needs |
-| `program/learn.js` | every minute, her record weighed pair by pair and clause by clause: when another line taking a leader's turn cost her clearly less there (a gate whose doubt grows with how much she asks), she writes that line in front of the leader, for that situation (`line('rest-before-pursue-energyBelow35', {..., "from":"rest","over":"pursue"})`); judged again at every look, and retired when what backed it is gone |
+| `program/watch.js` | each moment a line comes to lead: which other lines would have acted (imagined), whether the leader acted or one of those took its turn (a trial, now and then — `PROGRAM.explore`, less the worse she is with `exploreByState` —, never for a survive line or with something pressing; in the dark none, or with `darkTrials` only toward an endure line), and what came of it over the next `PROGRAM.horizon` seconds: with `judge` 0 her distress (the worst of her needs, ^`power`), with `judge` 1 what it took from her reserves (every need added up, plus the food she carries or knows is in the pantry) |
+| `program/learn.js` | every `PROGRAM.every` seconds (20), her record weighed pair by pair and clause by clause (with `compound`, a need and a flag together; with `chaining`, a chain of behaviors where the first that can acts): when another line taking a leader's turn cost her clearly less there (a gate whose doubt grows with how much she asks), she writes that line in front of the leader, for that situation (`line('rest-before-pursue-energyBelow35', {..., "from":"rest","over":"pursue"})`); judged again at every look, and retired when what backed it is gone |
+| `program/crisis.js` (`PROGRAM.crisis`) | one-trial learning: an acute crisis (distress past `crisisThreshold`, risen by `crisisRise` in 20 s) can write one line — the behavior under which her distress fell most, in front of what she was doing as it came on, for the situation at the onset. Retired if it does not help at the next crisis |
+| `program/genome.js` + `program/evidence.js` (`PROGRAM.inherit`) | the behavioral genome: the base program and the experience-backed revisions, with their evidence, passed to each egg |
 | `program/share.js` | sisters in the nest tell each other their moments, lived or told, each known by who lived it and when (never taken twice); each weighs them like her own. Nobody passes on a line: a line changes only when what she holds clears her own doubt |
 
 A daughter normally receives her mother's born lines (`innateOf`, through
@@ -141,7 +158,34 @@ not know whether it is good or bad until she tries it; she learns it and writes 
    prints as a line of real JavaScript (`rule('avoid-toxic',
    {...})`) and is read back with a regular expression + `JSON.parse`, with no
    `eval` anywhere.
-6. **`learned/store.js`** keeps a recoverable copy in the browser and lets you
+6. **Traits, not only species** (`learned/cues.js`, `CUES`): every bite also
+   moves what each trait of its look (color, shape, smell) predicts, so a
+   fruit she never tasted already looks good or bad. `learned/induce.js`
+   writes rules over whole groups of species (the traits they share, with
+   exceptions) once `CUES.induceMin` species agree. A rule told by a sister
+   that she did not live dies when the fruit she tastes go against it.
+7. **Rules of conduct** (`learned/conduct.js`, `CONDUCT`): where a rule says
+   *what* is good or bad, a line of conduct says *how* to act with a fruit.
+   The game's Fagi is born with two (`CAUTION_LINES`): a kind she never ate,
+   while not too hungry, a trial bite first; a kind that harmed her as often
+   as it fed her, never again. With `CONDUCT.learn` she writes her own after a
+   harmful bite (`learned/conduct-learn.js`): every line that would have
+   changed that bite, replayed over all her bites, kept only if it would have
+   left her safer (danger = (hunger/max)^`power`), and retired when it stops
+   paying.
+8. **Drives are learned too** (`drive.js`, `DRIVE.mode = 'learned'`, on in the
+   game): how much a need makes food or water worth comes from how good relief
+   felt at each level of that need, so a thirst she never felt is not
+   revalued at once.
+9. **The night** (`sleep.js`, `consolidation.js`, `night/`, `experiment.js`):
+   asleep in the nest she sorts the day, the night mind proposes rules and
+   questions that only stay if what she lived backs them, and the questions
+   become the next day's trial bites. With `SCIENCE` (on in the game) each
+   question carries a prediction and comes back as a verdict.
+10. **Her program** (`program/`, above): with `PROGRAM.learn` she reorders her
+   own behaviors from what each cost her, and with `PROGRAM.crisis` one acute
+   crisis is enough to write a line.
+11. **`learned/store.js`** keeps a recoverable copy in the browser and lets you
    export/import the module as a file. Fagi **is born knowing nothing**
    (`memory.js` does not pre-seed or load anything on its own when created): recovering
    what was learned in another session is an explicit gesture, never automatic.

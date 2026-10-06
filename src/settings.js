@@ -9,7 +9,7 @@ import {
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
   CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI, CONCEPT,
   LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES, CHOICE, LARDER, CONDUCT,
-  PROGRAM, MOVEMENT, CASTES, MORPH, SEASONS, LOAD, COLONIES,
+  PROGRAM, MOVEMENT, CASTES, MORPH, SEASONS, LOAD, COLONIES, STOMACH, SELECT, DRIVE, SCIENCE,
 } from './config.js';
 import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
@@ -29,6 +29,13 @@ const b = (obj, key, en, es) => ({ ...n(obj, key, en, es, 0, 1, 1), toggle: true
 const c = (obj, key, en, es, options) => ({
   ...n(obj, key, en, es, 0, options.length - 1, 1),
   choices: options.map(([oen, oes]) => ({ en: oen, es: oes })),
+});
+// The same for a setting whose values are words ('program', 'freeflow'...):
+// `options`: [[value, en, es], ...]. It is kept and recorded as the option's
+// number, like the rest, and written to config.js as its word.
+const w = (obj, key, en, es, options) => ({
+  ...c(obj, key, en, es, options.map(([, oen, oes]) => [oen, oes])),
+  values: options.map(([v]) => v),
 });
 
 function foodFields(key) {
@@ -84,8 +91,9 @@ const GROUPS = [
     { ...n(SEASONS, 'hotYears', 'Share of hot years', 'Parte de años calurosos', 0, 1, 0.05), id: 'seasons.hotYears' },
     { ...n(SEASONS, 'summerHeat', 'Degrees a hot summer adds', 'Grados que suma un verano caluroso', 0, 20, 1), id: 'seasons.summerHeat' },
     { ...n(SEASONS, 'persist', 'Chance a year repeats the last kind', 'Probabilidad de que un año repita el tipo del anterior', 0, 1, 0.05), id: 'seasons.persist' },
-    { ...n(COLONIES, 'count', 'Colonies (nests) on a new map', 'Colonias (nidos) en un mapa nuevo', 1, 6, 1), id: 'colonies.count' },
-    { ...b(LOAD, 'enabled', 'Fruit weighs and resists (carrying and chewing cost)', 'La fruta pesa y resiste (cargar y masticar cuesta)'), id: 'load.enabled' },
+    { ...n(SEASONS, 'spread', 'How much one winter may differ from another', 'Cuánto puede diferir un invierno de otro', 0, 1, 0.05), id: 'seasons.spread' },
+    { ...n(SEASONS, 'farYears', 'Share of years whose fruit is far from the nest', 'Parte de años con la fruta lejos del nido', 0, 1, 0.05), id: 'seasons.farYears' },
+    { ...n(SEASONS, 'reachLow', 'What trees on the wrong side bear those years (×)', 'Lo que dan esos años los árboles del lado equivocado (×)', 0, 1, 0.05), id: 'seasons.reachLow' },
     n(CYCLE, 'minLight', 'Light at night', 'Luz de noche', 0, 1, 0.02),
     n(CYCLE, 'nightSight', 'Sight left at night (fraction)', 'Vista que le queda de noche (fracción)', 0.1, 1, 0.05),
     n(CYCLE, 'dawn', 'Dawn (phase of the day, 0-1)', 'Amanecer (fase del día, 0-1)', 0.05, 0.45, 0.01),
@@ -129,6 +137,18 @@ const GROUPS = [
     b(NIGHTAI, 'enabled', 'A model proposes hypotheses at night', 'Un modelo propone hipótesis de noche'),
     n(NIGHTAI, 'minSupport', 'Fruit she tasted that must back a proposal', 'Frutas probadas que deben respaldar una propuesta', 1, 6, 1),
     n(NIGHTAI, 'trust', 'Trust in a kept proposal', 'Confianza en una propuesta aceptada', 0.1, 1, 0.05),
+    n(NIGHTAI, 'maxProposals', 'Proposals weighed per night', 'Propuestas que sopesa por noche', 1, 10, 1),
+  ]},
+  { title: { en: 'Scientific night', es: 'Noche científica' }, cat: 'mind', fieldsOf: [
+    b(SCIENCE, 'enabled', 'Each question carries a prediction, answered as a verdict', 'Cada pregunta lleva una predicción, que vuelve como veredicto'),
+    w(SCIENCE, 'order', 'Which question she tries first', 'Qué pregunta prueba primero', [
+      ['asked', 'Most asked', 'La más preguntada'],
+      ['lp', 'Most to learn × safest', 'La que más enseña × más segura'],
+    ]),
+    n(SCIENCE, 'window', 'Errors kept per trait', 'Errores que guarda por rasgo', 2, 20, 1),
+    n(SCIENCE, 'noisy', 'Error above which a trait is noise for now', 'Error por encima del cual un rasgo es ruido por ahora', 0.05, 1, 0.05),
+    n(SCIENCE, 'novelty', 'Progress she expects of an untested trait', 'Progreso que espera de un rasgo sin probar', 0, 1, 0.05),
+    n(SCIENCE, 'reach', 'Walk that halves a question\'s worth (px)', 'Camino que reduce a la mitad lo que vale una pregunta (px)', 20, 1000, 10),
   ]},
   { title: { en: 'Perception', es: 'Percepción' }, cat: 'mind', fieldsOf: [
     b(PERCEPT, 'enabled', 'By smell alone she knows only the smell', 'Por el olor solo conoce el olor'),
@@ -150,11 +170,44 @@ const GROUPS = [
   ]},
   { title: { en: 'Caution', es: 'Cautela' }, cat: 'mind', fieldsOf: [
     b(CONDUCT, 'enabled', 'Tries a new kind with a small bite, never again what harmed her', 'Prueba lo nuevo con un bocado pequeño y no vuelve a lo que la dañó'),
+    b(CONDUCT, 'learn', 'Writes her own lines of conduct from her bites', 'Escribe sus propias líneas de conducta a partir de sus bocados'),
+    n(CONDUCT, 'minSupport', 'Harmful bites a line must have spared to be kept', 'Bocados dañinos que una línea debe haber evitado para quedarse', 1, 10, 1),
+    n(CONDUCT, 'power', 'How much more a hunger near the top weighs', 'Cuánto más pesa un hambre cerca del tope', 1, 6, 0.5),
+    n(CONDUCT, 'explore', 'Chance she breaks a ban with a trial bite', 'Probabilidad de saltarse una prohibición con un bocado de prueba', 0, 0.5, 0.01),
+    n(CONDUCT, 'exploreBelow', '...only while her hunger is below', '...solo mientras su hambre esté por debajo de', 0, 300, 5),
+    b(CONDUCT, 'kindFirst', 'Among near ties, a line about the kind wins', 'En casi empates gana la línea sobre la especie'),
+    b(CONDUCT, 'declined', 'Fruit she wanted and left counts against a line', 'La fruta que quería y dejó cuenta contra la línea'),
+    b(CONDUCT, 'inherit', 'Inherited lines keep being judged in her life', 'Las líneas heredadas se siguen juzgando en su vida'),
   ]},
   { title: { en: 'Experiments', es: 'Experimentos' }, cat: 'mind', fieldsOf: [
     b(EXPERIMENT, 'enabled', 'Tries what the night asked', 'Prueba lo que se preguntó de noche'),
     n(EXPERIMENT, 'portion', 'Size of a trial bite (share of a fruit)', 'Tamaño del mordisco de prueba (fracción de fruta)', 0.05, 1, 0.05),
     n(EXPERIMENT, 'maxWary', 'Wariness above which she does not try', 'Cautela por encima de la cual no prueba', 0, 1, 0.05),
+    n(EXPERIMENT, 'agenda', 'Questions carried into the day', 'Preguntas que lleva al día', 1, 20, 1),
+  ]},
+  { title: { en: 'Choosing what to do', es: 'Elegir qué hacer' }, cat: 'mind', fieldsOf: [
+    w(SELECT, 'mode', 'How her program decides', 'Cómo decide su programa', [
+      ['program', 'First line that answers', 'Primera línea que contesta'],
+      ['freeflow', 'Her lines vote', 'Sus líneas votan'],
+      ['freeflow+central', 'They vote, and she holds on', 'Votan, y ella persiste'],
+    ]),
+    n(SELECT, 'every', 'Seconds between votes', 'Segundos entre votaciones', 0.1, 5, 0.1),
+    n(SELECT, 'hold', 'Extra vote for what she is doing', 'Voto extra para lo que está haciendo', 0, 1, 0.05),
+    n(SELECT, 'floor', 'Least vote of a line', 'Voto mínimo de una línea', 0, 0.5, 0.01),
+    n(SELECT, 'curiosity', 'How loud curiosity votes', 'Cuánto vota la curiosidad', 0, 1, 0.05),
+    n(SELECT, 'consume', 'Bonus for consuming what is within reach', 'Bonificación por consumir lo que está al alcance', 0, 3, 0.1),
+    n(SELECT, 'reach', 'Within reach (px)', 'Al alcance (px)', 5, 200, 5),
+    b(SELECT, 'veto', 'A critical need is not put to the vote', 'Una necesidad crítica no se somete a votación'),
+    n(SELECT, 'sequence', 'Seconds a won act keeps the floor (0 = off)', 'Segundos que un acto ganador conserva el turno (0 = no)', 0, 60, 1),
+  ]},
+  { title: { en: 'Drives', es: 'Impulsos' }, cat: 'mind', fieldsOf: [
+    w(DRIVE, 'mode', 'How much a need makes its relief worth', 'Cuánto vale lo que alivia una necesidad', [
+      ['innate', 'Innate curve', 'Curva innata'],
+      ['learned', 'Learned from the relief she felt', 'Aprendido del alivio que sintió'],
+    ]),
+    n(DRIVE, 'bins', 'Levels of need it is learned at', 'Niveles de necesidad en los que se aprende', 2, 10, 1),
+    n(DRIVE, 'rate', 'How fast it follows what she felt', 'Rapidez con que sigue lo que sintió', 0.02, 1, 0.02),
+    n(DRIVE, 'prior', 'Worth before she has felt anything', 'Valor antes de haber sentido nada', 0, 1, 0.05),
   ]},
   { title: { en: 'Hunger', es: 'Hambre' }, cat: 'body', fieldsOf: [
     n(HUNGER, 'rate', 'Hunger per second', 'Hambre por segundo', 0, 12, 0.1),
@@ -189,35 +242,35 @@ const GROUPS = [
     b(LEARN, 'autosave', 'Keep a recoverable copy', 'Guardar copia recuperable'),
     n(LEARN, 'autosaveEvery', 'Seconds between copies', 'Segundos entre copias', 1, 120, 1),
   ]},
-  { title: { en: 'Adaptive program', es: 'Adaptive program' }, cat: 'mind', fieldsOf: [
-    b(PROGRAM, 'learn', 'Rewrites own program from experience', 'Rewrites own program from experience'),
-    b(PROGRAM, 'inherit', 'Inherit experience-backed program revisions', 'Inherit experience-backed program revisions'),
-    c(PROGRAM, 'watch', 'Introspection & watch depth', 'Introspection & watch depth', [
-      ['Off', 'Off'],
-      ['Watch moments', 'Watch moments'],
-      ['Watch + compete', 'Watch + compete'],
+  { title: { en: 'Adaptive program', es: 'Programa adaptativo' }, cat: 'mind', fieldsOf: [
+    b(PROGRAM, 'learn', 'Rewrites own program from experience', 'Reescribe su programa por experiencia'),
+    b(PROGRAM, 'inherit', 'Inherit experience-backed program revisions', 'Hereda las revisiones del programa respaldadas por experiencia'),
+    c(PROGRAM, 'watch', 'Introspection & watch depth', 'Introspección y profundidad de observación', [
+      ['Off', 'Apagada'],
+      ['Watch moments', 'Observa momentos'],
+      ['Watch + compete', 'Observa + competencia'],
     ]),
-    n(PROGRAM, 'horizon', 'Consequence horizon (seconds to judge distress)', 'Consequence horizon (seconds to judge distress)', 5, 120, 5),
-    n(PROGRAM, 'minSupport', 'Minimum trial evidence needed to weigh a rule', 'Minimum trial evidence needed to weigh a rule', 1, 20, 1),
-    n(PROGRAM, 'explore', 'Trial exploration rate (chance of trying alternative)', 'Trial exploration rate (chance of trying alternative)', 0.05, 0.8, 0.05),
-    n(PROGRAM, 'every', 'Program review interval (seconds)', 'Program review interval (seconds)', 5, 180, 5),
-    b(PROGRAM, 'share', 'Share moments with sisters in nest', 'Share moments with sisters in nest'),
-    n(PROGRAM, 'maxOwn', 'Maximum learned program lines', 'Maximum learned program lines', 1, 20, 1),
-    n(PROGRAM, 'strictness', 'Statistical strictness (1 = conservative, 0.5 = plastic)', 'Statistical strictness (1 = conservative, 0.5 = plastic)', 0.2, 2.0, 0.1),
-    b(PROGRAM, 'compound', 'Compound inductive conditions', 'Compound inductive conditions'),
-    b(PROGRAM, 'chaining', 'First-available behavior chains', 'First-available behavior chains'),
-    c(PROGRAM, 'judge', 'What a choice is judged by', 'What a choice is judged by', [['Distress', 'Distress'], ['Reserves', 'Reserves']]),
-    b(PROGRAM, 'darkTrials', 'Night trials toward safety only', 'Night trials toward safety only'),
-    b(PROGRAM, 'exploreByState', 'Explore less when distressed', 'Explore less when distressed'),
-    b(PROGRAM, 'crisis', 'One-trial learning from an acute crisis', 'One-trial learning from an acute crisis'),
-    n(PROGRAM, 'crisisThreshold', 'Crisis distress threshold', 'Crisis distress threshold', 0.1, 0.9, 0.05),
-    n(PROGRAM, 'crisisRise', 'Crisis: rise over 20 s', 'Crisis: rise over 20 s', 0.05, 0.5, 0.05),
-  ]},
-  { title: { en: 'Night Mind (Dream Synthesis)', es: 'Mente Nocturna (Síntesis en Sueños)' }, cat: 'mind', fieldsOf: [
-    b(NIGHTAI, 'enabled', 'Dream synthesis during night rest', 'Síntesis de hipótesis durante el descanso nocturno'),
-    n(NIGHTAI, 'maxProposals', 'Max proposals per night', 'Máximo de propuestas por noche', 1, 10, 1),
-    n(NIGHTAI, 'minSupport', 'Minimum evidence to accept hypothesis', 'Evidencia mínima para aceptar hipótesis', 1, 10, 1),
-    n(NIGHTAI, 'trust', 'Trust in night proposals', 'Confianza en propuestas nocturnas', 0.1, 1, 0.05),
+    c(PROGRAM, 'judge', 'What a choice is judged by', 'Por qué se juzga una elección', [['Distress', 'Malestar'], ['Reserves', 'Reservas']]),
+    n(PROGRAM, 'horizon', 'Consequence horizon (seconds to judge distress)', 'Horizonte de consecuencias (segundos para juzgar)', 5, 120, 5),
+    n(PROGRAM, 'power', 'How much more a need near its top weighs', 'Cuánto más pesa una necesidad cerca de su tope', 1, 6, 0.5),
+    n(PROGRAM, 'minSupport', 'Minimum trial evidence needed to weigh a rule', 'Evidencia mínima de pruebas para sopesar una regla', 1, 20, 1),
+    n(PROGRAM, 'alpha', 'Chance noise alone gets a line written', 'Probabilidad de que el ruido solo escriba una línea', 0.005, 0.3, 0.005),
+    n(PROGRAM, 'margin', 'Least difference in distress that counts', 'Diferencia mínima de malestar que cuenta', 0, 0.1, 0.001),
+    n(PROGRAM, 'strictness', 'Statistical strictness (1 = conservative, 0.5 = plastic)', 'Rigor estadístico (1 = conservador, 0.5 = plástico)', 0.2, 2.0, 0.1),
+    n(PROGRAM, 'explore', 'Trial exploration rate (chance of trying alternative)', 'Tasa de prueba (probabilidad de probar la alternativa)', 0.05, 0.8, 0.05),
+    b(PROGRAM, 'exploreByState', 'Explore less when distressed', 'Prueba menos cuanto peor está'),
+    b(PROGRAM, 'darkTrials', 'Night trials toward safety only', 'De noche, solo pruebas hacia la seguridad'),
+    n(PROGRAM, 'reconsider', 'Seconds a line leads before it counts as chosen again', 'Segundos que manda una línea antes de contar como elegida otra vez', 2, 60, 1),
+    n(PROGRAM, 'trialMax', 'Seconds a trial lasts at most', 'Segundos que dura como mucho una prueba', 2, 60, 1),
+    n(PROGRAM, 'every', 'Program review interval (seconds)', 'Intervalo de revisión del programa (segundos)', 5, 180, 5),
+    n(PROGRAM, 'maxOwn', 'Maximum learned program lines', 'Máximo de líneas aprendidas', 1, 20, 1),
+    b(PROGRAM, 'compound', 'Compound inductive conditions', 'Condiciones compuestas (necesidad + señal)'),
+    b(PROGRAM, 'chaining', 'First-available behavior chains', 'Cadenas de conductas (la primera disponible)'),
+    b(PROGRAM, 'crisis', 'One-trial learning from an acute crisis', 'Aprende de una sola crisis aguda'),
+    n(PROGRAM, 'crisisThreshold', 'Crisis distress threshold', 'Umbral de malestar de una crisis', 0.1, 0.9, 0.05),
+    n(PROGRAM, 'crisisRise', 'Crisis: rise over 20 s', 'Crisis: subida en 20 s', 0.05, 0.5, 0.05),
+    b(PROGRAM, 'share', 'Share moments with sisters in nest', 'Comparte momentos con sus hermanas en el nido'),
+    n(PROGRAM, 'shareBudget', 'Moments passed at one exchange', 'Momentos que pasa en un intercambio', 1, 500, 1),
   ]},
   { title: { en: 'Colony (new sessions)', es: 'Colonia (sesiones nuevas)' }, cat: 'colony', fieldsOf: [
     n(SOCIAL, 'size', 'Individuals in the colony (1 = Fagi alone)', 'Individuos en la colonia (1 = Fagi sola)', 1, 8, 1),
@@ -227,6 +280,20 @@ const GROUPS = [
     b(GEN, 'cultureProgram', 'Elders teach self-written code to juveniles', 'Veteranas enseñan código propio a juveniles'),
     n(SOCIAL, 'observe', 'Learning from watching a sister eat', 'Aprender de ver comer a una hermana', 0, 1, 0.05),
     n(SOCIAL, 'trust', 'Trust in a rule told', 'Confianza en una regla contada', 0.1, 1, 0.05),
+    w(SOCIAL, 'format', 'What sisters pass on', 'Qué se pasan las hermanas', [
+      ['rule', 'Rules', 'Reglas'], ['verdict', 'Verdicts', 'Veredictos'], ['evidence', 'Bites (evidence)', 'Bocados (evidencia)'],
+    ]),
+    w(SOCIAL, 'topic', 'About what', 'Sobre qué', [['all', 'Everything', 'Todo'], ['food', 'Only food', 'Solo comida']]),
+    n(SOCIAL, 'budget', 'Items passed in one exchange (0 = no cap)', 'Cosas que se pasan en un intercambio (0 = sin tope)', 0, 50, 1),
+    n(CASTES, 'reinforceRate', 'Castes: how fast a task becomes hers', 'Castas: rapidez con que una tarea se vuelve suya', 0, 1, 0.01),
+    n(CASTES, 'decayRate', 'Castes: how fast an unused task fades', 'Castas: rapidez con que se olvida una tarea sin usar', 0, 0.2, 0.005),
+  ]},
+  { title: { en: 'Colonies', es: 'Colonias' }, cat: 'colony', fieldsOf: [
+    { ...n(COLONIES, 'count', 'Colonies (nests) on a new map', 'Colonias (nidos) en un mapa nuevo', 1, 6, 1), fullId: 'Day and night.colonies.count' },
+    n(COLONIES, 'founders', 'Founders of each further nest', 'Fundadoras de cada nido adicional', 1, 16, 1),
+    n(COLONIES, 'spacing', 'Least distance between two nests (px)', 'Distancia mínima entre dos nidos (px)', 100, 1200, 10),
+    n(COLONIES, 'foundAt', 'Fullness from which a colony refounds an empty nest', 'Llenado desde el que una colonia refunda un nido vacío', 0.1, 1, 0.05),
+    n(COLONIES, 'every', 'Seconds between looks for an empty nest', 'Segundos entre búsquedas de un nido vacío', 10, 600, 10),
   ]},
   { title: { en: 'External decision API', es: 'API de decisión externa' }, cat: 'system', fieldsOf: [
     b(BACKEND, 'enabled', 'Ask the API', 'Consultar la API'),
@@ -244,6 +311,22 @@ const GROUPS = [
     n(ENERGY, 'tired', 'Energy at which it goes to rest', 'Energía a la que va a descansar', 0, 100, 1),
     n(ENERGY, 'rested', 'Energy at which it resumes work', 'Energía con la que vuelve al trabajo', 10, 100, 1),
     n(ENERGY, 'weakSpeed', 'Speed when exhausted (fraction)', 'Velocidad sin fuerzas (fracción)', 0.1, 1, 0.05),
+  ]},
+  { title: { en: 'Stomach', es: 'Estómago' }, cat: 'body', fieldsOf: [
+    b(STOMACH, 'enabled', 'A bite fills the stomach and digests slowly', 'Un bocado llena el estómago y se digiere despacio'),
+    n(STOMACH, 'capacity', 'Hunger points a full stomach holds', 'Puntos de hambre que caben en el estómago', 5, 200, 5),
+    n(STOMACH, 'rate', 'Hunger points digested per second', 'Puntos de hambre que digiere por segundo', 0.1, 10, 0.1),
+    n(STOMACH, 'satiety', 'How much of a full stomach she feels as fed', 'Cuánto del estómago lleno siente como saciedad', 0, 1, 0.05),
+  ]},
+  { title: { en: 'Weight of fruit', es: 'Peso de la fruta' }, cat: 'food', fieldsOf: [
+    { ...b(LOAD, 'enabled', 'Fruit weighs and resists (carrying and chewing cost)', 'La fruta pesa y resiste (cargar y masticar cuesta)'), fullId: 'Day and night.load.enabled' },
+    n(LOAD, 'range.0', 'Lightest fruit (× a typical one)', 'Fruta más ligera (× una típica)', 0.1, 1, 0.05),
+    n(LOAD, 'range.1', 'Heaviest fruit (× a typical one)', 'Fruta más pesada (× una típica)', 1, 5, 0.1),
+    n(LOAD, 'hardRange.0', 'Softest fruit (×)', 'Fruta más blanda (×)', 0.1, 1, 0.05),
+    n(LOAD, 'hardRange.1', 'Hardest fruit (×)', 'Fruta más dura (×)', 1, 5, 0.1),
+    n(LOAD, 'slow', 'Speed lost per unit of load over her strength', 'Velocidad que pierde por unidad de carga sobre su fuerza', 0, 2, 0.05),
+    n(LOAD, 'effort', 'Extra energy carrying, per unit over her strength', 'Energía extra al cargar, por unidad sobre su fuerza', 0, 3, 0.05),
+    n(LOAD, 'hardGain', 'What a fruit too hard for her gut loses', 'Lo que pierde una fruta demasiado dura para su estómago', 0, 3, 0.1),
   ]},
   { title: { en: 'Brain', es: 'Cerebro' }, cat: 'mind', fieldsOf: [
     n(BRAIN, 'learnRate', 'Learning rate', 'Rapidez para aprender', 0.02, 1, 0.01),
@@ -369,6 +452,8 @@ const GROUPS = [
   { title: { en: 'Explore or come back: the choice', es: 'Explorar o volver: la elección' }, cat: 'world', fieldsOf: [
     b(CHOICE, 'enabled', 'She learns whether to go back or explore (needs food sites)', 'Aprende si volver o explorar (necesita sitios de comida)'),
     c(CHOICE, 'policy', 'How she chooses', 'Cómo elige', [['learned', 'aprendido'], ['always go back', 'siempre volver'], ['always explore', 'siempre explorar']]),
+    c(CHOICE, 'mode', 'What the learned choice weighs', 'Qué pesa la elección aprendida', [['Values, fixed noise', 'Valores, ruido fijo'], ['Her own uncertainty', 'Su propia incertidumbre']]),
+    b(CHOICE, 'genes', 'Her starting beliefs and patience are inherited', 'Sus creencias iniciales y su paciencia se heredan'),
     n(CHOICE, 'temper', 'Noise when choosing', 'Ruido al elegir', 0.01, 1, 0.01),
     n(CHOICE, 'temperSpread', 'How much that noise differs between individuals', 'Cuánto difiere ese ruido entre individuos', 0, 1.5, 0.05),
   ]},
@@ -434,6 +519,7 @@ const GROUPS = [
     n(LIFE, 'mateEnergy', 'Energy (fraction) both need to mate', 'Energía (fracción) que ambos necesitan para aparearse', 0, 1, 0.05),
     n(LIFE, 'mateNeed', 'Hunger and thirst (fraction) both must be under', 'Hambre y sed (fracción) por debajo de las que deben estar', 0.05, 1, 0.05),
     n(LIFE, 'mateStock', 'Rations the pantry must hold to breed', 'Raciones que debe tener la despensa para criar', 0, 30, 1),
+    n(LIFE, 'provision', 'Fruit a mother must bring home herself before each brood', 'Fruta que una madre debe traer ella misma antes de cada cría', 0, 10, 1),
     n(LIFE, 'mateCost', 'Energy mating costs each', 'Energía que cuesta aparearse a cada uno', 0, 80, 1),
     n(LIFE, 'eggCost', 'Hunger laying an egg costs her', 'Hambre que le cuesta poner un huevo', 0, 60, 1),
     n(LIFE, 'femaleRecover', 'Seconds before a female mates again', 'Segundos antes de que una hembra vuelva a aparearse', 0, 3600, 10),
@@ -453,6 +539,7 @@ const GROUPS = [
     n(GEN, 'mutation', 'Mutation of each bias', 'Mutación de cada sesgo', 0, 1, 0.01),
     b(GEN, 'blend', 'Biases averaged from both parents', 'Sesgos promediados de ambos padres'),
     n(GEN, 'bodyMutation', 'Mutation of each body gene', 'Mutación de cada gen del cuerpo', 0, 0.3, 0.005),
+    b(GEN, 'sexual', 'A mother and a father, each picked by fitness (needs sexes)', 'Una madre y un padre, elegidos por aptitud (necesita sexos)'),
   ]},
   { title: { en: 'Evolving body', es: 'Cuerpo evolutivo' }, cat: 'colony', fieldsOf: [
     b(MORPH, 'enabled', 'Inherited organs: brain, gut, muscle, eyes, antennae, size', 'Órganos heredados: cerebro, estómago, músculo, ojos, antenas, tamaño'),
@@ -461,6 +548,12 @@ const GROUPS = [
     n(MORPH, 'costPower', 'How fast a bigger organ costs more', 'Qué tan rápido cuesta más un órgano mayor', 1, 3, 0.05),
     n(MORPH, 'brainLife', 'Life a bigger brain costs', 'Vida que cuesta un cerebro mayor', 0, 3, 0.1),
     n(MORPH, 'brainBrood', 'Breeding a bigger brain slows', 'Cuánto frena la cría un cerebro mayor', 0, 3, 0.1),
+    n(MORPH, 'fecundity', 'A bigger mother breeds faster', 'Una madre mayor cría más rápido', 0, 3, 0.1),
+    n(MORPH, 'choice', 'How much a female prefers the stronger male', 'Cuánto prefiere la hembra al macho más fuerte', 0, 3, 0.1),
+    n(MORPH, 'sizeSpeed', 'A heavier body is slower', 'Un cuerpo más pesado es más lento', 0, 1, 0.05),
+    n(MORPH, 'oxygen', '°C her heat limit drops per unit of size', '°C que baja su límite de calor por unidad de tamaño', 0, 60, 1),
+    { ...n(MORPH.maternal, 'share', 'What the mother lived shapes each brood', 'Lo que vivió la madre moldea cada cría', 0, 1, 0.05), id: 'maternal.share' },
+    { ...n(MORPH.maternal, 'fed', 'How much her hunger sets the egg\'s provisioning', 'Cuánto fija su hambre lo que lleva el huevo', 0, 1, 0.05), id: 'maternal.fed' },
     { ...b(MORPH.plastic, 'enabled', 'What she lives changes her organs', 'Lo que vive cambia sus órganos'), id: 'plastic.enabled' },
     c(MORPH, 'inherit', 'What daughters inherit of what was lived', 'Qué heredan las hijas de lo vivido',
       [['Only genes (Darwin)', 'Solo genes (Darwin)'], ['How much she can change (Baldwin)', 'Cuánto puede cambiar (Baldwin)'], ['A fading mark (epigenetic)', 'Una marca que se diluye (epigenética)']]),
@@ -500,7 +593,8 @@ const GROUPS = [
 // key. Food groups use the type, which doesn't change with the language.
 for (const group of GROUPS) {
   const base = group.title.type ?? group.title.en;
-  for (const field of group.fieldsOf) field.id = `${base}.${field.id ?? field.key}`;
+  // `fullId`: a field that moved to another group keeps the id it was recorded under.
+  for (const field of group.fieldsOf) field.id = field.fullId ?? `${base}.${field.id ?? field.key}`;
 }
 
 // Two fields under one id would save and replay as one: refuse it at load.
@@ -514,11 +608,13 @@ for (const group of GROUPS) {
 const ORIGINAL = GROUPS.flatMap((g) => g.fieldsOf).map((c) => ({ c, value: read(c) }));
 const BY_ID = new Map(GROUPS.flatMap((g) => g.fieldsOf).map((c) => [c.id, c]));
 
-function read({ obj, key }) {
-  return key.includes('.') ? key.split('.').reduce((o, k) => o[k], obj) : obj[key];
+function read({ obj, key, values }) {
+  const v = key.includes('.') ? key.split('.').reduce((o, k) => o[k], obj) : obj[key];
+  return values ? Math.max(0, values.indexOf(v)) : v;
 }
 
-function write({ obj, key }, value) {
+function write({ obj, key, values }, value) {
+  if (values) value = values[value] ?? values[0];
   if (!key.includes('.')) { obj[key] = value; return; }
   const parts = key.split('.');
   const lastOne = parts.pop();

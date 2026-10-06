@@ -5,6 +5,7 @@ import { t, tx } from '../i18n.js';
 import { habit, HABIT_IDS } from '../habits.js';
 import { TAG_COLOR } from '../narrator.js';
 import { DIM, PURPLE } from './palette.js';
+import { selectOn } from '../decision/select.js';
 
 const TIERS = ['survive', 'endure', 'provide', 'clues', 'explore'];
 
@@ -13,7 +14,8 @@ export function paintInstinct(brushes, fagi, y) {
   const { W, pad, lineH } = brushes.measures();
   const th = fagi.thought ?? {};
 
-  header(3, t('brainmap.sec.instinct'), y, W, pad);
+  // With free-flow selection (SELECT) her lines past the reflexes vote.
+  header(3, t(selectOn() ? 'brainmap.sec.instinctVote' : 'brainmap.sec.instinct'), y, W, pad);
   y += 17 * s;
   const isActive = th.tier ?? null;
   const iActive = TIERS.indexOf(isActive);

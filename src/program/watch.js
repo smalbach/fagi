@@ -19,9 +19,9 @@
 //               through over and above the one she started from.
 //   a trial     now and then (PROGRAM.explore; less the worse she is with
 //               PROGRAM.exploreByState), with nothing pressing, in the dark
-//               only toward a line that keeps her safe (PROGRAM.darkTrials), never
-//               for a survive line and never in the dark: a diurnal body tries
-//               things by day. One of the lines further down that would act
+//               only toward a line that keeps her safe (PROGRAM.darkTrials; off,
+//               none in the dark: a diurnal body tries things by day), never
+//               for a survive line. One of the lines further down that would act
 //               takes the leader's turn. It lasts while both would still act,
 //               until something presses, the light goes, or PROGRAM.trialMax.
 //               (Measured in 24 colonies of the organism, ~415 sisters: 16 died
