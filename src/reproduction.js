@@ -221,6 +221,9 @@ function mate(world, colony, nest, mother, father) {
     inbreeding: r2(inbreeding),
     laidAt: world.time, progress: 0, readyAt: null,
   };
+  // Inbreeding depression (LIFE.inbreeding): whether this embryo will make it,
+  // settled at conception. Draws nothing for an outbred egg or with it off.
+  if (LIFE.inbreeding > 0 && inbreeding > 0) egg.viable = Math.random() < Math.exp(-LIFE.inbreeding * inbreeding);
   // Snapshot at conception; subsequent maternal learning cannot change the egg.
   if (PROGRAM.inherit) egg.genome.program = captureProgramGenome(mother);
   // Epigenetic inheritance (MORPH.inherit): a mark of what both lived, set now.
@@ -297,6 +300,9 @@ function incubate(world, colony, nest, dt) {
       if (egg.progress >= 1) egg.readyAt = world.time;
       continue;
     }
+    // An inbred embryo that was not going to make it dies as it should hatch,
+    // before taking a ration (LIFE.inbreeding).
+    if (egg.viable === false) { lose(world, colony, nest, egg, 'inbred'); continue; }
     // Ready: it hatches on a ration from the pantry, whatever is stored.
     const type = Object.keys(nest.stock ?? {}).filter((k) => nest.stock[k] > 0).sort((a, b) => nest.stock[b] - nest.stock[a])[0];
     if (type && takeFromNest(nest, type)) {

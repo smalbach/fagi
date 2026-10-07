@@ -569,6 +569,7 @@ const GROUPS = [
     n(LIFE, 'eggWarm', 'Nest °C at which it develops at full pace', '°C del nido con los que se desarrolla a pleno ritmo', 0, 40, 1),
     n(LIFE, 'eggStarve', 'Seconds a ready egg waits for food before dying', 'Segundos que un huevo listo espera comida antes de morir', 10, 1800, 10),
     n(LIFE, 'kinLimit', 'Relatedness from which two do not mate', 'Parentesco desde el que dos no se aparean', 0, 1, 0.05),
+    n(LIFE, 'inbreeding', 'Inbreeding depression (lethal equivalents; 0 = none)', 'Depresión por endogamia (equivalentes letales; 0 = ninguna)', 0, 6, 0.1),
     b(LIFE, 'gradual', 'Fertility fades with age and crowding', 'La fertilidad baja con la edad y el hacinamiento'),
   ]},
   { title: { en: 'Inheritance', es: 'Herencia' }, cat: 'colony', fieldsOf: [

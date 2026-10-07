@@ -99,6 +99,13 @@ TREE.interval = 30;
 //     In the game most of the lines an ant carries came from her mother.
 // Populations were no smaller with it (+0.8 per nest, 5 of 8 maps).
 MORPH.inherit = 2;
+
+// Inbreeding depression (LIFE.inbreeding): an egg of close kin is less likely
+// to hatch, by the median lethal equivalents of captive mammals (Ralls et al.
+// 1988; a full-sib egg hatches 2 times in 3). Without it the rule that keeps
+// kin from mating cost locals mates and paid nothing (scripts/transplant.js,
+// 2026-10-07: newcomers out-bred them only because they were nobody's sister).
+LIFE.inbreeding = 1.57;
 PROGRAM.learn = 1;
 PROGRAM.inherit = 1;
 PROGRAM.judge = 1;

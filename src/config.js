@@ -1279,6 +1279,12 @@ export const NIGHTAI = {
 //   eggStarve      : seconds a ready egg waits for a ration to hatch before it dies
 //   kinLimit       : relatedness (0-1) from which two do not mate (0.5 = parent
 //                    and child, full siblings)
+//   inbreeding     : lethal equivalents per gamete for an egg's viability: an
+//                    egg with inbreeding coefficient F hatches with chance
+//                    exp(−inbreeding × F). 1.57 is the median of 40 captive
+//                    mammal populations (2B = 3.14 per zygote; Ralls, Ballou &
+//                    Templeton 1988); 0 = inbred eggs are as viable as any (as
+//                    measured until 2026-10-07), so avoiding kin pays nothing
 //   maxPopulation  : a nest holds this many, eggs included
 //   gradual        : 1 = fertility fades through old age, and a crowded nest slows
 //                    every brood before the ceiling (0 = senescents never breed and
@@ -1305,6 +1311,7 @@ export const LIFE = {
   eggWarm: 22,
   eggStarve: 180,
   kinLimit: 0.5,
+  inbreeding: 0,
   maxPopulation: 16,  // per nest; the game uses 60 (app/organism-on.js)
   gradual: 1,
 };

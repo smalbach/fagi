@@ -210,3 +210,16 @@ Same transplant on 12 new maps (seeds 7400–7411, 3 years, then a 2-year window
 - With the rule off it disappears. The lifespan gap of the first run did not replicate (noise).
 - So it is not a bug, and it is real biology in kind (immigrants into small, related populations mate more). But here kin avoidance has no reason to exist: nothing in the code makes inbred young worse (no inbreeding depression), so the rule costs locals and pays nothing.
 - With the stranger advantage removed (rule off), there is still no local adaptation: local − foreign ≈ 0 on every measure. The habitats do not yet shape the colonies.
+
+### Inbreeding depression (2026-10-07)
+
+`LIFE.inbreeding` (lethal equivalents per gamete; off in research, 1.57 in the game, the median of 40 captive mammal populations, Ralls, Ballou & Templeton 1988): an egg with inbreeding coefficient F hatches with chance exp(−1.57 F), so a full-sib egg 2 times in 3. Now the kin rule for mates has a reason to exist.
+
+Same 12 maps as above (seeds 7400–7411):
+
+| | adults (hot / cold / toxic) | refounded | offspring, local − foreign | reached adulthood, local − foreign |
+|---|---|---|---|---|
+| without | 14.0 / 8.6 / 14.2 | 7 | −0.28 (t −1.7) | −0.006 |
+| with | 12.4 / 7.4 / 15.1 | 6 | −0.36 (t −1.7) | +0.010 (t 2.0, 8/12) |
+
+Populations barely change (−5 %). Newcomers still leave more young, now for a reason found in nature too: their young are outbred (genetic rescue of small, related colonies). Still no local adaptation.
