@@ -178,3 +178,21 @@ Same 8 maps, 4 years, fruit every 30 s, habitats on. A: the game as above. B: pl
 | size body / gene | 0.93–1.02 / 1.00–1.08 | 0.89–0.90 / 1.00–1.01 |
 
 B goes into the game: it costs no population, conduct passes from mother to daughter, and bodies follow what was lived. **Not yet local adaptation:** the three habitats end with the same lines and the same bodies. The lean winter presses the same way everywhere, and the cold habitat barely reaches the brood (the nest takes 80 % of the air's chill off). For colonies to diverge, habitats must pull in different directions.
+
+## Habitats that pull opposite ways, and a reciprocal transplant (2026-10-07)
+
+Habitats redesigned: `cold` (air and soil −6 °C, so the nest and the brood feel it), `hot` (+6 °C), `toxic` (poison close by). `scripts/transplant.js`: 16 maps (seeds 7300–7315), 4 years living where they are, then 2 years in which every newborn is cross-fostered at hatching (1/3 stays, 1/3 to each other nest), each followed until death or 1.5 years past the window. 1 409 cross-fostered newborns.
+
+**Before the transplant** (adults per colony): body size follows the temperature-size rule in the expected direction but weakly (hot 0.874, cold 0.902, toxic 0.915); size genes 0.99–1.02, the same everywhere. Cold colonies are smallest (8.4 adults vs 12–14) and weakest (muscle body 1.03 vs 1.13). The same lines of conduct everywhere (memory before pursue). 14 colonies refounded over the 16 maps: gene flow between habitats.
+
+**Local vs foreign** (same habitat, same time; per map, then over maps):
+
+| measure | local − foreign | t | maps local ahead |
+|---|---|---|---|
+| reached adulthood | −0.008 | −0.9 | 4/16 |
+| days lived | −1.27 | −2.2 | 5/16 |
+| offspring | −0.41 | −2.9 | 3/16 |
+
+No local adaptation. The opposite: in every habitat, newborns from elsewhere did better than those born there, whichever habitat they came from (e.g. raised in toxic: locals 1.90 offspring, from cold 2.16, from hot 2.37). A "stranger advantage" that does not depend on origin is not adaptation; likely candidates are mating (an immigrant is unrelated to every resident, and mates are refused above `LIFE.kinLimit` relatedness) and something not yet found for lifespan. It must be explained before a transplant can measure local adaptation here.
+
+Why no local adaptation yet: about 10 generations; colonies of ~10 adults (drift outweighs weak selection); refounding mixes colonies; and the inherited conduct (`PROGRAM` lines) has nothing habitat-specific to say.

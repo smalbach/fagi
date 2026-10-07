@@ -26,7 +26,7 @@ import { nestOf } from './world.js';
 import { isTree, radiusOf } from './obstacles.js';
 import { bodyOf } from './biology.js';
 import { thermalOfContact, nestWarmth } from './things.js';
-import { coldAt } from './habitats.js';
+import { airAt } from './habitats.js';
 
 export const COLD_KEY = 'cold';
 export const HEAT_KEY = 'heat';
@@ -44,11 +44,13 @@ const isWet = (fagi, inNest) => (fagi.wet ?? 0) > 0 || fagi.swimming || (fagi.ra
 
 // The temperature her body is heading to right now.
 export function targetTemperature(fagi, world, sky, inNest) {
-  // The air where she is: the sky's, less what her habitat takes off (HABITATS).
+  // The air where she is, and the soil her nest is dug in: the sky's and the
+  // nest's own, moved by her habitat (HABITATS).
   const nest = inNest ? nestOf(world, fagi) : null;
-  const air = sky.ambient - (nest ? coldAt(world, nest.x, nest.y) : coldAt(world, fagi.x, fagi.y));
+  const shift = nest ? airAt(world, nest.x, nest.y) : airAt(world, fagi.x, fagi.y);
+  const air = sky.ambient + shift;
   let target = inNest
-    ? THERMAL.nestBuffer * (THERMAL.nestTemp + nestWarmth(world, nest)) + (1 - THERMAL.nestBuffer) * air
+    ? THERMAL.nestBuffer * (THERMAL.nestTemp + shift + nestWarmth(world, nest)) + (1 - THERMAL.nestBuffer) * air
     : air;
   if (!inNest && fagi.moving) target += THERMAL.moveHeat;
   if (!inNest && sky.light > CYCLE.minLight && inShade(fagi, world)) target -= THERMAL.shade * sky.light;

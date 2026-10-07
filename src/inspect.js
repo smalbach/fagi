@@ -46,6 +46,7 @@ const num = (v, d = 1) => (Number.isFinite(v) ? v.toFixed(d).replace(/\.0+$/, ''
 const dur = (s) => formatDuration(s);
 const habitatLabel = (name) => ({
   cold: L('cold hollow', 'hondonada fría'),
+  hot: L('sun-baked slope', 'ladera soleada'),
   lean: L('poor soil', 'suelo pobre'),
   toxic: L('poison close by', 'veneno cerca'),
 }[name] ?? name);
@@ -543,7 +544,7 @@ function paintObject(o, world, main) {
         + row(L('Hatching pace now', 'Ritmo de incubación ahora'), pct(eggPace(temp))) : '')
       + (habitat ? section('habitat', L('Habitat', 'Hábitat'), [
         row(L('Kind', 'Tipo'), habitatLabel(habitat.name)),
-        habitat.cold ? row(L('Air', 'Aire'), `−${num(habitat.cold)} °C`) : null,
+        habitat.air ? row(L('Air and soil', 'Aire y suelo'), `${habitat.air > 0 ? '+' : '−'}${num(Math.abs(habitat.air))} °C`) : null,
         habitat.fruit !== 1 ? row(L('Its trees bear', 'Sus árboles dan'), `×${num(habitat.fruit)}`) : null,
         habitat.trees ? row(L('Poisonous trees close by', 'Árboles venenosos cerca'), String(habitat.trees)) : null,
       ].join('')) : '')

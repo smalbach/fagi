@@ -853,17 +853,21 @@ export const SEASONS = {
 };
 
 // Habitats (habitats.js): each nest's surroundings are a place of their own,
-// so each colony adapts to where it lives. One per nest, in order, when a map
-// is made. Off, every nest lives in the same world.
-//   kinds : the habitats dealt to the nests, one each (cycled if more nests),
-//           shuffled per map
-//   cold  : °C the air around a 'cold' nest is colder
+// so each colony adapts to where it lives. Dealt one per nest, shuffled per
+// map, when a map is made. Off, every nest lives in the same world.
+//   kinds : the habitats dealt (cycled if there are more nests)
+//   cold, hot : `air` °C added to the air around the nest and to its soil, so
+//           the nest and the brood in it feel it too: cold favours a big body
+//           (raised cold she grows bigger, and keeps her warmth), hot a small
+//           one (raised warm she grows smaller, and her tracheae keep up)
 //   lean  : what the trees of a 'lean' nest bear (× their rate)
-//   toxic : poisonous trees growing close to a 'toxic' nest, and how close (px)
+//   toxic : poisonous trees growing close to a 'toxic' nest, and how close (px):
+//           what is at hand is not what feeds, a matter of conduct, not body
 export const HABITATS = {
   enabled: 0,
-  kinds: ['cold', 'lean', 'toxic'],
-  cold: { cold: 5 },
+  kinds: ['cold', 'hot', 'toxic'],
+  cold: { air: -6 },
+  hot: { air: 6 },
   lean: { fruit: 0.4 },
   toxic: { trees: 1, near: [150, 260] },
 };

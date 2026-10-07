@@ -75,8 +75,9 @@ CONDUCT.enabled = 1;
 CONDUCT.born = CAUTION_LINES;
 
 // Habitats (habitats.js): each of the three nests lives somewhere of its own —
-// a cold hollow, poor soil, poison growing close by — so each colony learns
-// and inherits what its own place asks of it, as populations do in nature.
+// a cold hollow, a sun-baked slope, poison growing close by — so each colony
+// learns and inherits what its own place asks of it, as populations do in
+// nature: cold and heat pull bodies opposite ways, poison asks for conduct.
 HABITATS.enabled = 1;
 
 // A world that presses (scripts/game-world.js, 2026-10-07): with a fruit every

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { HABITATS, COLONIES, OBJECT_TYPES } from '../src/config.js';
 import { createWorld, nestsOf } from '../src/world.js';
 import { generateMap } from '../src/mapgen.js';
-import { coldAt, fruitRateOf, habitatOfNest } from '../src/habitats.js';
+import { airAt, fruitRateOf, habitatOfNest } from '../src/habitats.js';
 import { rng, withRng } from '../scripts/batch/random.js';
 
 const map = (seed, { habitats = 1, colonies = 3 } = {}) => {
@@ -22,7 +22,7 @@ const on = (fn) => { const was = HABITATS.enabled; HABITATS.enabled = 1; try { r
 test('off: no nest has a habitat, the air and the trees are as ever', () => {
   const w = map(3, { habitats: 0 });
   for (const n of nestsOf(w)) assert.equal(n.habitat, undefined);
-  assert.equal(coldAt(w, 100, 100), 0);
+  assert.equal(airAt(w, 100, 100), 0);
   assert.ok(w.objects.filter((o) => o.type === 'tree').every((t) => fruitRateOf(w, t) === 1));
 });
 
@@ -37,21 +37,36 @@ test('each of three nests gets a different habitat, and which is which varies by
   assert.ok(firsts.size > 1, 'the first nest is not always the same habitat');
 });
 
-test('the air is colder at the cold nest, and the lean nest\'s trees bear less', () => {
+test('the cold nest\'s air is colder, the hot one\'s warmer, and between them it blends', () => {
   const w = map(5);
   on(() => {
     const cold = nestsOf(w).find((n) => n.habitat === 'cold');
-    assert.equal(coldAt(w, cold.x, cold.y), HABITATS.cold.cold);
-    const other = nestsOf(w).find((n) => n.habitat !== 'cold');
-    assert.equal(coldAt(w, other.x, other.y), 0);
-    const mid = coldAt(w, (cold.x + other.x) / 2, (cold.y + other.y) / 2);
-    assert.ok(mid > 0 && mid < HABITATS.cold.cold, `between the two: ${mid}`);
-    const lean = nestsOf(w).find((n) => n.habitat === 'lean');
-    assert.equal(habitatOfNest(w, lean).fruit, HABITATS.lean.fruit);
-    const trees = w.objects.filter((o) => o.type === 'tree');
-    const nearest = (t) => nestsOf(w).reduce((a, n) => (Math.hypot(n.x - t.x, n.y - t.y) < Math.hypot(a.x - t.x, a.y - t.y) ? n : a));
-    for (const t of trees) assert.equal(fruitRateOf(w, t), nearest(t).habitat === 'lean' ? HABITATS.lean.fruit : 1);
+    const hot = nestsOf(w).find((n) => n.habitat === 'hot');
+    const toxic = nestsOf(w).find((n) => n.habitat === 'toxic');
+    assert.equal(airAt(w, cold.x, cold.y), HABITATS.cold.air);
+    assert.equal(airAt(w, hot.x, hot.y), HABITATS.hot.air);
+    assert.equal(airAt(w, toxic.x, toxic.y), 0);
+    const mid = airAt(w, (cold.x + toxic.x) / 2, (cold.y + toxic.y) / 2);
+    assert.ok(mid < 0 && mid > HABITATS.cold.air, `between cold and toxic: ${mid}`);
   });
+});
+
+test('the lean nest\'s trees bear less', () => {
+  const was = HABITATS.kinds;
+  HABITATS.kinds = ['lean', 'cold', 'hot'];
+  try {
+    const w = map(5);
+    on(() => {
+      const lean = nestsOf(w).find((n) => n.habitat === 'lean');
+      assert.equal(habitatOfNest(w, lean).fruit, HABITATS.lean.fruit);
+      const nearest = (t) => nestsOf(w).reduce((a, n) => (Math.hypot(n.x - t.x, n.y - t.y) < Math.hypot(a.x - t.x, a.y - t.y) ? n : a));
+      for (const t of w.objects.filter((o) => o.type === 'tree')) {
+        assert.equal(fruitRateOf(w, t), nearest(t).habitat === 'lean' ? HABITATS.lean.fruit : 1);
+      }
+    });
+  } finally {
+    HABITATS.kinds = was;
+  }
 });
 
 test('a poisonous tree grows close to the toxic nest', () => {

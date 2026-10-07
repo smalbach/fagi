@@ -6,14 +6,17 @@
 // world. With HABITATS on, every nest gets a habitat when the map is made
 // (HABITATS.kinds, in order, one per nest):
 //
-//   cold   : the air around the nest is `cold` °C colder (a shaded hollow);
+//   cold, hot : the air around the nest, and its soil, are `air` °C off the
+//            sky's (a shaded hollow, a sun-baked slope). The nest is dug in
+//            that soil, so the brood feels it too: raised cold a juvenile grows
+//            bigger, raised warm smaller (the temperature-size rule, morph.js);
 //   lean   : the trees nearest the nest bear `fruit` × their rate (poor soil),
 //            so its colony must reach other trees, farther and shared;
 //   toxic  : `trees` trees of poisonous fruit grow close to the nest, nearer
 //            than its good tree, so what is at hand is not what feeds.
 //
 // Where one habitat ends and the next begins is soft: the air at a point takes
-// each nest's cold weighted by how near it is (1/d²), so walking from one nest
+// each nest's `air` weighted by how near it is (1/d²), so walking from one nest
 // to another the temperature changes gradually. A tree belongs to the habitat
 // of its nearest nest.
 //
@@ -22,7 +25,7 @@
 import { HABITATS } from './config.js';
 import { nestsOf } from './world.js';
 
-const NONE = Object.freeze({ name: null, cold: 0, fruit: 1, trees: 0 });
+const NONE = Object.freeze({ name: null, air: 0, fruit: 1, trees: 0 });
 
 export function habitatSpec(name) {
   if (!name) return NONE;
@@ -58,21 +61,21 @@ function nearestNest(world, x, y) {
   return best;
 }
 
-// °C the habitat takes off the air at (x, y): each nest's cold, weighted by
-// 1/d² (a nest's own spot is all its own).
-export function coldAt(world, x, y) {
+// °C the habitat adds to the air (and soil) at (x, y): each nest's `air`,
+// weighted by 1/d² (a nest's own spot is all its own).
+export function airAt(world, x, y) {
   if (!HABITATS.enabled) return 0;
   let w = 0;
-  let c = 0;
+  let a = 0;
   for (const n of nestsOf(world)) {
     if (!n.habitat) continue;
     const d2 = (n.x - x) ** 2 + (n.y - y) ** 2;
-    if (d2 < 1) return habitatSpec(n.habitat).cold;
+    if (d2 < 1) return habitatSpec(n.habitat).air;
     const k = 1 / d2;
     w += k;
-    c += k * habitatSpec(n.habitat).cold;
+    a += k * habitatSpec(n.habitat).air;
   }
-  return w ? c / w : 0;
+  return w ? a / w : 0;
 }
 
 // What a tree bears, × its rate, in the habitat of its nearest nest. Worked
