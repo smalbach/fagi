@@ -223,3 +223,13 @@ Same 12 maps as above (seeds 7400–7411):
 | with | 12.4 / 7.4 / 15.1 | 6 | −0.36 (t −1.7) | +0.010 (t 2.0, 8/12) |
 
 Populations barely change (−5 %). Newcomers still leave more young, now for a reason found in nature too: their young are outbred (genetic rescue of small, related colonies). Still no local adaptation.
+
+## Twenty years (2026-10-07)
+
+`scripts/game-world.js`, the game as it is now, 8 maps (seeds 7500–7507), 20 years each (~50 generations).
+
+**Evolution happens, the same way everywhere.** Genes from year 1 to year 20, hot and toxic colonies: muscle +0.185 (t 5.0, up in 8/8 maps), brain −0.128 (t −4.6, down in 7/8), size +0.061 (t 2.0, 6/8); gut, eyes and antennae drift. Carrying fruit that weighs pays for muscle; a costly brain does not pay for itself. This is adaptation to the world all colonies share.
+
+**Not local.** The cold habitat (−6 °C on top of winter) is a sink: 4.6 alive on average, ~2 from year 10 on, empty in 31 of 160 nest-years, and refounded over and over by the other colonies (85 refoundings in all). Its population is mostly recent immigrants and cannot adapt. Body size ends bigger in cold than in hot (+0.091, t 2.6, 6/7 maps), mostly through the temperature-size rule within life; the size gene difference (+0.049, t 2.1) swings sign over the years and rests on 2 adults per cold colony. Lines of conduct: "memory before scent" and "memory before pursue" everywhere; "anticipate before sleep" turns up in cold and toxic colonies.
+
+For local adaptation the habitats must differ in what pays without one being a sink: milder cold, and refounding from the nearest nest rather than the fullest.
