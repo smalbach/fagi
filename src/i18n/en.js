@@ -2,6 +2,7 @@
 // language, t() falls back here (see src/i18n.js).
 
 export default {
+  'set.actions': 'Session actions',
   'app.title': 'FAGI',
   'app.settings': '⚙ Settings',
   'app.immersive': '🌿 Immersive',

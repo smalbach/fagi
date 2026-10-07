@@ -4,7 +4,7 @@
 #stage { flex-direction: column; justify-content: flex-start; gap: 8px; }
 #canvas { margin: auto; }
 #strip {
-  display: flex; align-items: center; gap: 6px 10px; width: 100%; flex: none; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 6px 10px; width: calc(100% / var(--ui-zoom, 1)); flex: none; flex-wrap: wrap;
   min-height: 34px; zoom: var(--ui-zoom, 1);
 }
 #strip #topbar {
@@ -237,3 +237,10 @@ body.mode-setup #strip-stats, body.mode-idle #strip-stats { display: none; }
   body.layout-setup #dock-resizer:hover { background: #6e748655; }
 }
 body.layout-setup .palette-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.rail-label { display: none; }
+@media (min-width: 861px) and (max-width: 1150px) {
+  #strip #topbar { flex-wrap: wrap; }
+  body.layout-setup #setup-bar { flex-wrap: wrap; }
+  body.layout-setup #setup-bar .help { flex-basis: 100%; white-space: normal; text-align: left; }
+}

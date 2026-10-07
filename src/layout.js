@@ -56,14 +56,16 @@ export function initLayout(world, hooks = {}) {
 
   function applySizes() {
     const s = state.sizes[sizeKey()] ?? {};
-    body.style.setProperty('--dock-w', s.dock ? `${s.dock}px` : '');
-    body.style.setProperty('--bottom-h', s.bottom ? `${s.bottom}px` : '');
+    body.style.setProperty('--dock-w', s.dock ? `${Math.min(s.dock, window.innerWidth * 0.6)}px` : '');
+    body.style.setProperty('--bottom-h', s.bottom ? `${Math.min(s.bottom, window.innerHeight * 0.6)}px` : '');
   }
 
   // Everything that follows from the state, in one go.
   function sync() {
     const session = Boolean(hooks.isSession?.());
-    const dock = session && state.view !== 'observe' && mq.matches;
+    const panelsVisible = session && state.view !== 'observe';
+    const dock = panelsVisible && mq.matches;
+    body.classList.toggle('layout-mobile', panelsVisible && !mq.matches);
     world.immersive = state.view === 'observe';
     for (const v of VIEWS) body.classList.toggle(`view-${v}`, state.view === v);
     body.classList.toggle('immersive', world.immersive);
@@ -85,11 +87,14 @@ export function initLayout(world, hooks = {}) {
       b.setAttribute('aria-checked', String(b.dataset.view === state.view));
     }
     for (const b of rail.querySelectorAll('[data-dock]')) {
-      b.classList.toggle('active', state.dockOpen && (state.view === 'deep' || b.dataset.dock === state.section));
+      const active = state.dockOpen && (state.view === 'deep' || b.dataset.dock === state.section);
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-pressed', String(active));
     }
     rail.querySelector('[data-act="compact"]')?.classList.toggle('active', state.compact);
+    rail.querySelector('[data-act="compact"]')?.setAttribute('aria-pressed', String(state.compact));
     // The inspector: a card over the map, or a section of the dock.
-    const home = dock ? dockInspect : stage;
+    const home = panelsVisible ? dockInspect : stage;
     if (card && card.parentElement !== home) home.append(card);
     if (docked !== dock) { docked = dock; hooks.onRelayout?.(dock); }
   }
@@ -150,11 +155,13 @@ export function initLayout(world, hooks = {}) {
       const up = () => {
         handle.removeEventListener('pointermove', move);
         handle.removeEventListener('pointerup', up);
+        handle.removeEventListener('pointercancel', up);
         body.classList.remove('resizing');
         save();
       };
       handle.addEventListener('pointermove', move);
       handle.addEventListener('pointerup', up);
+      handle.addEventListener('pointercancel', up);
     });
     // A double click puts it back to its default size.
     handle.addEventListener('dblclick', () => { state.sizes[sizeKey()] = {}; save(); applySizes(); });
@@ -173,6 +180,7 @@ export function initLayout(world, hooks = {}) {
     new ResizeObserver(() => body.style.setProperty('--strip-h', `${Math.ceil(strip.getBoundingClientRect().height)}px`)).observe(strip);
   }
 
+  window.addEventListener('resize', applySizes);
   mq.addEventListener('change', sync);
   sync();
 
@@ -181,7 +189,7 @@ export function initLayout(world, hooks = {}) {
     get view() { return state.view; },
     // Something was selected: bring the inspector into view (normal view).
     reveal() {
-      if (!body.classList.contains('layout-dock')) return;
+      if (!body.classList.contains('layout-dock') && !body.classList.contains('layout-mobile')) return;
       if (state.view === 'normal' && (state.section !== 'inspect' || !state.dockOpen)) show('inspect');
       else if (state.view === 'deep') show('inspect');
     },

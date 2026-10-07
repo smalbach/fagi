@@ -2,6 +2,7 @@
 // once the image finishes loading this base is used, with some very subtle live
 // ripples added on top so it doesn't look like a frozen photograph.
 
+import { naturalAppearance } from '../object-appearance.js';
 import { seedFor } from '../sprite-kit.js';
 import { LX, LY } from './shape.js';
 
@@ -27,7 +28,13 @@ function stampPhoto(ctx, o, r, seedOf) {
   ctx.rotate(turn);
   ctx.shadowColor = 'rgba(9,13,10,0.58)';
   ctx.shadowBlur = r * 0.15;
-  ctx.filter = 'saturate(1.12) brightness(0.93) contrast(1.14)';
+  const filters = {
+    woodland: 'saturate(0.9) brightness(0.9) contrast(1.12)',
+    clear: 'hue-rotate(12deg) saturate(0.72) brightness(1.12) contrast(1.08)',
+    marsh: 'hue-rotate(-18deg) saturate(0.78) brightness(0.84) contrast(1.12)',
+    clay: 'sepia(0.38) saturate(0.82) brightness(0.97) contrast(1.1)',
+  };
+  ctx.filter = filters[naturalAppearance(o, seedOf)];
   // Stamped square on purpose: the wide original becomes a compact, irregular
   // pond and fits better with the real radius where Fagi drinks.
   ctx.drawImage(realisticLake, -sideOf / 2, -sideOf / 2, sideOf, sideOf);

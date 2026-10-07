@@ -20,7 +20,7 @@ const FORM_OF_PAINTER = { berry: 'broadleaf', resin: 'conifer', spark: 'palm', e
 
 // Each kind of tree starts from its own green; the fruit pulls it toward its color.
 const GREENS = { broadleaf: '#4f9552', conifer: '#2d5a3c', palm: '#5d9a3c', willow: '#5f9444' };
-const TINT = { broadleaf: 0.26, conifer: 0.2, palm: 0.24, willow: 0.22 };
+const TINT = { broadleaf: 0.12, conifer: 0.08, palm: 0.1, willow: 0.1 };
 
 export function formOf(spec) {
   return FORM_OF_PAINTER[spec?.painter] ?? 'broadleaf';

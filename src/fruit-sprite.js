@@ -29,7 +29,7 @@ import { rotten } from './fruit-sprite/rotten.js';
 const sprites = new Map();     // key: type|radius|variant|ripeness step
 
 const STEPS = 12;              // how many steps ripeness is rounded to
-const VARIANTS = 4;           // distinct pieces per type: no two alike side by side
+const VARIANTS = 12;           // distinct pieces per type: no two alike side by side
 
 const PAINTERS = { nectar: berry, toxic: rotten };
 // Any other fruit names its painter by its shape (chemistry.js SHAPE_PAINTER).

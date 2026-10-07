@@ -2,6 +2,7 @@
 // The buttons and bars are generated from config, so adding a new type
 // doesn't require touching anything here. The texts come from i18n.
 
+import { createAppearanceEditor } from './appearance-editor.js';
 import { HUNGER, THIRST, POINT_TYPES, TYPE_KEYS, OBJECT_TYPES, OBJECT_KEYS, TREE, THERMAL, CYCLE, LIFE, specOf } from './config.js';
 import { cycleAt } from './cycle.js';
 import { census } from './reproduction.js';
@@ -122,6 +123,7 @@ function buildPalette(tabsBox, grid, hintBox, input) {
   }
 
   function select(key) {
+    input.editing = null;
     input.selectedType = key;
     const item = items.find((i) => i.key === key);
     if (item && item.tab !== tab) { tab = item.tab; paintGrid(); }
@@ -247,6 +249,7 @@ export function createUI(input, world, onReset) {
   const beliefBox = document.getElementById('beliefs');
 
   let selectTool = buildPalette(paletteTabs, paletteGrid, paletteHint, input);
+  const appearanceEditor = createAppearanceEditor(input, world);
   let summaryAt = 0;
   // State of the belief bars: which keys are painted right now and with
   // which elements. It's rebuilt when a new key appears or on a language
@@ -296,6 +299,7 @@ export function createUI(input, world, onReset) {
       if (now - summaryAt < 500) return;
       summaryAt = now;
       paintMapSummary(mapSummary, w);
+      appearanceEditor.update();
     },
     set onPick(fn) { el.onPick = fn; },
   };

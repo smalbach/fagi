@@ -33,6 +33,7 @@
 // foot, the crown (procedural and photographic), the wind and the fruit. Here
 // we only keep the already painted canvases and decide what is stamped where.
 
+import { appearanceOf } from './object-appearance.js';
 import { TREE, POINT_TYPES } from './config.js';
 import { treeAge, isBare } from './trees.js';
 import { cacheSprite, detail, stamp, seedFor } from './sprite-kit.js';
@@ -62,7 +63,7 @@ export function drawTree(ctx, o, spec, r, wind, now) {
   // What it bears decides what it is. The editor may change the fruit's
   // shape or color live: both go in the keys, so the tree repaints with it.
   const fruit = POINT_TYPES[o.fruit ?? TREE.fruit];
-  const form = formOf(fruit);
+  const form = appearanceOf(o, formOf(fruit));
   const color = fruit?.color ?? spec.color;
 
   const trunk = cacheSprite(trunks, `${seedOf}|${R}|${form}|${step}`,
@@ -72,8 +73,8 @@ export function drawTree(ctx, o, spec, r, wind, now) {
   // The crown is loose from the trunk: it leans downwind and breathes with it.
   // The branches peeking through the leaves move with it, as they should.
   const v = swayOf(wind, now, r, seedOf, dry);
-  if (form === 'broadleaf' && realisticCrownLoaded()) {
-    stampRealisticCrown(ctx, o, r, v, dry, seedOf, fruit ? color : null);
+  if (realisticCrownLoaded(form)) {
+    stampRealisticCrown(ctx, o, r, v, dry, seedOf, fruit ? color : null, form);
   } else {
     const crown = cacheSprite(crowns, `${seedOf}|${R}|${form}|${color}|${step}`,
       () => (form === 'broadleaf'

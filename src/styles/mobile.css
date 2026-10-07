@@ -63,10 +63,82 @@
   .screen-row-actions { justify-content: flex-start; flex-wrap: wrap; }
   .screen-body, .screen-form, .screen-head { padding-left: 14px; padding-right: 14px; }
   #screen { padding: 16px 10px 24px; }
-  .screen-form input, #code-tools select, #code-tools input[type=text], #rp-speed, #lang { font-size: 16px; }
+  .screen-form input, .code-tools select, .code-tools input[type=text], #rp-speed, #lang { font-size: 16px; }
 }
 
 /* The ask card sits under the map instead of over it on narrow screens. */
 @media (max-width: 860px) {
   #ask-card { left: 10px; right: 10px; bottom: 10px; width: auto; max-height: 40vh; }
+}
+
+/* One navigation model on phones and tablets: map → section → details. */
+@media (max-width: 860px) {
+  body { min-width: 0; min-height: 100dvh; }
+  #stage { order: 0; }
+  #setup-tabs, #rail { order: 1; }
+  #hud, #settings-overlay { order: 2; }
+  #console { order: 3; }
+  body.mode-setup #setup-tabs {
+    display: flex; gap: 8px; padding: 10px 12px; background: var(--panel);
+    position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--line);
+  }
+  #setup-tabs button { flex: 1; justify-content: center; }
+  #setup-tabs button.active { border-color: var(--accent); background: #304238; }
+  body.mode-setup[data-setup=map] #settings-overlay,
+  body.mode-setup[data-setup=settings] #hud { display: none; }
+  body.mode-setup.immersive #stage { min-height: 0; min-width: 0; padding: 10px; flex: none; }
+  body.mode-setup.immersive #canvas { max-height: 42dvh; }
+  #setup-bar, #replay-bar { width: 100%; max-width: 100%; }
+  #setup-bar .setup-go { width: 100%; justify-content: flex-end; }
+  #setup-bar .help { white-space: normal; }
+  #rp-track { min-width: 0; flex-basis: 100%; }
+  body.layout-mobile #rail {
+    display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px;
+    border-block: 1px solid var(--line); background: var(--panel);
+  }
+  #rail button { width: auto; min-width: 40px; min-height: 44px; justify-content: center; }
+  #rail button.active { border-color: var(--accent); background: #304238; }
+  #rail .rail-gap { flex: 1; }
+  body.layout-mobile.view-normal[data-dock=fagi] #hud-body > [data-dock]:not([data-dock=fagi]),
+  body.layout-mobile.view-normal[data-dock=map] #hud-body > [data-dock]:not([data-dock=map]),
+  body.layout-mobile.view-normal[data-dock=inspect] #hud-body > [data-dock]:not([data-dock=inspect]),
+  body.layout-mobile.view-normal:not([data-dock=fagi]) #status,
+  body.layout-mobile.dock-closed #hud { display: none; }
+  body.layout-mobile #inspect-card { position: static; width: 100%; max-height: none; box-shadow: none; }
+  body.layout-mobile #inspect-card .ins-body { overflow: visible; }
+  body.layout-mobile #hud, body.layout-mobile #console { width: calc(100% / var(--ui-zoom, 1)); }
+  #settings-body { padding: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  #settings .set-nav { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; border-right: 0; }
+  #settings .set-cat { width: auto; flex: none; }
+  #settings .set-groups { grid-template-columns: minmax(0, 1fr); padding-inline: 12px; }
+  #settings .set-tools { padding-inline: 12px; }
+  #settings .set-search { font-size: 16px; flex-basis: 100%; }
+  body.mode-setup #settings .set-groups { overflow: visible; }
+  body.mode-setup #settings .set-main { overflow: visible; }
+  body.mode-setup #settings-body { grid-template-rows: auto auto; }
+  #settings header button { flex: none; }
+  #settings .settings-actions { margin-left: 0; flex: 1; }
+  #settings .field-reset { min-width: 36px; min-height: 36px; }
+  #settings .ns-range { min-height: 32px; }
+  #phylogeny-overlay { padding: 8px; }
+  #phylogeny-modal { width: 100%; max-height: calc(100dvh - 16px); }
+  #phylogeny-modal header { flex-wrap: wrap; padding: 12px; }
+  #phylogeny-modal header h2 { flex-basis: 100%; }
+  .phy-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .phy-node-card, .screen-list td, .code-tools { min-width: 0; overflow-wrap: anywhere; }
+  .code-tools input[type=text] { width: 100%; min-width: 0; }
+  #console-tabs { flex-wrap: wrap; }
+  #console-tabs .tab { flex: 1 1 130px; white-space: normal; }
+  button, summary, select { touch-action: manipulation; }
+  #topbar button, #topbar select, #setup-tabs button, .fruit-actions button, .screen-actions button { min-height: 44px; }
+}
+
+@media (max-width: 860px) {
+  #rail .rail-label { display: inline; font-size: 12px; }
+  #rail button[data-dock] { flex: 1 1 90px; gap: 5px; }
+  #fruit-overlay { padding: 8px; }
+  #fruit-editor { max-height: calc(100dvh - 16px); }
+  #fruit-editor .ns-box, #fruit-editor select { font-size: 16px; }
+  #fruit-editor header, #fruit-editor footer { flex: none; }
+  #fruit-editor .fe-body { min-height: 0; }
 }

@@ -53,10 +53,10 @@ function drop(ctx, cx, cy, y, r) {
 // What it holds inside: trapped bubbles and the odd strand. Amber keeps
 // things, just as it keeps hunger for later.
 function bubbles(ctx, cx, y, r, rnd) {
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 12; i++) {
     const a = rnd() * Math.PI * 2;
     const d = Math.sqrt(rnd()) * r * 0.7;
-    const rad = r * (0.08 + rnd() * 0.16);
+    const rad = r * (0.02 + rnd() * 0.08);
     const bx = cx + Math.cos(a) * d;
     const by = y + Math.sin(a) * d;
     circle(ctx, bx, by, rad, 'rgba(255,240,200,0.18)');

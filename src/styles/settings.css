@@ -162,3 +162,22 @@ body.mode-setup #settings header button { padding: 4px 8px; font-size: 11.5px; }
 .phy-meta { margin-left: auto; font-size: 11px; color: var(--muted); }
 .phy-parent { font-size: 11px; color: #888; }
 .phy-why { font-size: 11.5px; color: #bbb; font-style: italic; }
+
+/* Keep the settings header short; occasional actions have their own menu. */
+#settings header { position: relative; flex: none; }
+#settings .settings-actions { position: static; margin-left: auto; padding: 0; border: 0; background: none; }
+#settings .settings-actions > summary { padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; }
+.settings-actions-body {
+  position: absolute; right: 12px; top: calc(100% - 4px); z-index: 4;
+  display: grid; gap: 8px; width: min(290px, calc(100% - 24px)); padding: 12px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 12px 32px #0008;
+}
+#settings .set-tools { flex-wrap: wrap; }
+#settings .set-search { min-width: 0; flex-basis: 180px; }
+#settings .set-modified { width: auto; padding: 5px 10px; font-size: 11.5px; }
+#settings .set-modified[aria-pressed=true] { border-color: var(--accent); color: var(--text); background: #304238; }
+#settings .field.choice .seg { flex-wrap: wrap; }
+#settings .field.choice .seg button { flex: 1 1 100px; white-space: normal; overflow-wrap: anywhere; }
+#settings .set-hint { line-height: 1.5; }
+body.settings-modal-open { overflow: hidden; }

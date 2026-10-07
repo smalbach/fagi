@@ -32,7 +32,7 @@ body.mode-replay #replay-bar { display: flex; }
 body.mode-replay .edit-only, body.mode-replay #btn-settings, body.mode-replay #btn-reset { display: none; }
 /* The console is shown, but what changes Fagi (recover, import,
    forget, who decides) has no place in a session that's already over. */
-body.mode-replay [id="code-tools"] { display: none; }
+body.mode-replay .code-tools { display: none; }
 
 .stage-bar {
   position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 5;

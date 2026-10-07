@@ -49,14 +49,14 @@
   padding: 4px 14px 14px; box-shadow: 0 20px 60px rgba(0,0,0,.6);
 }
 .pane.brainmap-big .pane-body { display: block; overflow: auto; }
-#code-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
-#code-tools button { width: auto; padding: 4px 8px; font-size: 11px; }
-#code-tools button:disabled { opacity: .45; cursor: default; }
-#code-tools select, #code-tools input[type=text] {
+.code-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+.code-tools button { width: auto; padding: 4px 8px; font-size: 11px; }
+.code-tools button:disabled { opacity: .45; cursor: default; }
+.code-tools select, .code-tools input[type=text] {
   background: #2a2e3a; color: var(--text); border: 1px solid var(--line);
   border-radius: 5px; padding: 4px 6px; font: inherit; font-size: 11px;
 }
-#code-tools input[type=text] { width: 150px; }
+.code-tools input[type=text] { width: 150px; }
 #code-status { font-size: 10.5px; color: var(--muted); flex-basis: 100%; }
 #code-status.error { color: #d95b7e; }
 #learned-code {

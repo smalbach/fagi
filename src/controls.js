@@ -128,8 +128,22 @@ export function makeChoice({ options, value, onInput }) {
     for (const b of buttons) {
       b.btn.classList.toggle('on', b.value === v);
       b.btn.ariaChecked = String(b.value === v);
+      b.btn.tabIndex = b.value === v ? 0 : -1;
     }
   }
+  el.addEventListener('keydown', (event) => {
+    const index = buttons.findIndex(({ btn }) => btn === event.target);
+    if (index < 0) return;
+    let next;
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (index + 1) % buttons.length;
+    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = (index - 1 + buttons.length) % buttons.length;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = buttons.length - 1;
+    else return;
+    event.preventDefault();
+    buttons[next].btn.focus();
+    buttons[next].btn.click();
+  });
   set(value);
   return { el, set };
 }

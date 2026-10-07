@@ -1,5 +1,6 @@
 // World state: the food points and the map objects.
 
+import { validAppearance } from './object-appearance.js';
 import { WORLD, FAGI, NEST, OBJECT_TYPES, POINT_TYPES, TREE, MAPGEN } from './config.js';
 import { createWind } from './wind.js';
 import { createPheromone } from './pheromone.js';
@@ -53,14 +54,24 @@ export function removePoint(world, point, reason = 'removed') {
 // `source`: 'map' (generated), 'user' (placed by hand) or 'sim'.
 export function addObject(world, x, y, type, r = OBJECT_TYPES[type].radius, source = 'sim') {
   const obj = { id: newId(world), x, y, type, r };
+  if (source === 'user') obj.seed = (Math.imul(obj.id, 2654435761) ^ (world.seed ?? 0)) >>> 0;
   if (OBJECT_TYPES[type].kind === 'nest') {
     obj.stock = {};   // how many rations there are of each thing
     obj.ages = {};    // and the age of each one, so they spoil too
   }
   if (OBJECT_TYPES[type].kind === 'spawner') obj.timer = TREE.interval; // fruit countdown
   world.objects.push(obj);
-  record(world, 'obj_add', { id: obj.id, what: type, x, y, r, source });
+  record(world, 'obj_add', { id: obj.id, what: type, x, y, r, source, ...(obj.seed != null ? { seed: obj.seed } : {}) });
   return obj;
+}
+
+// Appearance changes are data, so recordings keep the chosen material/form.
+export function setObjectAppearance(world, object, appearance) {
+  if (!world.objects.includes(object) || !validAppearance(object.type, appearance)) return false;
+  if ((object.appearance ?? 'auto') === appearance) return true;
+  object.appearance = appearance;
+  record(world, 'obj_appearance', { id: object.id, appearance });
+  return true;
 }
 
 // The map's water source (there's only one). Rain puddles don't count.

@@ -8,6 +8,7 @@
 // seconds a copy of the already rebuilt state is kept in memory. It never goes
 // to disk: the saved session is just its events.
 
+import { validAppearance } from '../object-appearance.js';
 import { OBJECT_TYPES, TREE, PHERO, WIND, RAIN } from '../config.js';
 import { createWorld } from '../world.js';
 import { createFagi } from '../fagi.js';
@@ -66,6 +67,7 @@ export function applyEvent(state, ev) {
       const obj = { id: ev.id, x: ev.x, y: ev.y, type: ev.what, r: ev.r ?? OBJECT_TYPES[ev.what]?.radius, born: ev.t };
       if (ev.seed != null) obj.seed = ev.seed;
       if (ev.fruit) obj.fruit = ev.fruit;
+      if (validAppearance(obj.type, ev.appearance)) obj.appearance = ev.appearance;
       const kind = OBJECT_TYPES[ev.what]?.kind;
       if (kind === 'nest') { obj.stock = {}; obj.ages = {}; }
       if (kind === 'spawner') obj.timer = TREE.interval;
@@ -83,6 +85,11 @@ export function applyEvent(state, ev) {
       addRetired(ev.what);
       const o = w.objects.find((x) => x.id === ev.id);
       if (o) o.fruit = ev.what;
+      break;
+    }
+    case 'obj_appearance': {
+      const o = w.objects.find((x) => x.id === ev.id);
+      if (o && validAppearance(o.type, ev.appearance)) o.appearance = ev.appearance;
       break;
     }
     case 'obj_look': {

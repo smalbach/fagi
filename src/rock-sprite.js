@@ -13,7 +13,8 @@
 // shape, what goes on top and the painting of the procedural one. Here we only
 // choose which one is drawn and keep the already painted canvases.
 
-import { seedFor, detail, stamp } from './sprite-kit.js';
+import { appearanceOf } from './object-appearance.js';
+import { seedFor, detail, stamp, cacheSprite } from './sprite-kit.js';
 import { realisticRockOf, drawRealisticRock } from './rock-sprite/realistic.js';
 import { paintRock } from './rock-sprite/paint.js';
 
@@ -21,7 +22,7 @@ const sprites = new Map();   // key: seed|radius
 
 export function drawRock(ctx, o, spec, r) {
   const seedOf = seedFor(o) >>> 0;
-  const realistic = realisticRockOf(seedOf);
+  const realistic = realisticRockOf(seedOf, o);
   if (realistic) {
     drawRealisticRock(ctx, o, r, realistic.rock, realistic.type, seedOf);
     return;
@@ -29,15 +30,11 @@ export function drawRock(ctx, o, spec, r) {
   // Painted with the radius times the detail scale and stamped at world size:
   // up close the stone has more pixels, not the same ones stretched.
   const z = detail();
-  const img = spriteOf(seedFor(o), r * z, spec.color);
+  const img = spriteOf(seedFor(o), r * z, spec.color, appearanceOf(o));
   stamp(ctx, img, o.x, o.y, z);
 }
 
-function spriteOf(seedOf, r, color) {
-  const key = `${seedOf}|${Math.round(r)}|${color}`;
-  const saved = sprites.get(key);
-  if (saved) return saved;
-  const img = paintRock(seedOf, Math.round(r), color);
-  sprites.set(key, img);
-  return img;
+function spriteOf(seedOf, r, color, material) {
+  const key = `${seedOf}|${Math.round(r)}|${color}|${material}`;
+  return cacheSprite(sprites, key, () => paintRock(seedOf, Math.round(r), color, material), 160);
 }

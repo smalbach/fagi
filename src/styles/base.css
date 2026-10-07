@@ -25,3 +25,8 @@ body {
   max-height: calc(100vh - 32px);
   box-shadow: 0 24px 70px rgba(0,0,0,.48), 0 0 0 1px rgba(213,224,199,.08);
 }
+
+:where(button, select, input, summary):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+}

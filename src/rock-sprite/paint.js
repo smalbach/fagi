@@ -8,9 +8,12 @@ import { MATERIALS } from './materials.js';
 import { shape, trace, faces } from './shape.js';
 import { strata, slabs, gaps, lichen, pebbles, specks, cracks } from './surface.js';
 
-export function paintRock(seedOf, r, color) {
+export function paintRock(seedOf, r, color, material = null) {
   const rnd = seededRng(seedOf);
-  const mat = MATERIALS[(rnd() * MATERIALS.length) | 0];
+  const randomMaterial = MATERIALS[(rnd() * MATERIALS.length) | 0];
+  const name = { boulder: 'conglomerate', volcanic: 'basalt', ironstone: 'sandstone' }[material] ?? material;
+  const chosen = MATERIALS.find((m) => m.name === name);
+  const mat = material === 'ironstone' ? { ...chosen, tint: '#8d422d', weight: [0.75, 0.2] } : chosen ?? randomMaterial;
   const pad = Math.ceil(r * 0.3) + 4;
   const S = (r + pad) * 2;
   const cx = S / 2;

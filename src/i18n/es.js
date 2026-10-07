@@ -1,6 +1,7 @@
 // Spanish texts. The same keys as en.js; any missing one falls back to English.
 
 export default {
+  'set.actions': 'Acciones de sesión',
   'app.title': 'FAGI',
   'app.settings': '⚙ Ajustes',
   'app.immersive': '🌿 Inmersivo',

@@ -10,6 +10,7 @@ import {
   CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI, CONCEPT,
   LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES, CHOICE, LARDER, CONDUCT,
   PROGRAM, MOVEMENT, CASTES, MORPH, SEASONS, LOAD, COLONIES, STOMACH, SELECT, DRIVE, SCIENCE,
+  CAMERA, ATTENTION, SYNAPSE, EXPLAIN,
 } from './config.js';
 import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
@@ -58,6 +59,28 @@ function foodFields(key) {
 }
 
 const GROUPS = [
+  { title: { en: 'Camera', es: 'Cámara' }, cat: 'system', fieldsOf: [
+    n(CAMERA, 'max', 'Maximum zoom', 'Zoom máximo', 1, 8, 0.5),
+    n(CAMERA, 'step', 'Zoom per wheel step', 'Zoom por paso de rueda', 1.02, 1.5, 0.02),
+    n(CAMERA, 'keysDown', 'Keyboard pan speed', 'Velocidad de desplazamiento con teclado', 100, 1200, 20),
+  ]},
+  { title: { en: 'Attention', es: 'Atención' }, cat: 'mind', fieldsOf: [
+    n(ATTENTION, 'forget', 'Seconds before a sight counts as new', 'Segundos para considerar nueva una percepción', 0.5, 30, 0.5),
+    n(ATTENTION, 'opportunisticThirst', 'Thirst that diverts her toward nearby water', 'Sed que la desvía hacia agua cercana', 0, 1, 0.05),
+  ]},
+  { title: { en: 'Neural connections', es: 'Conexiones neuronales' }, cat: 'mind', fieldsOf: [
+    n(SYNAPSE, 'hebbRate', 'Perception strengthens connections per second', 'Refuerzo de conexiones por segundo de percepción', 0, 2, 0.05),
+    n(SYNAPSE, 'hebbDecay', 'Unused connections fade per second', 'Pérdida por segundo de conexiones sin uso', 0, 0.1, 0.001),
+    n(SYNAPSE, 'learnRate', 'Learning from each consequence', 'Aprendizaje por consecuencia', 0, 1, 0.05),
+    n(SYNAPSE, 'feelDecay', 'Consequence memory fades per second', 'Pérdida por segundo de memoria de consecuencias', 0, 0.01, 0.0001),
+    n(SYNAPSE, 'prune', 'Connection strength below which it disappears', 'Fuerza por debajo de la cual desaparece una conexión', 0, 0.5, 0.01),
+  ]},
+  { title: { en: 'Explanations', es: 'Explicaciones' }, cat: 'mind', fieldsOf: [
+    n(EXPLAIN, 'log', 'Experiences kept to explain decisions', 'Experiencias conservadas para explicar decisiones', 10, 300, 10),
+    n(EXPLAIN, 'examples', 'Examples per explanation', 'Ejemplos por explicación', 1, 12, 1),
+    n(EXPLAIN, 'wary', 'Wariness that discourages pursuing food', 'Cautela que desalienta perseguir alimento', 0, 1, 0.05),
+    n(EXPLAIN, 'tempted', 'Expected benefit that makes food attractive', 'Beneficio esperado que vuelve atractivo un alimento', 0, 1, 0.05),
+  ]},
   { title: { en: 'Fagi', es: 'Fagi', show: { en: 'Senses and movement', es: 'Sentidos y movimiento' } }, cat: 'body', fieldsOf: [
     n(FAGI, 'speed', 'Speed', 'Velocidad', 10, 300, 5),
     n(FAGI, 'turnSpeed', 'Turn rate', 'Rapidez de giro', 0.5, 15, 0.1),
@@ -70,6 +93,8 @@ const GROUPS = [
     n(FAGI, 'probe', 'Antenna spacing', 'Separación de las antenas', 5, 80, 1),
     n(FAGI, 'castTurn', 'Casting width', 'Apertura del barrido', 0.2, 2.5, 0.05),
     n(FAGI, 'castEvery', 'Side switch when casting', 'Cambio de lado al barrer', 0.2, 4, 0.1),
+    b(MOVEMENT, 'terrainAdapt', 'Adapt movement to terrain', 'Adaptar el movimiento al terreno'),
+    n(MOVEMENT, 'cautiousThreshold', 'Distress that triggers cautious movement', 'Malestar que activa el movimiento cauteloso', 0, 1, 0.05),
     n(MOVEMENT, 'crawlSpeed', 'Cautious crawl speed (fraction)', 'Velocidad de avance cauto (fracción)', 0.1, 1, 0.05),
     n(MOVEMENT, 'sprintMult', 'Sprint / escape speed multiplier', 'Multiplicador de velocidad de huida/sprint', 1, 2.5, 0.05),
     n(MOVEMENT, 'zigzagFreq', 'Search sweep frequency', 'Frecuencia de barrido de búsqueda', 0.5, 6, 0.1),
@@ -102,6 +127,7 @@ const GROUPS = [
     n(CYCLE, 'swing', 'Swing between day and night (± °C)', 'Oscilación entre día y noche (± °C)', 0, 30, 1),
   ]},
   { title: { en: 'Body temperature', es: 'Temperatura corporal' }, cat: 'body', fieldsOf: [
+    b(THERMAL, 'voluntary', 'Seek shelter before thermal harm', 'Buscar refugio antes del daño térmico'),
     b(THERMAL, 'enabled', 'Body temperature', 'Temperatura corporal'),
     n(THERMAL, 'safeMin', 'Cold below (°C)', 'Frío por debajo de (°C)', -10, 30, 1),
     n(THERMAL, 'safeMax', 'Heat above (°C)', 'Calor por encima de (°C)', 20, 50, 1),
@@ -129,11 +155,16 @@ const GROUPS = [
     n(SLEEP, 'exhausted', 'Sleepiness at which she sleeps anywhere, day or night', 'Sueño con el que duerme donde sea, de día o de noche', 0.1, 1, 0.05),
     n(SLEEP, 'wake', 'Sleepiness under which she wakes (not diurnal)', 'Sueño bajo el cual despierta (no diurna)', 0, 0.5, 0.01),
     n(SLEEP, 'minSleep', 'Seconds asleep before sorting the day', 'Segundos dormida antes de ordenar el día', 0, 120, 1),
+    b(SLEEP, 'askAlways', 'Ask about unseen consequences even without bites', 'Preguntarse por consecuencias desconocidas incluso sin bocados'),
+    n(SLEEP, 'replayRate', 'Learning per memory rehearsal', 'Aprendizaje por repaso de memoria', 0, 1, 0.05),
+    n(SLEEP, 'downscale', 'Trait weight lost before rehearsal', 'Peso de rasgos perdido antes del repaso', 0, 1, 0.05),
     b(SLEEP, 'consolidate', 'Sort the day while asleep', 'Ordenar el día al dormir'),
     n(SLEEP, 'boost', 'Confidence a replayed belief gains', 'Confianza que gana una creencia repasada', 0, 1, 0.05),
     n(SLEEP, 'replay', 'Rounds of replay of the remembered fruit', 'Rondas de repaso de la fruta recordada', 0, 20, 1),
   ]},
   { title: { en: 'Night mind', es: 'Mente nocturna' }, cat: 'mind', fieldsOf: [
+    n(NIGHTAI, 'timeout', 'Remote night mind timeout (seconds)', 'Tiempo de espera de la mente nocturna remota (segundos)', 0.5, 30, 0.5),
+    n(NIGHTAI, 'log', 'Night mind reports kept', 'Informes conservados de la mente nocturna', 5, 200, 5),
     b(NIGHTAI, 'enabled', 'A model proposes hypotheses at night', 'Un modelo propone hipótesis de noche'),
     n(NIGHTAI, 'minSupport', 'Fruit she tasted that must back a proposal', 'Frutas probadas que deben respaldar una propuesta', 1, 6, 1),
     n(NIGHTAI, 'trust', 'Trust in a kept proposal', 'Confianza en una propuesta aceptada', 0.1, 1, 0.05),
@@ -243,6 +274,8 @@ const GROUPS = [
     n(LEARN, 'autosaveEvery', 'Seconds between copies', 'Segundos entre copias', 1, 120, 1),
   ]},
   { title: { en: 'Adaptive program', es: 'Programa adaptativo' }, cat: 'mind', fieldsOf: [
+    n(PROGRAM, 'tick', 'Observation interval (seconds)', 'Intervalo de observación (segundos)', 0.1, 2, 0.05),
+    n(PROGRAM, 'record', 'Maximum recorded moments', 'Máximo de momentos registrados', 100, 10000, 100),
     b(PROGRAM, 'learn', 'Rewrites own program from experience', 'Reescribe su programa por experiencia'),
     b(PROGRAM, 'inherit', 'Inherit experience-backed program revisions', 'Hereda las revisiones del programa respaldadas por experiencia'),
     c(PROGRAM, 'watch', 'Introspection & watch depth', 'Introspección y profundidad de observación', [
@@ -300,6 +333,7 @@ const GROUPS = [
     c(BACKEND, 'authority', 'Authority', 'Autoridad', [['Safe', 'Segura'], ['Full', 'Plena']]),
     n(BACKEND, 'minInterval', 'Seconds between queries', 'Segundos entre consultas', 0.2, 60, 0.1),
     n(BACKEND, 'timeout', 'Seconds before giving up', 'Segundos antes de rendirse', 0.2, 30, 0.1),
+    n(BACKEND, 'maxTtl', 'Maximum lifetime of an API directive (seconds)', 'Duración máxima de una directiva de la API (segundos)', 1, 120, 1),
     n(BACKEND, 'ttl', 'Seconds a directive stays valid', 'Segundos que vale una directiva', 1, 60, 1),
     n(BACKEND, 'idleAfter', 'Seconds exploring before asking', 'Segundos explorando antes de preguntar', 1, 120, 1),
   ]},
@@ -501,6 +535,7 @@ const GROUPS = [
     n(HEALTH, 'breed', 'Health (fraction) needed to breed', 'Salud (fracción) necesaria para criar', 0, 1, 0.05),
   ]},
   { title: { en: 'Habits', es: 'Hábitos' }, cat: 'mind', fieldsOf: [
+    b(HABITS, 'learn', 'Keep learning new habits', 'Seguir aprendiendo hábitos nuevos'),
     b(HABITS, 'enabled', 'Tunes her thresholds from experience', 'Ajusta sus umbrales por experiencia'),
     n(HABITS, 'scare', 'Hunger or thirst (fraction) that counts as a scare', 'Hambre o sed (fracción) que cuenta como susto', 0.3, 1, 0.05),
     b(HABITS, 'relax', 'A long calm makes her bolder', 'Una calma larga la hace más atrevida'),
@@ -588,6 +623,21 @@ const GROUPS = [
     fieldsOf: foodFields(key),
   })),
 ];
+
+// Organize the adaptive program by task without changing saved/replayed IDs.
+const adaptiveIndex = GROUPS.findIndex((g) => g.title.en === 'Adaptive program');
+const adaptive = GROUPS[adaptiveIndex];
+const adaptiveSections = [
+  ['Adaptive program', 'Programa adaptativo', ['learn', 'inherit', 'watch', 'every', 'maxOwn', 'compound', 'chaining']],
+  ['Trials and observation', 'Pruebas y observación', ['tick', 'record', 'explore', 'exploreByState', 'darkTrials', 'reconsider', 'trialMax']],
+  ['Evidence and evaluation', 'Evidencia y evaluación', ['judge', 'horizon', 'power', 'minSupport', 'alpha', 'margin', 'strictness']],
+  ['Crisis learning', 'Aprendizaje en crisis', ['crisis', 'crisisThreshold', 'crisisRise']],
+  ['Sharing experience', 'Compartir experiencias', ['share', 'shareBudget']],
+];
+GROUPS.splice(adaptiveIndex, 1, ...adaptiveSections.map(([en, es, keys]) => ({
+  title: { en, es }, cat: 'mind',
+  fieldsOf: keys.map((key) => ({ ...adaptive.fieldsOf.find((f) => f.key === key), fullId: `Adaptive program.${key}` })),
+})));
 
 // Each field needs a stable name to be saved under: the group's plus its
 // key. Food groups use the type, which doesn't change with the language.
@@ -731,7 +781,7 @@ const CATEGORIES = [
   { id: 'body', icon: '🫀', en: 'Body', es: 'Cuerpo', hint: { en: 'Senses, needs, energy, sleep, temperature, health', es: 'Sentidos, necesidades, energía, sueño, temperatura, salud' } },
   { id: 'mind', icon: '🧠', en: 'Mind', es: 'Mente', hint: { en: 'Learning, memory, exploring, instincts, habits', es: 'Aprendizaje, memoria, exploración, instintos, hábitos' } },
   { id: 'colony', icon: '🐜', en: 'Colony & life', es: 'Colonia y vida', hint: { en: 'Sisters, breeding, inheritance, nest and trail', es: 'Hermanas, crianza, herencia, nido y rastro' } },
-  { id: 'system', icon: '⚙', en: 'System', es: 'Sistema', hint: { en: 'External decision API', es: 'API de decisión externa' } },
+  { id: 'system', icon: '⚙', en: 'System', es: 'Sistema', hint: { en: 'Camera and external decision API', es: 'Cámara y API de decisión externa' } },
 ];
 const CAT_KEY = 'fagi.settings.cat';
 const FACTORY = new Map(ORIGINAL.map(({ c, value }) => [c, value]));
@@ -745,27 +795,37 @@ export function createSettings(world, getFagi) {
   let cat = (() => { try { return localStorage.getItem(CAT_KEY) ?? 'world'; } catch { return 'world'; } })();
   if (!CATEGORIES.some((c) => c.id === cat)) cat = 'world';
   let query = '';
+  let modifiedOnly = false;
+  const opened = new Map();
 
   // Two panes: the categories (with how many settings of each are off
   // factory) and the groups of the chosen one. A search looks through all.
   box.innerHTML = `
-    <nav class="set-nav" role="tablist"></nav>
+    <nav class="set-nav"></nav>
     <div class="set-main">
       <div class="set-tools">
         <input class="set-search" type="search" autocomplete="off">
+        <button class="set-modified" type="button" aria-pressed="false"></button>
         <button class="set-expand" type="button"></button>
       </div>
-      <p class="set-hint"></p>
+      <p class="set-hint" role="status"></p>
       <div class="set-groups"></div>
     </div>`;
   const nav = box.querySelector('.set-nav');
   const search = box.querySelector('.set-search');
   const expand = box.querySelector('.set-expand');
+  const modified = box.querySelector('.set-modified');
+  modified.addEventListener('click', () => {
+    modifiedOnly = !modifiedOnly;
+    modified.setAttribute('aria-pressed', String(modifiedOnly));
+    buildNav();
+    buildGroups();
+  });
   const hint = box.querySelector('.set-hint');
   const list = box.querySelector('.set-groups');
   const L = (en, es) => (getLang() === 'es' ? es : en);
 
-  search.addEventListener('input', () => { query = search.value.trim(); buildGroups(); });
+  search.addEventListener('input', () => { query = search.value.trim(); buildNav(); buildGroups(); });
   expand.addEventListener('click', () => {
     const all = [...list.querySelectorAll('details')];
     const open = !all.every((d) => d.open);
@@ -784,7 +844,7 @@ export function createSettings(world, getFagi) {
       const off = groups.flatMap((g) => g.fieldsOf).filter(changed).length;
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.role = 'tab';
+      btn.setAttribute('aria-pressed', String(!query && c.id === cat));
       btn.className = 'set-cat';
       btn.classList.toggle('active', !query && c.id === cat);
       btn.innerHTML = `<span class="set-icon">${c.icon}</span><span class="set-name">${c[getLang()] ?? c.en}</span>`
@@ -813,6 +873,7 @@ export function createSettings(world, getFagi) {
     const name = document.createElement('span');
     name.className = 'field-name';
     name.textContent = field.label[lang] ?? field.label.en;
+    name.id = `label-${field.id.replace(/\W+/g, '-')}`;
     const reset = document.createElement('button');
     reset.type = 'button';
     reset.className = 'field-reset';
@@ -828,6 +889,7 @@ export function createSettings(world, getFagi) {
       const shown = field.toggle ? L(factory ? 'on' : 'off', factory ? 'encendido' : 'apagado')
         : field.choices ? field.choices[factory]?.[lang] ?? factory : factory;
       reset.title = L(`Back to factory (${shown})`, `Volver al de fábrica (${shown})`);
+      reset.setAttribute('aria-label', `${name.textContent}: ${reset.title}`);
     };
     // `settled`: the change is done (not mid-drag), the counts catch up.
     const set = (v, settled) => {
@@ -836,7 +898,15 @@ export function createSettings(world, getFagi) {
       if (before !== v) onChange?.(field.id, before, v, 'user');
       mark();
       saveSoon();
-      if (settled) buildNav();
+      if (settled) {
+        buildNav();
+        for (const summary of list.querySelectorAll('summary')) {
+          const group = GROUPS.find((g) => g.title.en === summary.dataset.group);
+          const count = group?.fieldsOf.filter(changed).length ?? 0;
+          const badge = summary.querySelector('.set-off');
+          if (badge) { badge.textContent = count; badge.hidden = !count; }
+        }
+      }
     };
 
     let paint;
@@ -855,6 +925,7 @@ export function createSettings(world, getFagi) {
         value: read(field),
         onInput: (v) => set(v, true),
       });
+      choice.el.setAttribute('aria-labelledby', name.id);
       el.append(choice.el);
       paint = choice.set;
     } else {
@@ -863,6 +934,7 @@ export function createSettings(world, getFagi) {
         onInput: (v) => set(bound(field, v), false),
         onCommit: () => buildNav(),
       });
+      for (const control of [s.box, s.range]) control.setAttribute('aria-labelledby', name.id);
       top.append(s.box);
       el.append(s.range);
       paint = s.set;
@@ -872,6 +944,7 @@ export function createSettings(world, getFagi) {
       const v = FACTORY.get(field);
       set(v, true);
       paint(v);
+      if (modifiedOnly) buildGroups();
     });
     paint(read(field));
     mark();
@@ -883,29 +956,34 @@ export function createSettings(world, getFagi) {
     list.innerHTML = '';
     inputs = [];
     const q = fold(query);
-    const shown = q
+    const matches = q
       ? GROUPS.map((g) => {
         const inTitle = fold(titleOf(g)).includes(q);
         const fields = g.fieldsOf.filter((f) => inTitle || fold(f.label[getLang()] ?? f.label.en).includes(q) || fold(f.key).includes(q));
         return fields.length ? { g, fields } : null;
       }).filter(Boolean)
       : GROUPS.filter((g) => g.cat === cat).map((g) => ({ g, fields: g.fieldsOf }));
+    const shown = matches.map(({ g, fields }) => ({ g, fields: modifiedOnly ? fields.filter(changed) : fields })).filter(({ fields }) => fields.length);
     const here = CATEGORIES.find((c) => c.id === cat);
-    hint.textContent = q
+    hint.textContent = q || modifiedOnly
       ? L(`${shown.reduce((a, s) => a + s.fields.length, 0)} settings found`, `${shown.reduce((a, s) => a + s.fields.length, 0)} ajustes encontrados`)
       : here.hint[getLang()] ?? here.hint.en;
     shown.forEach(({ g, fields }, i) => {
       const det = document.createElement('details');
       // Searching opens every match; browsing opens the first group.
-      det.open = Boolean(q) || i === 0;
+      det.open = Boolean(q) || modifiedOnly || (opened.get(g.title.en) ?? i === 0);
       const off = g.fieldsOf.filter(changed).length;
       const where = q ? CATEGORIES.find((c) => c.id === g.cat) : null;
       det.innerHTML = `<summary><span>${titleOf(g)}</span>`
         + (where ? `<span class="set-where">${where.icon} ${where[getLang()] ?? where.en}</span>` : '')
-        + (off ? `<span class="set-off">${off}</span>` : '')
+        + `<span class="set-off" ${off ? '' : 'hidden'}>${off}</span>`
         + `<span class="set-n">${fields.length}</span></summary>`;
+      det.querySelector('summary').dataset.group = g.title.en;
       for (const field of fields) det.append(row(field));
-      det.addEventListener('toggle', paintExpand);
+      det.addEventListener('toggle', () => {
+        if (!query && !modifiedOnly) opened.set(g.title.en, det.open);
+        paintExpand();
+      });
       list.append(det);
     });
     if (!shown.length) list.innerHTML = `<p class="set-none">${L('Nothing matches.', 'Nada coincide.')}</p>`;
@@ -914,6 +992,9 @@ export function createSettings(world, getFagi) {
 
   function build() {
     search.placeholder = L('Search a setting…', 'Buscar un ajuste…');
+    search.setAttribute('aria-label', search.placeholder);
+    modified.textContent = L('Modified only', 'Solo modificados');
+    nav.setAttribute('aria-label', L('Setting categories', 'Categorías de ajustes'));
     buildNav();
     buildGroups();
   }
@@ -928,6 +1009,46 @@ export function createSettings(world, getFagi) {
     buildNav();
   };
 
+  // The same settings surface is inline during setup and a dialog in play.
+  const dialog = document.getElementById('settings');
+  let modal = false;
+  let returnFocus = null;
+  function syncDialog() {
+    const next = !overlay.hidden && !document.body.classList.contains('mode-setup');
+    if (next === modal) return;
+    modal = next;
+    document.body.classList.toggle('settings-modal-open', modal);
+    if (modal) {
+      returnFocus = document.activeElement;
+      dialog.setAttribute('role', 'dialog');
+      dialog.setAttribute('aria-modal', 'true');
+      dialog.setAttribute('aria-label', t('set.title'));
+      search.focus({ preventScroll: true });
+    } else {
+      dialog.removeAttribute('role');
+      dialog.removeAttribute('aria-modal');
+      dialog.removeAttribute('aria-label');
+      returnFocus?.focus({ preventScroll: true });
+    }
+  }
+  new MutationObserver(syncDialog).observe(overlay, { attributes: true, attributeFilter: ['hidden'] });
+  document.addEventListener('keydown', (event) => {
+    if (!modal) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      overlay.hidden = true;
+    } else if (event.key === 'Tab') {
+      const controls = [...dialog.querySelectorAll('button, input, select, summary')]
+        .filter((el) => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length);
+      const first = controls[0];
+      const last = controls.at(-1);
+      if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+        event.preventDefault(); last?.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+        event.preventDefault(); first?.focus();
+      }
+    }
+  });
   document.getElementById('btn-settings').addEventListener('click', () => { overlay.hidden = false; });
   document.getElementById('btn-settings-close').addEventListener('click', () => { overlay.hidden = true; });
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.hidden = true; });
@@ -939,6 +1060,7 @@ export function createSettings(world, getFagi) {
       if (before !== value) onChange?.(c.id, before, value, 'reset');
     }
     refresh();
+    buildGroups();
     saveSettings();   // all factory: deletes the save
   });
 

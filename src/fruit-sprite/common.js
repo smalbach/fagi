@@ -86,7 +86,11 @@ export function lustre(ctx, cx, cy, r, force) {
   ctx.save();
   ctx.translate(cx + LX * r * 0.44, cy + LY * r * 0.44);
   ctx.rotate(LIGHT + Math.PI / 2);
-  ctx.fillStyle = `rgba(255,255,255,${force})`;
+  const sheen = ctx.createRadialGradient(-r * 0.04, 0, 0, 0, 0, r * 0.34);
+  sheen.addColorStop(0, `rgba(255,255,245,${force})`);
+  sheen.addColorStop(0.35, `rgba(255,255,245,${force * 0.6})`);
+  sheen.addColorStop(1, 'rgba(255,255,245,0)');
+  ctx.fillStyle = sheen;
   ctx.beginPath();
   ctx.ellipse(0, 0, r * 0.32, r * 0.17, 0, 0, Math.PI * 2);
   ctx.fill();

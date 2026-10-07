@@ -1,6 +1,7 @@
 // Photographic rocks. The object's seed fixes geology and finish for its whole
 // life; the photo is stamped rotated, stretched and tinted from it.
 
+import { APPEARANCES, appearanceOf } from '../object-appearance.js';
 import { LX, LY } from './common.js';
 
 // Eight truly different geologies and silhouettes. The object's seed picks a
@@ -35,9 +36,10 @@ const ROCK_TYPES = ROCK_SOURCES.flatMap((_, base) =>
 
 // The type the seed gets and its photo. Returns null while the photo has not
 // loaded: the procedural rock is painted then.
-export function realisticRockOf(seedOf) {
+export function realisticRockOf(seedOf, object = {}) {
   const typeIndex = ((seedOf ^ (seedOf >>> 16)) >>> 0) % ROCK_TYPES.length;
-  const type = ROCK_TYPES[typeIndex];
+  const material = APPEARANCES.rock.findIndex(([id]) => id === appearanceOf(object));
+  const type = ROCK_TYPES[material < 0 ? typeIndex : material * FINISHES.length + typeIndex % FINISHES.length];
   const rock = realisticRocks[type.base];
   if (rock.complete && rock.naturalWidth > 0) return { rock, type };
   return null;

@@ -82,6 +82,7 @@
       <div id="palette-tabs" class="palette-tabs" role="tablist"></div>
       <div id="palette-grid" class="palette-grid"></div>
       <p id="palette-hint" class="palette-hint"></p>
+      <div id="appearance-editor" hidden></div>
     </details>
 
     <details data-dock="map" class="hud-group edit-only" open>
@@ -288,7 +289,7 @@
             <span class="pane-title" data-i18n="panel.code">Learned code</span>
           </header>
           <div class="pane-body">
-            <div id="code-tools">
+            <div class="code-tools">
               <button id="btn-recover" data-i18n="code.recover" disabled>Recover</button>
               <button id="btn-export" data-i18n="code.export">Export</button>
               <button id="btn-export-program" title="Export the base program and experience-backed revisions">Export behavior</button>
@@ -297,7 +298,7 @@
               <button id="btn-forget-code" data-i18n="code.forget">Forget</button>
               <span id="code-status"></span>
             </div>
-            <div id="code-tools">
+            <div class="code-tools">
               <span data-i18n="code.backend">Who decides</span>
               <select id="backend-select">
                 <option value="none" data-i18n="code.backendNone">Instinct only</option>
@@ -325,11 +326,11 @@
   <div id="dock-resizer" class="resizer" role="separator" aria-orientation="vertical"></div>
   <div id="bottom-resizer" class="resizer" role="separator" aria-orientation="horizontal"></div>
   <nav id="rail" aria-label="Panels">
-    <button type="button" data-dock="fagi" data-i18n-title="rail.fagi" title="Fagi">🐜</button>
-    <button type="button" data-dock="map" data-i18n-title="rail.map" title="Map">🗺</button>
-    <button type="button" data-dock="inspect" data-i18n-title="rail.inspect" title="Inspector">🔍</button>
+    <button type="button" data-dock="fagi" data-i18n-title="rail.fagi" title="Fagi">🐜<span class="rail-label" data-i18n="rail.fagi">Fagi</span></button>
+    <button type="button" data-dock="map" data-i18n-title="rail.map" title="Map">🗺<span class="rail-label" data-i18n="rail.map">Mapa</span></button>
+    <button type="button" data-dock="inspect" data-i18n-title="rail.inspect" title="Inspector">🔍<span class="rail-label" data-i18n="rail.inspect">Inspector</span></button>
     <button type="button" data-act="console" data-i18n-title="rail.console" title="Console">▤</button>
-    <button type="button" data-act="settings" data-i18n-title="rail.settings" title="Settings">⚙</button>
+    <button type="button" data-act="settings" class="edit-only" data-i18n-title="rail.settings" title="Settings">⚙</button>
     <span class="rail-gap"></span>
     <button type="button" data-act="smaller" data-i18n-title="rail.smaller" title="Smaller text">A−</button>
     <button type="button" data-act="bigger" data-i18n-title="rail.bigger" title="Bigger text">A+</button>
@@ -343,10 +344,15 @@
     <div id="settings">
       <header>
         <h2 data-i18n="set.title">Settings</h2>
+        <details class="settings-actions">
+          <summary data-i18n="set.actions">Session actions</summary>
+          <div class="settings-actions-body">
         <button id="btn-rain-now" data-i18n="set.rainNow">Rain now</button>
         <button id="btn-clear-trees" data-i18n="set.clearTrees">Remove trees</button>
         <button id="btn-wipe-memory" data-i18n="set.wipe">Forget everything</button>
         <button id="btn-settings-reset" data-i18n="set.factory">Factory values</button>
+          </div>
+        </details>
         <button id="btn-settings-close" data-i18n="set.close">Close</button>
       </header>
       <div id="settings-body"></div>

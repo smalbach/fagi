@@ -1,18 +1,15 @@
 // The spark painter.
 
 import { toRGB } from '../colors.js';
-import { LX, LY, volume, cover, polygon } from './common.js';
+import { LX, LY, volume, cover, polygon, shadow } from './common.js';
 
 // Spark: it is not flesh, it is mineral. A sharp-edged prism that gives off
 // glints. What it gives is speed, so it is pointy and not round.
 export function spark(ctx, cx, cy, r, base, rnd, past) {
   const [cr, cg, cb] = toRGB(base);
 
-  // Glow: you see it coming from afar even though the piece is small.
-  const halo = ctx.createRadialGradient(cx, cy, r * 0.3, cx, cy, r * 2.1);
-  halo.addColorStop(0, `rgba(${cr},${cg},${cb},${0.3 - past * 0.2})`);
-  halo.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
-  cover(ctx, halo);
+  // Reflected light and a contact shadow, rather than self-emission.
+  shadow(ctx, cx, cy, r, 0.38);
 
   const pts = carve(cx, cy, r, rnd);
 
@@ -21,22 +18,28 @@ export function spark(ctx, cx, cy, r, base, rnd, past) {
   ctx.clip();
   volume(ctx, cx, cy, r, base, 0.6 - past * 0.3, 0.66);
   faces(ctx, cx, cy, pts, rnd);
+  ctx.lineWidth = Math.max(0.3, r * 0.015);
+  for (let i = 0; i < 10; i++) {
+    const x = cx + (rnd() - 0.5) * r, y = cy + (rnd() - 0.5) * r * 1.8;
+    ctx.strokeStyle = i % 2 ? '#e4e9df38' : '#1c303b40';
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + r * 0.14, y + r * 0.28); ctx.stroke();
+  }
 
-  // Glowing core.
+  // Light scattered through the crystal.
   const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 0.75);
-  core.addColorStop(0, `rgba(255,255,255,${0.5 - past * 0.35})`);
+  core.addColorStop(0, `rgba(255,255,255,${0.18 - past * 0.12})`);
   core.addColorStop(1, 'rgba(255,255,255,0)');
   cover(ctx, core);
   ctx.restore();
 
   // Rim along the edge and loose glints around it.
   ctx.strokeStyle = `rgba(${cr},${cg},${cb},0.75)`;
-  ctx.lineWidth = Math.max(1, r * 0.12);
+  ctx.lineWidth = Math.max(0.4, r * 0.035);
   polygon(ctx, pts);
   ctx.stroke();
   ctx.lineWidth = 1;
 
-  sparkles(ctx, cx, cy, r, rnd, past);
+
 }
 
 // The prism's profile, a bit skewed and with each edge doing its own thing.
@@ -73,18 +76,4 @@ function faces(ctx, cx, cy, pts, rnd) {
     ctx.fill();
   }
   ctx.globalAlpha = 1;
-}
-
-function sparkles(ctx, cx, cy, r, rnd, past) {
-  const n = 3 - ((past * 2) | 0);
-  for (let i = 0; i < n; i++) {
-    const a = rnd() * Math.PI * 2;
-    const d = r * (1.25 + rnd() * 0.5);
-    ctx.strokeStyle = `rgba(255,255,255,${0.18 + rnd() * 0.2})`;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(cx + Math.cos(a) * d, cy + Math.sin(a) * d);
-    ctx.lineTo(cx + Math.cos(a) * (d + r * 0.45), cy + Math.sin(a) * (d + r * 0.45));
-    ctx.stroke();
-  }
 }

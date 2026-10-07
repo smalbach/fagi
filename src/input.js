@@ -26,7 +26,7 @@
 //
 // `editable = false` (replaying a recorded game) leaves only the camera.
 
-import { addPoint, addObject, removeObject, nestOf, record } from './world.js';
+import { addPoint, addObject, setObjectAppearance, removeObject, nestOf, record } from './world.js';
 import { objectAt, radiusOf } from './obstacles.js';
 import { OBJECT_TYPES, CAMERA } from './config.js';
 import { ripe, approach, move, fit, minZoom } from './camera.js';
@@ -64,8 +64,13 @@ export function createInput(canvas, world, camera) {
   // onInspect(x, y) = show what is there; pickFagi(x, y) = select a Fagi if
   // one is there (true), so a click on her never drops food on her.
   // editing = the map object selected for editing (moved, resized, removed).
-  const state = { selectedType: null, editable: true, editing: null };
+  const state = { selectedType: null, editable: true, editing: null, appearances: {} };
   const pressed = new Set();
+  const placeObject = (x, y, type) => {
+    const obj = addObject(world, x, y, type, undefined, 'user');
+    setObjectAppearance(world, obj, state.appearances[type] ?? 'auto');
+    return obj;
+  };
 
   // The canvas may be shown scaled by CSS: this factor undoes that.
   function scaleOf() {
@@ -165,17 +170,22 @@ export function createInput(canvas, world, camera) {
     // There's only one nest: the click MOVES it instead of duplicating it.
     if (sel === 'nest') {
       const existing = nestOf(world);
-      if (existing) { moveObject(existing, x, y); return; }
-      state.editing = addObject(world, x, y, sel, undefined, 'user');
+      if (existing) {
+        moveObject(existing, x, y);
+        if (state.appearances.nest) setObjectAppearance(world, existing, state.appearances.nest);
+        state.editing = existing;
+        return;
+      }
+      state.editing = placeObject(x, y, sel);
       return;
     }
 
     if (tree) {
-      const obj = addObject(world, x, y, 'tree', undefined, 'user');
+      const obj = placeObject(x, y, 'tree');
       obj.fruit = sel.slice(TREE_PREFIX.length);
       record(world, 'obj_fruit', { id: obj.id, what: obj.fruit });
       state.editing = obj;
-    } else if (OBJECT_TYPES[sel]) state.editing = addObject(world, x, y, sel, undefined, 'user');
+    } else if (OBJECT_TYPES[sel]) state.editing = placeObject(x, y, sel);
     else addPoint(world, x, y, sel, 'user');
   });
 

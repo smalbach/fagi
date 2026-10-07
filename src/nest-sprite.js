@@ -9,7 +9,8 @@
 // The mound fills the nest's use radius: what you see is exactly the area
 // where Fagi is "at home".
 
-import { canvasOf, mix, seededRng, seedFor, noise, detail, stamp } from './sprite-kit.js';
+import { naturalAppearance } from './object-appearance.js';
+import { canvasOf, mix, seededRng, seedFor, noise, detail, stamp, cacheSprite } from './sprite-kit.js';
 
 const sprites = new Map();   // key: seed|radius|color
 
@@ -20,7 +21,10 @@ const LY = Math.sin(LIGHT);
 
 export function drawNest(ctx, o, spec, r) {
   const z = detail();
-  const img = spriteOf(seedFor(o), Math.round(r * z), spec.color);
+  const seed = seedFor(o);
+  const variant = naturalAppearance(o, seed);
+  const soil = { earth: '#72523c', sand: '#c4ab75', forest: '#433c28' }[variant];
+  const img = spriteOf(seed, Math.round(r * z), soil ?? spec.color, variant);
   stamp(ctx, img, o.x, o.y, z);
 }
 
@@ -55,13 +59,9 @@ export function drawNestMouth(ctx, o, r, busy, now) {
   }
 }
 
-function spriteOf(seedOf, r, color) {
-  const key = `${seedOf}|${r}|${color}`;
-  const saved = sprites.get(key);
-  if (saved) return saved;
-  const img = paintNest(seedOf, r, color);
-  sprites.set(key, img);
-  return img;
+function spriteOf(seedOf, r, color, variant) {
+  const key = `${seedOf}|${r}|${color}|${variant}`;
+  return cacheSprite(sprites, key, () => paintNest(seedOf, r, color, variant), 120);
 }
 
 // A soft blot: used by the dozen, for the bulk and for the mask.
@@ -110,7 +110,7 @@ function mask(S, r, rnd) {
   return c;
 }
 
-function paintNest(seedOf, r, color) {
+function paintNest(seedOf, r, color, variant) {
   const rnd = seededRng(seedOf);
   const pad = Math.ceil(r * 0.45) + 8;
   const S = (r + pad) * 2;
@@ -120,7 +120,7 @@ function paintNest(seedOf, r, color) {
 
   // Churned soil: brown and dull, with a pinch of the nest's ochre so it reads
   // as its own and not as just another stone.
-  const soil = mix('#5b452e', color, 0.12);
+  const soil = mix('#5b452e', color, 0.68);
   const clear = mix(soil, '#d8bd90', 0.55);
   const dark = mix(soil, '#171109', 0.62);
 
@@ -160,6 +160,23 @@ function paintNest(seedOf, r, color) {
     const clodLight = rnd() < 0.5;
     patch(mc, x - LX * rad * 0.3, y - LY * rad * 0.3, rad, clodLight ? 0.1 : 0.16,
       clodLight ? '236,214,175' : '22,17,11');
+  }
+
+  // Runoff channels cut through the mound, lit along their upper rim.
+  for (let i = 0; i < 18; i++) {
+    const a = rnd() * Math.PI * 2;
+    mc.save(); mc.translate(cx, cy); mc.rotate(a);
+    mc.lineWidth = Math.max(0.5, r * 0.014);
+    mc.strokeStyle = 'rgba(25,17,10,0.22)';
+    mc.beginPath(); mc.moveTo(rb * 1.7, 0);
+    mc.quadraticCurveTo(r * 0.5, r * (rnd() - 0.5) * 0.16, r * 0.88, r * 0.06); mc.stroke();
+    if (variant === 'forest') {
+      mc.strokeStyle = '#3b2b19'; mc.lineWidth = Math.max(1, r * 0.035);
+      mc.beginPath(); mc.moveTo(r * 0.48, r * 0.12); mc.lineTo(r * 0.86, r * 0.2); mc.stroke();
+      mc.fillStyle = mix('#78653b', '#382c18', rnd());
+      mc.beginPath(); mc.ellipse(r * 0.7, -r * 0.16, r * 0.14, r * 0.045, 0.5, 0, Math.PI * 2); mc.fill();
+    }
+    mc.restore();
   }
 
   // Grain: fine sand over coarse clods.

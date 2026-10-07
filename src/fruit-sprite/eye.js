@@ -51,9 +51,9 @@ function iris(ctx, ix, iy, r, rIris, base, rnd, past) {
   circle(ctx, ix, iy, rIris, mix(base, '#0b0a16', 0.15 + past * 0.2));
 
   // Iris fibers.
-  ctx.lineWidth = Math.max(0.5, r * 0.04);
-  for (let i = 0; i < 12; i++) {
-    const a = (i / 12) * Math.PI * 2 + rnd() * 0.2;
+  ctx.lineWidth = Math.max(0.25, r * 0.015);
+  for (let i = 0; i < 36; i++) {
+    const a = (i / 36) * Math.PI * 2 + rnd() * 0.2;
     ctx.strokeStyle = i % 2 ? 'rgba(255,255,255,0.18)' : 'rgba(10,8,20,0.28)';
     ctx.beginPath();
     ctx.moveTo(ix + Math.cos(a) * rIris * 0.35, iy + Math.sin(a) * rIris * 0.35);
