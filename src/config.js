@@ -852,6 +852,22 @@ export const SEASONS = {
   reachLow: 0.1,     // what the trees on the wrong side bear in such a year (× their rate)
 };
 
+// Habitats (habitats.js): each nest's surroundings are a place of their own,
+// so each colony adapts to where it lives. One per nest, in order, when a map
+// is made. Off, every nest lives in the same world.
+//   kinds : the habitats dealt to the nests, one each (cycled if more nests),
+//           shuffled per map
+//   cold  : °C the air around a 'cold' nest is colder
+//   lean  : what the trees of a 'lean' nest bear (× their rate)
+//   toxic : poisonous trees growing close to a 'toxic' nest, and how close (px)
+export const HABITATS = {
+  enabled: 0,
+  kinds: ['cold', 'lean', 'toxic'],
+  cold: { cold: 5 },
+  lean: { fruit: 0.4 },
+  toxic: { trees: 1, near: [150, 260] },
+};
+
 // Explore or come back (phase 9, spec §12.11): a world where going back to
 // the last good place is not always right. With it off, every tree bears
 // forever and no fruit shows up on its own, as before.

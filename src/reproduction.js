@@ -32,6 +32,7 @@ import { createFagi } from './fagi.js';
 import { assignSex, bodyFor, bodyMult, energyMax, ensureBothSexes } from './biology.js';
 import { morphOn, founderMorph, baldwinOn, founderPlastic, epigeneticOn, epigeneticMark, maternalMark } from './morph.js';
 import { strengthOf } from './load.js';
+import { coldAt } from './habitats.js';
 import { createGenome, recombine, applyGenome, teach } from './generations.js';
 import { drawLifespan, lifeAge, fertility } from './lifecycle.js';
 import { cycleAt } from './cycle.js';
@@ -180,7 +181,8 @@ function ready(f, world, nest, crowd = 1) {
 export function nestTemperature(world, nest = nestOf(world)) {
   if (!THERMAL.enabled || !CYCLE.enabled) return null;
   const sky = cycleAt(world.time);
-  return THERMAL.nestBuffer * (THERMAL.nestTemp + nestWarmth(world, nest)) + (1 - THERMAL.nestBuffer) * sky.ambient;
+  const air = sky.ambient - (nest ? coldAt(world, nest.x, nest.y) : 0);   // its habitat's air (HABITATS)
+  return THERMAL.nestBuffer * (THERMAL.nestTemp + nestWarmth(world, nest)) + (1 - THERMAL.nestBuffer) * air;
 }
 
 // How fast an egg develops at this nest temperature: 0 in the cold, 1 warm.

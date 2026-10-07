@@ -1,11 +1,12 @@
 // Generates the map: pools and rocks scattered at random, without overlapping each other
 // and leaving free the spot where Fagi spawns.
 
-import { WORLD, MAPGEN, OBJECT_TYPES, CONCEPT, POINT_TYPES, COLONIES } from './config.js';
+import { WORLD, MAPGEN, OBJECT_TYPES, CONCEPT, POINT_TYPES, COLONIES, HABITATS } from './config.js';
 import { addObject, record } from './world.js';
 import { createChemistry, createSpecies, registerSpecies } from './chemistry.js';
 import { radiusOf } from './obstacles.js';
 import { placeThings } from './things.js';
+import { assignHabitats, habitatOfNest } from './habitats.js';
 
 // How many base maps fit in this one (MAPGEN.size² on a scaled map).
 export const areaOf = (world) => Math.max(1, (world.width * world.height) / (WORLD.baseWidth * WORLD.baseHeight));
@@ -66,7 +67,9 @@ function placeNearSpawn(world, type, count, minDistance, maxDistance) {
   if (placed < count) place(world, type, count - placed);
 }
 
-function placeFarFrom(world, type, count, origin, minDistance, maxDistance, preferredAngle, spread = 1.2) {
+// `inside`: only spots wholly inside the map. The preregistered maps (one nest,
+// the species ring) were drawn without it and keep it off, number for number.
+function placeFarFrom(world, type, count, origin, minDistance, maxDistance, preferredAngle, spread = 1.2, inside = false) {
   const r = OBJECT_TYPES[type].radius;
   const cx = WORLD.width / 2;
   const cy = WORLD.height / 2;
@@ -78,11 +81,24 @@ function placeFarFrom(world, type, count, origin, minDistance, maxDistance, pref
     const distance = minDistance + Math.random() * (maxDistance - minDistance);
     const x = origin.x + Math.cos(angle) * distance;
     const y = origin.y + Math.sin(angle) * distance;
+    // Inside the map: off its edge she could see it and never reach it.
+    if (inside && (x < MAPGEN.margin + r || x > WORLD.width - MAPGEN.margin - r)) continue;
+    if (inside && (y < MAPGEN.margin + r || y > WORLD.height - MAPGEN.margin - r)) continue;
     if (Math.hypot(x - cx, y - cy) < MAPGEN.spawnClear + r) continue;
     if (!fits(world, x, y, r)) continue;
     addObject(world, x, y, type, undefined, 'map');
     placed++;
   }
+  return placed;
+}
+
+// placeFarFrom, and if they don't all fit on the side asked for (a nest near
+// the edge of the map), any side, then nearer: a nest is never left without
+// its water or its trees.
+function placeAround(world, type, count, origin, minDistance, maxDistance, preferredAngle, spread) {
+  let placed = placeFarFrom(world, type, count, origin, minDistance, maxDistance, preferredAngle, spread, true);
+  if (placed < count) placed += placeFarFrom(world, type, count - placed, origin, minDistance, maxDistance, 0, Math.PI * 2, true);
+  if (placed < count) placed += placeFarFrom(world, type, count - placed, origin, minDistance * 0.6, maxDistance, 0, Math.PI * 2, true);
   return placed;
 }
 
@@ -140,9 +156,27 @@ function placeColonies(world, first) {
       const nest = addObject(world, x, y, 'nest', undefined, 'map');
       nests.push(nest);
       const away = Math.atan2(y - first.y, x - first.x);
-      placeFarFrom(world, 'water', 1, nest, 120, 220, away + Math.PI / 2, Math.PI);
-      placeFarFrom(world, 'tree', MAPGEN.trees, nest, MAPGEN.treeMinNestDistance, MAPGEN.treeMaxNestDistance, away, 2.4);
+      placeAround(world, 'water', 1, nest, 120, 220, away + Math.PI / 2, Math.PI);
+      placeAround(world, 'tree', MAPGEN.trees, nest, MAPGEN.treeMinNestDistance, MAPGEN.treeMaxNestDistance, away, 2.4);
       break;
+    }
+  }
+}
+
+// Habitats (HABITATS): each nest gets its own, and a 'toxic' one gets its
+// poisonous trees close by, nearer than its good tree. Draws nothing off.
+function placeHabitats(world) {
+  if (!HABITATS.enabled) return;
+  assignHabitats(world);
+  for (const nest of world.objects.filter((o) => o.type === 'nest')) {
+    const h = habitatOfNest(world, nest);
+    if (!h?.trees) continue;
+    const [near, far] = h.near ?? [150, 260];
+    for (let i = 0; i < h.trees; i++) {
+      if (!placeFarFrom(world, 'tree', 1, nest, near, far, Math.random() * Math.PI * 2, Math.PI * 2, true)) break;
+      const tree = world.objects.at(-1);
+      tree.fruit = 'toxic';
+      record(world, 'obj_fruit', { id: tree.id, what: 'toxic' });
     }
   }
 }
@@ -170,6 +204,7 @@ export function generateMap(world, { chemistry = null } = {}) {
     );
   }
   placeColonies(world, nest);
+  placeHabitats(world);
   placeCustomTrees(world);
   // A bigger map keeps the same rocks per square pixel; density scales it.
   const rockDensity = MAPGEN.density ?? 1;

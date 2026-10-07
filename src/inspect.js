@@ -37,12 +37,18 @@ import { treeAge, intervalOf, maxNearOf } from './trees.js';
 import { programOf } from './program.js';
 import { summarizePhylogeny, renderPhylogenyMermaid, exportPhylogenyJson } from './phylogeny.js';
 import { casteOf } from './castes.js';
+import { habitatOfNest } from './habitats.js';
 
 const L = (en, es) => (getLang() === 'es' ? es : en);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const pct = (v) => `${Math.round(v * 100)}%`;
 const num = (v, d = 1) => (Number.isFinite(v) ? v.toFixed(d).replace(/\.0+$/, '') : '—');
 const dur = (s) => formatDuration(s);
+const habitatLabel = (name) => ({
+  cold: L('cold hollow', 'hondonada fría'),
+  lean: L('poor soil', 'suelo pobre'),
+  toxic: L('poison close by', 'veneno cerca'),
+}[name] ?? name);
 const SEX_MARK = { female: '♀', male: '♂' };
 const SEX_COLOR = { female: '#e58fb5', male: '#6fb3e8' };
 
@@ -276,7 +282,7 @@ function paintFagi(f, world, main, isMain, canFollow) {
   const inNest = nest && f.x != null && nestUnder(f, world);
   const state = [
     row(L('Doing', 'Haciendo'), now ? esc(now) : null),
-    f.home != null ? row(L('Colony', 'Colonia'), `${L('nest', 'nido')} #${f.home}`) : null,
+    f.home != null ? row(L('Colony', 'Colonia'), `${L('nest', 'nido')} #${f.home}${habitatOfNest(world, nest) ? ` · ${habitatLabel(nest.habitat)}` : ''}`) : null,
     f.carrying?.weight != null ? row(L('Load', 'Carga'), `×${num(f.carrying.weight, 2)} ${L('weight', 'peso')}, ×${num(f.carrying.hardness ?? 1, 2)} ${L('hardness', 'dureza')}`) : null,
     caste ? row(L('Colony role', 'Rol en la colonia'), `${caste.icon} ${L(caste.name.en, caste.name.es)} (${Math.round(caste.affinity * 100)}% ${L('affinity', 'afinidad')})`) : null,
     row(L('Why', 'Por qué'), f.thought?.reason ? esc(tx(f.thought.reason)) : null, 'ins-wrap'),
@@ -512,7 +518,8 @@ function paintObject(o, world, main) {
       + section('place', L('Place', 'Lugar'), common);
   } else if (kind === 'nest') {
     const total = stockCount(o.stock);
-    const temp = nestTemperature(world);
+    const temp = nestTemperature(world, o);
+    const habitat = habitatOfNest(world, o);
     const rows = Object.keys(o.stock ?? {}).filter((k) => o.stock[k] > 0).map((k) => {
       const life = (POINT_TYPES[k]?.life ?? 0) * NEST.keepFactor;
       const step = nestRipeness(o, k);
@@ -534,6 +541,12 @@ function paintObject(o, world, main) {
       + row(L('Spoiled so far', 'Estropeadas hasta ahora'), o.spoiled ? String(o.spoiled) : null))
       + section('eggs', L('Eggs', 'Huevos'), LIFE.enabled ? (eggs || `<div class="ins-none">${L('No eggs', 'Sin huevos')}</div>`)
         + row(L('Hatching pace now', 'Ritmo de incubación ahora'), pct(eggPace(temp))) : '')
+      + (habitat ? section('habitat', L('Habitat', 'Hábitat'), [
+        row(L('Kind', 'Tipo'), habitatLabel(habitat.name)),
+        habitat.cold ? row(L('Air', 'Aire'), `−${num(habitat.cold)} °C`) : null,
+        habitat.fruit !== 1 ? row(L('Its trees bear', 'Sus árboles dan'), `×${num(habitat.fruit)}`) : null,
+        habitat.trees ? row(L('Poisonous trees close by', 'Árboles venenosos cerca'), String(habitat.trees)) : null,
+      ].join('')) : '')
       + section('now', L('Inside now', 'Dentro ahora'), [
         row(L('Temperature', 'Temperatura'), temp != null ? `${num(temp)} °C` : null),
         row(L('Lining', 'Forro'), o.lining?.length ? String(o.lining.length) : null),

@@ -139,3 +139,27 @@ Gens 3–5: learn vs born 12/1 (p 0.003); inherit vs born 20/4 (p 0.002); inheri
 - Five more worlds, all scarce, 22 plausible moves, 24 lives each: warm nights (mean 26, swing 4; born 0.33), cold (18 ± 14; 0.71), long nights (dawn 0.35, dusk 0.65; 0.79), hot days (28 ± 12; 0.25), rain every 45 s (0.42). In warm and rainy worlds no move changes anything. The one recurring hint, `memory>thermal` (long nights 0.92 vs 0.79, 4/1), did not replicate on 48 new seeds (9/10).
 
 Reading: the born order is a robust local optimum across these worlds. Part of why: the behaviors carry their own learning (`dusk` acts only once the dark means cold to her, `thermal` only once she knows the nest helps), so the same order adapts by itself. Reordering lines has something to find only when the order is broken. For entities to find something new, the world must demand a priority nobody built in, or the grammar must let them build more than an order.
+
+## The game's world: three colonies, each in its own habitat (2026-10-07)
+
+`scripts/game-world.js`: the game's own settings (`src/app/organism-on.js`: three colonies of up to 30, seasons, evolving body, fruit that weighs), 3 years per map, varied maps.
+
+**A bug first.** Further nests' water and trees were placed without checking the map's edge: 583 of 2000 waters, trees and nests sat partly or wholly off the map. Ants of those colonies died of thirst pacing the edge 2–60 px from water they could not reach (27 thirst deaths in the first year on 4 maps). Fixed for colonies and habitats (`placeAround` in `mapgen.js`); the preregistered maps (one nest, species ring) are drawn exactly as before. Thirst deaths fell to ~0.
+
+**Habitats** (`src/habitats.js`, `HABITATS`, on in the game): each nest gets one, dealt at random per map — `cold` (air 5 °C colder around it, fading by 1/d²), `lean` (its trees bear × 0.4), `toxic` (a poisonous tree 150–260 px from it).
+
+**Fruit interval** (6 maps × 3 years, then 8 maps × 3 years with habitats shuffled):
+
+| fruit every | alive (% of ceiling) | what they die of | nests emptied / refounded |
+|---|---|---|---|
+| 8 s (game until now) | 71–73 % (25 of 30 by year 2) | mostly age | 0 / 0 |
+| 20 s | 53–64 % | cold ≈ age | 0 / 0 |
+| **30 s** | lean 38 %, toxic 48 %, cold 48 % | cold > age | 3 of 72 nest-years / 4 |
+| 40 s | lean 31 %, toxic 45 %, cold 28 %, falling in year 3 | cold ≫ age | 8 of 72 / 7 |
+| 80 s | 12–31 % | cold | 13 of 54 / 11 |
+
+The game moves to 30 s: food and winter set how many live, habitats separate, colonies turn over now and then, no map dies out. At 40 s cold and lean colonies keep falling and refounding needs a donor of 15, so long games would empty.
+
+Cold deaths are not an artifact (autopsy, one map, 2 years, 30 s): all 57 in winter, 39 at night, nearly all far from the nest (median ~500 px), 38 of 57 with hunger above 60 — foragers caught out hungry in the cold.
+
+Hunger itself almost never kills: scarcity acts through cold while foraging and through fewer broods.

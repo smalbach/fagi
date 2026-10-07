@@ -9,7 +9,7 @@ import {
   MAPGEN, POINT_TYPES, OBJECT_TYPES, TYPE_KEYS, FEEL, LEARN, CUES, BACKEND, RAIN, WATER, INSTINCT, SOCIAL,
   CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI, CONCEPT,
   LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES, CHOICE, LARDER, CONDUCT,
-  PROGRAM, MOVEMENT, CASTES, MORPH, SEASONS, LOAD, COLONIES, STOMACH, SELECT, DRIVE, SCIENCE,
+  PROGRAM, MOVEMENT, CASTES, MORPH, SEASONS, HABITATS, LOAD, COLONIES, STOMACH, SELECT, DRIVE, SCIENCE,
   CAMERA, ATTENTION, SYNAPSE, EXPLAIN,
 } from './config.js';
 import { ORGANISM } from './organism.js';
@@ -119,6 +119,10 @@ const GROUPS = [
     { ...n(SEASONS, 'spread', 'How much one winter may differ from another', 'Cuánto puede diferir un invierno de otro', 0, 1, 0.05), id: 'seasons.spread' },
     { ...n(SEASONS, 'farYears', 'Share of years whose fruit is far from the nest', 'Parte de años con la fruta lejos del nido', 0, 1, 0.05), id: 'seasons.farYears' },
     { ...n(SEASONS, 'reachLow', 'What trees on the wrong side bear those years (×)', 'Lo que dan esos años los árboles del lado equivocado (×)', 0, 1, 0.05), id: 'seasons.reachLow' },
+    { ...b(HABITATS, 'enabled', 'Habitats: each nest a place of its own (new maps)', 'Hábitats: cada nido un lugar propio (mapas nuevos)'), id: 'habitats.enabled' },
+    { ...n(HABITATS.cold, 'cold', 'Degrees colder around the cold nest', 'Grados más frío alrededor del nido frío', 0, 15, 0.5), id: 'habitats.cold' },
+    { ...n(HABITATS.lean, 'fruit', 'What the lean nest\'s trees bear (×)', 'Lo que dan los árboles del nido pobre (×)', 0.05, 1, 0.05), id: 'habitats.lean' },
+    { ...n(HABITATS.toxic, 'trees', 'Poisonous trees near the toxic nest (new maps)', 'Árboles venenosos cerca del nido engañoso (mapas nuevos)', 0, 4, 1), id: 'habitats.toxic' },
     n(CYCLE, 'minLight', 'Light at night', 'Luz de noche', 0, 1, 0.02),
     n(CYCLE, 'nightSight', 'Sight left at night (fraction)', 'Vista que le queda de noche (fracción)', 0.1, 1, 0.05),
     n(CYCLE, 'dawn', 'Dawn (phase of the day, 0-1)', 'Amanecer (fase del día, 0-1)', 0.05, 0.45, 0.01),

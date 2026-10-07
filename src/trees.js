@@ -6,6 +6,7 @@ import { addPoint, removeObject, record } from './world.js';
 import { drawVariant } from './chemistry.js';
 import { seasonNow } from './seasons.js';
 import { weighFruit } from './load.js';
+import { fruitRateOf } from './habitats.js';
 import { isTree, radiusOf, waterZone } from './obstacles.js';
 
 export function treesOf(world) {
@@ -59,7 +60,7 @@ export function updateTrees(world, dt) {
     // A seasonal tree gone bare drops nothing until its rest is over (FORAGE).
     if (FORAGE.enabled && seasonal(tree) && resting(world, tree, dt)) continue;
 
-    tree.timer -= bears * reachOf(world, tree, season.far);
+    tree.timer -= bears * reachOf(world, tree, season.far) * fruitRateOf(world, tree);   // its habitat's soil (HABITATS)
     if (tree.timer > 0) continue;
     // Its fruit was a made one the person has since deleted: it bears nothing.
     if (!POINT_TYPES[fruitOf(tree)]) { tree.timer = TREE.interval; continue; }

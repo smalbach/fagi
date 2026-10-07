@@ -3,7 +3,7 @@
 // "factory" in the game means organism on.
 
 import { enableOrganism } from '../organism.js';
-import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE, DRIVE } from '../config.js';
+import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE, DRIVE, HABITATS, TREE } from '../config.js';
 import { CAUTION_LINES } from '../learned/conduct.js';
 
 enableOrganism();
@@ -73,3 +73,16 @@ DRIVE.mode = 'learned';
 DECIDE.eat = 'learned';
 CONDUCT.enabled = 1;
 CONDUCT.born = CAUTION_LINES;
+
+// Habitats (habitats.js): each of the three nests lives somewhere of its own —
+// a cold hollow, poor soil, poison growing close by — so each colony learns
+// and inherits what its own place asks of it, as populations do in nature.
+HABITATS.enabled = 1;
+
+// A world that presses (scripts/game-world.js, 2026-10-07): with a fruit every
+// 8 s every nest filled to its ceiling and most died of old age, so nothing
+// they learned or inherited could matter. With one every 30 s food and winter
+// set how many live (38-48 % of the ceiling over three years, 8 maps): more
+// die of cold, caught out foraging hungry in winter, than of age; now and
+// then a nest empties and another colony refounds it; no map dies out.
+TREE.interval = 30;
