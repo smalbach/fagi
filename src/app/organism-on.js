@@ -3,7 +3,7 @@
 // "factory" in the game means organism on.
 
 import { enableOrganism } from '../organism.js';
-import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE, DRIVE } from '../config.js';
+import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE, DRIVE, MAPGEN } from '../config.js';
 import { CAUTION_LINES } from '../learned/conduct.js';
 
 enableOrganism();
@@ -34,6 +34,11 @@ SOCIAL.touch = 24;
 // evolves the same way in 7 of 8 seeds in four years.
 COLONIES.count = 3;
 LIFE.maxPopulation = 30;
+
+// Every tree and pond around a nest wholly inside the map (mapgen.js). Without
+// it, the other two nests' trees almost always fell off the edge, and about one
+// map in six lost a wild species there. Research keeps the old maps.
+MAPGEN.inside = 1;
 
 // The evolving body (morph.js): organs inherited with what they give and cost,
 // drawn on her. The settings turn it off; research keeps it off.

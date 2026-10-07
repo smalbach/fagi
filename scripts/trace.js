@@ -41,6 +41,9 @@ const EVERY = 60;     // seconds between checkpoints
 async function game() {
   await import('../src/app/organism-on.js');
   CONFIG.MAPGEN.species = 6;
+  // The fixture was recorded on the maps drawn before MAPGEN.inside existed:
+  // it holds her decisions, not the map, so it keeps those maps.
+  CONFIG.MAPGEN.inside = 0;
 }
 
 // Long enough for the rarer lines to answer: anticipating rain (classic),

@@ -66,7 +66,10 @@ function placeNearSpawn(world, type, count, minDistance, maxDistance) {
   if (placed < count) place(world, type, count - placed);
 }
 
-function placeFarFrom(world, type, count, origin, minDistance, maxDistance, preferredAngle, spread = 1.2) {
+// `inside`: only spots wholly inside the map (MAPGEN.inside). The preregistered
+// maps were drawn without it and keep it off, number for number: off its edge
+// a tree is out of reach, and its fruit falls in a line along the wall.
+function placeFarFrom(world, type, count, origin, minDistance, maxDistance, preferredAngle, spread = 1.2, inside = false) {
   const r = OBJECT_TYPES[type].radius;
   const cx = WORLD.width / 2;
   const cy = WORLD.height / 2;
@@ -78,10 +81,31 @@ function placeFarFrom(world, type, count, origin, minDistance, maxDistance, pref
     const distance = minDistance + Math.random() * (maxDistance - minDistance);
     const x = origin.x + Math.cos(angle) * distance;
     const y = origin.y + Math.sin(angle) * distance;
+    if (inside && (x < MAPGEN.margin + r || x > WORLD.width - MAPGEN.margin - r)) continue;
+    if (inside && (y < MAPGEN.margin + r || y > WORLD.height - MAPGEN.margin - r)) continue;
     if (Math.hypot(x - cx, y - cy) < MAPGEN.spawnClear + r) continue;
     if (!fits(world, x, y, r)) continue;
     addObject(world, x, y, type, undefined, 'map');
     placed++;
+  }
+  return placed;
+}
+
+// placeFarFrom, and with MAPGEN.inside, if they don't all fit inside the map on
+// the side asked for (a nest near the edge): the same side nearer, then any
+// side, then any side nearer. Without it, placeFarFrom as it always was.
+function placeAround(world, type, count, origin, minDistance, maxDistance, preferredAngle, spread) {
+  if (!MAPGEN.inside) return placeFarFrom(world, type, count, origin, minDistance, maxDistance, preferredAngle, spread);
+  const tries = [
+    [minDistance, preferredAngle, spread],
+    [minDistance * 0.6, preferredAngle, spread],
+    [minDistance, 0, Math.PI * 2],
+    [minDistance * 0.6, 0, Math.PI * 2],
+  ];
+  let placed = 0;
+  for (const [near, angle, wide] of tries) {
+    if (placed >= count) break;
+    placed += placeFarFrom(world, type, count - placed, origin, near, maxDistance, angle, wide, true);
   }
   return placed;
 }
@@ -99,7 +123,7 @@ function placeSpecies(world, nest, chemistry = null) {
   const start = Math.random() * Math.PI * 2;
   species.forEach(({ key }, i) => {
     const angle = start + (i / species.length) * Math.PI * 2;
-    const placed = placeFarFrom(
+    const placed = placeAround(
       world, 'tree', 1, nest, MAPGEN.speciesMinDistance, MAPGEN.speciesMaxDistance, angle, 0.6,
     );
     if (!placed) return;
@@ -140,8 +164,8 @@ function placeColonies(world, first) {
       const nest = addObject(world, x, y, 'nest', undefined, 'map');
       nests.push(nest);
       const away = Math.atan2(y - first.y, x - first.x);
-      placeFarFrom(world, 'water', 1, nest, 120, 220, away + Math.PI / 2, Math.PI);
-      placeFarFrom(world, 'tree', MAPGEN.trees, nest, MAPGEN.treeMinNestDistance, MAPGEN.treeMaxNestDistance, away, 2.4);
+      placeAround(world, 'water', 1, nest, 120, 220, away + Math.PI / 2, Math.PI);
+      placeAround(world, 'tree', MAPGEN.trees, nest, MAPGEN.treeMinNestDistance, MAPGEN.treeMaxNestDistance, away, 2.4);
       break;
     }
   }
@@ -164,9 +188,9 @@ export function generateMap(world, { chemistry = null } = {}) {
     registerSpecies([]);
     world.chemistry = null;
     world.species = [];
-    placeFarFrom(
+    placeAround(
       world, 'tree', MAPGEN.trees, nest,
-      MAPGEN.treeMinNestDistance, MAPGEN.treeMaxNestDistance, ang + Math.PI,
+      MAPGEN.treeMinNestDistance, MAPGEN.treeMaxNestDistance, ang + Math.PI, 1.2,
     );
   }
   placeColonies(world, nest);

@@ -1039,6 +1039,9 @@ export const MAPGEN = {
                       // wild species, one tree each (chemistry.js). 0 = classic
   speciesMinDistance: 200, // how far from the nest the species trees grow
   speciesMaxDistance: 480,
+  inside: 0,          // 1 = the trees and water placed around a nest stay wholly inside
+                      // the map. 0 = as the preregistered maps were drawn: about one
+                      // map in six with species has a tree off the edge. The game sets 1
   density: 1.0,       // multiplier on rock and tree generation density
   hazards: 0,         // enable mud patches and treacherous terrain (0 = off by default)
   mudPatches: 3,      // number of mud patches that slow movement
