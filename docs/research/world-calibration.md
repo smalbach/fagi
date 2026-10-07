@@ -163,3 +163,18 @@ The game moves to 30 s: food and winter set how many live, habitats separate, co
 Cold deaths are not an artifact (autopsy, one map, 2 years, 30 s): all 57 in winter, 39 at night, nearly all far from the nest (median ~500 px), 38 of 57 with hunger above 60 — foragers caught out hungry in the cold.
 
 Hunger itself almost never kills: scarcity acts through cold while foraging and through fewer broods.
+
+## Inheriting what was lived, in the game (2026-10-07)
+
+Same 8 maps, 4 years, fruit every 30 s, habitats on. A: the game as above. B: plus an epigenetic mark of the parents' organs (`MORPH.inherit` 2) and conduct learned and inherited as preregistered (`PROGRAM.learn/inherit/judge/darkTrials/exploreByState` 1).
+
+| | A | B |
+|---|---|---|
+| alive per nest | 12.0 | 12.7 (B − A +0.8, 5 of 8 maps, t 1.3) |
+| nests emptied / refounded | 12 / 11 | 7 / 7 |
+| lines of her own per ant | 0 | 0.41–0.74, of which 0.29–0.47 inherited |
+| commonest line | — | memory before pursue, memory before scent |
+| muscle body / gene | 1.06–1.12 / 1.03–1.08 | 1.14–1.17 / 1.05–1.06 |
+| size body / gene | 0.93–1.02 / 1.00–1.08 | 0.89–0.90 / 1.00–1.01 |
+
+B goes into the game: it costs no population, conduct passes from mother to daughter, and bodies follow what was lived. **Not yet local adaptation:** the three habitats end with the same lines and the same bodies. The lean winter presses the same way everywhere, and the cold habitat barely reaches the brood (the nest takes 80 % of the air's chill off). For colonies to diverge, habitats must pull in different directions.

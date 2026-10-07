@@ -3,7 +3,7 @@
 // "factory" in the game means organism on.
 
 import { enableOrganism } from '../organism.js';
-import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE, DRIVE, HABITATS, TREE } from '../config.js';
+import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE, DRIVE, HABITATS, TREE, PROGRAM } from '../config.js';
 import { CAUTION_LINES } from '../learned/conduct.js';
 
 enableOrganism();
@@ -86,3 +86,20 @@ HABITATS.enabled = 1;
 // die of cold, caught out foraging hungry in winter, than of age; now and
 // then a nest empties and another colony refounds it; no map dies out.
 TREE.interval = 30;
+
+// What a daughter inherits of what her mothers lived (scripts/game-world.js,
+// 2026-10-07, 8 maps × 4 years, paired against the game without it):
+//   - her body: an epigenetic mark of the organs her parents grew into
+//     (MORPH.inherit 2, fading each generation): bodies follow what was lived
+//     (muscle 1.14-1.17 against genes of 1.05; smaller where food is short);
+//   - her conduct: she learns lines of her own with the reserves judge and
+//     safe night trials, and the evidence-backed ones pass into her eggs
+//     (PROGRAM, as preregistered: docs/research/prereg-lineage-inheritance.md).
+//     In the game most of the lines an ant carries came from her mother.
+// Populations were no smaller with it (+0.8 per nest, 5 of 8 maps).
+MORPH.inherit = 2;
+PROGRAM.learn = 1;
+PROGRAM.inherit = 1;
+PROGRAM.judge = 1;
+PROGRAM.darkTrials = 1;
+PROGRAM.exploreByState = 1;

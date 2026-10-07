@@ -29,6 +29,7 @@ async function life({ interval, seed, years, sets }) {
   const { createColony, updateColony } = await import('../src/colony.js');
   const { rng, withRng } = await import('./batch/random.js');
   const { habitatOfNest } = await import('../src/habitats.js');
+  const { programOf } = await import('../src/program.js');
 
   CONFIG.TREE.interval = interval;
   applySets(sets);
@@ -73,7 +74,9 @@ async function life({ interval, seed, years, sets }) {
       for (const n of nests) {
         const p = per[n.id];
         const a = p.alive;
+        const here = colony.ants.filter((f) => f.alive && homeOf(f) === n.id);
         rows.push({
+          traits: traitsOf(here, programOf),
           seed, interval, year: y, nest: n.id, habitat: habitatOfNest(world, n)?.name ?? null,
           mean: +(a.reduce((x, v) => x + v, 0) / a.length).toFixed(1),
           min: Math.min(...a), end: a.at(-1), deaths: p.deaths, emptied: p.emptied,
@@ -83,6 +86,28 @@ async function life({ interval, seed, years, sets }) {
     }
   }
   return { seed, interval, rows, founded: colony.life?.founded ?? 0, eggsLost: colony.life?.eggsLost ?? {} };
+}
+
+// What the living of one nest carry: organ genes and bodies (MORPH), the
+// epigenetic mark, and the lines of conduct that are not the born ones —
+// written by herself, inherited, told by a sister.
+const ORGANS = ['brain', 'gut', 'muscle', 'eyes', 'antennae', 'size'];
+function traitsOf(ants, programOf) {
+  if (!ants.length) return null;
+  const mean = (xs) => (xs.length ? +(xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(3) : null);
+  const out = { n: ants.length };
+  for (const k of ORGANS) {
+    out[`gene.${k}`] = mean(ants.map((f) => f.genome?.morph?.[k]).filter(Number.isFinite));
+    out[`body.${k}`] = mean(ants.map((f) => f.morph?.[k]).filter(Number.isFinite));
+    out[`epi.${k}`] = mean(ants.map((f) => f.epi?.[k] ?? f.genome?.epi?.[k]).filter(Number.isFinite));
+  }
+  const lines = ants.map((f) => programOf(f).lines.filter((l) => !l.retired && l.source !== 'born'));
+  out.ownLines = mean(lines.map((ls) => ls.length));
+  out.inheritedLines = mean(lines.map((ls) => ls.filter((l) => l.source === 'inherited').length));
+  const kinds = {};
+  for (const ls of lines) for (const l of ls) { const k = `${l.from}>${l.over}`; kinds[k] = (kinds[k] ?? 0) + 1; }
+  out.topLines = Object.entries(kinds).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${k}:${v}`);
+  return out;
 }
 
 if (!isMainThread) {
@@ -140,6 +165,23 @@ if (!isMainThread) {
     }
     const founded = sum(results.filter((r) => r.interval === interval).map((r) => r.founded));
     console.log(`|  | refounded nests: ${founded} | | | | |`);
+  }
+  const last = rows.filter((r) => r.year === YEARS && r.traits);
+  if (last.length) {
+    console.log(`\nwhat the living carry at the end of year ${YEARS} (mean over nests)\n`);
+    console.log('| fruit every | habitat | size gene / body | muscle gene / body | gut gene / body | epi size | own lines | inherited lines | commonest |');
+    console.log('|---|---|---|---|---|---|---|---|---|');
+    for (const interval of intervals) {
+      const mine = last.filter((r) => r.interval === interval);
+      for (const h of [...new Set(mine.map((r) => r.habitat ?? '—'))]) {
+        const g = mine.filter((r) => (r.habitat ?? '—') === h).map((r) => r.traits);
+        const m = (k) => { const v = g.map((t) => t[k]).filter(Number.isFinite); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(3) : '—'; };
+        const top = {};
+        for (const t of g) for (const e of t.topLines) { const [k, v] = e.split(':'); top[k] = (top[k] ?? 0) + Number(v); }
+        const commonest = Object.entries(top).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => k).join(', ') || '—';
+        console.log(`| ${interval} s | ${h} | ${m('gene.size')} / ${m('body.size')} | ${m('gene.muscle')} / ${m('body.muscle')} | ${m('gene.gut')} / ${m('body.gut')} | ${m('epi.size')} | ${m('ownLines')} | ${m('inheritedLines')} | ${commonest} |`);
+      }
+    }
   }
   if (OUT) writeFileSync(OUT, JSON.stringify({ intervals, seeds: SEEDS, seed0: SEED0, years: YEARS, sets, results }, null, 1));
 }
