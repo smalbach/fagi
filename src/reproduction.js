@@ -349,7 +349,9 @@ function refound(world, colony, nests) {
     if (livingIn(world, colony, empty) || empty.eggs?.length) continue;
     const source = nests
       .filter((n) => n !== empty && livingIn(world, colony, n) >= COLONIES.foundAt * LIFE.maxPopulation)
-      .sort((a, b) => livingIn(world, colony, b) - livingIn(world, colony, a))[0];
+      .sort(COLONIES.from === 'nearest'
+        ? (a, b) => Math.hypot(a.x - empty.x, a.y - empty.y) - Math.hypot(b.x - empty.x, b.y - empty.y)
+        : (a, b) => livingIn(world, colony, b) - livingIn(world, colony, a))[0];
     if (!source) continue;
     const adults = colony.ants.filter((f) => f.alive && memberOf(f, source, world) && f.lifeStage === 'adult' && fertility(f) > 0);
     const female = adults.find((f) => f.sex === 'female');

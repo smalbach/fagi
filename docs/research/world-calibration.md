@@ -233,3 +233,17 @@ Populations barely change (−5 %). Newcomers still leave more young, now for a 
 **Not local.** The cold habitat (−6 °C on top of winter) is a sink: 4.6 alive on average, ~2 from year 10 on, empty in 31 of 160 nest-years, and refounded over and over by the other colonies (85 refoundings in all). Its population is mostly recent immigrants and cannot adapt. Body size ends bigger in cold than in hot (+0.091, t 2.6, 6/7 maps), mostly through the temperature-size rule within life; the size gene difference (+0.049, t 2.1) swings sign over the years and rests on 2 adults per cold colony. Lines of conduct: "memory before scent" and "memory before pursue" everywhere; "anticipate before sleep" turns up in cold and toxic colonies.
 
 For local adaptation the habitats must differ in what pays without one being a sink: milder cold, and refounding from the nearest nest rather than the fullest.
+
+### Milder cold, refounding from the nearest colony (2026-10-07)
+
+Cold habitat −3 °C instead of −6; an emptied nest is refounded by the nearest colony able to (`COLONIES.from` 'nearest'), not the fullest. Same 8 maps, 20 years.
+
+| | cold / hot / toxic alive | nest-years empty (cold / hot / toxic) | refounded |
+|---|---|---|---|
+| before (−6 °C, fullest) | 4.6 / 18.6 / 16.3 | 31 / 2 / 10 of 160 | 85 |
+| now (−3 °C, nearest) | 13.6 / 12.1 / 14.3 | 15 / 15 / 16 of 160 | 87 |
+
+- The cold colony is no longer a sink. But every colony now empties about one year in ten (winter crashes) and is refounded from a neighbour: mixing between habitats stays as high as before.
+- **Size genes: bigger in the cold than in the heat**, averaged over years 10–20: +0.055 (t 1.8, 6/8 maps); in the first 20-year run +0.016 (t 1.9, 7/8). The direction predicted by the temperature-size rule in 13 of 16 runs, weak and not significant in either alone.
+- Muscle and brain evolve as before (muscle up, brain down) in every habitat; no robust difference between habitats.
+- Conduct: "dusk before sleep" (go home as the light goes, before anything else) becomes a tradition mostly in cold colonies (line carriers over years 10–20: 93 cold, 7 hot, 12 toxic; first run 16 / 0 / 0), but each time in one map: a hint, not a result.

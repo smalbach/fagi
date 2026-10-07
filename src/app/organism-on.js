@@ -34,6 +34,9 @@ SOCIAL.touch = 24;
 // evolves the same way in 7 of 8 seeds in four years.
 COLONIES.count = 3;
 LIFE.maxPopulation = 30;
+// An emptied nest is refounded by its nearest colony able to, not the fullest
+// one anywhere: colonies spread to their neighbours (2026-10-07).
+COLONIES.from = 'nearest';
 
 // The evolving body (morph.js): organs inherited with what they give and cost,
 // drawn on her. The settings turn it off; research keeps it off.

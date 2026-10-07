@@ -788,12 +788,16 @@ export const TREE = {
 //   foundAt  : a colony this full (share of LIFE.maxPopulation, per nest) may
 //              send a pair to an empty nest
 //   every    : seconds between looks for an empty nest to refound
+//   from     : which colony refounds it, among those full enough: 'fullest'
+//              (as measured until 2026-10-07) or 'nearest' (the neighbours,
+//              as colonies spread in nature: less mixing between far habitats)
 export const COLONIES = {
   count: 1,
   founders: 4,
   spacing: 380,
   foundAt: 0.5,
   every: 60,
+  from: 'fullest',
 };
 
 // The weight and hardness of fruit (load.js): what carrying and eating ask of
@@ -866,7 +870,7 @@ export const SEASONS = {
 export const HABITATS = {
   enabled: 0,
   kinds: ['cold', 'hot', 'toxic'],
-  cold: { air: -6 },
+  cold: { air: -3 },
   hot: { air: 6 },
   lean: { fruit: 0.4 },
   toxic: { trees: 1, near: [150, 260] },
