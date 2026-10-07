@@ -75,7 +75,10 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     // rock), but without them the replay wouldn't look like what was seen.
     emit('session_start', {
       config, learned,
-      world: { width: world.width, height: world.height, seed: world.seed ?? null, species: world.species ?? [], fruits: customFruits() },
+      world: {
+        width: world.width, height: world.height, seed: world.seed ?? null, species: world.species ?? [], fruits: customFruits(),
+        ...(world.mud?.length ? { mud: world.mud.map(({ x, y, r, speed, seed }) => ({ x, y, r, speed, seed })) } : {}),
+      },
     });
     emit('wind', { angle: world.wind.angle, target: world.wind.target });
     prev.windTarget = world.wind.target;

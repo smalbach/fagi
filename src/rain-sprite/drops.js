@@ -2,6 +2,7 @@
 
 import { sky } from './state.js';
 import { hash, noise, tessellate, screen, windOf } from './util.js';
+import { snowShare } from '../climate-sprite.js';
 
 // Three depth layers. `n` per 1280×860 px of screen.
 const LAYERS = [
@@ -21,14 +22,21 @@ export function drawRainDrops(ctx, world, now) {
   const scaleOf = (W * H) / (1280 * 860);
   const k = screen(ctx.canvas);
 
+  // Cold enough, what falls is snow (and sleet, half and half, just above freezing).
+  const snow = snowShare();
+  const rain = 1 - snow;
+
   ctx.save();
   ctx.lineCap = 'round';
-  gusts(ctx, n, v, t, W, H);
-  LAYERS.forEach((layer, c) => {
-    const howMany = Math.round(layer.n * scaleOf * n);
-    dropLayer(ctx, layer, c, howMany, { n, v, t, W, H, k });
-  });
-  lightning(ctx, n, t, W, H);
+  if (rain > 0.01) {
+    gusts(ctx, n * rain, v, t, W, H);
+    LAYERS.forEach((layer, c) => {
+      const howMany = Math.round(layer.n * scaleOf * n * rain);
+      dropLayer(ctx, layer, c, howMany, { n, v, t, W, H, k });
+    });
+    lightning(ctx, n * rain, t, W, H);
+  }
+  if (snow > 0.01) snowfall(ctx, n * snow, v, t, W, H, k, scaleOf);
   ctx.restore();
 }
 
@@ -85,4 +93,32 @@ function lightning(ctx, n, t, W, H) {
     ctx.fillStyle = `rgba(220,228,255,${(Math.min(1, f) * 0.32 * n).toFixed(3)})`;
     ctx.fillRect(0, 0, W, H);
   }
+}
+
+// Snowflakes: slow, drifting with the wind and swaying as they fall, in three
+// depths (the near ones big, soft and fast across the screen).
+const FLAKES = [
+  { n: 520, size: 1.1, alpha: 0.55, fall: 42, sway: 10 },
+  { n: 240, size: 2, alpha: 0.75, fall: 70, sway: 16 },
+  { n: 50, size: 3.6, alpha: 0.6, fall: 120, sway: 26 },
+];
+
+function snowfall(ctx, n, v, t, W, H, k, scaleOf) {
+  FLAKES.forEach((layer, c) => {
+    const howMany = Math.round(layer.n * scaleOf * n);
+    const flakes = new Path2D();
+    for (let i = 0; i < howMany; i++) {
+      const speed = layer.fall * k * (0.7 + hash(i, c, 31) * 0.6);
+      const span = H + 40;
+      const y = ((hash(i, c, 32) * span + t * speed) % span) - 20;
+      const drift = v.x * t * speed * 0.6;
+      const x = ((((hash(i, c, 33) * (W + 40) + drift + Math.sin(t * (0.6 + hash(i, c, 34)) + i) * layer.sway * k)
+        % (W + 40)) + (W + 40)) % (W + 40)) - 20;
+      const r = layer.size * k * (0.7 + hash(i, c, 35) * 0.6);
+      flakes.moveTo(x + r, y);
+      flakes.arc(x, y, r, 0, Math.PI * 2);
+    }
+    ctx.fillStyle = `rgba(244,248,255,${(layer.alpha * (0.5 + n * 0.5)).toFixed(3)})`;
+    ctx.fill(flakes);
+  });
 }

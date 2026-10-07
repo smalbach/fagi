@@ -58,7 +58,9 @@ function tintedCrown(color, form) {
   return c;
 }
 
-export function stampRealisticCrown(ctx, o, r, v, dry, seedOf, color = null, form = 'broadleaf') {
+// `shed`: how far into autumn a deciduous crown is (climate-sprite.js). It
+// turns orange first and thins out after, so the branches show in winter.
+export function stampRealisticCrown(ctx, o, r, v, dry, seedOf, color = null, form = 'broadleaf', shed = 0) {
   const realisticCrown = crowns[form];
   // Rotation and size come from the seed: even sharing a photo, no two
   // identical silhouettes appear. The crown ages by losing saturation and
@@ -73,12 +75,16 @@ export function stampRealisticCrown(ctx, o, r, v, dry, seedOf, color = null, for
   ctx.save();
   ctx.translate(o.x + v.x, o.y + v.y - r * 0.12);
   ctx.rotate(turn);
-  ctx.globalAlpha = 1 - dry * 0.28;
+  ctx.globalAlpha = (1 - dry * 0.28) * (1 - Math.max(0, shed - 0.4) * 0.8);
   ctx.shadowColor = 'rgba(4,8,5,0.72)';
   ctx.shadowBlur = r * 0.18;
   ctx.shadowOffsetX = -LX * r * 0.08;
   ctx.shadowOffsetY = -LY * r * 0.08;
-  ctx.filter = `saturate(${0.88 - dry * 0.5}) sepia(${dry * 0.48}) brightness(${1.06 - dry * 0.12})`;
+  // Turning peaks halfway (orange, red); what's left at the end is dull.
+  const turning = shed * (1 - shed) * 4;
+  const bare = Math.max(0, shed - 0.6) / 0.4;
+  ctx.filter = `saturate(${(0.88 - dry * 0.5 + turning * 0.6 - bare * 0.45).toFixed(3)}) sepia(${Math.min(1, dry * 0.48 + shed * 0.75).toFixed(3)}) `
+    + `hue-rotate(${(-turning * 16).toFixed(1)}deg) brightness(${(1.06 - dry * 0.12 - bare * 0.18).toFixed(3)})`;
   ctx.drawImage(color ? tintedCrown(color, form) : realisticCrown, -width / 2, -tall / 2, width, tall);
   ctx.restore();
 }

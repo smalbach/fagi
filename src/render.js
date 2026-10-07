@@ -25,6 +25,8 @@ import { drawTerrain, drawShore, drawZoomGrain, drawNearDetail } from './terrain
 import { drawLake } from './water-sprite.js';
 import { drawPuddle, drawRipples, drawWetGround, drawOvercast, drawSplashes, drawRainDrops, rainLook, rainFalling } from './rain-sprite.js';
 import { setDetail } from './sprite-kit.js';
+import { climateLook, drawSeasonGround, drawFrostSnow, drawIce } from './climate-sprite.js';
+import { drawMud } from './mud-sprite.js';
 import { applySets, noCamera, detailOf } from './camera.js';
 import { nestUnder } from './nest.js';
 
@@ -46,6 +48,7 @@ export function render(ctx, world, fagi, camera, mark = null, editing = null) {
   setDetail(detailOf(camera));
   applySets(ctx, camera, ctx.canvas);
   const rain = rainLook(world, performance.now());
+  climateLook(world);
   scene(ctx, world, fagi, camera, rain);
   if (mark) drawMark(ctx, mark, camera.zoom);
   if (editing && world.objects.includes(editing)) drawEditing(ctx, editing, camera.zoom);
@@ -63,10 +66,15 @@ function scene(ctx, world, fagi, camera, rain) {
   drawNearDetail(ctx, world, camera, ctx.canvas);
   // The wet earth goes before the scent trails and everything else: it's ground.
   for (const o of world.objects) if (isWater(o)) drawShore(ctx, o, radiusOf(o));
+  // The season on the vegetation: autumn ochre, winter dormancy, summer drought,
+  // and the leaves the broadleaf trees have dropped (climate-sprite.js).
+  drawSeasonGround(ctx, world);
   // Wet ground takes a while to dry, so it's drawn even when it's no longer raining.
   drawWetGround(ctx, world);
   // Heavy mud patches and trails paved by repeated passage (niche construction).
-  drawMudPatches(ctx, world);
+  for (const m of world.mud ?? []) drawMud(ctx, m);
+  // Rime and snow settle over all of that, under the objects.
+  drawFrostSnow(ctx, world);
 
   // A shared shadow ties every object to the same ground and the same light.
   // The sprites keep their fine contact shadows; this is the ambient shadow,
@@ -358,9 +366,11 @@ function drawObject(ctx, o, busy, wind, raining, time) {
   const r = radiusOf(o);
   if (spec.shallow) {
     drawPuddle(ctx, o, r, raining, performance.now());
+    drawIce(ctx, o, r * 0.9);
   } else if (isWater(o)) {
     drawLake(ctx, o, spec, r, wind, performance.now());
     drawRipples(ctx, o, r * 0.8, raining, performance.now());
+    drawIce(ctx, o, r * 0.78);
   } else if (isNest(o)) {
     drawNest(ctx, o, spec, r);
     drawNestMouth(ctx, o, r, busy, performance.now());
@@ -486,27 +496,4 @@ function drawBuffRings(ctx, fagi) {
   });
   ctx.globalAlpha = 1;
   ctx.lineWidth = 1;
-}
-
-// Heavy mud patches and trails paved by repeated passage (niche construction).
-function drawMudPatches(ctx, world) {
-  if (!world?.mud?.length) return;
-  for (const m of world.mud) {
-    const treadFrac = Math.min(1, (m.tread ?? 0) / 40);
-    const g = ctx.createRadialGradient(m.x, m.y, m.r * 0.1, m.x, m.y, m.r);
-    if (treadFrac > 0) {
-      g.addColorStop(0, `rgba(160, 135, 95, ${0.35 + 0.3 * treadFrac})`);
-      g.addColorStop(0.35, `rgba(120, 90, 60, ${0.4 + 0.2 * treadFrac})`);
-      g.addColorStop(0.7, 'rgba(42, 28, 18, 0.4)');
-      g.addColorStop(1, 'rgba(42, 28, 18, 0)');
-    } else {
-      g.addColorStop(0, 'rgba(42, 28, 18, 0.5)');
-      g.addColorStop(0.65, 'rgba(42, 28, 18, 0.3)');
-      g.addColorStop(1, 'rgba(42, 28, 18, 0)');
-    }
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
-    ctx.fill();
-  }
 }

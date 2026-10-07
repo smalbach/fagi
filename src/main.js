@@ -8,7 +8,7 @@
 // Which screen shows before and after (login, home, admin) is not handled
 // here: app/boot.js decides that, since it's the one that creates the game.
 
-import { WORLD, SOCIAL, LIFE } from './config.js';
+import { WORLD, SOCIAL, LIFE, MAPGEN, TASTE } from './config.js';
 import { createWorld, resetWorld, record } from './world.js';
 import { generateMap } from './mapgen.js';
 import { createFagi } from './fagi.js';
@@ -24,7 +24,7 @@ import { createUI } from './ui.js';
 import { loadFruits } from './custom-fruits.js';
 import { createFruitEditor } from './fruit-editor.js';
 import { versionLabel, versionTitle } from './version.js';
-import { createSettings, loadSettings, configSnapshot, applyConfig, onConfigChange, organismOffConfig } from './settings.js';
+import { createSettings, loadSettings, configSnapshot, applyConfig, onConfigChange, organismOffConfig, configIdOf } from './settings.js';
 import { bindDom, t, onLangChange, formatDuration } from './i18n.js';
 import { createNarrator, narrate, followed } from './narrator.js';
 import { createConsole } from './console.js';
@@ -159,9 +159,20 @@ export function createGame({ onExit } = {}) {
     console.reset();
   }
 
-  // Every setting changed by hand during the game gets recorded.
+  // Every setting changed by hand during the game gets recorded. While
+  // setting up, a setting that only shapes new maps (mud, rocks, density…)
+  // remakes the map, so what it does is seen at once.
+  const mapIds = new Set([
+    ...Object.keys(MAPGEN).map((key) => configIdOf(MAPGEN, key)),
+    configIdOf(TASTE, 'mimics'), configIdOf(TASTE, 'twinShare'),
+  ].filter(Boolean));
+  let remakeTimer = null;
   onConfigChange((id, from, to, source) => {
     if (mode === 'play') record(world, 'config', { id, from, to, source });
+    if (mode === 'setup' && mapIds.has(id)) {
+      clearTimeout(remakeTimer);
+      remakeTimer = setTimeout(() => { if (mode === 'setup') regenerate(); }, 450);
+    }
   });
 
   // --- setup ---
@@ -182,6 +193,7 @@ export function createGame({ onExit } = {}) {
   }
 
   function regenerate() {
+    clearTimeout(remakeTimer);
     const size = world.width;
     resetWorld(world);
     generateMap(world);

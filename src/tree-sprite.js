@@ -44,6 +44,7 @@ import { realisticCrownLoaded, stampRealisticCrown } from './tree-sprite/realist
 import { swayOf } from './tree-sprite/wind.js';
 import { fruitsOf } from './tree-sprite/fruits.js';
 import { formOf, foliageOf, hasBranches, paintForm } from './tree-sprite/forms.js';
+import { leafFall, deciduous } from './climate-sprite.js';
 
 const trunks = new Map();     // key: seed|radius|form|dryness step
 const crowns = new Map();       // key: seed|radius|form|fruit color|dryness step
@@ -70,20 +71,36 @@ export function drawTree(ctx, o, spec, r, wind, now) {
     () => paintTrunk(seedOf, R, dry, form), 120);
   stamp(ctx, trunk, o.x, o.y, z);
 
+  // Broadleaf trees and willows go ochre in autumn and bare in a cold winter
+  // (climate-sprite.js); only the leaves do, the wood stays as old as it is.
+  const shed = deciduous(o) ? leafFall() : 0;
+  const leafStep = Math.max(step, Math.round(shed * 0.85 * STEPS));
+  const leafDry = leafStep / STEPS;
+
   // The crown is loose from the trunk: it leans downwind and breathes with it.
   // The branches peeking through the leaves move with it, as they should.
   const v = swayOf(wind, now, r, seedOf, dry);
   if (realisticCrownLoaded(form)) {
-    stampRealisticCrown(ctx, o, r, v, dry, seedOf, fruit ? color : null, form);
+    stampRealisticCrown(ctx, o, r, v, dry, seedOf, fruit ? color : null, form, Math.round(shed * 20) / 20);
+    // As the photo crown thins out, the bare branches show through it.
+    const bare = Math.max(0, shed - 0.45) / 0.55;
+    if (bare > 0.02) {
+      const tips = cacheSprite(branchings, `${seedOf}|${R}|${leafStep}`,
+        () => paintBranches(seedOf, R, leafDry), 120);
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, bare * 1.2);
+      stamp(ctx, tips, o.x + v.x, o.y + v.y, z);
+      ctx.restore();
+    }
   } else {
-    const crown = cacheSprite(crowns, `${seedOf}|${R}|${form}|${color}|${step}`,
+    const crown = cacheSprite(crowns, `${seedOf}|${R}|${form}|${color}|${leafStep}`,
       () => (form === 'broadleaf'
-        ? paintCrown(seedOf, R, foliageOf(form, color, 0), dry, fruit ? color : null)
-        : paintForm(form, seedOf, R, color, dry)), 120);
+        ? paintCrown(seedOf, R, foliageOf(form, color, 0), leafDry, fruit ? color : null)
+        : paintForm(form, seedOf, R, color, leafDry)), 120);
     stamp(ctx, crown, o.x + v.x, o.y + v.y, z);
     if (hasBranches(form)) {
-      const tips = cacheSprite(branchings, `${seedOf}|${R}|${step}`,
-        () => paintBranches(seedOf, R, dry), 120);
+      const tips = cacheSprite(branchings, `${seedOf}|${R}|${leafStep}`,
+        () => paintBranches(seedOf, R, leafDry), 120);
       stamp(ctx, tips, o.x + v.x, o.y + v.y, z);
     }
   }

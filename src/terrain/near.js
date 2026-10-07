@@ -4,6 +4,7 @@
 
 import { seededRng, seedFor, noise } from '../sprite-kit.js';
 import { pebble, bush, leaf, litter } from './details.js';
+import { mood } from './palette.js';
 
 // Zoom grain. The ground is baked ONCE at world size, so when zooming in it
 // stretches and loses its texture: repainting it for every zoom step would
@@ -80,9 +81,12 @@ function cellOf(ctx, ox, oy, rnd, force) {
       : `rgba(12,13,16,${0.07 + rnd() * 0.14})`;
     ctx.fillRect(x, y, 0.8 + rnd() * 0.7, 0.8);
   });
-  scatter(7, (x, y) => pebble(ctx, x, y, 0.8 + rnd() * 1.8, rnd));
-  scatter(5, (x, y) => bush(ctx, x, y, 2 + rnd() * 3.5, rnd));
-  scatter(4, (x, y) => leaf(ctx, x, y, 2.5 + rnd() * 3.5, rnd));
-  scatter(3, (x, y) => litter(ctx, x, y, 2 + rnd() * 4, rnd));
+  // The same climate as the baked ground (palette.js mood): fewer blades
+  // and leaves where it's dry or cold, more where it rains.
+  const { arid, lush, cold } = mood;
+  scatter(7 * (1 + arid * 0.8 + cold * 0.5), (x, y) => pebble(ctx, x, y, 0.8 + rnd() * 1.8, rnd));
+  scatter(5 * (1 - arid * 0.7) * (1 + lush * 0.8) * (1 - cold * 0.4), (x, y) => bush(ctx, x, y, 2 + rnd() * 3.5, rnd));
+  scatter(4 * (1 - arid * 0.6) * (1 + lush * 0.8) * (1 - cold * 0.5), (x, y) => leaf(ctx, x, y, 2.5 + rnd() * 3.5, rnd));
+  scatter(3 * (1 - cold * 0.5), (x, y) => litter(ctx, x, y, 2 + rnd() * 4, rnd));
   ctx.globalAlpha = 1;
 }

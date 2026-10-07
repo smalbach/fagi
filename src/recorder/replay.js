@@ -58,6 +58,8 @@ export function applyEvent(state, ev) {
       // The fruit the person made for that session, and the size of its map.
       if (ev.world?.fruits?.length) addFruits(ev.world.fruits);
       if (ev.world?.width) { w.width = ev.world.width; w.height = ev.world.height; }
+      // The mud patches of that map (MAPGEN.hazards), so the replay shows them.
+      w.mud = (ev.world?.mud ?? []).map((m) => ({ ...m }));
       break;
     case 'config':
       state.config[ev.id] = ev.to;
