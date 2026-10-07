@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-// Scientific Experiment: One-Shot Acute Crisis Plasticity vs Innate Control
-// Evaluates survival, code synthesis latency, and behavioral adaptation in non-stationary regimes.
+// Paired check: born program vs her program learning (PROGRAM.learn + watch +
+// crisis) in a harsh world. 10 seeds and 600 s: a smoke test, not evidence.
+// The lines it lists are data in the program grammar (src/program.js), not
+// generated JavaScript. See docs/research/one-shot-crisis-plasticity.md.
 
 import * as CONFIG from '../src/config.js';
 import { enableOrganism } from '../src/organism.js';
@@ -96,7 +98,7 @@ function runCondition({ seed, plastic }) {
 }
 
 console.log('='.repeat(78));
-console.log('🔬 EMPIRICAL ADAPTATION STUDY: ONE-SHOT PLASTICITY VS INNATE CONTROL');
+console.log('PAIRED CHECK: PROGRAM LEARNING + CRISIS VS BORN PROGRAM');
 console.log('   Environmental Regime: Harsh Diurnal Cycling (140s) + Cold Nights + Rain');
 console.log(`   Replicates: ${SEEDS.length} Paired Random Seeds | Horizon: ${HORIZON}s`);
 console.log('='.repeat(78));
@@ -134,17 +136,17 @@ const pairedLifespanDiff = plasticResults.map((p, i) => p.lived - controlResults
 const meanLifespanGain = pairedLifespanDiff.reduce((a, b) => a + b, 0) / SEEDS.length;
 
 console.log('\n' + '='.repeat(78));
-console.log('📊 EMPIRICAL RESEARCH FINDINGS');
+console.log(`RESULTS (${SEEDS.length} seeds: too few for any claim)`);
 console.log('='.repeat(78));
-console.log(`Metric                          | Innate Control  | Adaptive Plastic | Net Impact`);
+console.log(`Metric                          | Born program    | Learning+crisis  | Difference`);
 console.log('-'.repeat(78));
 console.log(`Survival Rate (%)               | ${ctrlSurvival.toFixed(1).padStart(14)}% | ${plasSurvival.toFixed(1).padStart(15)}% | ${((plasSurvival - ctrlSurvival) >= 0 ? '+' : '')}${(plasSurvival - ctrlSurvival).toFixed(1)} pp`);
 console.log(`Mean Lifespan (seconds)         | ${ctrlMeanLife.toFixed(1).padStart(14)}s | ${plasMeanLife.toFixed(1).padStart(15)}s | ${((meanLifespanGain >= 0 ? '+' : ''))}${meanLifespanGain.toFixed(1)} s`);
 console.log(`Self-Written Lines (mean/fagi)  |           0.00 | ${meanLines.toFixed(2).padStart(16)} | +${meanLines.toFixed(2)} lines`);
-console.log(`1st Mutation Latency (mean)     |            N/A | ${meanLatency ? meanLatency.toFixed(1) + 's' : 'N/A'}`.padEnd(52) + '| Prompt Rescue');
+console.log(`First own line (mean, writers)  |            N/A | ${meanLatency ? meanLatency.toFixed(1) + 's' : 'N/A'} (${writtenTimes.length}/${SEEDS.length} wrote)`);
 console.log('-'.repeat(78));
 
-console.log('\n📜 CATALOGUE OF AUTONOMOUSLY SYNTHESIZED CODE LINES (Sample):');
+console.log('\nLINES SHE WROTE (program grammar: a born behavior put before another, under one condition):');
 const allSynthesized = plasticResults.flatMap((r) => r.synthesizedCode);
 const uniqueSynthesized = new Map();
 for (const s of allSynthesized) {
@@ -155,6 +157,6 @@ for (const [id, s] of uniqueSynthesized.entries()) {
   const chainStr = s.chain ? ` -> [${s.chain.join(', ')}]` : '';
   const condStr = s.if ? ` IF ${JSON.stringify(s.if)}` : '';
   console.log(`  • ${id}${condStr}${chainStr}`);
-  console.log(`    Rationale: "${s.why}"`);
+  console.log(`    why: "${s.why}"`);
 }
 console.log('='.repeat(78));
