@@ -196,3 +196,17 @@ Habitats redesigned: `cold` (air and soil −6 °C, so the nest and the brood fe
 No local adaptation. The opposite: in every habitat, newborns from elsewhere did better than those born there, whichever habitat they came from (e.g. raised in toxic: locals 1.90 offspring, from cold 2.16, from hot 2.37). A "stranger advantage" that does not depend on origin is not adaptation; likely candidates are mating (an immigrant is unrelated to every resident, and mates are refused above `LIFE.kinLimit` relatedness) and something not yet found for lifespan. It must be explained before a transplant can measure local adaptation here.
 
 Why no local adaptation yet: about 10 generations; colonies of ~10 adults (drift outweighs weak selection); refounding mixes colonies; and the inherited conduct (`PROGRAM` lines) has nothing habitat-specific to say.
+
+### The stranger advantage is mating with non-kin (2026-10-07)
+
+Same transplant on 12 new maps (seeds 7400–7411, 3 years, then a 2-year window), with and without the rule that refuses a mate past `LIFE.kinLimit` relatedness:
+
+| | offspring, local − foreign | days lived, local − foreign |
+|---|---|---|
+| kin rule on (as in the game) | −0.28 (t −1.7, 4/12 maps) | −0.36 (t −0.5) |
+| kin rule off (`kinLimit` 1.01) | −0.05 (t −0.3) | +0.05 (t 0.1) |
+
+- With the rule on, the advantage is in females: as mothers, foreign 2.29 vs local 2.08 broods; as fathers males are even (2.10 vs 2.06). A local female may not take her brothers, often the best males of a small colony; a newcomer is unrelated to all of them.
+- With the rule off it disappears. The lifespan gap of the first run did not replicate (noise).
+- So it is not a bug, and it is real biology in kind (immigrants into small, related populations mate more). But here kin avoidance has no reason to exist: nothing in the code makes inbred young worse (no inbreeding depression), so the rule costs locals and pays nothing.
+- With the stranger advantage removed (rule off), there is still no local adaptation: local − foreign ≈ 0 on every measure. The habitats do not yet shape the colonies.

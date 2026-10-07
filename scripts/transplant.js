@@ -108,7 +108,13 @@ async function life({ seed, years, window, follow, sets }) {
 
   // 3. How each one did.
   const kids = {};
-  for (const v of Object.values(world.lineage)) for (const p of [v.mother, v.father]) if (p != null) kids[p] = (kids[p] ?? 0) + 1;
+  const asMother = {};
+  const asFather = {};
+  for (const v of Object.values(world.lineage)) {
+    for (const p of [v.mother, v.father]) if (p != null) kids[p] = (kids[p] ?? 0) + 1;
+    if (v.mother != null) asMother[v.mother] = (asMother[v.mother] ?? 0) + 1;
+    if (v.father != null) asFather[v.father] = (asFather[v.father] ?? 0) + 1;
+  }
   const byId = new Map(colony.ants.map((f) => [f.id, f]));
   const fates = cohort.map((c) => {
     const f = byId.get(c.id);
@@ -119,6 +125,9 @@ async function life({ seed, years, window, follow, sets }) {
       alive: f.alive,
       cause: f.alive ? null : f.cause,
       offspring: kids[c.id] ?? 0,
+      sex: f.sex ?? null,
+      asMother: asMother[c.id] ?? 0,
+      asFather: asFather[c.id] ?? 0,
       size: f.morph?.size ?? null,
     };
   });
