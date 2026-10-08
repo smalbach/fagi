@@ -15,13 +15,19 @@
 // A process per scenario: config.js is shared state, and a scenario that
 // turns the organism on must not leave it on for the next one.
 //
-// The fingerprint rests on this Node's floating point. If a new Node ever
-// changes it, every scenario differs at once, from early on: record the
-// fixture again only after making sure the change is not in her.
+// The fingerprint rests on the machine's floating point, to the last bit:
+// Math.sin, exp... are V8's own, but compiled differently per processor (on
+// ARM64 a multiply and an add fuse into one rounding), and a new Node can
+// move them too. The same code then draws a different last bit, and a colony
+// of eleven amplifies it into another life within a minute. So the fixture
+// keeps one set per machine and Node (`platforms`, keyed by recordingKey()),
+// and a test reads its own. --write records the set of the machine it runs
+// on, leaving the others: run it from a commit you trust, never to make a
+// change pass.
 
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import * as CONFIG from '../src/config.js';
 import { enableOrganism } from '../src/organism.js';
@@ -33,6 +39,20 @@ import { createColony, updateColony } from '../src/colony.js';
 import { rng, withRng } from './batch/random.js';
 
 const HERE = fileURLToPath(import.meta.url);
+
+// Which recording this machine reads: platform, processor and Node's major.
+export const recordingKey = () => `${process.platform}-${process.arch}-node${process.versions.node.split('.')[0]}`;
+
+// This machine's fingerprints: its own set, or the first one ever recorded
+// (`legacy`, on the author's machine, Node 24) if it has none and runs the
+// same Node major; null when there is nothing it can be held to.
+export function fingerprintsFor(fixture) {
+  const own = fixture.platforms?.[recordingKey()];
+  if (own) return { ...own, key: recordingKey() };
+  const old = fixture.legacy;
+  if (old && old.node.split('.')[0] === `v${process.versions.node.split('.')[0]}`) return { ...old, key: 'legacy' };
+  return null;
+}
 const FIXTURE = fileURLToPath(new URL('../test/fixtures/decisions.json', import.meta.url));
 const DT = 0.05;      // batch's step
 const EVERY = 60;     // seconds between checkpoints
@@ -159,14 +179,15 @@ if (process.argv[1] === HERE) {
       scenarios[name] = traceApart(name);
       console.error(`${name}: ${scenarios[name].steps} steps, ${scenarios[name].digest}`);
     }
-    const fixture = {
-      _: 'Fingerprints of how she decides (scripts/trace.js), recorded from the fixed hierarchy of '
-        + 'src/decision.js before src/program.js existed. test/program.test.js holds every change against them.',
-      node: process.version,
-      scenarios,
-    };
+    // This machine's set; every other machine's stays as it was.
+    let fixture = {};
+    try { fixture = JSON.parse(readFileSync(FIXTURE, 'utf8')); } catch { /* the first one */ }
+    fixture._ = 'Fingerprints of how she decides (scripts/trace.js), recorded from the fixed hierarchy of '
+      + 'src/decision.js before src/program.js existed, one set per machine and Node. '
+      + 'test/program.test.js holds every change against them.';
+    fixture.platforms = { ...fixture.platforms, [recordingKey()]: { node: process.version, scenarios } };
     writeFileSync(FIXTURE, `${JSON.stringify(fixture, null, 1)}\n`);
-    console.error(`written ${FIXTURE}`);
+    console.error(`written ${recordingKey()} into ${FIXTURE}`);
   } else if (SCENARIOS[arg]) {
     await SCENARIOS[arg].setup?.();
     applySets(process.argv.slice(3));
