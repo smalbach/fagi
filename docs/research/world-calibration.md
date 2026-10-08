@@ -262,3 +262,15 @@ Cold habitat −3 °C instead of −6; an emptied nest is refounded by the neare
 Not confirmed. The size genes keep leaning the predicted way (bigger in cold) but the new maps alone do not show it, and with 24 comparisons a t near 2 is what chance gives. Conduct, now counted ant by ant: the same lines everywhere (memory before pursue in 59–69 % of a colony, memory before scent in 37–52 %); "dusk before sleep", the hint of the earlier runs, did not come back.
 
 Two of the 16 new maps died out entirely within 20 years (7513, 7519); every colony empties in about 7 % of its years, and 115 refoundings in 16 maps keep mixing the habitats. What is robust is evolution towards the world all colonies share (muscle up, brain down). Local adaptation needs selection that outweighs mixing: fewer winter crashes, bigger colonies, or both.
+
+### A milder winter does not stop colonies emptying (2026-10-07)
+
+8 maps (seeds 7600–7607), 6 years, trees bearing 10 % or 20 % of their rate in deep winter instead of 2 %; compared with years 1–6 of the 16 maps above.
+
+| deep-winter fruit | alive per nest | nest-years empty | share of deaths by cold | refounded per map |
+|---|---|---|---|---|
+| 2 % (game) | 14.9 | 6.6 % | 28 % | 7.2 in 20 years |
+| 10 % | 14.9 | 8.3 % | 26 % | 1.6 in 6 years |
+| 20 % | 15.8 | 6.9 % | 18 % | 1.5 in 6 years |
+
+Winter is not what empties colonies. A colony that empties held 1–5 alive the year before (66 of 69 cases): it had already dwindled. And refounding often fails: 115 refoundings for 69 emptied nest-years, because a pair sent to an empty nest often dies before raising a brood, and the nest is refounded again. The game keeps its winter (a milder one only takes pressure away).
