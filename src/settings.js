@@ -18,6 +18,7 @@ import { removeAllTrees } from './trees.js';
 import { wipe } from './learned/store.js';
 import { t, labelOf, getLang, onLangChange } from './i18n.js';
 import { makeSlider, makeChoice } from './controls.js';
+import { fieldHelp, groupHelp } from './settings-help.js';
 
 const SETTINGS_KEY = 'fagi.settings';
 
@@ -102,40 +103,60 @@ const GROUPS = [
   ]},
   // The organism (docs/ESPECIFICACION_ENTE_ADAPTATIVO.md). One group per
   // block: their ids ('Day and night.enabled'...) are what a recording keeps.
-  { title: { en: 'Day and night', es: 'Día y noche' }, cat: 'world', fieldsOf: [
+  { title: { en: 'Day and night', es: 'Día y noche' }, cat: 'climate', fieldsOf: [
     b(CYCLE, 'enabled', 'Day and night', 'Día y noche'),
     n(CYCLE, 'seconds', 'Seconds in a day', 'Segundos que dura un día', 30, 1800, 10),
     n(CYCLE, 'start', 'Hour the session starts (0 midnight, 0.5 noon)', 'Hora a la que empieza (0 medianoche, 0.5 mediodía)', 0, 0.99, 0.01),
-    { ...b(SEASONS, 'enabled', 'Seasons: lean, cold winters', 'Estaciones: inviernos escasos y fríos'), id: 'seasons.enabled' },
-    { ...n(SEASONS, 'year', 'Seconds in a year', 'Segundos que dura un año', 600, 14400, 60), id: 'seasons.year' },
-    { ...n(SEASONS, 'winter', 'Share of the year that is winter', 'Parte del año que es invierno', 0, 0.9, 0.05), id: 'seasons.winter' },
-    { ...n(SEASONS, 'winterFruit', 'What trees bear in deep winter (×)', 'Lo que dan los árboles en pleno invierno (×)', 0, 1, 0.01), id: 'seasons.winterFruit' },
-    { ...n(SEASONS, 'summerFruit', 'What trees bear in summer (×)', 'Lo que dan los árboles en verano (×)', 0.5, 3, 0.05), id: 'seasons.summerFruit' },
-    { ...n(SEASONS, 'winterCold', 'Degrees winter takes off', 'Grados que quita el invierno', 0, 25, 1), id: 'seasons.winterCold' },
-    { ...b(SEASONS, 'unpredictable', 'Every winter different', 'Cada invierno distinto'), id: 'seasons.unpredictable' },
-    { ...n(SEASONS, 'hotYears', 'Share of hot years', 'Parte de años calurosos', 0, 1, 0.05), id: 'seasons.hotYears' },
-    { ...n(SEASONS, 'summerHeat', 'Degrees a hot summer adds', 'Grados que suma un verano caluroso', 0, 20, 1), id: 'seasons.summerHeat' },
-    { ...n(SEASONS, 'persist', 'Chance a year repeats the last kind', 'Probabilidad de que un año repita el tipo del anterior', 0, 1, 0.05), id: 'seasons.persist' },
-    { ...n(SEASONS, 'spread', 'How much one winter may differ from another', 'Cuánto puede diferir un invierno de otro', 0, 1, 0.05), id: 'seasons.spread' },
-    { ...n(SEASONS, 'farYears', 'Share of years whose fruit is far from the nest', 'Parte de años con la fruta lejos del nido', 0, 1, 0.05), id: 'seasons.farYears' },
-    { ...n(SEASONS, 'reachLow', 'What trees on the wrong side bear those years (×)', 'Lo que dan esos años los árboles del lado equivocado (×)', 0, 1, 0.05), id: 'seasons.reachLow' },
-    n(CYCLE, 'minLight', 'Light at night', 'Luz de noche', 0, 1, 0.02),
-    n(CYCLE, 'nightSight', 'Sight left at night (fraction)', 'Vista que le queda de noche (fracción)', 0.1, 1, 0.05),
     n(CYCLE, 'dawn', 'Dawn (phase of the day, 0-1)', 'Amanecer (fase del día, 0-1)', 0.05, 0.45, 0.01),
     n(CYCLE, 'dusk', 'Dusk (phase of the day, 0-1)', 'Anochecer (fase del día, 0-1)', 0.55, 0.95, 0.01),
-    n(CYCLE, 'mean', 'Average air temperature (°C)', 'Temperatura media del aire (°C)', -10, 45, 1),
-    n(CYCLE, 'swing', 'Swing between day and night (± °C)', 'Oscilación entre día y noche (± °C)', 0, 30, 1),
+    n(CYCLE, 'twilight', 'Length of dawn and dusk (phase of the day)', 'Duración del amanecer y del ocaso (fase del día)', 0.01, 0.2, 0.01),
+    n(CYCLE, 'minLight', 'Light at night', 'Luz de noche', 0, 1, 0.02),
+    n(CYCLE, 'nightSight', 'Sight left at night (fraction)', 'Vista que le queda de noche (fracción)', 0.1, 1, 0.05),
+  ]},
+  // Split out of 'Day and night': `fullId` keeps the ids recordings already carry.
+  { title: { en: 'Temperature', es: 'Temperatura' }, cat: 'climate', fieldsOf: [
+    { ...n(CYCLE, 'mean', 'Average air temperature (°C)', 'Temperatura media del aire (°C)', -10, 45, 1), fullId: 'Day and night.mean' },
+    { ...n(CYCLE, 'swing', 'Swing between day and night (± °C)', 'Oscilación entre día y noche (± °C)', 0, 30, 1), fullId: 'Day and night.swing' },
+    n(CYCLE, 'warmest', 'Hottest moment of the day (phase, 0-1)', 'Momento más caluroso del día (fase, 0-1)', 0.3, 0.9, 0.01),
+  ]},
+  { title: { en: 'Seasons', es: 'Estaciones' }, cat: 'climate', fieldsOf: [
+    ...[
+      b(SEASONS, 'enabled', 'Seasons: lean, cold winters', 'Estaciones: inviernos escasos y fríos'),
+      n(SEASONS, 'year', 'Seconds in a year', 'Segundos que dura un año', 600, 14400, 60),
+      n(SEASONS, 'winter', 'Share of the year that is winter', 'Parte del año que es invierno', 0, 0.9, 0.05),
+      n(SEASONS, 'winterFruit', 'What trees bear in deep winter (×)', 'Lo que dan los árboles en pleno invierno (×)', 0, 1, 0.01),
+      n(SEASONS, 'summerFruit', 'What trees bear in summer (×)', 'Lo que dan los árboles en verano (×)', 0.5, 3, 0.05),
+      n(SEASONS, 'winterCold', 'Degrees winter takes off', 'Grados que quita el invierno', 0, 25, 1),
+      b(SEASONS, 'unpredictable', 'Every winter different', 'Cada invierno distinto'),
+      n(SEASONS, 'hotYears', 'Share of hot years', 'Parte de años calurosos', 0, 1, 0.05),
+      n(SEASONS, 'summerHeat', 'Degrees a hot summer adds', 'Grados que suma un verano caluroso', 0, 20, 1),
+      n(SEASONS, 'persist', 'Chance a year repeats the last kind', 'Probabilidad de que un año repita el tipo del anterior', 0, 1, 0.05),
+      n(SEASONS, 'spread', 'How much one winter may differ from another', 'Cuánto puede diferir un invierno de otro', 0, 1, 0.05),
+      n(SEASONS, 'farYears', 'Share of years whose fruit is far from the nest', 'Parte de años con la fruta lejos del nido', 0, 1, 0.05),
+      n(SEASONS, 'reachLow', 'What trees on the wrong side bear those years (×)', 'Lo que dan esos años los árboles del lado equivocado (×)', 0, 1, 0.05),
+    ].map((f) => ({ ...f, fullId: `Day and night.seasons.${f.key}` })),
+    n(SEASONS, 'winterAt', 'When in the year winter is deepest (0-1)', 'Momento del año en que el invierno es más crudo (0-1)', 0, 0.99, 0.01),
   ]},
   { title: { en: 'Body temperature', es: 'Temperatura corporal' }, cat: 'body', fieldsOf: [
     b(THERMAL, 'voluntary', 'Seek shelter before thermal harm', 'Buscar refugio antes del daño térmico'),
     b(THERMAL, 'enabled', 'Body temperature', 'Temperatura corporal'),
     n(THERMAL, 'safeMin', 'Cold below (°C)', 'Frío por debajo de (°C)', -10, 30, 1),
     n(THERMAL, 'safeMax', 'Heat above (°C)', 'Calor por encima de (°C)', 20, 50, 1),
+    n(THERMAL, 'preferred', 'Body °C where nothing costs extra', '°C del cuerpo en los que nada cuesta de más', 10, 40, 1),
+    n(THERMAL, 'lethalMin', 'Body °C that kills by cold at once', '°C del cuerpo que matan de frío al instante', -10, 20, 1),
+    n(THERMAL, 'lethalMax', 'Body °C that kills by heat at once', '°C del cuerpo que matan de calor al instante', 30, 60, 1),
     n(THERMAL, 'exchange', 'How fast the body follows the air', 'Rapidez con que el cuerpo sigue al aire', 0.005, 0.5, 0.005),
     n(THERMAL, 'stressRate', 'Stress per second per °C out of range', 'Estrés por segundo y °C fuera de rango', 0, 5, 0.05),
     n(THERMAL, 'recover', 'Stress recovered per second in range', 'Estrés que recupera por segundo en rango', 0, 20, 0.5),
     n(THERMAL, 'nestTemp', 'Temperature deep in the nest (°C)', 'Temperatura dentro del nido (°C)', 0, 40, 1),
     n(THERMAL, 'shade', 'Cooler under a tree crown (°C)', 'Más fresco bajo la copa de un árbol (°C)', 0, 15, 0.5),
+    n(THERMAL, 'nestBuffer', 'How much the nest shields from the outside air', 'Cuánto aísla el nido del aire de fuera', 0, 1, 0.05),
+    n(THERMAL, 'wetChill', 'Cooling while soaked (°C)', 'Enfriamiento al estar empapada (°C)', 0, 15, 0.5),
+    n(THERMAL, 'moveHeat', 'Warmth from walking (°C over the air)', 'Calor por caminar (°C sobre el aire)', 0, 8, 0.5),
+    n(THERMAL, 'coldHunger', 'Extra hunger per °C of cold', 'Hambre extra por cada °C de frío', 0, 0.3, 0.01),
+    n(THERMAL, 'heatThirst', 'Extra thirst per °C of heat', 'Sed extra por cada °C de calor', 0, 0.3, 0.01),
+    n(THERMAL, 'coldSlow', 'Speed lost per °C of cold', 'Velocidad que pierde por cada °C de frío', 0, 0.2, 0.01),
+    n(THERMAL, 'minSpeed', 'Slowest the cold makes her (fraction)', 'Lo más lenta que la vuelve el frío (fracción)', 0.1, 1, 0.05),
     n(THERMAL, 'voluntaryMax', 'Body °C from which she runs from the heat', '°C del cuerpo desde los que huye del calor', 30, 45, 0.5),
     n(THERMAL, 'voluntaryMin', 'Body °C under which she runs from the cold', '°C del cuerpo bajo los que huye del frío', 0, 20, 0.5),
     n(THERMAL, 'reflex', 'Stress (fraction) that sends her home no matter what', 'Estrés (fracción) que la manda al nido pase lo que pase', 0.1, 1, 0.05),
@@ -401,7 +422,7 @@ const GROUPS = [
     n(MEMORY, 'placeDrift', 'Blur gained by a place per second (px)', 'Imprecisión que gana un sitio por segundo (px)', 0, 20, 0.2),
     n(MEMORY, 'placeErrorMax', 'Maximum blur of a place (px)', 'Imprecisión máxima de un sitio (px)', 0, 800, 10),
   ]},
-  { title: { en: 'Wind', es: 'Viento' }, cat: 'world', fieldsOf: [
+  { title: { en: 'Wind', es: 'Viento' }, cat: 'climate', fieldsOf: [
     n(WIND, 'turnRate', 'How fast it turns', 'Rapidez con la que gira', 0, 1.5, 0.01),
     n(WIND, 'swing', 'How much it changes direction', 'Cuánto cambia de dirección', 0, 3.2, 0.1),
     n(WIND, 'changeEvery.min', 'Changes at soonest every', 'Cambia como pronto cada', 1, 60, 1),
@@ -418,12 +439,13 @@ const GROUPS = [
     n(PLUME, 'faint', 'How much it fades towards the tip', 'Cuánto se diluye hacia la punta', 0, 1, 0.05),
   ]},
   { title: { en: 'Own pheromone', es: 'Feromona propia' }, cat: 'colony', fieldsOf: [
-    n(PHERO, 'life', 'Seconds until it evaporates', 'Segundos hasta evaporarse', 2, 300, 5),
+    n(PHERO, 'life', 'Seconds until it evaporates', 'Segundos hasta evaporarse', 2, 1200, 5),
     n(PHERO, 'every', 'Seconds between marks', 'Segundos entre marcas', 0.05, 3, 0.05),
     n(PHERO, 'sense', 'Distance at which it is detected', 'Distancia a la que la detecta', 5, 150, 1),
   ]},
   { title: { en: 'Water', es: 'Agua' }, cat: 'world', fieldsOf: [
-    n(WATER, 'vado', 'Shallow edge where it stands and drinks (px)', 'Vado donde hace pie y bebe (px)', 0, 40, 1),
+    // Was bound to a 'vado' key config.js never had: the slider moved nothing. Same id, real key.
+    { ...n(WATER, 'shallows', 'Shallow edge where it stands and drinks (px)', 'Vado donde hace pie y bebe (px)', 0, 40, 1), id: 'vado' },
     n(WATER, 'wadeSpeed', 'Speed in the shallows (×)', 'Velocidad en el vado (×)', 0.05, 1, 0.05),
     n(WATER, 'swimSpeed', 'Speed paddling in deep water (×)', 'Velocidad pataleando en el hondo (×)', 0.05, 1, 0.05),
     n(WATER, 'swimEffort', 'Energy spent paddling (× walking)', 'Energía al patalear (× andar)', 1, 10, 0.5),
@@ -435,26 +457,31 @@ const GROUPS = [
     n(WATER, 'probeReach', 'Antenna reach ahead (px)', 'Alcance de las antenas (px)', 0, 30, 1),
     n(WATER, 'probeSpeed', 'Speed while probing water (×)', 'Velocidad tanteando el agua (×)', 0.1, 1, 0.05),
   ]},
-  { title: { en: 'Rain', es: 'Lluvia' }, cat: 'world', fieldsOf: [
-    n(RAIN, 'every.min', 'Min seconds between showers', 'Mín. segundos entre chaparrones', 10, 3600, 10),
-    n(RAIN, 'every.max', 'Max seconds between showers', 'Máx. segundos entre chaparrones', 10, 3600, 10),
-    n(RAIN, 'duration.min', 'Min shower length (s)', 'Duración mínima del chaparrón (s)', 1, 300, 1),
-    n(RAIN, 'duration.max', 'Max shower length (s)', 'Duración máxima del chaparrón (s)', 1, 300, 1),
-    n(RAIN, 'puddles.min', 'Min puddles per shower', 'Mín. charcos por chaparrón', 0, 20, 1),
-    n(RAIN, 'puddles.max', 'Max puddles per shower', 'Máx. charcos por chaparrón', 0, 20, 1),
-    n(RAIN, 'puddleRadius.0', 'Min puddle size (px)', 'Tamaño mínimo del charco (px)', 5, 80, 1),
-    n(RAIN, 'puddleRadius.1', 'Max puddle size (px)', 'Tamaño máximo del charco (px)', 5, 80, 1),
-    n(RAIN, 'grow', 'Puddle growth while raining (px/s)', 'Crecimiento del charco lloviendo (px/s)', 0, 2, 0.05),
-    n(RAIN, 'evaporate', 'Puddle drying in the sun (px/s)', 'Secado del charco al sol (px/s)', 0, 2, 0.01),
-    n(RAIN, 'washPhero', 'Rain washes pheromone (× faster)', 'La lluvia borra la feromona (× más rápido)', 1, 200, 1),
-    n(RAIN, 'washScent', 'Rain washes a scent trail (s)', 'La lluvia lava un rastro de olor (s)', 1, 60, 1),
-    n(RAIN, 'front.min', 'Min seconds the pressure drops before rain', 'Mín. segundos que baja la presión antes de llover', 0, 300, 5),
-    n(RAIN, 'front.max', 'Max seconds the pressure drops before rain', 'Máx. segundos que baja la presión antes de llover', 0, 300, 5),
-    n(RAIN, 'recover', 'Seconds for the pressure to recover', 'Segundos en recuperarse la presión', 1, 300, 5),
-    n(RAIN, 'effort', 'Energy spent out in the rain (× walking)', 'Energía a la intemperie bajo la lluvia (× andar)', 1, 5, 0.1),
-    n(RAIN, 'sample', 'Seconds out in the rain per lesson', 'Segundos bajo la lluvia por lección', 0.5, 30, 0.5),
-    n(RAIN, 'lesson', 'How much getting rained on teaches', 'Cuánto enseña mojarse', 0, 1, 0.05),
-    n(RAIN, 'puddleLesson', 'How much a puddle teaches (dry or not)', 'Cuánto enseña un charco (seco o no)', 0, 1, 0.05),
+  // One group in the first recordings ('Rain.*'): split by what each part decides.
+  { title: { en: 'Rain', es: 'Lluvia' }, cat: 'climate', fieldsOf: [
+    { ...n(RAIN, 'every.min', 'Min seconds between showers', 'Mín. segundos entre chaparrones', 10, 3600, 10), fullId: 'Rain.every.min' },
+    { ...n(RAIN, 'every.max', 'Max seconds between showers', 'Máx. segundos entre chaparrones', 10, 3600, 10), fullId: 'Rain.every.max' },
+    { ...n(RAIN, 'duration.min', 'Min shower length (s)', 'Duración mínima del chaparrón (s)', 1, 300, 1), fullId: 'Rain.duration.min' },
+    { ...n(RAIN, 'duration.max', 'Max shower length (s)', 'Duración máxima del chaparrón (s)', 1, 300, 1), fullId: 'Rain.duration.max' },
+    { ...n(RAIN, 'front.min', 'Min seconds the pressure drops before rain', 'Mín. segundos que baja la presión antes de llover', 0, 300, 5), fullId: 'Rain.front.min' },
+    { ...n(RAIN, 'front.max', 'Max seconds the pressure drops before rain', 'Máx. segundos que baja la presión antes de llover', 0, 300, 5), fullId: 'Rain.front.max' },
+    { ...n(RAIN, 'recover', 'Seconds for the pressure to recover', 'Segundos en recuperarse la presión', 1, 300, 5), fullId: 'Rain.recover' },
+  ]},
+  { title: { en: 'Rain: puddles and wash', es: 'Lluvia: charcos y lavado' }, cat: 'climate', fieldsOf: [
+    { ...n(RAIN, 'puddles.min', 'Min puddles per shower', 'Mín. charcos por chaparrón', 0, 20, 1), fullId: 'Rain.puddles.min' },
+    { ...n(RAIN, 'puddles.max', 'Max puddles per shower', 'Máx. charcos por chaparrón', 0, 20, 1), fullId: 'Rain.puddles.max' },
+    { ...n(RAIN, 'puddleRadius.0', 'Min puddle size (px)', 'Tamaño mínimo del charco (px)', 5, 80, 1), fullId: 'Rain.puddleRadius.0' },
+    { ...n(RAIN, 'puddleRadius.1', 'Max puddle size (px)', 'Tamaño máximo del charco (px)', 5, 80, 1), fullId: 'Rain.puddleRadius.1' },
+    { ...n(RAIN, 'grow', 'Puddle growth while raining (px/s)', 'Crecimiento del charco lloviendo (px/s)', 0, 2, 0.05), fullId: 'Rain.grow' },
+    { ...n(RAIN, 'evaporate', 'Puddle drying in the sun (px/s)', 'Secado del charco al sol (px/s)', 0, 2, 0.01), fullId: 'Rain.evaporate' },
+    { ...n(RAIN, 'washPhero', 'Rain washes pheromone (× faster)', 'La lluvia borra la feromona (× más rápido)', 1, 200, 1), fullId: 'Rain.washPhero' },
+    { ...n(RAIN, 'washScent', 'Rain washes a scent trail (s)', 'La lluvia lava un rastro de olor (s)', 1, 60, 1), fullId: 'Rain.washScent' },
+  ]},
+  { title: { en: 'Rain: what it costs and teaches', es: 'Lluvia: lo que cuesta y enseña' }, cat: 'climate', fieldsOf: [
+    { ...n(RAIN, 'effort', 'Energy spent out in the rain (× walking)', 'Energía a la intemperie bajo la lluvia (× andar)', 1, 5, 0.1), fullId: 'Rain.effort' },
+    { ...n(RAIN, 'sample', 'Seconds out in the rain per lesson', 'Segundos bajo la lluvia por lección', 0.5, 30, 0.5), fullId: 'Rain.sample' },
+    { ...n(RAIN, 'lesson', 'How much getting rained on teaches', 'Cuánto enseña mojarse', 0, 1, 0.05), fullId: 'Rain.lesson' },
+    { ...n(RAIN, 'puddleLesson', 'How much a puddle teaches (dry or not)', 'Cuánto enseña un charco (seco o no)', 0, 1, 0.05), fullId: 'Rain.puddleLesson' },
   ]},
   { title: { en: 'Instincts', es: 'Instintos' }, cat: 'mind', fieldsOf: [
     n(INSTINCT, 'rainShelter', 'Innate urge to shelter from rain', 'Ganas innatas de refugiarse de la lluvia', 0, 1, 0.05),
@@ -524,6 +551,7 @@ const GROUPS = [
   ]},
   { title: { en: 'Health', es: 'Salud' }, cat: 'body', fieldsOf: [
     b(HEALTH, 'enabled', 'Health and wounds', 'Salud y heridas'),
+    n(HEALTH, 'max', 'Full health (points)', 'Salud completa (puntos)', 20, 300, 10),
     n(HEALTH, 'sting', 'Health a sting takes', 'Salud que quita un pinchazo', 0, 100, 1),
     n(HEALTH, 'poison', 'Health a poisonous fruit takes', 'Salud que quita un fruto venenoso', 0, 100, 1),
     n(HEALTH, 'thermalFrom', 'Thermal stress (fraction) from which it harms', 'Estrés térmico (fracción) desde el que hace daño', 0, 1, 0.05),
@@ -654,6 +682,9 @@ for (const group of GROUPS) {
   if (twice.length) throw new Error(`settings: repeated ids ${twice.join(', ')}`);
 }
 
+// The schema as it stands (groups, their fields), for checks and tools.
+export const settingsGroups = () => GROUPS;
+
 // The factory values, to be able to go back.
 const ORIGINAL = GROUPS.flatMap((g) => g.fieldsOf).map((c) => ({ c, value: read(c) }));
 const BY_ID = new Map(GROUPS.flatMap((g) => g.fieldsOf).map((c) => [c.id, c]));
@@ -776,14 +807,47 @@ function titleOf(group) {
 
 // The categories the groups are sorted into, in this order.
 const CATEGORIES = [
-  { id: 'world', icon: '🌍', en: 'World', es: 'Mundo', hint: { en: 'Day, weather, water, trees and the map', es: 'Día, clima, agua, árboles y el mapa' } },
+  { id: 'climate', icon: '🌦', en: 'Climate', es: 'Clima', hint: { en: 'Day and night, temperature, seasons, rain and wind', es: 'Día y noche, temperatura, estaciones, lluvia y viento' } },
+  { id: 'world', icon: '🌍', en: 'World', es: 'Mundo', hint: { en: 'Water, trees, scent and the map', es: 'Agua, árboles, olores y el mapa' } },
   { id: 'food', icon: '🍎', en: 'Food', es: 'Alimentos', hint: { en: 'Each fruit, tastes and food sources', es: 'Cada fruto, sabores y fuentes de comida' } },
   { id: 'body', icon: '🫀', en: 'Body', es: 'Cuerpo', hint: { en: 'Senses, needs, energy, sleep, temperature, health', es: 'Sentidos, necesidades, energía, sueño, temperatura, salud' } },
   { id: 'mind', icon: '🧠', en: 'Mind', es: 'Mente', hint: { en: 'Learning, memory, exploring, instincts, habits', es: 'Aprendizaje, memoria, exploración, instintos, hábitos' } },
   { id: 'colony', icon: '🐜', en: 'Colony & life', es: 'Colonia y vida', hint: { en: 'Sisters, breeding, inheritance, nest and trail', es: 'Hermanas, crianza, herencia, nido y rastro' } },
   { id: 'system', icon: '⚙', en: 'System', es: 'Sistema', hint: { en: 'Camera and external decision API', es: 'Cámara y API de decisión externa' } },
 ];
+// What each tab is for, shown under the tools while it is open.
+const ABOUT = {
+  climate: {
+    en: 'The weather of the world: how long a day and a year last, how warm the air is, when winter comes and how often and how long it rains. Rain and the average temperature always apply; the daily light and warmth need “Day and night” on, and winters need “Seasons” on.',
+    es: 'El tiempo del mundo: cuánto duran un día y un año, qué tan cálido es el aire, cuándo llega el invierno y cada cuánto y cuánto tiempo llueve. La lluvia y la temperatura media siempre se aplican; la luz y el calor del día necesitan “Día y noche” encendido, y los inviernos, “Estaciones”.',
+  },
+  world: {
+    en: 'The ground she lives on: water, trees and how they bear, scent trails and how new maps are drawn.',
+    es: 'El terreno en el que vive: agua, árboles y cómo dan fruta, rastros de olor y cómo se generan los mapas nuevos.',
+  },
+  food: {
+    en: 'What each fruit does when eaten, how tastes work and how much fruit weighs.',
+    es: 'Lo que hace cada fruta al comerla, cómo funcionan los sabores y cuánto pesa la fruta.',
+  },
+  body: {
+    en: 'Her body: senses, speed, hunger, thirst, energy, sleep, temperature and health. These decide how hard it is to stay alive.',
+    es: 'Su cuerpo: sentidos, velocidad, hambre, sed, energía, sueño, temperatura y salud. Deciden qué tan difícil es seguir viva.',
+  },
+  mind: {
+    en: 'How she learns and decides: memory, beliefs, the program she writes herself, caution, curiosity and what she does at night.',
+    es: 'Cómo aprende y decide: memoria, creencias, el programa que escribe ella misma, cautela, curiosidad y lo que hace de noche.',
+  },
+  colony: {
+    en: 'Life beyond one Fagi: sisters, breeding, what is inherited, the nest and the pheromone trail.',
+    es: 'La vida más allá de una Fagi: hermanas, crianza, lo que se hereda, el nido y el rastro de feromona.',
+  },
+  system: {
+    en: 'The camera and the optional external decision API. They don’t change the simulated world.',
+    es: 'La cámara y la API externa de decisión opcional. No cambian el mundo simulado.',
+  },
+};
 const CAT_KEY = 'fagi.settings.cat';
+const HELP_KEY = 'fagi.settings.help';
 const FACTORY = new Map(ORIGINAL.map(({ c, value }) => [c, value]));
 const changed = (field) => read(field) !== FACTORY.get(field);
 const fold = (text) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -796,6 +860,8 @@ export function createSettings(world, getFagi) {
   if (!CATEGORIES.some((c) => c.id === cat)) cat = 'world';
   let query = '';
   let modifiedOnly = false;
+  // Every explanation open at once, or only the ones asked for with ⓘ.
+  let allHelp = (() => { try { return localStorage.getItem(HELP_KEY) === '1'; } catch { return false; } })();
   const opened = new Map();
 
   // Two panes: the categories (with how many settings of each are off
@@ -807,6 +873,7 @@ export function createSettings(world, getFagi) {
         <input class="set-search" type="search" autocomplete="off">
         <button class="set-modified" type="button" aria-pressed="false"></button>
         <button class="set-expand" type="button"></button>
+        <button class="set-help-all" type="button" aria-pressed="false"></button>
       </div>
       <p class="set-hint" role="status"></p>
       <div class="set-groups"></div>
@@ -821,6 +888,19 @@ export function createSettings(world, getFagi) {
     buildNav();
     buildGroups();
   });
+  const helpAll = box.querySelector('.set-help-all');
+  helpAll.addEventListener('click', () => {
+    allHelp = !allHelp;
+    try { localStorage.setItem(HELP_KEY, allHelp ? '1' : '0'); } catch { /* not remembered */ }
+    paintHelpAll();
+    for (const el of list.querySelectorAll('.field-help')) el.hidden = !allHelp;
+    for (const el of list.querySelectorAll('.field-info')) el.setAttribute('aria-expanded', String(allHelp));
+  });
+  function paintHelpAll() {
+    helpAll.setAttribute('aria-pressed', String(allHelp));
+    helpAll.textContent = allHelp ? L('ⓘ Hide explanations', 'ⓘ Ocultar explicaciones') : L('ⓘ Show explanations', 'ⓘ Ver explicaciones');
+    helpAll.title = L('Shows under every setting what it means and what changing it does', 'Muestra bajo cada ajuste qué significa y qué implica cambiarlo');
+  }
   const hint = box.querySelector('.set-hint');
   const list = box.querySelector('.set-groups');
   const L = (en, es) => (getLang() === 'es' ? es : en);
@@ -846,6 +926,7 @@ export function createSettings(world, getFagi) {
       btn.type = 'button';
       btn.setAttribute('aria-pressed', String(!query && c.id === cat));
       btn.className = 'set-cat';
+      btn.title = c.hint[getLang()] ?? c.hint.en;
       btn.classList.toggle('active', !query && c.id === cat);
       btn.innerHTML = `<span class="set-icon">${c.icon}</span><span class="set-name">${c[getLang()] ?? c.en}</span>`
         + `<span class="set-count" title="${L('groups', 'grupos')}">${groups.length}</span>`
@@ -864,7 +945,16 @@ export function createSettings(world, getFagi) {
 
   // One setting: its name, a ↺ back to factory when changed, and its control
   // (a switch, a segmented choice, or a slider with a box to type in).
-  function row(field) {
+  // The range a slider allows, its step and its factory value, in words.
+  function limits(field) {
+    const factory = FACTORY.get(field);
+    if (field.toggle) return L(`Factory: ${factory ? 'on' : 'off'}`, `De fábrica: ${factory ? 'encendido' : 'apagado'}`);
+    if (field.choices) return L(`Factory: ${field.choices[factory]?.en ?? factory}`, `De fábrica: ${field.choices[factory]?.es ?? factory}`);
+    return L(`Allowed: ${field.min} to ${field.max}, in steps of ${field.step} · Factory: ${factory}`,
+      `Permitido: de ${field.min} a ${field.max}, en pasos de ${field.step} · De fábrica: ${factory}`);
+  }
+
+  function row(field, group) {
     const lang = getLang();
     const el = document.createElement(field.toggle ? 'label' : 'div');
     el.className = `field ${field.toggle ? 'toggle' : field.choices ? 'choice' : 'slider'}`;
@@ -878,7 +968,31 @@ export function createSettings(world, getFagi) {
     reset.type = 'button';
     reset.className = 'field-reset';
     reset.textContent = '↺';
-    top.append(name, reset);
+    // ⓘ opens what the setting means and what changing it does.
+    const info = document.createElement('button');
+    info.type = 'button';
+    info.className = 'field-info';
+    info.textContent = 'ⓘ';
+    info.title = L('What is this?', '¿Qué es esto?');
+    info.setAttribute('aria-label', `${name.textContent}: ${info.title}`);
+    info.setAttribute('aria-expanded', String(allHelp));
+    const help = document.createElement('div');
+    help.className = 'field-help';
+    help.id = `help-${field.id.replace(/\W+/g, '-')}`;
+    help.hidden = !allHelp;
+    const text = fieldHelp(field, group, lang);
+    help.innerHTML = (text ? `<p></p>` : '') + '<p class="field-limits"></p>';
+    if (text) help.firstChild.textContent = text;
+    help.querySelector('.field-limits').textContent = limits(field);
+    info.setAttribute('aria-controls', help.id);
+    info.addEventListener('click', (e) => {
+      // Inside a switch's <label>: don't flip the switch.
+      e.preventDefault();
+      e.stopPropagation();
+      help.hidden = !help.hidden;
+      info.setAttribute('aria-expanded', String(!help.hidden));
+    });
+    top.append(name, info, reset);
     el.append(top);
 
     const mark = () => {
@@ -946,6 +1060,7 @@ export function createSettings(world, getFagi) {
       paint(v);
       if (modifiedOnly) buildGroups();
     });
+    el.append(help);
     paint(read(field));
     mark();
     inputs.push({ field, paint, mark });
@@ -959,7 +1074,8 @@ export function createSettings(world, getFagi) {
     const matches = q
       ? GROUPS.map((g) => {
         const inTitle = fold(titleOf(g)).includes(q);
-        const fields = g.fieldsOf.filter((f) => inTitle || fold(f.label[getLang()] ?? f.label.en).includes(q) || fold(f.key).includes(q));
+        const fields = g.fieldsOf.filter((f) => inTitle || fold(f.label[getLang()] ?? f.label.en).includes(q) || fold(f.key).includes(q)
+          || fold(fieldHelp(f, g, getLang())).includes(q));
         return fields.length ? { g, fields } : null;
       }).filter(Boolean)
       : GROUPS.filter((g) => g.cat === cat).map((g) => ({ g, fields: g.fieldsOf }));
@@ -967,7 +1083,7 @@ export function createSettings(world, getFagi) {
     const here = CATEGORIES.find((c) => c.id === cat);
     hint.textContent = q || modifiedOnly
       ? L(`${shown.reduce((a, s) => a + s.fields.length, 0)} settings found`, `${shown.reduce((a, s) => a + s.fields.length, 0)} ajustes encontrados`)
-      : here.hint[getLang()] ?? here.hint.en;
+      : ABOUT[here.id]?.[getLang()] ?? here.hint[getLang()] ?? here.hint.en;
     shown.forEach(({ g, fields }, i) => {
       const det = document.createElement('details');
       // Searching opens every match; browsing opens the first group.
@@ -979,7 +1095,14 @@ export function createSettings(world, getFagi) {
         + `<span class="set-off" ${off ? '' : 'hidden'}>${off}</span>`
         + `<span class="set-n">${fields.length}</span></summary>`;
       det.querySelector('summary').dataset.group = g.title.en;
-      for (const field of fields) det.append(row(field));
+      const about = groupHelp(g, getLang());
+      if (about) {
+        const p = document.createElement('p');
+        p.className = 'group-help';
+        p.textContent = about;
+        det.append(p);
+      }
+      for (const field of fields) det.append(row(field, g));
       det.addEventListener('toggle', () => {
         if (!query && !modifiedOnly) opened.set(g.title.en, det.open);
         paintExpand();
@@ -994,6 +1117,9 @@ export function createSettings(world, getFagi) {
     search.placeholder = L('Search a setting…', 'Buscar un ajuste…');
     search.setAttribute('aria-label', search.placeholder);
     modified.textContent = L('Modified only', 'Solo modificados');
+    modified.title = L('Shows only the settings that differ from their factory value', 'Muestra solo los ajustes distintos de su valor de fábrica');
+    expand.title = L('Opens or folds every group of this tab', 'Abre o pliega todos los grupos de esta pestaña');
+    paintHelpAll();
     nav.setAttribute('aria-label', L('Setting categories', 'Categorías de ajustes'));
     buildNav();
     buildGroups();

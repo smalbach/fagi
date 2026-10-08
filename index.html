@@ -15,13 +15,13 @@
         <span data-i18n="setup.sub">Shape the world, tune it, then start</span>
       </div>
       <div id="topbar">
-        <button id="btn-end" data-i18n="app.endSession">■ End session</button>
-        <button id="btn-settings" data-i18n="app.settings">⚙ Settings</button>
-        <button id="btn-phylogeny" title="Code Phylogeny Tree / Árbol Filogenético">🧬 Filogenia</button>
+        <button id="btn-end" data-i18n-tip="tip.end" data-i18n="app.endSession">■ End session</button>
+        <button id="btn-settings" data-i18n-tip="tip.settings" data-i18n="app.settings">⚙ Settings</button>
+        <button id="btn-phylogeny" data-i18n-tip="tip.phylogeny">🧬 Filogenia</button>
         <div id="view-modes" class="view-modes" role="radiogroup">
-          <button type="button" data-view="observe" data-i18n="view.observe">Observe</button>
-          <button type="button" data-view="normal" data-i18n="view.normal">Normal</button>
-          <button type="button" data-view="deep" data-i18n="view.deep">Deep</button>
+          <button type="button" data-view="observe" data-i18n-tip="tip.viewObserve" data-i18n="view.observe">Observe</button>
+          <button type="button" data-view="normal" data-i18n-tip="tip.viewNormal" data-i18n="view.normal">Normal</button>
+          <button type="button" data-view="deep" data-i18n-tip="tip.viewDeep" data-i18n="view.deep">Deep</button>
         </div>
         <select id="lang" title="Idioma / Language">
           <option value="en">EN</option>
@@ -34,31 +34,31 @@
     <aside id="inspect-card" hidden aria-live="polite"></aside>
     <div id="setup-bar" class="stage-bar">
       <div class="setup-side">
-        <button id="btn-regen" data-i18n="setup.regen">↻ New map</button>
-        <label class="switch-row"><input id="chk-recover" type="checkbox"> <span data-i18n="setup.recover">Recover what it learned</span></label>
+        <button id="btn-regen" data-i18n-tip="tip.regen" data-i18n="setup.regen">↻ New map</button>
+        <label class="switch-row"><input id="chk-recover" data-i18n-tip="tip.recover" type="checkbox"> <span data-i18n="setup.recover">Recover what it learned</span></label>
       </div>
       <p class="help" data-i18n="setup.help">Click places · drag moves · right click removes · shift+wheel resizes</p>
       <div class="setup-side setup-go">
         <span id="setup-error" role="alert"></span>
-        <button id="btn-setup-cancel" data-i18n="setup.cancel">Cancel</button>
-        <button id="btn-start" class="primary" data-i18n="setup.start">▶ Start session</button>
+        <button id="btn-setup-cancel" data-i18n-tip="tip.setupCancel" data-i18n="setup.cancel">Cancel</button>
+        <button id="btn-start" data-i18n-tip="tip.start" class="primary" data-i18n="setup.start">▶ Start session</button>
       </div>
     </div>
     <div id="replay-bar" class="stage-bar">
-      <button id="rp-play">⏸</button>
-      <select id="rp-speed" title="Speed">
+      <button id="rp-play" data-i18n-tip="tip.rpPlay">⏸</button>
+      <select id="rp-speed" data-i18n-tip="tip.rpSpeed">
         <option value="1">×1</option>
         <option value="4">×4</option>
         <option value="16">×16</option>
         <option value="64">×64</option>
       </select>
-      <div id="rp-track">
+      <div id="rp-track" data-i18n-tip="tip.rpSlider">
         <div id="rp-marks"></div>
         <input id="rp-slider" type="range" min="0" max="1" step="0.01" value="0">
       </div>
       <span id="rp-time">0s</span>
-      <button id="rp-follow" data-i18n="replay.find">⦿ Fagi</button>
-      <button id="rp-exit" data-i18n="replay.exit">✕ Exit</button>
+      <button id="rp-follow" data-i18n-tip="tip.rpFollow" data-i18n="replay.find">⦿ Fagi</button>
+      <button id="rp-exit" data-i18n-tip="tip.rpExit" data-i18n="replay.exit">✕ Exit</button>
       <div id="rp-event"></div>
     </div>
   </div>
@@ -67,8 +67,8 @@
       <h1 data-i18n="app.title">FAGI</h1>
       <span id="app-version" class="app-version"></span>
       <div class="hud-header-actions">
-        <button id="btn-toggle-groups" type="button" data-i18n="app.collapseAll">▾ Hide all</button>
-        <button id="btn-toggle-hud" class="panel-toggle" type="button" aria-expanded="true" aria-controls="hud-body">▾</button>
+        <button id="btn-toggle-groups" data-i18n-tip="tip.hudGroups" type="button" data-i18n="app.collapseAll">▾ Hide all</button>
+        <button id="btn-toggle-hud" data-i18n-tip="tip.hudToggle" class="panel-toggle" type="button" aria-expanded="true" aria-controls="hud-body">▾</button>
       </div>
     </div>
     <div id="hud-body">
@@ -78,7 +78,7 @@
     </section>
 
     <details data-dock="map" class="hud-group edit-only" open>
-      <summary data-i18n="panel.place">Place on the map</summary>
+      <summary data-i18n="panel.place" data-i18n-tip="tip.place">Place on the map</summary>
       <div id="palette-tabs" class="palette-tabs" role="tablist"></div>
       <div id="palette-grid" class="palette-grid"></div>
       <p id="palette-hint" class="palette-hint"></p>
@@ -86,19 +86,19 @@
     </details>
 
     <details data-dock="map" class="hud-group edit-only" open>
-      <summary data-i18n="panel.mapNow">This map</summary>
+      <summary data-i18n="panel.mapNow" data-i18n-tip="tip.mapNow">This map</summary>
       <div id="map-summary" class="map-summary"></div>
-      <label class="label tree-every" style="margin-top:10px">
+      <label class="label tree-every" data-i18n-tip="tip.treeEvery" style="margin-top:10px">
         <span data-i18n="panel.treeEvery">Tree drops fruit every</span>
         <input id="tree-interval" type="range" min="2" max="30" step="1" value="8">
       </label>
     </details>
 
     <details data-dock="map" class="hud-group setup-only" open>
-      <summary data-i18n="panel.mapSize">Map size and water</summary>
+      <summary data-i18n="panel.mapSize" data-i18n-tip="tip.mapSize">Map size and water</summary>
       <div class="map-size-row">
         <label><span data-i18n="map.size">Size</span>
-          <select id="map-size">
+          <select id="map-size" data-i18n-tip="tip.mapSizeSel">
             <option value="1">×1</option>
             <option value="1.5">×1.5</option>
             <option value="2">×2</option>
@@ -107,27 +107,27 @@
           </select>
         </label>
         <label><span data-i18n="map.pools">Ponds</span>
-          <input id="map-pools" type="number" min="1" max="30" step="1" value="1">
+          <input id="map-pools" data-i18n-tip="tip.mapPools" type="number" min="1" max="30" step="1" value="1">
         </label>
         <label><span data-i18n="map.rocksN">Rocks</span>
-          <input id="map-rocks" type="number" min="0" max="40" step="1" value="9">
+          <input id="map-rocks" data-i18n-tip="tip.mapRocks" type="number" min="0" max="40" step="1" value="9">
         </label>
       </div>
       <p class="help" data-i18n="map.sizeHelp">Changing these makes a new map. A bigger map zooms out to fit.</p>
     </details>
 
     <details data-dock="map" class="hud-group setup-only" open>
-      <summary data-i18n="panel.fruits">Fruits and trees</summary>
+      <summary data-i18n="panel.fruits" data-i18n-tip="tip.fruits">Fruits and trees</summary>
       <div id="fruit-list" class="fruit-list"></div>
       <div class="fruit-actions">
-        <button id="btn-fruit-new" type="button" data-i18n="fruit.new">＋ New fruit</button>
-        <button id="btn-fruit-starters" type="button" data-i18n="fruit.starters">↺ Examples</button>
+        <button id="btn-fruit-new" data-i18n-tip="tip.fruitNew" type="button" data-i18n="fruit.new">＋ New fruit</button>
+        <button id="btn-fruit-starters" data-i18n-tip="tip.fruitStarters" type="button" data-i18n="fruit.starters">↺ Examples</button>
       </div>
       <p class="help" data-i18n="fruit.help">Each fruit comes with its own tree in “Place on the map → Terrain”. She does not know what they do: she finds out by eating.</p>
     </details>
 
     <details data-dock="map" class="hud-group edit-only" open>
-      <summary data-i18n="panel.controls">Controls</summary>
+      <summary data-i18n="panel.controls" data-i18n-tip="tip.controls">Controls</summary>
       <ul class="controls-list">
         <li data-i18n="ctl.place">Click: places what is selected</li>
         <li data-i18n="ctl.drag">Drag: moves an object</li>
@@ -139,7 +139,7 @@
     </details>
 
     <details id="identity-group" data-dock="fagi" class="hud-group play-only" open>
-      <summary data-i18n="panel.identity">Identity and family</summary>
+      <summary data-i18n="panel.identity" data-i18n-tip="tip.identity">Identity and family</summary>
       <div class="label"><span data-i18n="stat.name">Name</span><span id="name-val" class="hud-name">—</span></div>
       <div class="label"><span data-i18n="stat.generation">Generation</span><span id="gen-val">—</span></div>
       <div class="label"><span data-i18n="stat.lifespan">Lifespan</span><span id="lifespan-val">—</span></div>
@@ -148,7 +148,7 @@
     </details>
 
     <details data-dock="fagi" class="hud-group play-only" open>
-      <summary data-i18n="panel.state">State</summary>
+      <summary data-i18n="panel.state" data-i18n-tip="tip.state">State</summary>
       <div class="label"><span data-i18n="stat.hunger">Hunger</span><span id="hunger-val">0%</span></div>
       <div class="bar"><i id="hunger-bar" style="background:#d95b7e"></i></div>
       <div class="label" style="margin-top:8px"><span data-i18n="stat.thirst">Thirst</span><span id="thirst-val">0%</span></div>
@@ -170,7 +170,7 @@
     </details>
 
     <details id="organism-group" data-dock="fagi" class="hud-group play-only" open>
-      <summary data-i18n="panel.organism">Day and body</summary>
+      <summary data-i18n="panel.organism" data-i18n-tip="tip.organism">Day and body</summary>
       <div class="label"><span data-i18n="stat.day">Day</span><span id="day-val">—</span></div>
       <div class="label"><span data-i18n="stat.light">Light</span><span id="light-val">—</span></div>
       <div class="label"><span data-i18n="stat.air">Air</span><span id="air-val">—</span></div>
@@ -186,7 +186,7 @@
     </details>
 
     <details data-dock="fagi" class="hud-group play-only" open>
-      <summary data-i18n="panel.heading">Heading</summary>
+      <summary data-i18n="panel.heading" data-i18n-tip="tip.heading">Heading</summary>
       <div class="label"><span data-i18n="stat.position">Position</span><span id="pos-val">x 0, y 0</span></div>
       <div class="label"><span data-i18n="stat.movingTo">Moving</span><span id="heading-val">→ right</span></div>
       <div class="label"><span data-i18n="stat.vertical">Vertical</span><span id="vertical-val">– level</span></div>
@@ -196,33 +196,33 @@
     </details>
 
     <details data-dock="fagi" class="hud-group play-only" open>
-      <summary data-i18n="panel.pantry">Nest pantry</summary>
+      <summary data-i18n="panel.pantry" data-i18n-tip="tip.pantry">Nest pantry</summary>
       <div id="stock"></div>
     </details>
 
     <details data-dock="fagi" class="hud-group play-only" open>
-      <summary data-i18n="panel.effects">Active effects</summary>
+      <summary data-i18n="panel.effects" data-i18n-tip="tip.effects">Active effects</summary>
       <div id="effects"></div>
     </details>
 
     <details data-dock="fagi" class="hud-group play-only" open>
-      <summary data-i18n="panel.learned">What it has learned</summary>
+      <summary data-i18n="panel.learned" data-i18n-tip="tip.learned">What it has learned</summary>
       <div id="beliefs"></div>
     </details>
 
-    <button id="btn-reset" class="play-only" data-i18n="app.reset">End session</button>
+    <button id="btn-reset" data-i18n-tip="tip.end" class="play-only" data-i18n="app.reset">End session</button>
     </div>
   </aside>
   <section id="console">
     <div class="console-header">
       <h2 data-i18n="panel.console">Decision console</h2>
-      <button id="btn-toggle-console" class="panel-toggle" type="button" aria-expanded="true" aria-controls="console-body">▾</button>
+      <button id="btn-toggle-console" data-i18n-tip="tip.consoleToggle" class="panel-toggle" type="button" aria-expanded="true" aria-controls="console-body">▾</button>
     </div>
     <div id="console-body">
     <div id="console-tabs" role="tablist">
-      <button class="tab" data-tab="live" role="tab" data-i18n="panel.tabLive">Console &amp; map</button>
-      <button class="tab" data-tab="history" role="tab" data-i18n="panel.tabHistory">Code &amp; history</button>
-      <button class="tab" data-tab="body" role="tab" data-i18n="panel.tabBody">Body &amp; mental map</button>
+      <button class="tab" data-tab="live" data-i18n-tip="tip.tabLive" role="tab" data-i18n="panel.tabLive">Console &amp; map</button>
+      <button class="tab" data-tab="history" data-i18n-tip="tip.tabHistory" role="tab" data-i18n="panel.tabHistory">Code &amp; history</button>
+      <button class="tab" data-tab="body" data-i18n-tip="tip.tabBody" role="tab" data-i18n="panel.tabBody">Body &amp; mental map</button>
     </div>
 
     <div class="tab-panel" data-panel="live">
@@ -245,7 +245,7 @@
           <header class="pane-head">
             <button class="pane-toggle" type="button" aria-expanded="true">▾</button>
             <span class="pane-title" data-i18n="panel.brainmap">Brain map</span>
-            <button id="brainmap-expand" class="pane-expand" type="button" data-i18n="brainmap.expand">Enlarge</button>
+            <button id="brainmap-expand" data-i18n-tip="tip.expand" class="pane-expand" type="button" data-i18n="brainmap.expand">Enlarge</button>
           </header>
           <div class="pane-body">
             <div id="brainmap-status" class="dim"></div>
@@ -261,7 +261,7 @@
           <header class="pane-head">
             <button class="pane-toggle" type="button" aria-expanded="true">▾</button>
             <span class="pane-title" data-i18n="panel.bodymap">Body map</span>
-            <button id="bodymap-expand" class="pane-expand" type="button" data-i18n="brainmap.expand">Enlarge</button>
+            <button id="bodymap-expand" data-i18n-tip="tip.expand" class="pane-expand" type="button" data-i18n="brainmap.expand">Enlarge</button>
           </header>
           <div class="pane-body">
             <div id="bodymap-status" class="dim"></div>
@@ -272,7 +272,7 @@
           <header class="pane-head">
             <button class="pane-toggle" type="button" aria-expanded="true">▾</button>
             <span class="pane-title" data-i18n="panel.mentalmap">Mental map</span>
-            <button id="mentalmap-expand" class="pane-expand" type="button" data-i18n="brainmap.expand">Enlarge</button>
+            <button id="mentalmap-expand" data-i18n-tip="tip.expand" class="pane-expand" type="button" data-i18n="brainmap.expand">Enlarge</button>
           </header>
           <div class="pane-body">
             <canvas id="mentalmap" class="map-canvas"></canvas>
@@ -290,17 +290,17 @@
           </header>
           <div class="pane-body">
             <div class="code-tools">
-              <button id="btn-recover" data-i18n="code.recover" disabled>Recover</button>
-              <button id="btn-export" data-i18n="code.export">Export</button>
-              <button id="btn-export-program" title="Export the base program and experience-backed revisions">Export behavior</button>
-              <button id="btn-import" data-i18n="code.import">Import…</button>
+              <button id="btn-recover" data-i18n-tip="tip.codeRecover" data-i18n="code.recover" disabled>Recover</button>
+              <button id="btn-export" data-i18n-tip="tip.codeExport" data-i18n="code.export">Export</button>
+              <button id="btn-export-program" data-i18n-tip="tip.codeExportProgram">Export behavior</button>
+              <button id="btn-import" data-i18n-tip="tip.codeImport" data-i18n="code.import">Import…</button>
               <input id="btn-import-file" type="file" accept=".js,.fagi,.json,text/javascript,application/json" hidden>
-              <button id="btn-forget-code" data-i18n="code.forget">Forget</button>
+              <button id="btn-forget-code" data-i18n-tip="tip.codeForget" data-i18n="code.forget">Forget</button>
               <span id="code-status"></span>
             </div>
             <div class="code-tools">
               <span data-i18n="code.backend">Who decides</span>
-              <select id="backend-select">
+              <select id="backend-select" data-i18n-tip="tip.backend">
                 <option value="none" data-i18n="code.backendNone">Instinct only</option>
                 <option value="local" data-i18n="code.backendLocal">Local emulator</option>
                 <option value="http" data-i18n="code.backendHttp">HTTP API</option>
@@ -337,23 +337,27 @@
     <button type="button" data-act="compact" data-i18n-title="rail.compact" title="Compact">◫</button>
   </nav>
   <div id="setup-tabs" role="tablist">
-    <button type="button" role="tab" data-setup="map" data-i18n="setup.tabMap">🗺 Map</button>
-    <button type="button" role="tab" data-setup="settings" data-i18n="setup.tabSettings">⚙ Settings</button>
+    <button type="button" role="tab" data-setup="map" data-i18n-tip="tip.setupMap" data-i18n="setup.tabMap">🗺 Map</button>
+    <button type="button" role="tab" data-setup="settings" data-i18n-tip="tip.setupSettings" data-i18n="setup.tabSettings">⚙ Settings</button>
   </div>
   <div id="settings-overlay" hidden>
     <div id="settings">
       <header>
         <h2 data-i18n="set.title">Settings</h2>
         <details class="settings-actions">
-          <summary data-i18n="set.actions">Session actions</summary>
+          <summary data-i18n="set.actions" data-i18n-tip="tip.actions">Session actions</summary>
           <div class="settings-actions-body">
-        <button id="btn-rain-now" data-i18n="set.rainNow">Rain now</button>
-        <button id="btn-clear-trees" data-i18n="set.clearTrees">Remove trees</button>
-        <button id="btn-wipe-memory" data-i18n="set.wipe">Forget everything</button>
-        <button id="btn-settings-reset" data-i18n="set.factory">Factory values</button>
+        <button id="btn-rain-now" data-i18n-tip="tip.rainNow" data-i18n="set.rainNow">Rain now</button>
+        <p class="action-help" data-i18n="tip.rainNow"></p>
+        <button id="btn-clear-trees" data-i18n-tip="tip.clearTrees" data-i18n="set.clearTrees">Remove trees</button>
+        <p class="action-help" data-i18n="tip.clearTrees"></p>
+        <button id="btn-wipe-memory" data-i18n-tip="tip.wipe" data-i18n="set.wipe">Forget everything</button>
+        <p class="action-help" data-i18n="tip.wipe"></p>
+        <button id="btn-settings-reset" data-i18n-tip="tip.factory" data-i18n="set.factory">Factory values</button>
+        <p class="action-help" data-i18n="tip.factory"></p>
           </div>
         </details>
-        <button id="btn-settings-close" data-i18n="set.close">Close</button>
+        <button id="btn-settings-close" data-i18n-tip="tip.close" data-i18n="set.close">Close</button>
       </header>
       <div id="settings-body"></div>
     </div>
@@ -362,8 +366,8 @@
     <div id="phylogeny-modal">
       <header>
         <h2>🧬 Code Phylogeny Tree / Árbol Filogenético</h2>
-        <button id="btn-phy-copy-mermaid" type="button">📋 Copiar Mermaid</button>
-        <button id="btn-phy-export-json" type="button">📥 Exportar JSON</button>
+        <button id="btn-phy-copy-mermaid" data-i18n-tip="tip.phyMermaid" type="button">📋 Copiar Mermaid</button>
+        <button id="btn-phy-export-json" data-i18n-tip="tip.phyJson" type="button">📥 Exportar JSON</button>
         <button id="btn-phy-close" type="button">✕ Cerrar</button>
       </header>
       <div id="phylogeny-metrics" class="phy-metrics"></div>
