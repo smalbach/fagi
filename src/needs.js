@@ -13,7 +13,7 @@ import { learn } from './brain.js';
 import { hungerCause } from './appetite.js';
 import { oldAge } from './lifecycle.js';
 import { woundsCause } from './health.js';
-import { bodyOf, energyMax } from './biology.js';
+import { bodyOf, bodyMult, energyMax } from './biology.js';
 import { thermalFactors, thermalDeath } from './thermal.js';
 
 // The turn first allows drinking, eating or using the pantry and only afterwards
@@ -30,7 +30,7 @@ export function increaseNeeds(fagi, world, dt) {
   const metabolism = bodyOf(fagi).metabolism;
   const heat = thermalFactors(fagi);
   fagi.hunger += HUNGER.rate * statMult(fagi, 'hungerRate') * metabolism * heat.hunger * (sleeping ? NEST.restHunger : 1) * dt;
-  fagi.thirst += THIRST.rate * heat.thirst * (sleeping ? NEST.restThirst : 1) * dt;
+  fagi.thirst += THIRST.rate * bodyMult(fagi, 'thirst') * heat.thirst * (sleeping ? NEST.restThirst : 1) * dt;
   digest(fagi, dt);   // the stomach empties into her body (STOMACH)
 }
 

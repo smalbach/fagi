@@ -32,6 +32,7 @@ import { updateCortex, resetCortex } from './cortex.js';
 import { moveToward, explore, trackScent } from './movement.js';
 import { createExploreMap, markVisited } from './explore.js';
 import { updateGait } from './gait.js';
+import { founderVary } from './variation.js';
 import { eatCarried, tryPickOrEat } from './feeding.js';
 import { useNest } from './nest.js';
 import { swim } from './swim.js';
@@ -56,13 +57,17 @@ import { updateCaste } from './castes.js';
 export function createFagi(born = {}) {
   const angle = Math.random() * Math.PI * 2;
   const sex = born.sex ?? assignSex();
-  const body = bodyFor(sex, born.genome);
+  // A founder (no parents, so no genome yet) is born with her own draw (VARY).
+  const vary = born.genome ? null : founderVary();
+  const genome = vary ? { cues: {}, vary } : born.genome;
+  const body = bodyFor(sex, genome);
   return {
     x: WORLD.width / 2,
     y: WORLD.height / 2,
     angle,
 
     // the body (biology.js): sex and body genes, as multipliers worked out once
+    genome: genome ?? null,   // what she inherits (generations.js); a founder's carries her own draw (VARY)
     sex,               // 'female' | 'male' | null (SEX off)
     body,
     // given name + father's surname + mother's (names.js); a newborn's comes from her parents

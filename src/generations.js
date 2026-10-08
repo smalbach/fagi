@@ -31,6 +31,7 @@ import { BODY_TRAITS, bodyFor, energyMax } from './biology.js';
 import { morphOn, inheritMorph, baldwinOn, inheritPlastic } from './morph.js';
 import { programOf, line } from './program.js';
 import { programFromGenome } from './program/genome.js';
+import { childVary } from './variation.js';
 
 // Every trait a fruit can have, rotten fruit's smell included.
 export const ALL_CUES = [
@@ -87,6 +88,8 @@ export function mutate(genome, rnd = Math.random) {
   // Her organs (MORPH), from her one parent's.
   if (morphOn()) out.morph = inheritMorph(genome.morph, null, rnd);
   if (baldwinOn()) out.plastic = inheritPlastic(genome.plastic, genome.plastic, rnd);
+  const vary = childVary(genome.vary, null, rnd);
+  if (vary) out.vary = vary;
   return out;
 }
 
@@ -120,6 +123,9 @@ export function recombine(mother, father, rnd = Math.random, parents = null) {
   // Her organs (MORPH): between her parents', then a step.
   if (morphOn()) out.morph = inheritMorph(mother.morph, father.morph, rnd);
   if (baldwinOn()) out.plastic = inheritPlastic(mother.plastic, father.plastic, rnd);
+  // Her individual draw (VARY): from her parents', and a fresh part.
+  const vary = childVary(mother.vary, father.vary, rnd);
+  if (vary) out.vary = vary;
   return parents ? { ...out, parents } : out;
 }
 
@@ -156,7 +162,7 @@ export function applyGenome(fagi, genome) {
     // And by what her mother lived as she laid her (maternal effects).
     fagi.morph = Object.fromEntries(Object.entries(genome.morph).map(([k, v]) => [k, v * (genome.epi?.[k] ?? 1) * (genome.maternal?.[k] ?? 1)]));
   }
-  if (genome.body || genome.morph) {
+  if (genome.body || genome.morph || genome.vary) {
     fagi.body = bodyFor(fagi.sex, genome, fagi.morph);
     fagi.energy = energyMax(fagi);
   }

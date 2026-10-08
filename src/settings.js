@@ -10,7 +10,7 @@ import {
   CYCLE, THERMAL, SEX, SLEEP, EXPERIMENT, APPETITE, PERCEPT, NIGHTAI, CONCEPT,
   LIFE, HEALTH, TASTE, SOURCES, GEN, HABITS, NEEDS, FORAGE, SITES, CHOICE, LARDER, CONDUCT,
   PROGRAM, MOVEMENT, CASTES, MORPH, SEASONS, LOAD, COLONIES, STOMACH, SELECT, DRIVE, SCIENCE,
-  CAMERA, ATTENTION, SYNAPSE, EXPLAIN,
+  CAMERA, ATTENTION, SYNAPSE, EXPLAIN, VARY,
 } from './config.js';
 import { ORGANISM } from './organism.js';
 import { startRain } from './rain.js';
@@ -606,6 +606,25 @@ const GROUPS = [
     b(GEN, 'blend', 'Biases averaged from both parents', 'Sesgos promediados de ambos padres'),
     n(GEN, 'bodyMutation', 'Mutation of each body gene', 'Mutación de cada gen del cuerpo', 0, 0.3, 0.005),
     b(GEN, 'sexual', 'A mother and a father, each picked by fitness (needs sexes)', 'Una madre y un padre, elegidos por aptitud (necesita sexos)'),
+  ]},
+  { title: { en: 'Individual variation', es: 'Variación individual' }, cat: 'colony', fieldsOf: [
+    b(VARY, 'founders', 'The first generation is born varied', 'La primera generación nace variada'),
+    b(VARY, 'births', 'Every newborn is born varied', 'Cada recién nacida nace variada'),
+    n(VARY, 'spread', 'How much individuals differ (typical gap, 0.1 ≈ ±10 %)', 'Cuánto difieren los individuos (diferencia típica, 0.1 ≈ ±10 %)', 0, 0.5, 0.01),
+    n(VARY, 'limit', 'Furthest a trait may go (0.4 = ×0.6 … ×1.4)', 'Lo más lejos que puede llegar un rasgo (0.4 = ×0.6 … ×1.4)', 0.05, 0.9, 0.05),
+    n(VARY, 'heritability', 'Heritability: share a newborn takes from her parents', 'Heredabilidad: parte que la cría toma de sus padres', 0, 1, 0.05),
+    ...[
+      ['speed', 'Speed', 'Velocidad'],
+      ['energyMax', 'Energy reserves', 'Reservas de energía'],
+      ['metabolism', 'Metabolism (hunger and walking cost)', 'Metabolismo (hambre y gasto al caminar)'],
+      ['thirst', 'Thirst', 'Sed'],
+      ['insulation', 'Insulation from heat and cold', 'Aislamiento del calor y el frío'],
+      ['view', 'Sight range', 'Alcance de la vista'],
+      ['smell', 'Smell', 'Olfato'],
+      ['memory', 'Memory (how slowly she forgets)', 'Memoria (qué tan despacio olvida)'],
+      ['tolerance', 'Poison tolerance', 'Tolerancia al veneno'],
+      ['life', 'Lifespan', 'Esperanza de vida'],
+    ].map(([k, en, es]) => n(VARY, `weight.${k}`, `How much it varies: ${en} (× spread)`, `Cuánto varía: ${es} (× la diferencia típica)`, 0, 3, 0.1)),
   ]},
   { title: { en: 'Evolving body', es: 'Cuerpo evolutivo' }, cat: 'colony', fieldsOf: [
     b(MORPH, 'enabled', 'Inherited organs: brain, gut, muscle, eyes, antennae, size', 'Órganos heredados: cerebro, estómago, músculo, ojos, antenas, tamaño'),

@@ -44,6 +44,10 @@ async function game() {
   // Her gait (gait.js) came after the fixture: it changes her pace, not how
   // she decides, but a slower or faster step moves every frame after it.
   CONFIG.MOVEMENT.enabled = 0;
+  // So did individual variation (variation.js): a body of her own changes
+  // what she can do, and so every frame, not how she decides.
+  CONFIG.VARY.founders = 0;
+  CONFIG.VARY.births = 0;
 }
 
 // Long enough for the rarer lines to answer: anticipating rain (classic),

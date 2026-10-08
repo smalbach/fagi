@@ -32,7 +32,9 @@ export function bodyFor(sex, genome = null, morph = genome?.morph) {
   const bySex = SEX.enabled && sex ? SEX[sex] ?? NEUTRAL : NEUTRAL;
   const genes = genome?.body ?? {};
   const body = {};
-  for (const k of BODY_TRAITS) body[k] = (bySex[k] ?? 1) * clampGene(genes[k] ?? 1);
+  // Her own draw (variation.js, VARY): one multiplier per trait, all 1 without it.
+  const vary = genome?.vary ?? {};
+  for (const k of BODY_TRAITS) body[k] = (bySex[k] ?? 1) * clampGene(genes[k] ?? 1) * (vary[k] ?? 1);
   if (morphOn() && morph) {
     const m = morphBody(morph);
     body.speed *= m.speed;
@@ -42,6 +44,10 @@ export function bodyFor(sex, genome = null, morph = genome?.morph) {
     body.drain = body.metabolism * m.drain * keep;
     body.metabolism *= m.metabolism * keep;
     for (const k of ['view', 'smell', 'memory', 'digest', 'tolerance', 'life', 'brood', 'heatShift']) body[k] = m[k];
+  }
+  // The rest of her draw rides on what her organs give (or on 1 without them).
+  for (const k of ['thirst', 'view', 'smell', 'memory', 'tolerance', 'life']) {
+    if (vary[k] != null) body[k] = (body[k] ?? 1) * vary[k];
   }
   return body;
 }

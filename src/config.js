@@ -363,6 +363,42 @@ export const GEN = {
   bodyRange: [0.8, 1.25], // how far a body gene can drift from 1
 };
 
+// Individual variation (variation.js): no two Fagis are born the same. Each
+// carries, in her genome, a multiplier around 1 per trait below: one is
+// born faster, another with more reserves, a thirstier one... drawn on a
+// log scale, so ×1.1 and ×0.91 are equally likely. Off here (batch and
+// tests are the preregistered world, everyone alike); the game turns it on
+// (app/organism-on.js).
+//   founders     : the first generation is born varied
+//   births       : every newborn is born varied too (off: newborns are standard)
+//   spread       : how much individuals differ: the typical gap from the
+//                  species' value (0.1 ≈ ±10 %)
+//   limit        : the furthest any trait may go from 1 (0.4 = ×0.6 … ×1.4)
+//   heritability : how much of a newborn's trait comes from her parents'
+//                  (their average), the rest a fresh draw. 0: every birth a
+//                  new lottery; near 1: the colony's traits drift where who
+//                  survives and breeds takes them (selection)
+//   weight       : how much each trait varies, × spread (0 = not at all)
+export const VARY = {
+  founders: 0,
+  births: 0,
+  spread: 0.1,
+  limit: 0.4,
+  heritability: 0.5,
+  weight: {
+    speed: 1,       // how fast she walks
+    energyMax: 1,   // her energy reserves
+    metabolism: 1,  // how fast she burns food (hunger and walking cost)
+    thirst: 1,      // how fast she gets thirsty
+    insulation: 1,  // how slowly heat and cold reach her body
+    view: 1,        // how far she sees
+    smell: 1,       // how keen her smell is
+    memory: 1,      // how slowly she forgets
+    tolerance: 1,   // how well she stands poison
+    life: 1,        // how long she lives (with LIFE)
+  },
+};
+
 // The evolving body (morph.js; docs/research/libera/cuerpo-evolutivo.md):
 // organs she inherits, each a multiplier around 1 (1 = today's Fagi), with
 // what it gives and what it costs. Off, nobody carries them and nothing

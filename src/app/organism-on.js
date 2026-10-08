@@ -3,7 +3,7 @@
 // "factory" in the game means organism on.
 
 import { enableOrganism } from '../organism.js';
-import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE, DRIVE, MOVEMENT } from '../config.js';
+import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE, DRIVE, MOVEMENT, VARY } from '../config.js';
 import { CAUTION_LINES } from '../learned/conduct.js';
 
 enableOrganism();
@@ -45,6 +45,11 @@ SEASONS.enabled = 1;
 
 // Her gait (gait.js): slopes, caution on new ground, sprints home.
 MOVEMENT.enabled = 1;
+
+// No two alike (variation.js): founders and newborns each carry their own
+// speed, reserves, thirst, senses..., and half of it is inherited.
+VARY.founders = 1;
+VARY.births = 1;
 
 // Fruit that weighs and resists (load.js): carrying a heavy one home asks for
 // muscle, a hard one for a gut up to it.

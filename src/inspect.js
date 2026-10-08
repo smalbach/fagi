@@ -23,6 +23,7 @@ import { sodiumOf } from './taste.js';
 import { lifeAge, fertility } from './lifecycle.js';
 import { activeEffects } from './effects.js';
 import { viewRangeOf } from './vision.js';
+import { standOut } from './variation.js';
 import { HABIT_IDS, habit } from './habits.js';
 import { choiceView } from './choice.js';
 import { larderView } from './larder.js';
@@ -61,6 +62,22 @@ function bar(label, u, text, color) {
 const section = (id, title, body) => (body ? `<details data-sec="${id}"><summary>${title}</summary>${body}</details>` : '');
 
 // A person as a chip that inspects her when clicked.
+// What sets her apart from the species' standard (variation.js), biggest first.
+const VARY_NAMES = {
+  speed: ['speed', 'velocidad'], energyMax: ['reserves', 'reservas'], metabolism: ['metabolism', 'metabolismo'],
+  thirst: ['thirst', 'sed'], insulation: ['insulation', 'aislamiento'], view: ['sight', 'vista'], smell: ['smell', 'olfato'],
+  memory: ['memory', 'memoria'], tolerance: ['poison tolerance', 'tolerancia al veneno'], life: ['lifespan', 'vida'],
+};
+function varyText(f) {
+  const out = standOut(f.genome?.vary);
+  if (!f.genome?.vary) return null;
+  if (!out.length) return L('the species’ standard', 'el estándar de la especie');
+  return out.slice(0, 5).map(([k, v]) => {
+    const pct = Math.round((v - 1) * 100);
+    return `${L(...(VARY_NAMES[k] ?? [k, k]))} ${pct > 0 ? '+' : ''}${pct}%`;
+  }).join(' · ');
+}
+
 // Her pace now (gait.js): a sprint, a crawl, a slope. Nothing while it is plain walking.
 function gaitText(f) {
   if (f.gaitSpeed == null || !f.alive) return null;
@@ -296,6 +313,7 @@ function paintFagi(f, world, main, isMain, canFollow) {
     row(t('stat.body'), f.swimming ? t('body.swimming') : f.wet > 0 ? t('body.wet', { sec: { dur: f.wet, precise: true } }) : (f.thought ? t('body.dry') : null)),
     row(L('Sight', 'Vista'), f.brain ? `${Math.round(viewRangeOf(f))} px` : null),
     row(L('Gait', 'Paso'), gaitText(f)),
+    row(L('Born with', 'Nació con'), varyText(f), 'ins-wrap'),
   ].filter(Boolean).join('');
 
   const age = lifeAge(f);
