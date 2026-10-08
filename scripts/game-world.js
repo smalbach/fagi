@@ -107,6 +107,9 @@ function traitsOf(ants, programOf) {
   const kinds = {};
   for (const ls of lines) for (const l of ls) { const k = `${l.from}>${l.over}`; kinds[k] = (kinds[k] ?? 0) + 1; }
   out.topLines = Object.entries(kinds).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${k}:${v}`);
+  // How many of them carry each kind of line (each ant counted once per kind).
+  out.carriers = {};
+  for (const ls of lines) for (const k of new Set(ls.map((l) => `${l.from}>${l.over}`))) out.carriers[k] = (out.carriers[k] ?? 0) + 1;
   return out;
 }
 

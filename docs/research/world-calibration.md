@@ -247,3 +247,18 @@ Cold habitat −3 °C instead of −6; an emptied nest is refounded by the neare
 - **Size genes: bigger in the cold than in the heat**, averaged over years 10–20: +0.055 (t 1.8, 6/8 maps); in the first 20-year run +0.016 (t 1.9, 7/8). The direction predicted by the temperature-size rule in 13 of 16 runs, weak and not significant in either alone.
 - Muscle and brain evolve as before (muscle up, brain down) in every habitat; no robust difference between habitats.
 - Conduct: "dusk before sleep" (go home as the light goes, before anything else) becomes a tradition mostly in cold colonies (line carriers over years 10–20: 93 cold, 7 hot, 12 toxic; first run 16 / 0 / 0), but each time in one map: a hint, not a result.
+
+### Twenty-four maps: is the size difference real? (2026-10-07)
+
+16 new maps (seeds 7508–7523), same settings, 20 years, plus the 8 above. Per map, the mean over years 10–20.
+
+| comparison | difference | t | maps + | sign test p |
+|---|---|---|---|---|
+| size gene, cold − hot (24 maps) | +0.037 | 1.94 | 15/23 | 0.21 |
+| size gene, cold − hot (16 new only) | +0.027 | 1.12 | 9/15 | 0.61 |
+| size body, cold − hot (24 maps) | +0.033 | 2.35 | 14/23 | 0.41 |
+| muscle, brain, gut, mark: any pair | \|t\| ≤ 2.2 | | | ≥ 0.21 |
+
+Not confirmed. The size genes keep leaning the predicted way (bigger in cold) but the new maps alone do not show it, and with 24 comparisons a t near 2 is what chance gives. Conduct, now counted ant by ant: the same lines everywhere (memory before pursue in 59–69 % of a colony, memory before scent in 37–52 %); "dusk before sleep", the hint of the earlier runs, did not come back.
+
+Two of the 16 new maps died out entirely within 20 years (7513, 7519); every colony empties in about 7 % of its years, and 115 refoundings in 16 maps keep mixing the habitats. What is robust is evolution towards the world all colonies share (muscle up, brain down). Local adaptation needs selection that outweighs mixing: fewer winter crashes, bigger colonies, or both.
