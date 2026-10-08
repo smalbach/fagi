@@ -43,6 +43,10 @@ function drag(world, fagi) {
   if (fagi.wet > 0) f *= 1 - (1 - WATER.wetSpeed) * (fagi.wet / WATER.dryTime);
   // She notices the pressure dropping: instinct to hurry (INSTINCT.pressureHaste).
   if (fagi.pressureFalling) f *= 1 + INSTINCT.pressureHaste * fagi.pressure;
+  // TODO(climate): snow, rime and frozen mud are only painted (climate-sprite.js,
+  // mud-sprite.js). Making them slow her (deep snow slower, frozen mud firmer,
+  // dried crust easier) would change the preregistered worlds, so it waits
+  // for a sim-side ground state that batch runs can switch off.
   // Heavy ground (world.mud, research worlds only): it slows whoever crosses it,
   // but repeated passage compacts and paves trails over time (niche construction).
   for (const m of world.mud ?? []) {
