@@ -31,6 +31,7 @@ import { createAttention, notice } from './attention.js';
 import { updateCortex, resetCortex } from './cortex.js';
 import { moveToward, explore, trackScent } from './movement.js';
 import { createExploreMap, markVisited } from './explore.js';
+import { updateGait } from './gait.js';
 import { eatCarried, tryPickOrEat } from './feeding.js';
 import { useNest } from './nest.js';
 import { swim } from './swim.js';
@@ -202,6 +203,7 @@ export function updateFagi(fagi, world, dt) {
   // She stays still drinking, resting or pressed against a thing; the rest of the time, on the move.
   const stop = !fagi.swimming
     && ((fagi.drinking && fagi.thirst > 0) || fagi.thought.action === 'rest' || fagi.thought.action === 'huddle');
+  updateGait(fagi, world);       // slope, caution or a sprint (gait.js; MOVEMENT only)
   if (!stop) act(fagi, world, dt);
   fagi.moving = !stop;           // walking warms her a little (thermal.js)
 

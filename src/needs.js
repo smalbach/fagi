@@ -90,7 +90,7 @@ export function spendEnergy(fagi, world, dt, isMoving) {
   } else if (isMoving) {
     // In the rain, outside the nest, every drop shakes her about: it costs more.
     const drops = fagi.raining && !inNest ? RAIN.effort : 1;
-    fagi.energy -= ENERGY.drain * statMult(fagi, 'speed') * drops * (bodyOf(fagi).drain ?? bodyOf(fagi).metabolism) * loadEffort(fagi) * dt;
+    fagi.energy -= ENERGY.drain * statMult(fagi, 'speed') * drops * (bodyOf(fagi).drain ?? bodyOf(fagi).metabolism) * loadEffort(fagi) * (fagi.gaitEffort ?? 1) * dt;
   } else {
     fagi.energy += (inNest ? ENERGY.restNest : ENERGY.restOutside) * dt;
   }

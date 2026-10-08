@@ -41,6 +41,9 @@ const EVERY = 60;     // seconds between checkpoints
 async function game() {
   await import('../src/app/organism-on.js');
   CONFIG.MAPGEN.species = 6;
+  // Her gait (gait.js) came after the fixture: it changes her pace, not how
+  // she decides, but a slower or faster step moves every frame after it.
+  CONFIG.MOVEMENT.enabled = 0;
 }
 
 // Long enough for the rarer lines to answer: anticipating rain (classic),

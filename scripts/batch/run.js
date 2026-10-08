@@ -50,7 +50,8 @@ export function runOnce(opts, fagiSeed, startHabits = null) {
   const worldRng = rng(opts.worldVaries ? fagiSeed * 7919 : opts.mapSeed + 1);
   const fagiRng = rng(fagiSeed);
 
-  const world = withRng(mapRng, () => { const w = createWorld(); generateMap(w); return w; });
+  // The map's seed also draws its relief (gait.js reads the slopes; nothing else in a run does).
+  const world = withRng(mapRng, () => { const w = createWorld(); generateMap(w); w.seed = opts.mapSeed; return w; });
   const fagi = withRng(fagiRng, () => createFagi());
   if (startHabits) fagi.brain.habits = restoreHabits(startHabits);
   const s = newFollow(opts, fagi);
@@ -86,7 +87,8 @@ export function runColony(opts, fagiSeed) {
   const worldRng = rng(opts.worldVaries ? fagiSeed * 7919 : opts.mapSeed + 1);
   const fagiRng = rng(fagiSeed);
 
-  const world = withRng(mapRng, () => { const w = createWorld(); generateMap(w); return w; });
+  // The map's seed also draws its relief (gait.js reads the slopes; nothing else in a run does).
+  const world = withRng(mapRng, () => { const w = createWorld(); generateMap(w); w.seed = opts.mapSeed; return w; });
   const colony = withRng(fagiRng, () => createColony(opts.colony));
   const follows = colony.ants.map((f) => newFollow(opts, f));
   const myths = createMythLog();

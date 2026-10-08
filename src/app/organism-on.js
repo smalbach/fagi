@@ -3,7 +3,7 @@
 // "factory" in the game means organism on.
 
 import { enableOrganism } from '../organism.js';
-import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE, DRIVE } from '../config.js';
+import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE, DRIVE, MOVEMENT } from '../config.js';
 import { CAUTION_LINES } from '../learned/conduct.js';
 
 enableOrganism();
@@ -42,6 +42,9 @@ MORPH.enabled = 1;
 // Years with a lean, cold winter (seasons.js): the pressure that decides which
 // bodies get through. Every winter the same; the settings make them vary.
 SEASONS.enabled = 1;
+
+// Her gait (gait.js): slopes, caution on new ground, sprints home.
+MOVEMENT.enabled = 1;
 
 // Fruit that weighs and resists (load.js): carrying a heavy one home asks for
 // muscle, a hard one for a gut up to it.

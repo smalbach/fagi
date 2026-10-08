@@ -97,13 +97,23 @@ export const FAGI = {
   trailMemory: 7.0,   // seconds she keeps searching for a trail she has lost
 };
 
+// Her gait (gait.js): how the ground and her situation change her pace.
+// Off here, so batch runs and tests stay the preregistered world; the game
+// turns it on (app/organism-on.js).
+//   - uphill she slows and spends more, downhill she goes a little faster;
+//   - on ground she barely knows, and with nothing pressing, she crawls;
+//   - racing home from rain, a front or the heat, or to what ends a critical
+//     need, she sprints, and pays for it in energy.
 export const MOVEMENT = {
-  crawlSpeed: 0.5,        // fraction of speed when probing or cautious in unfamiliar ground
-  sprintMult: 1.35,       // speed burst when escaping critical danger or rushing shelter in storm
+  enabled: 0,             // 0 = one pace everywhere, as before
+  crawlSpeed: 0.5,        // fraction of speed while cautious
+  sprintMult: 1.35,       // speed (and energy per second) while sprinting
   zigzagFreq: 2.2,        // sweep oscillation frequency (rad/s) when searching for trails
   zigzagAmp: 0.35,        // sweep angle amplitude (radians)
-  terrainAdapt: 1,        // adapt speed to local terrain slope/relief
-  cautiousThreshold: 0.25,// distress/uncertainty level that triggers cautious crawling
+  terrainAdapt: 1,        // slopes slow her uphill and speed her downhill
+  slope: 1,               // how much a slope weighs (0 = flat world)
+  cautiousThreshold: 0.6, // how unknown the ground must be (0-1) for her to crawl
+  sprintEnergy: 0.15,     // energy fraction under which she no longer sprints
 };
 
 export const HUNGER = {

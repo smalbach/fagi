@@ -92,8 +92,8 @@ export function advance(fagi, world, dt) {
   // Her own legs (biology.js) and the cold stiffening them (thermal.js).
   const body = bodyOf(fagi).speed * thermalFactors(fagi).speed * lifeSpeed(fagi) * healthSpeed(fagi) * saltSpeed(fagi);
   let speed = FAGI.speed * statMult(fagi, 'speed') * weakness * drag(world, fagi) * body * loadSpeed(fagi);
-  if (fagi.cautious) speed *= (MOVEMENT?.crawlSpeed ?? 0.5);
-  else if (fagi.sprinting) speed *= (MOVEMENT?.sprintMult ?? 1.35);
+  // Slope, caution and sprint (gait.js; 1 with MOVEMENT off).
+  speed *= fagi.gaitSpeed ?? 1;
   const before = { x: fagi.x, y: fagi.y };
   fagi.stride += speed * dt;
   fagi.x += Math.cos(fagi.angle) * speed * dt;
