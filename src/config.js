@@ -834,6 +834,8 @@ export const TREE = {
 //   foundAt  : a colony this full (share of LIFE.maxPopulation, per nest) may
 //              send a pair to an empty nest
 //   every    : seconds between looks for an empty nest to refound
+//   party    : adults that go to refound it: a fertile pair (2, as measured
+//              until 2026-10-08), or the pair and more of the colony's adults
 //   from     : which colony refounds it, among those full enough: 'fullest'
 //              (as measured until 2026-10-07) or 'nearest' (the neighbours,
 //              as colonies spread in nature: less mixing between far habitats)
@@ -843,6 +845,7 @@ export const COLONIES = {
   spacing: 380,
   foundAt: 0.5,
   every: 60,
+  party: 2,
   from: 'fullest',
 };
 

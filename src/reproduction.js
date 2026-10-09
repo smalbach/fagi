@@ -357,9 +357,12 @@ function refound(world, colony, nests) {
     const female = adults.find((f) => f.sex === 'female');
     const male = female && adults.find((f) => f.sex === 'male' && relatedness(world.lineage, female.id, f.id) < LIFE.kinLimit);
     if (!female || !male) continue;
-    for (const f of [female, male]) { f.home = empty.id; f.pantry = {}; }
+    // A bigger party (COLONIES.party): more of the source's adults go with the
+    // pair, so the new colony is less likely to die out before its first brood.
+    const party = [female, male, ...adults.filter((f) => f !== female && f !== male).slice(0, Math.max(0, (COLONIES.party ?? 2) - 2))];
+    for (const f of party) { f.home = empty.id; f.pantry = {}; }
     colony.life.founded = (colony.life.founded ?? 0) + 1;
-    record(world, 'colony_found', { from: source.id, to: empty.id, female: female.id, male: male.id });
+    record(world, 'colony_found', { from: source.id, to: empty.id, female: female.id, male: male.id, party: party.length });
   }
 }
 

@@ -122,6 +122,10 @@ export default {
       'Seconds between a colony’s looks for an empty nest to refound. Higher → empty nests stay empty longer; lower → they are retaken quickly.',
       'Segundos entre búsquedas de una colonia de un nido vacío que refundar. Más alto → los nidos vacíos tardan más en ocuparse; más bajo → se recuperan rápido.',
     ],
+    'Colonies.party': [
+      'How many adults leave a colony to refound an empty nest: a fertile pair (2), or the pair and more of its adults. Higher → the new colony is less likely to die out early, but its source loses more hands.',
+      'Cuántas adultas salen de una colonia para refundar un nido vacío: una pareja fértil (2), o la pareja y más de sus adultas. Más alto → la nueva colonia tiene menos riesgo de extinguirse pronto, pero la de origen pierde más brazos.',
+    ],
     'Colonies.from': [
       'Which colony refounds an empty nest, among those full enough. Nearest → the neighbours spread, as in nature, and far habitats mix less; fullest → the most crowded colony anywhere sends the pair.',
       'Qué colonia refunda un nido vacío, entre las bastante llenas. La más cercana → se expanden las vecinas, como en la naturaleza, y los hábitats lejanos se mezclan menos; la más llena → la colonia más poblada, esté donde esté, envía la pareja.',

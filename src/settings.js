@@ -358,6 +358,7 @@ const GROUPS = [
     n(COLONIES, 'spacing', 'Least distance between two nests (px)', 'Distancia mínima entre dos nidos (px)', 100, 1200, 10),
     n(COLONIES, 'foundAt', 'Fullness from which a colony refounds an empty nest', 'Llenado desde el que una colonia refunda un nido vacío', 0.1, 1, 0.05),
     n(COLONIES, 'every', 'Seconds between looks for an empty nest', 'Segundos entre búsquedas de un nido vacío', 10, 600, 10),
+    n(COLONIES, 'party', 'Adults that go to refound an empty nest', 'Adultas que van a refundar un nido vacío', 2, 10, 1),
     w(COLONIES, 'from', 'Who refounds an empty nest', 'Quién refunda un nido vacío', [
       ['nearest', 'The nearest colony able to', 'La colonia más cercana que pueda'],
       ['fullest', 'The fullest colony', 'La colonia más llena'],

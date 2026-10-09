@@ -274,3 +274,15 @@ Two of the 16 new maps died out entirely within 20 years (7513, 7519); every col
 | 20 % | 15.8 | 6.9 % | 18 % | 1.5 in 6 years |
 
 Winter is not what empties colonies. A colony that empties held 1–5 alive the year before (66 of 69 cases): it had already dwindled. And refounding often fails: 115 refoundings for 69 emptied nest-years, because a pair sent to an empty nest often dies before raising a brood, and the nest is refounded again. The game keeps its winter (a milder one only takes pressure away).
+
+### Refounding with a party instead of a pair (2026-10-08)
+
+`COLONIES.party` (default 2, the pair): adults sent to refound an empty nest. After merging main (individual variation, gait, climate). 8 maps (seeds 7700–7707), 6 years:
+
+| party | alive per nest | nest-years empty | refounded | refoundings per emptied nest |
+|---|---|---|---|---|
+| 2 | 14.8 | 4.9 % | 8 | 1.14 |
+| 4 | 15.0 | 4.9 % | 8 | 1.14 |
+| 6 | 15.0 | 3.5 % | 6 | 1.20 |
+
+No difference worth the name: in these six years refounding is rarer than before (8 in 48 map-years) and seldom fails. The game keeps the pair. What drives mixing is not failed refounding but colonies that dwindle to a handful, with 12–19 adults per nest, and are then replaced.
