@@ -54,6 +54,9 @@ export async function buildApp({ pool, adminEmail = process.env.ADMIN_EMAIL, sec
 
   app.setNotFoundHandler((req, reply) => {
     if (req.url.startsWith('/api/') || !staticDir) return reply.code(404).send({ error: 'not_found' });
+    // The research site is its own page (dist/investigacion/index.html).
+    const bare = req.url.split('?')[0];
+    if (bare === '/investigacion' || bare === '/investigacion/en') return reply.redirect(`${bare}/`, 301);
     // Anything that is neither API nor a file is the app: the front end picks the screen.
     return reply.sendFile('index.html');
   });

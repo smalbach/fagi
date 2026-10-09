@@ -17,7 +17,8 @@
     "make-admin": "node --env-file-if-exists=.env server/scripts/make-admin.js",
     "set-password": "node --env-file-if-exists=.env server/scripts/set-password.js",
     "test": "node --env-file-if-exists=.env --test --test-concurrency=1",
-    "batch": "node scripts/batch.js"
+    "batch": "node scripts/batch.js",
+    "site-data": "node scripts/site-data.js"
   },
   "devDependencies": {
     "vite": "^5.4.0"

@@ -52,6 +52,17 @@ export default defineConfig({
     __APP_COMMIT__: JSON.stringify(commit()),
     __APP_BUILT__: JSON.stringify(new Date().toISOString()),
   },
+  // The game (/) and the research site (/investigacion/, and /investigacion/en/), which
+  // draws Fagi with the game's own sprite code but loads nothing else of it.
+  build: {
+    rollupOptions: {
+      input: {
+        game: fileURLToPath(new URL('./index.html', import.meta.url)),
+        research: fileURLToPath(new URL('./investigacion/index.html', import.meta.url)),
+        researchEn: fileURLToPath(new URL('./investigacion/en/index.html', import.meta.url)),
+      },
+    },
+  },
   server: {
     host: '0.0.0.0',
     port: 5173,
