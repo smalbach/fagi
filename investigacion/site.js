@@ -121,6 +121,25 @@ if (inheritHost) {
   );
 }
 
+// ---------- second inheritance study (Figure 6b) ----------
+// Survival in generations 3-5 per damage, from docs/research/prereg-inheritance-2-results.md
+// (the intact program has no "any mother" arm).
+const INHERIT2 = [
+  ['none', 'born', [0.467, 0.550, 0.744]],
+  ['verdict', 'learn', [0.495, 0.564, 0.686]],
+  ['rule', 'inheritAny', [0.576, 0.645, null]],
+  ['evidence', 'inherit', [0.605, 0.667, 0.654]],
+];
+const inherit2Host = document.getElementById('inherit2-chart');
+if (inherit2Host) {
+  document.getElementById('inherit2-title').textContent = T.inherit2Title;
+  inherit2Host.innerHTML = groupedBars(
+    T.damages.map((label, i) => ({ label, values: INHERIT2.map(([, , v]) => v[i]) })),
+    INHERIT2.map(([key, arm]) => ({ key, label: T.arms[arm] })),
+    { yMax: 0.8, yFmt: pct },
+  );
+}
+
 // ---------- information-matched replication (Figure 4) ----------
 // Differences between formats, from docs/research/results.md (main study) and
 // the replication on research/codigo-cultural: [counting items, matching information].

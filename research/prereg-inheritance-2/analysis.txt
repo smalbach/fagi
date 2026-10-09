@@ -1,0 +1,52 @@
+lives per damage and arm
+  dusk       born 4608  learn 4608  inherit 4608  inheritAny 4608
+  shelter    born 3072  learn 3072  inherit 3072  inheritAny 3072
+  intact     born 3072  learn 3072  inherit 3072  inheritAny 0
+
+survival by generation, dusk
+  gen 0  born 0.461  learn 0.493  inherit 0.493  inheritAny 0.493
+  gen 1  born 0.470  learn 0.523  inherit 0.598  inheritAny 0.587
+  gen 2  born 0.454  learn 0.486  inherit 0.579  inheritAny 0.553
+  gen 3  born 0.488  learn 0.509  inherit 0.620  inheritAny 0.599
+  gen 4  born 0.475  learn 0.501  inherit 0.600  inheritAny 0.576
+  gen 5  born 0.436  learn 0.474  inherit 0.594  inheritAny 0.555
+  gens 3-5
+    born       alive 0.467  lived 5414  eaten 8.31  inherited lines 0.00  own 0.00  carries dusk-before-* 0.000  deaths {"cold":737,"alive":1075,"hunger":475,"poison":7,"thirst":10}
+    learn      alive 0.495  lived 5677  eaten 8.75  inherited lines 0.00  own 1.16  carries dusk-before-* 0.661  deaths {"cold":739,"alive":1140,"hunger":414,"poison":6,"thirst":4,"heat":1}
+    inherit    alive 0.605  lived 6240  eaten 9.71  inherited lines 2.49  own 0.34  carries dusk-before-* 0.995  deaths {"cold":601,"alive":1393,"hunger":298,"poison":8,"thirst":4}
+    inheritAny alive 0.576  lived 6128  eaten 9.51  inherited lines 2.37  own 0.35  carries dusk-before-* 0.992  deaths {"alive":1328,"hunger":315,"cold":648,"poison":9,"thirst":4}
+
+survival by generation, shelter
+  gen 0  born 0.537  learn 0.580  inherit 0.580  inheritAny 0.580
+  gen 1  born 0.557  learn 0.574  inherit 0.621  inheritAny 0.621
+  gen 2  born 0.553  learn 0.568  inherit 0.645  inheritAny 0.633
+  gen 3  born 0.555  learn 0.580  inherit 0.676  inheritAny 0.652
+  gen 4  born 0.557  learn 0.578  inherit 0.682  inheritAny 0.670
+  gen 5  born 0.539  learn 0.533  inherit 0.643  inheritAny 0.613
+  gens 3-5
+    born       alive 0.550  lived 6302  eaten 9.84  inherited lines 0.00  own 0.00  carries shelter-before-* 0.000  deaths {"alive":845,"hunger":222,"cold":453,"heat":2,"poison":5,"thirst":9}
+    learn      alive 0.564  lived 6301  eaten 9.80  inherited lines 0.00  own 0.86  carries shelter-before-* 0.472  deaths {"alive":866,"cold":429,"hunger":231,"heat":2,"poison":5,"thirst":3}
+    inherit    alive 0.667  lived 6455  eaten 10.07  inherited lines 2.42  own 0.32  carries shelter-before-* 0.995  deaths {"alive":1024,"cold":321,"hunger":174,"heat":2,"thirst":5,"poison":10}
+    inheritAny alive 0.645  lived 6380  eaten 9.95  inherited lines 2.20  own 0.35  carries shelter-before-* 0.943  deaths {"alive":991,"hunger":183,"cold":349,"poison":7,"heat":2,"thirst":4}
+
+survival by generation, intact
+  gen 0  born 0.760  learn 0.693  inherit 0.693
+  gen 1  born 0.738  learn 0.713  inherit 0.721
+  gen 2  born 0.738  learn 0.688  inherit 0.666
+  gen 3  born 0.756  learn 0.693  inherit 0.666
+  gen 4  born 0.715  learn 0.705  inherit 0.668
+  gen 5  born 0.762  learn 0.660  inherit 0.627
+  gens 3-5
+    born       alive 0.744  lived 6569  eaten 10.23  inherited lines 0.00  own 0.00  carries * 0.000  deaths {"alive":1143,"hunger":127,"cold":252,"poison":5,"thirst":9}
+    learn      alive 0.686  lived 6488  eaten 10.12  inherited lines 0.00  own 0.37  carries * 0.286  deaths {"alive":1054,"hunger":149,"cold":325,"poison":5,"thirst":3}
+    inherit    alive 0.654  lived 6381  eaten 9.93  inherited lines 1.20  own 0.32  carries * 0.813  deaths {"alive":1004,"hunger":156,"cold":365,"poison":6,"thirst":5}
+
+hypotheses (unit: population; one-sided sign-flip permutation, 20000 draws; non-inferiority by the one-sided 95 % t lower bound)
+  R1   primary   dusk: inherit > learn, gens 3,4,5: diff  0.110, 43/4 of 48 populations ahead/behind, t 11.01, p 0.0000 (Holm alpha 0.025) -> SUPPORTED
+  G1   primary   shelter: inherit > learn, gens 3,4,5: diff  0.103, 30/1 of 32 populations ahead/behind, t 8.59, p 0.0000 (Holm alpha 0.050) -> SUPPORTED
+  R2   secondary dusk: learn > born, gens 3,4,5: diff  0.028, 35/8 of 48 populations ahead/behind, t 4.68, p 0.0000 -> SUPPORTED
+  R3   secondary dusk: inherit > inheritAny, gens 3,4,5: diff  0.028, 27/14 of 48 populations ahead/behind, t 2.37, p 0.0134 -> SUPPORTED
+  G2   secondary shelter: learn > born, gens 3,4,5: diff  0.014, 16/8 of 32 populations ahead/behind, t 1.40, p 0.0985 -> NOT SUPPORTED
+  G3   secondary shelter: inherit > inheritAny, gens 3,4,5: diff  0.021, 17/7 of 32 populations ahead/behind, t 1.62, p 0.0639 -> NOT SUPPORTED
+  N1   secondary intact: learn not worse than born, gens 0,1,2,3,4,5: diff -0.053, 4/28 of 32 populations ahead/behind, t -6.16, lower bound -0.067 vs margin -0.05 -> NOT SUPPORTED
+  N2   secondary intact: inherit not worse than born, gens 3,4,5: diff -0.090, 2/29 of 32 populations ahead/behind, t -7.61, lower bound -0.111 vs margin -0.05 -> NOT SUPPORTED

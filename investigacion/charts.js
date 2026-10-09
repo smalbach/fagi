@@ -89,6 +89,7 @@ export function groupedBars(groups, series, { yMax, yFmt = (v) => v, height = 22
   groups.forEach((g, i) => {
     const x0 = L + i * gw + (gw - bw * series.length) / 2;
     g.values.forEach((v, j) => {
+      if (v == null) return;
       const xx = x0 + j * bw, top = y(Math.max(0, v));
       s += `<rect x="${xx + 2}" y="${top}" width="${bw - 4}" height="${Math.max(1.5, y(0) - top)}" rx="3" fill="var(--s-${series[j].key})"><title>${esc(g.label)} · ${esc(series[j].label)}: ${esc(yFmt(v))}</title></rect>`;
       s += `<text class="val" x="${xx + bw / 2}" y="${top - 5}" text-anchor="middle">${esc(yFmt(v))}</text>`;

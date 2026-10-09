@@ -62,3 +62,5 @@ Daughters in one population share mothers (about 8 distinct mothers per 16 daugh
 H1 by generation: +0.041 (gen 1), +0.066 (2), +0.113 (3), +0.109 (4), +0.105 (5). The gain builds over two generations and then holds.
 
 Reading: H1 and H2 do not depend on counting lives as independent. H3 survives at the population level only narrowly. A preregistered follow-up with the population as its unit: docs/research/prereg-inheritance-2.md.
+
+Second study (preregistered, 2026-10-09): docs/research/prereg-inheritance-2-results.md. H1 replicates on new seeds (+11.0, 43/4 populations) and extends to a second damage (`shelter`, +10.3, 30/1); H3 replicates with `dusk`; H4 is now decided against: with the intact program learning costs 5.3 points and inheriting 9.0.
