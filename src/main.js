@@ -13,6 +13,7 @@ import { createWorld, resetWorld, record } from './world.js';
 import { generateMap } from './mapgen.js';
 import { createFagi } from './fagi.js';
 import { step } from './simulation.js';
+import { cycleAt } from './cycle.js';
 import { updateTrails } from './smell.js';
 import { render } from './render.js';
 import { createInput, INSPECT } from './input.js';
@@ -327,12 +328,31 @@ export function createGame({ onExit } = {}) {
     ui.paintMap(world);
   }
 
+  // Time-lapse (scripts/site-clips.js films the research site's clips with
+  // it): `globalThis.__fagiPace = N` runs N steps of the world per frame drawn.
+  // Not in the game's UI; 1 when unset.
+  const paceNow = () => Math.max(1, Math.min(400, Math.floor(Number(globalThis.__fagiPace) || 1)));
+  // What that script reads to know when to slow down (a shower, a season).
+  globalThis.__fagiProbe = () => {
+    const sky = cycleAt(world.time);
+    return {
+      mode, time: world.time, rain: Boolean(world.rain?.on),
+      season: world.season?.name ?? null, year: world.season?.year ?? null, depth: world.season?.depth ?? 0,
+      day: sky.day, night: sky.isNight, air: sky.ambient, age: fagi.age,
+      beliefs: Object.keys(fagi.brain?.facts ?? {}).length, rules: fagi.brain?.rules?.list?.length ?? 0,
+    };
+  };
+
   function framePlay(dt) {
-    step(world, fagi, dt);
-    const lines = narrate(narrator, fagi);
-    if (session && !session.rec.ended) {
-      session.rec.observe(fagi, lines);
-      if (!fagi.alive) followOrClose();
+    let lines;
+    for (let k = paceNow(); k > 0; k--) {
+      step(world, fagi, dt);
+      lines = narrate(narrator, fagi);
+      if (session && !session.rec.ended) {
+        session.rec.observe(fagi, lines);
+        if (!fagi.alive) followOrClose();
+      }
+      if (!session || session.rec.ended) break;
     }
     if (camera.follow) centerOn(camera, canvas, world, fagi);
     render(ctx, world, fagi, camera, markOf(inspector.selection, world, fagi), input.editing);

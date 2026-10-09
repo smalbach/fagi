@@ -39,6 +39,7 @@ const ES = {
   year: 'año',
   tpTitle: 'Crías por hormiga según dónde nació, en el nido donde se crió',
   tpSeries: ['nacidas allí', 'traídas de otro nido'],
+  clipClose: 'Cerrar',
 };
 
 const EN = {
@@ -80,6 +81,7 @@ const EN = {
   year: 'year',
   tpTitle: 'Offspring per ant by where she was born, in the nest that raised her',
   tpSeries: ['born there', 'brought from another nest'],
+  clipClose: 'Close',
 };
 
 export const LANG = document.documentElement.lang === 'en' ? 'en' : 'es';

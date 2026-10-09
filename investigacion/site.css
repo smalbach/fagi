@@ -365,3 +365,27 @@ details.more > :last-child { margin-bottom: 1.2rem; }
 /* the culture lab, one panel under the other so its text stays legible */
 .lab-grid.lab-stack { grid-template-columns: 1fr; }
 main h4 { margin: 1.4rem 0 .5rem; font: 600 .95rem/1.4 var(--sans); color: var(--ink); }
+
+/* Clips filmed from a game session (scripts/site-clips.js). */
+section > .clip-grid { max-width: var(--wide); }
+.clip-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.6rem 1.4rem; margin: 1.4rem 0 2rem; }
+.clip-grid figure { margin: 0; }
+.clip-grid .span2 { grid-column: 1 / -1; }
+.clip-frame { position: relative; background: #111318; border: 1px solid var(--rule); border-radius: 2px; overflow: hidden; line-height: 0; }
+.clip-frame video { display: block; width: 100%; height: auto; cursor: pointer; }
+.clip-zoom {
+  position: absolute; top: .55rem; right: .55rem; width: 2rem; height: 2rem; padding: 0;
+  display: grid; place-items: center; font: 1rem/1 var(--sans); color: #f3efe6;
+  background: rgba(14,16,22,.62); border: 1px solid rgba(255,255,255,.18); border-radius: 2px;
+  cursor: pointer; opacity: .75; transition: opacity .2s;
+}
+.clip-frame:hover .clip-zoom, .clip-zoom:focus-visible { opacity: 1; }
+.clip-frame.paused::after {
+  content: '▶'; position: absolute; left: .7rem; bottom: .7rem; padding: .3rem .55rem;
+  font: .75rem/1 var(--sans); color: #f3efe6; background: rgba(14,16,22,.62); border-radius: 2px; pointer-events: none;
+}
+.clip-dialog { padding: 0; border: 0; background: transparent; max-width: 96vw; max-height: 94vh; }
+.clip-dialog::backdrop { background: rgba(8,10,12,.86); }
+.clip-dialog video { display: block; max-width: 96vw; max-height: 90vh; width: auto; height: auto; }
+.clip-dialog button { position: absolute; top: .5rem; right: .5rem; width: 2.2rem; height: 2.2rem; font: 1.1rem/1 var(--sans); color: #f3efe6; background: rgba(14,16,22,.7); border: 1px solid rgba(255,255,255,.25); border-radius: 2px; cursor: pointer; }
+@media (max-width: 720px) { .clip-grid { grid-template-columns: minmax(0, 1fr); } }
