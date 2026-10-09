@@ -45,8 +45,26 @@ function apiServer() {
   }
 }
 
+// As in production (server/app.js): / opens the research site, the game is at
+// /jugar (Vite serves the game's index.html for any path it doesn't know).
+function frontDoor() {
+  const redirect = (req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next()
+    if (req.url.split('?')[0] !== '/') return next()
+    const en = /^\s*en\b/i.test(req.headers['accept-language'] ?? '')
+    res.statusCode = 302
+    res.setHeader('Location', en ? '/investigacion/en/' : '/investigacion/')
+    res.end()
+  }
+  return {
+    name: 'fagi-front-door',
+    configureServer(server) { server.middlewares.use(redirect) },
+    configurePreviewServer(server) { server.middlewares.use(redirect) },
+  }
+}
+
 export default defineConfig({
-  plugins: [apiServer()],
+  plugins: [frontDoor(), apiServer()],
   define: {
     __APP_VERSION__: JSON.stringify(version),
     __APP_COMMIT__: JSON.stringify(commit()),
