@@ -341,7 +341,7 @@
             <tr><td>C4 · con cobertura igual, la evidencia enseña mejor que los veredictos</td><td class="n">0,119 [0,101; 0,136]</td><td class="n">0,93</td></tr>
             <tr><td>C5 · con cobertura igual, las razones enseñan mejor que los veredictos</td><td class="n">0,029 [0,013; 0,044]</td><td class="n">0,25</td></tr>
           </tbody>
-          <caption>6 de 6 apoyadas; todo p ajustado 0,0006. Vive en la rama <code>research/codigo-cultural</code> (resultados <code>9a36719</code>).</caption>
+          <caption>6 de 6 apoyadas; todo p ajustado 0,0006. Resultados en <code>docs/research/results.md</code> y <code>research/results/coverage-*</code>.</caption>
         </table>
       </div>
       <figure class="wide">
@@ -476,7 +476,7 @@
     <!-- 7 -->
     <section id="estudios">
       <h2><span class="num">09</span>Otros estudios con el mismo organismo</h2>
-      <p>Cada protocolo está congelado en <code>docs/research/</code>. Los reportes detallados se quitaron del árbol el 5 de octubre y siguen en el historial (<code>git show b0815b8^:research/results/&lt;estudio&gt;/report.md</code>). Las baterías LIBERA y el plan con modelo de lenguaje viven en las ramas <code>research/libera</code> y <code>research/codigo-cultural</code>.</p>
+      <p>Cada protocolo está congelado en <code>docs/research/</code>. Los reportes detallados se quitaron del árbol el 5 de octubre y siguen en el historial (<code>git show b0815b8^:research/results/&lt;estudio&gt;/report.md</code>). Las baterías LIBERA están en <code>docs/research/libera/</code> y el plan con modelo de lenguaje en <code>research/code-culture/</code>; los datos crudos más grandes quedaron fuera del repositorio (ver <code>DATOS.md</code> en cada carpeta).</p>
       <div class="cards">
         <div class="card">
           <h4>Memoria, sueño y consolidación <span class="tag conf">congelado</span></h4>
@@ -524,22 +524,22 @@
         <div class="card">
           <h4>Noche científica <span class="tag neg">0 de 4</span></h4>
           <p>Cuatro baterías congeladas (H3, H3b, H3c, H7, 60 vidas cada una) para ver si ordenar las preguntas de la noche por lo que más enseña acelera aprender: no (AUC +0,001 y +0,015). Con 16 especies sobrevive un 10 % más [3; 18], por priorizar la seguridad. Lo que sí vale mucho es tener agenda: +28 % de supervivencia frente a no tenerla.</p>
-          <div class="where">rama research/libera · notes/bateria-*-resultados.md</div>
+          <div class="where">docs/research/libera/notes/bateria-*-resultados.md</div>
         </div>
         <div class="card">
           <h4>Impulsos aprendidos y estómago <span class="tag conf">3 de 4</span></h4>
           <p>Aprender cuánto vale la comida según el hambre no cuesta vida (−0,002) y, como en los animales, tras la primera privación tarda más en ir a beber (+61 s [32; 92]); la segunda predicción no se cumplió. Un estómago en dos etapas reduce bocados por comida y desperdicio, con efecto pequeño. Los impulsos están encendidos en el juego; el estómago, no.</p>
-          <div class="where">rama research/libera · DRIVE · STOMACH</div>
+          <div class="where">docs/research/libera/notes · src/drive.js · src/stomach.js</div>
         </div>
         <div class="card">
           <h4>Selector de flujo libre <span class="tag neg">nulo</span></h4>
           <p>Cuatro baterías (H2–H2d) contra la jerarquía actual: empates, 2–3 victorias y 2–4 derrotas en los 14 requisitos de Tyrrell (1993). Parte de la diferencia era un error en la bonificación por consumir; arreglado, empata. Como en Bryson (2000), la jerarquía no pierde. El juego sigue con la jerarquía.</p>
-          <div class="where">rama research/libera · src/decision/select.js</div>
+          <div class="where">docs/research/libera/notes · src/decision/select.js</div>
         </div>
         <div class="card">
           <h4>Un modelo de lenguaje reescribe su código <span class="tag neg">línea cerrada</span></h4>
           <p>Un LLM local reescribía el juez de bocados de cada hormiga y la selección elegía. Con torneo, los textos superan al actual en mundos nuevos (+0,056 [0,019; 0,087]), pero por el vocabulario: «dejar lo que dañó» aparece en 10 de 10 textos con nombres claros y en 1 de 20 con nombres ciegos. Una regla propia de cada linaje no la aprende ninguno (0 de 10), y una regla sembrada la borra la reescritura (70–84 %). El modelo trae sus ideas previas, no extrae reglas de la vida.</p>
-          <div class="where">rama research/codigo-cultural · research/code-culture/</div>
+          <div class="where">research/code-culture/ · src/learned/code-judge.js</div>
         </div>
       </div>
     </section>
@@ -661,7 +661,7 @@
         <li><strong>Es una hormiga de juguete.</strong> Los parámetros están inspirados en la literatura pero afinados a mano; la validez externa viene de la dirección de los efectos, no de sus magnitudes.</li>
         <li><strong>Colonias pequeñas.</strong> Con 12–19 adultas por nido, la deriva y la mezcla por refundación pesan más que una selección local débil; por eso el juego muestra evolución global y no local.</li>
         <li><strong>Heredar lo aprendido se probó reparando un sabotaje.</strong> No demuestra que el aprendizaje encuentre algo que el programa innato no tenga.</li>
-        <li><strong>Resultados en ramas.</strong> La réplica igualada por información, las baterías LIBERA y el plan con modelo de lenguaje están en ramas sin fusionar (<code>research/codigo-cultural</code>, <code>research/libera</code>); su código no es el del juego actual.</li>
+        <li><strong>Estudios hechos sobre código anterior.</strong> Las baterías LIBERA (2–3 oct) y el plan con modelo de lenguaje (1–5 oct) se corrieron sobre el código de esos días; desde entonces el juego cambió (hábitats, colonias, herencia de lo aprendido), así que sus números describen aquel organismo.</li>
         <li><strong>Un solo autor.</strong> Falta revisión externa; este sitio existe en parte para conseguirla.</li>
       </ul>
     </section>
@@ -675,7 +675,7 @@
         <li><strong>Una gramática más rica</strong>, para que las entidades construyan más que un orden de líneas: el objetivo de fondo es que reescriban su propia conducta.</li>
         <li><strong>Colonias más grandes</strong> (techo de 60) para retomar la adaptación local.</li>
         <li><strong>Más vidas para H4</strong>: medir si aprender cuesta con el programa intacto.</li>
-        <li><strong>Llevar a la rama principal</strong> la réplica igualada por información, las baterías LIBERA y la corrección del informe de crisis.</li>
+        <li><strong>Llevar a la rama principal</strong> la corrección del informe de crisis (la réplica y las baterías LIBERA ya están).</li>
         <li><strong>Realismo como medida principal en el juego</strong>, con los 14 requisitos de Tyrrell junto a la supervivencia.</li>
       </ol>
     </section>
@@ -703,11 +703,10 @@ node scripts/lineage-analysis.js research/prereg-lineage   <span class="c"># + H
 <span class="c"># el mundo del juego: colonias, hábitats, años</span>
 node scripts/game-world.js --interval 30 --seeds 8 --seed 7500 --years 20 --jobs 16   <span class="c"># con los ajustes actuales del juego</span>
 
-<span class="c"># réplica igualada por información (rama research/codigo-cultural)</span>
-git checkout research/codigo-cultural
+<span class="c"># réplica igualada por información</span>
 node research/run.js --design research/designs/coverage-items.json
 node research/run.js --design research/designs/coverage-coverage.json
-node research/confirm-coverage.js
+node research/confirm-coverage.js research/results/coverage-items research/results/coverage-coverage
 
 <span class="c"># todos los tests, incluidas las huellas de decisión</span>
 npm test</code></pre>

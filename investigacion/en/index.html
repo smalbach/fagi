@@ -341,7 +341,7 @@
             <tr><td>C4 · at equal coverage, evidence teaches better than verdicts</td><td class="n">0.119 [0.101, 0.136]</td><td class="n">0.93</td></tr>
             <tr><td>C5 · at equal coverage, reasons teach better than verdicts</td><td class="n">0.029 [0.013, 0.044]</td><td class="n">0.25</td></tr>
           </tbody>
-          <caption>6 of 6 supported; every adjusted p is 0.0006. Lives on branch <code>research/codigo-cultural</code> (results <code>9a36719</code>).</caption>
+          <caption>6 of 6 supported; every adjusted p is 0.0006. Results in <code>docs/research/results.md</code> and <code>research/results/coverage-*</code>.</caption>
         </table>
       </div>
       <figure class="wide">
@@ -476,7 +476,7 @@
     <!-- 7 -->
     <section id="estudios">
       <h2><span class="num">09</span>Other studies with the same organism</h2>
-      <p>Each protocol is frozen in <code>docs/research/</code>. The detailed reports were removed from the tree on 5 October and remain in history (<code>git show b0815b8^:research/results/&lt;study&gt;/report.md</code>). The LIBERA batteries and the language-model plan live on branches <code>research/libera</code> and <code>research/codigo-cultural</code>.</p>
+      <p>Each protocol is frozen in <code>docs/research/</code>. The detailed reports were removed from the tree on 5 October and remain in history (<code>git show b0815b8^:research/results/&lt;study&gt;/report.md</code>). The LIBERA batteries are in <code>docs/research/libera/</code> and the language-model plan in <code>research/code-culture/</code>; the largest raw data stayed out of the repository (see <code>DATOS.md</code> in each folder).</p>
       <div class="cards">
         <div class="card">
           <h4>Memory, sleep and consolidation <span class="tag conf">frozen</span></h4>
@@ -524,22 +524,22 @@
         <div class="card">
           <h4>Scientific night <span class="tag neg">0 of 4</span></h4>
           <p>Four frozen batteries (H3, H3b, H3c, H7, 60 lives each) on whether ordering the night's questions by what teaches most speeds up learning: no (AUC +0.001 and +0.015). With 16 species she survives 10% more [3, 18], from putting safety first. What is worth a lot is having an agenda at all: +28% survival against none.</p>
-          <div class="where">branch research/libera · notes/bateria-*-resultados.md</div>
+          <div class="where">docs/research/libera/notes/bateria-*-resultados.md</div>
         </div>
         <div class="card">
           <h4>Learned drives and stomach <span class="tag conf">3 of 4</span></h4>
           <p>Learning how much food is worth at each level of hunger costs no life (−0.002) and, as in animals, after the first deprivation she takes longer to go and drink (+61 s [32, 92]); the second prediction did not hold. A two-stage stomach cuts bites per meal and waste, with a small effect. Drives are on in the game; the stomach is not.</p>
-          <div class="where">branch research/libera · DRIVE · STOMACH</div>
+          <div class="where">docs/research/libera/notes · src/drive.js · src/stomach.js</div>
         </div>
         <div class="card">
           <h4>Free-flow selector <span class="tag neg">null</span></h4>
           <p>Four batteries (H2–H2d) against the current hierarchy: ties, 2–3 wins and 2–4 losses on Tyrrell's (1993) 14 requirements. Part of the gap was a bug in the consume bonus; fixed, it ties. As in Bryson (2000), the hierarchy does not lose. The game keeps the hierarchy.</p>
-          <div class="where">branch research/libera · src/decision/select.js</div>
+          <div class="where">docs/research/libera/notes · src/decision/select.js</div>
         </div>
         <div class="card">
           <h4>A language model rewrites its code <span class="tag neg">line closed</span></h4>
           <p>A local LLM rewrote each ant's bite judge and selection chose. With a tournament, texts beat the current one in new worlds (+0.056 [0.019, 0.087]), but through vocabulary: "leave what harmed" shows up in 10 of 10 texts with clear names and in 1 of 20 with blind names. A rule specific to each lineage is learned by none (0 of 10), and a seeded rule is erased by rewriting (70–84%). The model brings its priors; it does not extract rules from life.</p>
-          <div class="where">branch research/codigo-cultural · research/code-culture/</div>
+          <div class="where">research/code-culture/ · src/learned/code-judge.js</div>
         </div>
       </div>
     </section>
@@ -661,7 +661,7 @@
         <li><strong>It is a toy ant.</strong> Parameters are inspired by the literature but tuned by hand; external validity comes from the direction of the effects, not their magnitudes.</li>
         <li><strong>Small colonies.</strong> With 12–19 adults per nest, drift and mixing through refounding outweigh weak local selection; that is why the game shows global evolution and not local.</li>
         <li><strong>Inheriting what was learned was tested by repairing a sabotage.</strong> It does not show that learning finds something the innate program lacks.</li>
-        <li><strong>Results on branches.</strong> The information-matched replication, the LIBERA batteries and the language-model plan are on unmerged branches (<code>research/codigo-cultural</code>, <code>research/libera</code>); their code is not the current game's.</li>
+        <li><strong>Studies run on earlier code.</strong> The LIBERA batteries (2–3 Oct) and the language-model plan (1–5 Oct) ran on the code of those days; the game has changed since (habitats, colonies, inheritance of what was learned), so their numbers describe that organism.</li>
         <li><strong>A single author.</strong> External review is missing; this site exists partly to get it.</li>
       </ul>
     </section>
@@ -675,7 +675,7 @@
         <li><strong>A richer grammar</strong>, so entities can build more than an order of lines: the underlying aim is that they rewrite their own behavior.</li>
         <li><strong>Bigger colonies</strong> (a ceiling of 60) to take up local adaptation again.</li>
         <li><strong>More lives for H4</strong>: measure whether learning costs with the program intact.</li>
-        <li><strong>Bring into the main branch</strong> the information-matched replication, the LIBERA batteries and the corrected crisis report.</li>
+        <li><strong>Bring into the main branch</strong> the corrected crisis report (the replication and the LIBERA batteries are already there).</li>
         <li><strong>Realism as the main measure in the game</strong>, with Tyrrell's 14 requirements alongside survival.</li>
       </ol>
     </section>
@@ -703,11 +703,10 @@ node scripts/lineage-analysis.js research/prereg-lineage   <span class="c"># + H
 <span class="c"># the game's world: colonies, habitats, years</span>
 node scripts/game-world.js --interval 30 --seeds 8 --seed 7500 --years 20 --jobs 16   <span class="c"># with the game's current settings</span>
 
-<span class="c"># information-matched replication (branch research/codigo-cultural)</span>
-git checkout research/codigo-cultural
+<span class="c"># information-matched replication</span>
 node research/run.js --design research/designs/coverage-items.json
 node research/run.js --design research/designs/coverage-coverage.json
-node research/confirm-coverage.js
+node research/confirm-coverage.js research/results/coverage-items research/results/coverage-coverage
 
 <span class="c"># all tests, including the decision fingerprints</span>
 npm test</code></pre>
