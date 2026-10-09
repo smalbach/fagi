@@ -41,7 +41,7 @@ Replaying means re-applying those events in order. The catalogue is in
 
 `investigacion/` is a static page about the project (questions, methods,
 preregistered results, references), in Spanish and in English (`investigacion/en/`).
-The build serves it at `/investigacion/`, and the server sends `/` there (to `/investigacion/en/` when the browser asks for English first); the game is at `/jugar`. It draws Fagi with the
+It is the front door: the server (and Vite, in dev and preview) serves it at `/` and `/en/` (`server/front-door.js`), its old `/investigacion/` addresses send the reader there, and the game is at `/jugar`. It draws Fagi with the
 game's sprites and runs the lab of the main study (`research/lab/`) in the reader's
 browser. Its per-generation curves come from `npm run site-data`, which reruns the
 main cell with the study's own seeds.

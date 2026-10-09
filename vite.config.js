@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { execSync, spawn } from 'node:child_process'
 import net from 'node:net'
+import { frontDoor } from './server/front-door.js'
 
 // The build's version: the one in package.json (the .githooks hook bumps it on
 // every commit) and the commit it comes from. On Railway there is no .git, but
@@ -25,52 +26,55 @@ function portBusy(port) {
   })
 }
 
+// Vite restarts itself when its config changes and loads this file anew; the
+// API it started is kept on globalThis so a restart reuses it instead of
+// killing it (killing it left the game unable to reach the server).
 function apiServer() {
-  let child = null
-  const stop = () => { if (child && child.exitCode === null) child.kill('SIGTERM'); child = null }
   return {
     name: 'fagi-api-server',
     apply: 'serve',
     async configureServer(server) {
+      const running = globalThis.__fagiApi
+      if (running && running.exitCode === null) return
       const port = Number(process.env.PORT) || 8787
       if (await portBusy(port)) return
-      child = spawn(process.execPath, ['--env-file-if-exists=.env', '--watch', 'server/index.js'], {
+      const child = spawn(process.execPath, ['--env-file-if-exists=.env', '--watch', 'server/index.js'], {
         cwd: fileURLToPath(new URL('.', import.meta.url)),
         stdio: 'inherit',
       })
+      globalThis.__fagiApi = child
       child.on('exit', (code) => { if (code) server.config.logger.error(`[api] exited with code ${code}`) })
-      server.httpServer?.once('close', stop)
-      process.once('exit', stop)
+      process.once('exit', () => { if (child.exitCode === null) child.kill('SIGTERM') })
     },
   }
 }
 
-// As in production (server/app.js): / opens the research site, the game is at
-// /jugar (Vite serves the game's index.html for any path it doesn't know).
-function frontDoor() {
-  const redirect = (req, res, next) => {
+// As in production (server/app.js, server/front-door.js): / and /en/ are the
+// research site, the game is at /jugar (Vite serves the game's index.html for
+// any path it doesn't know).
+function siteAtRoot() {
+  const route = (req, res, next) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') return next()
-    if (req.url.split('?')[0] !== '/') return next()
-    const en = /^\s*en\b/i.test(req.headers['accept-language'] ?? '')
-    res.statusCode = 302
-    res.setHeader('Location', en ? '/investigacion/en/' : '/investigacion/')
-    res.end()
+    const door = frontDoor(req.url)
+    if (door?.redirect) { res.statusCode = 301; res.setHeader('Location', door.redirect); return res.end() }
+    if (door?.page) req.url = `/${door.page}`
+    next()
   }
   return {
-    name: 'fagi-front-door',
-    configureServer(server) { server.middlewares.use(redirect) },
-    configurePreviewServer(server) { server.middlewares.use(redirect) },
+    name: 'fagi-site-at-root',
+    configureServer(server) { server.middlewares.use(route) },
+    configurePreviewServer(server) { server.middlewares.use(route) },
   }
 }
 
 export default defineConfig({
-  plugins: [frontDoor(), apiServer()],
+  plugins: [siteAtRoot(), apiServer()],
   define: {
     __APP_VERSION__: JSON.stringify(version),
     __APP_COMMIT__: JSON.stringify(commit()),
     __APP_BUILT__: JSON.stringify(new Date().toISOString()),
   },
-  // The game (/) and the research site (/investigacion/, and /investigacion/en/), which
+  // The game (served at /jugar) and the research site (served at / and /en/), which
   // draws Fagi with the game's own sprite code but loads nothing else of it.
   build: {
     rollupOptions: {

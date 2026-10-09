@@ -10,6 +10,7 @@ import { COOKIE, hashToken } from './auth.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
 import sessionRoutes from './routes/sessions.js';
+import { frontDoor } from './front-door.js';
 
 export async function buildApp({ pool, adminEmail = process.env.ADMIN_EMAIL, secure = process.env.NODE_ENV === 'production', staticDir, logger = false, rateLimitMax = 10 } = {}) {
   const app = Fastify({ logger, bodyLimit: 1024 * 1024, trustProxy: true });
@@ -52,22 +53,19 @@ export async function buildApp({ pool, adminEmail = process.env.ADMIN_EMAIL, sec
   await app.register(adminRoutes, { prefix: '/api/admin' });
   await app.register(sessionRoutes, { prefix: '/api/sessions' });
 
-  // The front door is the research site, in English for browsers that ask for it
-  // first; the game lives at /jugar (or any other path: see below).
+  // The front door is the research site, served at / and /en/ (server/front-door.js);
+  // the game is at /jugar.
   if (staticDir) {
     app.addHook('onRequest', async (req, reply) => {
       if (req.method !== 'GET' && req.method !== 'HEAD') return;
-      if (req.url.split('?')[0] !== '/') return;
-      const en = /^\s*en\b/i.test(req.headers['accept-language'] ?? '');
-      return reply.redirect(en ? '/investigacion/en/' : '/investigacion/', 302);
+      const door = frontDoor(req.url);
+      if (door?.redirect) return reply.redirect(door.redirect, 301);
+      if (door?.page) return reply.sendFile(door.page);
     });
   }
 
   app.setNotFoundHandler((req, reply) => {
     if (req.url.startsWith('/api/') || !staticDir) return reply.code(404).send({ error: 'not_found' });
-    // The research site is its own page (dist/investigacion/index.html).
-    const bare = req.url.split('?')[0];
-    if (bare === '/investigacion' || bare === '/investigacion/en') return reply.redirect(`${bare}/`, 301);
     // Anything that is neither API nor a file is the app: the front end picks the screen.
     return reply.sendFile('index.html');
   });
