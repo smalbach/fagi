@@ -3,6 +3,8 @@
 export default {
   'set.actions': 'Acciones de sesión',
   'app.title': 'FAGI',
+  'nav.research': 'Investigación',
+  'nav.lang': 'Idioma',
   'app.settings': '⚙ Ajustes',
   'app.immersive': '🌿 Inmersivo',
   'app.analysis': '◉ Análisis',

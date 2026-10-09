@@ -6,7 +6,7 @@
 // before going into the HTML.
 
 import { get, post, del, ApiError } from './api.js';
-import { t, formatDuration, getLang } from '../i18n.js';
+import { t, formatDuration, getLang, setLang, onLangChange, LANGS } from '../i18n.js';
 import { versionLabel, versionTitle } from '../version.js';
 
 const root = () => document.getElementById('screen');
@@ -15,15 +15,22 @@ export function esc(v) {
   return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-function paint(html) {
+// The screen on view, drawn again when the language changes.
+let current = null;
+onLangChange(() => current?.());
+
+function paint(html, again) {
+  current = again;
   const el = root();
   el.innerHTML = `<div class="screen-card">${html}</div>`;
+  el.querySelectorAll('.screen-lang button').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
   el.hidden = false;
   document.body.classList.add('screen-open');
   return el;
 }
 
 export function hide() {
+  current = null;
   root().hidden = true;
   root().innerHTML = '';
   document.body.classList.remove('screen-open');
@@ -46,7 +53,16 @@ function labelIt(list) {
 
 const date = (iso) => (iso ? new Date(iso).toLocaleString(getLang(), { dateStyle: 'medium', timeStyle: 'short' }) : '—');
 
+// The research site in the same language: / is Spanish, /en/ English.
+const siteHref = () => (getLang() === 'es' ? '/' : '/en/');
+
 const header = (title, extra = '') => `
+  <nav class="screen-nav">
+    <a href="${siteHref()}" class="screen-back">← ${t('nav.research')}</a>
+    <span class="screen-lang" role="group" aria-label="${t('nav.lang')}">${LANGS.map((l) => `
+      <button type="button" data-lang="${l}" ${l === getLang() ? 'aria-current="true"' : ''}>${l.toUpperCase()}</button>`).join('')}
+    </span>
+  </nav>
   <header class="screen-head">
     <h1>${t('app.title')}</h1>
     <span class="screen-sub">${title}</span>
@@ -66,7 +82,7 @@ export function showLogin({ onDone }) {
       <button type="submit" class="primary">${t('auth.loginBtn')}</button>
       <p class="screen-alt"><a href="#" id="go-forgot">${t('auth.forgot')}</a></p>
       <p class="screen-alt">${t('auth.noAccount')} <a href="#" id="go-register">${t('auth.register')}</a></p>
-    </form>`);
+    </form>`, () => showLogin({ onDone }));
   el.querySelector('#go-register').addEventListener('click', (e) => { e.preventDefault(); showRegister({ onDone }); });
   el.querySelector('#go-forgot').addEventListener('click', (e) => { e.preventDefault(); showForgot({ onDone }); });
   submitForm(el.querySelector('#f-login'), async (data) => {
@@ -86,7 +102,7 @@ export function showRegister({ onDone }) {
       <p class="screen-error" role="alert"></p>
       <button type="submit" class="primary">${t('auth.registerBtn')}</button>
       <p class="screen-alt">${t('auth.haveAccount')} <a href="#" id="go-login">${t('auth.login')}</a></p>
-    </form>`);
+    </form>`, () => showRegister({ onDone }));
   el.querySelector('#go-login').addEventListener('click', (e) => { e.preventDefault(); showLogin({ onDone }); });
   submitForm(el.querySelector('#f-register'), async (data) => {
     const { user } = await post('/auth/register', data);
@@ -105,7 +121,7 @@ export function showForgot({ onDone }) {
       <p class="screen-error" role="alert"></p>
       <button type="submit" class="primary">${t('auth.forgotBtn')}</button>
       <p class="screen-alt"><a href="#" id="go-login">${t('auth.backToLogin')}</a></p>
-    </form>`);
+    </form>`, () => showForgot({ onDone }));
   el.querySelector('#go-login').addEventListener('click', (e) => { e.preventDefault(); showLogin({ onDone }); });
   const form = el.querySelector('#f-forgot');
   submitForm(form, async (data) => {
@@ -127,7 +143,7 @@ export function showReset(token, { onDone }) {
       <p class="screen-error" role="alert"></p>
       <button type="submit" class="primary">${t('auth.resetBtn')}</button>
       <p class="screen-alt"><a href="#" id="go-forgot">${t('auth.resetAgain')}</a></p>
-    </form>`);
+    </form>`, () => showReset(token, { onDone }));
   el.querySelector('#go-forgot').addEventListener('click', (e) => { e.preventDefault(); showForgot({ onDone }); });
   submitForm(el.querySelector('#f-reset'), async (data) => {
     if (data.password !== data.repeat) throw new ApiError(400, 'password_mismatch');
@@ -171,7 +187,7 @@ export function showWaitlist(user, { onRetry, onLogout }) {
         <button id="w-retry">${t('wait.check')}</button>
         <button id="w-logout">${t('auth.logout')}</button>
       </div>
-    </div>`);
+    </div>`, () => showWaitlist(user, { onRetry, onLogout }));
   el.querySelector('#w-retry').addEventListener('click', onRetry);
   el.querySelector('#w-logout').addEventListener('click', () => logout(onLogout));
 }
@@ -192,7 +208,7 @@ export async function showHome(user, { onNew, onReplay, onAdmin, onLogout }) {
         <span class="screen-error" role="alert"></span>
       </div>
       <div id="h-list" class="screen-list"><p class="screen-muted">${t('home.loading')}</p></div>
-    </div>`);
+    </div>`, () => showHome(user, { onNew, onReplay, onAdmin, onLogout }));
   el.querySelector('#h-new').addEventListener('click', onNew);
   el.querySelector('#h-logout').addEventListener('click', () => logout(onLogout));
   el.querySelector('#h-admin')?.addEventListener('click', onAdmin);
@@ -306,7 +322,7 @@ export async function showAdmin(user, { onBack }) {
       <div class="screen-tabs">${FILTERS.map((f) => `<button data-f="${f}">${t(`admin.f.${f || 'all'}`)}</button>`).join('')}</div>
       <p class="screen-error" role="alert"></p>
       <div id="a-list" class="screen-list"></div>
-    </div>`);
+    </div>`, () => showAdmin(user, { onBack }));
   el.querySelector('#a-back').addEventListener('click', onBack);
   const error = el.querySelector('.screen-error');
   el.querySelectorAll('.screen-tabs button').forEach((b) => b.addEventListener('click', () => { filterFn = b.dataset.f; paintList(); }));

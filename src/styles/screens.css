@@ -10,6 +10,15 @@ body.screen-open { overflow: hidden; }
   background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
   width: min(920px, 100%); box-shadow: 0 30px 90px rgba(0,0,0,.5);
 }
+.screen-nav {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 20px; border-bottom: 1px solid var(--line); font-size: 12px;
+}
+.screen-back { color: #9fd3a9; text-decoration: none; }
+.screen-back:hover { text-decoration: underline; }
+.screen-lang { display: flex; gap: 4px; }
+.screen-card .screen-lang button { padding: 3px 8px; font-size: 11px; }
+.screen-lang button[aria-current="true"] { background: #343947; border-color: #6a7186; }
 .screen-head {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   padding: 16px 20px; border-bottom: 1px solid var(--line);

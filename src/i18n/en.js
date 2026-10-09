@@ -4,6 +4,8 @@
 export default {
   'set.actions': 'Session actions',
   'app.title': 'FAGI',
+  'nav.research': 'Research',
+  'nav.lang': 'Language',
   'app.settings': '⚙ Settings',
   'app.immersive': '🌿 Immersive',
   'app.analysis': '◉ Analysis',
