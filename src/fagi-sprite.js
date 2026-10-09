@@ -33,7 +33,8 @@ import { CASTES } from './config.js';
 import { casteOf } from './castes.js';
 import { mix } from './sprite-kit.js';
 import { SKIN, SKIN_MALE, DEAD, LEAF, DEAD_LEAF } from './fagi-sprite/palette.js';
-import { localLight, shadow } from './fagi-sprite/light.js';
+import { localLight, shadow, bodyShadow } from './fagi-sprite/light.js';
+import { gasterPath, mesosomaPath, headPath } from './fagi-sprite/silhouettes.js';
 import { drawLegs } from './fagi-sprite/legs.js';
 import { drawBody } from './fagi-sprite/body.js';
 import { drawAntennas } from './fagi-sprite/antennae.js';
@@ -73,6 +74,8 @@ export function drawFagi(ctx, fagi) {
   // little —half a degree— but it is what separates walking from sliding.
   const wobble = step ? Math.sin(step) * 0.035 : 0;
   ctx.rotate(wobble);
+
+  bodyShadow(ctx, L, [gasterPath, mesosomaPath, headPath], hot ? 1.8 : 1);
 
   const pose = { fold: sleeping ? 1 : cold ? 0.5 : 0, stilt: hot ? 1 : 0 };
   drawLegs(ctx, step, c, L, alive, pose, shape.legs);

@@ -33,3 +33,19 @@ export function arc(ctx, x, y, rx, ry, since, until, color, width) {
   ctx.ellipse(x, y, rx, ry, 0, since, until);
   ctx.stroke();
 }
+
+// A segment that thickens from `w0` to `w1`: a filled quad with round ends.
+export function taper(ctx, x0, y0, x1, y1, w0, w1, fill) {
+  const a = Math.atan2(y1 - y0, x1 - x0) + Math.PI / 2;
+  const nx = Math.cos(a);
+  const ny = Math.sin(a);
+  ctx.fillStyle = fill;
+  ctx.beginPath();
+  ctx.moveTo(x0 + nx * w0 / 2, y0 + ny * w0 / 2);
+  ctx.lineTo(x1 + nx * w1 / 2, y1 + ny * w1 / 2);
+  ctx.arc(x1, y1, w1 / 2, a, a + Math.PI, true);
+  ctx.lineTo(x0 - nx * w0 / 2, y0 - ny * w0 / 2);
+  ctx.arc(x0, y0, w0 / 2, a + Math.PI, a, true);
+  ctx.closePath();
+  ctx.fill();
+}
