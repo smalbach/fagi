@@ -8,11 +8,11 @@ import { buildApp } from '../../server/app.js';
 export const DB_URL = process.env.DATABASE_URL_TEST;
 export const SKIP = DB_URL ? false : 'no DATABASE_URL_TEST';
 
-export async function mount() {
+export async function mount(opts = {}) {
   const pool = createPool(DB_URL);
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await migrate(pool);
-  const app = await buildApp({ pool, adminEmail: 'admin@fagi.test', rateLimitMax: 1000 });
+  const app = await buildApp({ pool, adminEmail: 'admin@fagi.test', rateLimitMax: 1000, mailer: async () => {}, ...opts });
   return { app, pool, async close() { await app.close(); await pool.end(); } };
 }
 

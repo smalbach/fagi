@@ -1,11 +1,11 @@
-// Screens outside the game: log in, sign up, waitlist, home (sessions) and
+// Screens outside the game: log in, sign up, forgot/reset password, waitlist, home (sessions) and
 // admin panel. All of them are drawn inside #screen, which covers the game
 // while it's visible.
 //
 // Everything that comes from the server (emails, names) goes through esc()
 // before going into the HTML.
 
-import { get, post, del } from './api.js';
+import { get, post, del, ApiError } from './api.js';
 import { t, formatDuration, getLang } from '../i18n.js';
 import { versionLabel, versionTitle } from '../version.js';
 
@@ -64,9 +64,11 @@ export function showLogin({ onDone }) {
       <label>${t('auth.password')}<input name="password" type="password" autocomplete="current-password" required></label>
       <p class="screen-error" role="alert"></p>
       <button type="submit" class="primary">${t('auth.loginBtn')}</button>
+      <p class="screen-alt"><a href="#" id="go-forgot">${t('auth.forgot')}</a></p>
       <p class="screen-alt">${t('auth.noAccount')} <a href="#" id="go-register">${t('auth.register')}</a></p>
     </form>`);
   el.querySelector('#go-register').addEventListener('click', (e) => { e.preventDefault(); showRegister({ onDone }); });
+  el.querySelector('#go-forgot').addEventListener('click', (e) => { e.preventDefault(); showForgot({ onDone }); });
   submitForm(el.querySelector('#f-login'), async (data) => {
     const { user } = await post('/auth/login', { email: data.email, password: data.password });
     onDone(user);
@@ -88,6 +90,48 @@ export function showRegister({ onDone }) {
   el.querySelector('#go-login').addEventListener('click', (e) => { e.preventDefault(); showLogin({ onDone }); });
   submitForm(el.querySelector('#f-register'), async (data) => {
     const { user } = await post('/auth/register', data);
+    onDone(user);
+  });
+}
+
+// Asks for the reset link. The server answers the same whether the email
+// has an account or not, so the screen does too.
+export function showForgot({ onDone }) {
+  const el = paint(`
+    ${header(t('auth.forgotTitle'))}
+    <form class="screen-form" id="f-forgot">
+      <p class="screen-muted">${t('auth.forgotHelp')}</p>
+      <label>${t('auth.email')}<input name="email" type="email" autocomplete="email" required></label>
+      <p class="screen-error" role="alert"></p>
+      <button type="submit" class="primary">${t('auth.forgotBtn')}</button>
+      <p class="screen-alt"><a href="#" id="go-login">${t('auth.backToLogin')}</a></p>
+    </form>`);
+  el.querySelector('#go-login').addEventListener('click', (e) => { e.preventDefault(); showLogin({ onDone }); });
+  const form = el.querySelector('#f-forgot');
+  submitForm(form, async (data) => {
+    await post('/auth/forgot', { email: data.email, lang: getLang() });
+    form.querySelector('label').remove();
+    form.querySelector('button[type=submit]').remove();
+    form.querySelector('.screen-muted').textContent = t('auth.forgotSent', { email: data.email.trim() });
+  });
+}
+
+// Opened from the emailed link (#reset=<token>): chooses the new password.
+export function showReset(token, { onDone }) {
+  const el = paint(`
+    ${header(t('auth.resetTitle'))}
+    <form class="screen-form" id="f-reset">
+      <label>${t('auth.newPassword')}<input name="password" type="password" autocomplete="new-password" minlength="8" required>
+        <small>${t('auth.passwordHint')}</small></label>
+      <label>${t('auth.repeatPassword')}<input name="repeat" type="password" autocomplete="new-password" minlength="8" required></label>
+      <p class="screen-error" role="alert"></p>
+      <button type="submit" class="primary">${t('auth.resetBtn')}</button>
+      <p class="screen-alt"><a href="#" id="go-forgot">${t('auth.resetAgain')}</a></p>
+    </form>`);
+  el.querySelector('#go-forgot').addEventListener('click', (e) => { e.preventDefault(); showForgot({ onDone }); });
+  submitForm(el.querySelector('#f-reset'), async (data) => {
+    if (data.password !== data.repeat) throw new ApiError(400, 'password_mismatch');
+    const { user } = await post('/auth/reset', { token, password: data.password });
     onDone(user);
   });
 }
