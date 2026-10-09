@@ -42,7 +42,7 @@
 
 <div class="hero" id="top">
   <div class="hero-text">
-    <div class="pill"><span class="live"></span>Ongoing research · updated 2 Oct 2026</div>
+    <div class="pill"><span class="live"></span>Ongoing research · updated 8 Oct 2026</div>
     <h1>An organism that <span class="grad">learns from its body</span> and teaches its colony</h1>
     <p class="lede">Fagi is a simulated ant that is born not knowing what is safe to eat. It tries things, gets sick, sleeps, remembers, writes its conclusions down as readable code and passes them to its sisters and daughters. Its world is our lab for questions that cannot be manipulated in real animals.</p>
     <div class="cta">
@@ -60,7 +60,8 @@
 <div class="stats">
   <div class="stat"><b data-count="12800">12,800</b><span>lineages simulated in the main study</span></div>
   <div class="stat"><b>11<small>/11</small></b><span>hypotheses confirmed in the lab; 3/3 in the game</span></div>
-  <div class="stat"><b data-count="10">10</b><span>protocols frozen before running, negatives included</span></div>
+  <div class="stat"><b data-count="11">11</b><span>protocols frozen before running, negatives included</span></div>
+  <div class="stat"><b>+11<small> pts</small></b><span>survival from inheriting what was learned (preregistered)</span></div>
   <div class="stat"><b>100<small>%</small></b><span>deterministic: every life reproduces byte for byte</span></div>
 </div>
 
@@ -74,10 +75,11 @@
       <li><a href="#organismo">The organism</a></li>
       <li><a href="#aprende">How it learns</a></li>
       <li><a href="#resultado">Main result</a></li>
+      <li><a href="#herencia">Inheriting learning</a></li>
       <li><a href="#laboratorio">Try it live</a></li>
       <li><a href="#estudios">Other studies</a></li>
       <li><a href="#negativos">What did not work</a></li>
-      <li><a href="#cuerpo">Evolving body</a></li>
+      <li><a href="#cuerpo">Evolving colonies</a></li>
       <li><a href="#metodo">Method</a></li>
       <li><a href="#limites">Limitations</a></li>
       <li><a href="#ruta">Roadmap</a></li>
@@ -93,6 +95,7 @@
       <h2><span class="num">01</span>Abstract</h2>
       <p>When a culture passes on <strong>reasons</strong> ("the sour one made me sick") instead of <strong>conclusions</strong> ("don't eat the red drop"), does it adapt better to a changing world, or does it get more stuck in false beliefs? We built an artificial organism whose knowledge can be inspected —every belief records where it came from— in a deterministic world, and we manipulated <em>what</em> is transmitted under an equal budget of items.</p>
       <p>With the analysis frozen before running, we found that reasons are the best teacher while the world stays the same (40% fewer harmful bites than verdicts) and the worst inheritance when the world inverts: lineages that inherit reasons reach the inversion carrying more myths and lose <strong>22–27 percentage points more</strong> of that generation. Passing on the evidence together with the reasons keeps almost all of the teaching advantage and reduces myths and deaths, without removing them. The effect was confirmed in an abstract lab (11 of 11 hypotheses) and in the full game with body, space and night (3 of 3, same direction and similar size).</p>
+      <p>A second preregistered study (6 October 2026) asked whether <strong>inheriting what was learned</strong> adds to learning in life. It does: with her program broken on purpose, daughters born with their surviving mother's revisions —each backed by evidence— survive 60% of the time, against 49% for daughters that learn the same way from scratch (<strong>+11 points</strong>, 224 versus 56 discordant pairs). In the game, three colonies in different habitats over 20 years (~50 generations) evolve towards the world they share —more muscle, less brain— but after five attempts we found no colony adapting to its own habitat. We closed that line and report it in full.</p>
       <p>The same organism was used for nine other protocols —memory and sleep, concepts, diversity, social information, exploration, adaptive decision-making— whose results we report here in full, including those that did not support our hypotheses.</p>
     </section>
 
@@ -115,9 +118,10 @@
         <div class="card"><h4>Day, night and temperature</h4><p>A day lasts 180 s. The air swings around 22 °C (10 °C at dawn, 34 °C in the afternoon). Its body prefers 25 °C, tolerates 15–33 °C and dies below 4 °C. The nest is at 24 °C; shade is 5 °C cooler. At night it keeps 45% of its sight.</p><div class="where">src/cycle.js · src/thermal.js</div></div>
         <div class="card"><h4>Seasons</h4><p>A year lasts 3600 s (20 days). Winter takes up 45%: trees yield ×0.02 and the air drops 8 °C. There are hot years (+12 °C) and years with fruit far from the nest: pressures that can reverse direction.</p><div class="where">src/seasons.js</div></div>
         <div class="card"><h4>Bodily needs</h4><p>Hunger (≈1250 s to death, one "week"), thirst (≈180 s, one "day"), energy, temperature, sleep pressure, salt and health: 100 points, reduced by stings (12) and poison (10), which slow it down, limit reproduction and kill at zero.</p><div class="where">src/needs.js · src/health.js</div></div>
-        <div class="card"><h4>Life, sex and generations</h4><p>Four founders. Adult at 360 s, they live 5400 s ±15%, and age at 75% of their lifespan. Eggs hatch in 240 s. Females are slower and have more energy; males the reverse. Daughters inherit their mother's genes and innate program, never what she learned.</p><div class="where">src/lifecycle.js · src/reproduction.js</div></div>
+        <div class="card"><h4>Life, sex and generations</h4><p>Four founders. Adult at 360 s, they live 5400 s ±15%, and age at 75% of their lifespan. Eggs hatch in 240 s. Females are slower and have more energy; males the reverse. Daughters inherit genes and the innate program; in the game, also a mark of their parents' organs and the lines of conduct their mother learned with evidence. Inbreeding costs: an egg with inbreeding coefficient <em>F</em> hatches with probability e<sup>−1.57·F</sup> (Ralls et al., 1988).</p><div class="where">src/lifecycle.js · src/reproduction.js · src/program/genome.js</div></div>
+        <div class="card"><h4>Colonies and habitats</h4><p>In the game three colonies of up to 30 live, each in a habitat dealt at random per map: cold (air and soil −3 °C), hot (+6 °C) or with a poisonous tree 150–260 px from the nest. Fruit comes every 30 s: food and winter decide how many live. An empty nest is refounded by a pair from the nearest colony. No two are born alike: speed, reserves, metabolism, thirst, insulation and senses vary ±10%, half of it heritable.</p><div class="where">src/habitats.js · src/colony.js · src/variation.js</div></div>
       </div>
-      <p class="muted">The organism's modules (cycle, temperature, sex, sleep) start switched off in the configuration: with them off, the simulation is exactly the one the preregistered studies ran, down to the last random number. The game switches them on at startup.</p>
+      <p class="muted">The organism's modules (cycle, temperature, sex, sleep, habitats, individual variation, inheritance of what was learned) start switched off in the configuration: with them off, the simulation is exactly the one the preregistered studies ran, down to the last random number. The game switches them on at startup.</p>
     </section>
 
     <!-- 4 -->
@@ -312,9 +316,65 @@
       <div class="note warn"><b>A limitation found while reading the results</b>Each lineage's catalog is drawn so that every epoch has at least two poisons and two foods, so the world before the change depends on which change comes after. Comparisons between formats are not affected (they are paired within the same world); the H5a/H5b interactions are not a pure common-random-numbers contrast.</div>
     </section>
 
+    <!-- inheritance -->
+    <section id="herencia">
+      <h2><span class="num">07</span>Second result: inheriting what was learned</h2>
+      <p><span class="tag conf">Confirmatory</span> &nbsp;Protocol frozen at commit <code>2459b1c</code> on 6 October 2026; run that same day without changing a line or deviating.</p>
+      <blockquote>Does a daughter born with her surviving mother's program revisions live longer than one that learns the same way, but from scratch?</blockquote>
+      <p>First we needed a world where behavior decides. In the default world every program survives, even one broken on purpose: no learning can show. Sweeping how often trees bear fruit, survival falls off a cliff (100% with one fruit every 450 s, 0% at 750 s). <strong>At 575 s</strong> the innate program lives through 75% of two-hour lives, and breaking its warmth, rest or food lines costs 27–37 points: there, what she does decides whether she lives.</p>
+      <p>In that world we moved <code>dusk</code> (going home as the light goes) to the end of her program: survival drops to ≈45%, mostly cold deaths away from the nest.</p>
+
+      <h3>Design</h3>
+      <ul>
+        <li><strong>Four arms:</strong> <em>born</em> (does not learn); <em>learns</em> (every life from scratch); <em>inherits</em> (mother drawn from the previous generation's survivors); <em>inherits from any</em> (dead or alive).</li>
+        <li><strong>32 populations × 16 lives × 6 generations</strong> per arm; seeds 20000–51095, never used before. Lives pair across arms by population, generation and slot.</li>
+        <li><strong>How she learns:</strong> a moment is worth what it took from her reserves (not 15 s of distress); at night she only tries endure lines; the worse she is, the less she tries. An accepted revision carries its evidence and passes into the egg; it is retired only on evidence against it.</li>
+        <li><strong>Analysis:</strong> survival to 7200 s in generations 3–5 (1536 paired lives per contrast), one-sided exact sign test on discordant pairs, α = 0.05. Only H1 is primary.</li>
+      </ul>
+
+      <figure class="wide">
+        <div class="panel">
+          <div class="legend">
+            <span><i style="background:var(--s-none)"></i>born</span>
+            <span><i style="background:var(--s-verdict)"></i>learns</span>
+            <span><i style="background:var(--s-rule)"></i>inherits from any</span>
+            <span><i style="background:var(--s-evidence)"></i>inherits from survivors</span>
+          </div>
+          <div class="chart"><h5 id="inherit-title"></h5><div id="inherit-chart"></div></div>
+        </div>
+        <figcaption><b>Figure 4.</b> Survival by generation, 512 lives per point (<code>docs/research/prereg-lineage-results.md</code>). In generation 0 every learning arm starts equal; from generation 1 the inheriting arms pull away and stay away.</figcaption>
+      </figure>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Hypothesis</th><th class="n">pairs (better / worse)</th><th class="n">one-sided p</th><th class="n">difference</th><th>Verdict</th></tr></thead>
+          <tbody>
+            <tr><td><strong>H1 (primary)</strong> · inherit &gt; learn</td><td class="n">224 / 56</td><td class="n">&lt; 0.0001</td><td class="n">+10.9 pts</td><td><span class="tag conf">supported</span></td></tr>
+            <tr><td>H2 · learn &gt; born</td><td class="n">72 / 39</td><td class="n">0.0011</td><td class="n">+2.2 pts</td><td><span class="tag conf">supported</span></td></tr>
+            <tr><td>H3 · surviving mothers &gt; any mother</td><td class="n">177 / 140</td><td class="n">0.022</td><td class="n">+2.4 pts</td><td><span class="tag conf">supported</span></td></tr>
+            <tr><td>H4 · with the program intact, learning costs no more than 5 pts</td><td class="n">12 / 14</td><td class="n">bound −0.109</td><td class="n">0.750 vs 0.771</td><td><span class="tag neg">not supported</span></td></tr>
+          </tbody>
+          <caption>Generations 3–5. Survival: born 0.47 · learns 0.49 · inherits from any 0.58 · inherits from survivors 0.60. Cold deaths 486 / 517 / 408 / 406.</caption>
+        </table>
+      </div>
+      <ul>
+        <li><strong>What one life finds too late saves its daughters.</strong> Nearly every inheriting daughter carries <code>dusk-before-pursue</code> from birth; in single lives only 69% write it, and late.</li>
+        <li><strong>Learning within a life helps, but little</strong> (+2 points). Selection adds a little on top of inheritance (+2.4).</li>
+        <li><strong>H4 was not supported:</strong> 96 lives cannot rule out that learning costs 5 points when there is nothing to repair. So the preregistration did not switch it on in the game; it was switched on later after measuring it in the game itself (8 maps × 4 years, no population cost: +0.8 ants per nest, 5 of 8 maps).</li>
+      </ul>
+
+      <h3>How we got here (exploratory)</h3>
+      <ul>
+        <li><strong>Judging by 15 s of distress hurt:</strong> learning lowered survival from 0.75 to 0.58. The whole cost was the trials (leaving a fruit in sight for a remembered place), not the lines. Trying less the worse she is stopped the harm, but did not turn it into help.</li>
+        <li><strong>Selection alone changed nothing</strong> (24 versus 23 pairs): every life rediscovered the same "memory before pursue" lines; there was no heritable variation to select.</li>
+        <li><strong>Changing the judge did:</strong> judged by her reserves and with safe night trials she stops writing those lines and writes the real repair, <code>dusk-before-pursue</code> (0.44 → 0.53 within one life, 9 versus 0 pairs).</li>
+      </ul>
+      <div class="note warn"><b>What this result does not say</b>The gain is the repair of a program broken on purpose. It shows that learning and inheritance recover what was lost; not that they find something the innate program lacks. One world, daughters living alone rather than in a colony, and rewrites within the grammar (one behavior in front of another under one condition).</div>
+    </section>
+
     <!-- live lab -->
     <section id="laboratorio">
-      <h2><span class="num">07</span>Try it: the lab in your browser</h2>
+      <h2><span class="num">08</span>Try it: the lab in your browser</h2>
       <p>This is not an animation: it is the study code running in your browser. Each button launches four lineages of 12 generations —one per format— in <strong>the same world</strong> (same chemistry, same catalog, same maps), with the game's brain, body and social code. The same seed always gives the same result, here and in <code>node research/run.js</code>.</p>
       <form id="lab-form" class="lab wide" autocomplete="off">
         <div class="lab-controls">
@@ -358,7 +418,7 @@
 
     <!-- 7 -->
     <section id="estudios">
-      <h2><span class="num">08</span>Other studies with the same organism</h2>
+      <h2><span class="num">09</span>Other studies with the same organism</h2>
       <p>Each one has its protocol frozen in <code>docs/research/</code> and its report in <code>research/results/</code>.</p>
       <div class="cards">
         <div class="card">
@@ -392,12 +452,24 @@
           <p>Two lines —test new species first, leave what harmed you— raised survival from 0.882 to 0.955 (+0.073 [0.033, 0.111]) with 200 worlds per profile; poison deaths fell from 29 to 4, at the cost of 4 starvation deaths that did not happen before. Today they are the default behavior.</p>
           <div class="where">caution-protocol.md</div>
         </div>
+        <div class="card">
+          <h4>Is there anything to learn without sabotage? <span class="tag expl">exploratory</span></h4>
+          <p>We tried all 171 possible moves (an innate line put in front of one above it), 24 lives each, in the scarce world and in five more (warm nights, cold, long nights, hot days, rain). None beats the innate order: 102 change nothing and several are lethal. The one hint (<code>memory&gt;thermal</code> on long nights) did not replicate on 48 new seeds.</p>
+          <p>The innate order is a robust local optimum, partly because its behaviors already learn inside (she goes home at dusk only once darkness means cold to her).</p>
+          <div class="where">world-calibration.md · scripts/order-screen.js</div>
+        </div>
+        <div class="card">
+          <h4>A world that presses, in the game <span class="tag expl">exploratory</span></h4>
+          <p>With fruit every 8 s colonies lived at 71–73% of their ceiling and died of old age. At 30 s, food and winter decide how many live, cold kills more than age, and no map dies out. The autopsy confirms these deaths are realistic: all 57 in winter, 39 at night, nearly all far from the nest and hungry: foragers caught out by the cold.</p>
+          <p>Along the way a bug turned up: water and trees of the further nests fell off the map (583 of 2000 objects) and ants were dying of thirst by the edge. Fixed.</p>
+          <div class="where">world-calibration.md · scripts/game-world.js</div>
+        </div>
       </div>
     </section>
 
     <!-- 8 -->
     <section id="negativos">
-      <h2><span class="num">09</span>What did not work</h2>
+      <h2><span class="num">10</span>What did not work</h2>
       <p>We publish it with the same detail as what worked. A project whose end goal is for the organism to rewrite its own code has to say clearly where it stands today.</p>
       <div class="table-wrap">
         <table>
@@ -409,26 +481,49 @@
             <tr><td>Rewriting its program within a life</td><td>With logs from 24 lives pooled, the innate order is a local optimum. It repairs a sabotaged program only with a lot of evidence: sharing moments between sisters in the nest makes it possible (8 of 8 colonies reproduce, versus 0 without sharing).</td><td><span class="tag expl">exploratory</span></td></tr>
             <tr><td>Night mind that proposes rules</td><td>+0.060 in the lab with color-and-smell chemistry; no gain in the game.</td><td><span class="tag expl">exploratory</span></td></tr>
             <tr><td>Nightly consolidation improves judgment</td><td>0.852 versus 0.838, p 0.229.</td><td><span class="tag neg">not supported</span></td></tr>
+            <tr><td>Learning her program judged by 15 s of distress</td><td>0.58 versus 0.75 for the innate program (9 versus 1 pairs, replicated). The cost is the trials; the lines she writes do not help.</td><td><span class="tag neg">worse</span></td></tr>
+            <tr><td>Selection as the judge (only mothers that live pass their program on)</td><td>No effect: 24 versus 23 pairs. Every life writes the same lines.</td><td><span class="tag neg">not supported</span></td></tr>
+            <tr><td>H4 · with the program intact, learning costs nothing</td><td>0.750 versus 0.771; 96 lives cannot rule out a 5-point cost.</td><td><span class="tag neg">not supported</span></td></tr>
+            <tr><td>Each colony adapts to its habitat</td><td>Five attempts: reciprocal transplant, opposite habitats, 20 years, 24 maps, milder winters, refounding with parties. No local adaptation. Size genes lean bigger in the cold (+0.037, 15 of 23 maps) without holding up on the new maps.</td><td><span class="tag neg">line closed</span></td></tr>
+            <tr><td>A milder winter keeps colonies from emptying</td><td>No: 6.6% of years empty versus 8.3% and 6.9%. Colonies that empty had already dwindled to 1–5 the year before.</td><td><span class="tag neg">not supported</span></td></tr>
+            <tr><td>Refounding a nest with 4 or 6 instead of a pair</td><td>No difference (4.9 / 4.9 / 3.5% of years empty).</td><td><span class="tag neg">not supported</span></td></tr>
           </tbody>
         </table>
       </div>
-      <div class="note"><b>Where we stand on self-rewriting</b>Today the organism writes <em>rules</em> about what to eat, with confirmed success, and it can reorder lines of its program with a fixed grammar. That it can invent new behavior structure that beats the human design is not yet shown.</div>
+      <div class="note"><b>Where we stand on self-rewriting</b>Today the organism writes <em>rules</em> about what to eat, with confirmed success, and reorders lines of its program with a fixed grammar. With evidence, it repairs a broken program within a life and its daughters inherit the repair (+11 points, preregistered). But without sabotage there is nothing to reorder: the innate order is a robust optimum across six worlds. That it can invent new behavior structure that beats the human design is not yet shown; for that the world must demand a priority nobody programmed, or the grammar must let it build more than an order.</div>
     </section>
 
     <!-- 9 -->
     <section id="cuerpo">
-      <h2><span class="num">10</span>In progress: an evolving body</h2>
+      <h2><span class="num">11</span>In the game: colonies that evolve</h2>
       <p><span class="tag wip">in progress</span> &nbsp;Six heritable organs —brain, gut, muscle, eyes, antennae, size— each a multiplier with a benefit and an energy cost. Costs grow faster than linearly and metabolism scales with mass to the ¾ (Kleiber, 1932). A large brain costs about 18 times as much as muscle per gram (Elia, 1992) and, as in the fish of Kotrschal et al. (2013), shrinks the gut and the offspring. Within a life, each organ can adjust by up to ±25%, but only when experience moves outside the typical.</p>
       <p>We compare three forms of inheritance: <strong>Darwinian</strong> (genes only), <strong>Baldwin</strong> (the capacity to adjust is inherited) and <strong>epigenetic</strong> (part of the mother's adjustment is inherited, like the learned avoidance that <em>C. elegans</em> keeps for about 4 generations; Moore et al., 2019).</p>
       <ul>
         <li><span class="tag expl">exploratory</span> With cold winters, cold became the cause of half or more of the deaths (before, 100% were old age); epigenetic inheritance had fewer cold deaths. With 3 seeds per cell, no difference is firm.</li>
         <li><span class="tag neg">not confirmed</span> The prediction of de Bruin et al. (2026) —inheriting what was lived pays off more when change is predictable— was not confirmed in 90 runs with 10 seeds: 4.4 [−15.8, 24.6]. Body size does track cold and hot years in all three modes (temperature-size rule, Atkinson 1994).</li>
       </ul>
+
+      <h3>Twenty years in the game</h3>
+      <p><span class="tag expl">exploratory</span> &nbsp;The game as it is —three colonies, habitats, fruit every 30 s, evolving body, inheritance of what was lived— over 20 years (~50 generations) on 8 maps. Genes from year 1 to year 20, hot and toxic colonies:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Gene</th><th class="n">change</th><th class="n">t</th><th class="n">maps in that direction</th></tr></thead>
+          <tbody>
+            <tr><td>muscle</td><td class="n">+0.185</td><td class="n">5.0</td><td class="n">8 of 8</td></tr>
+            <tr><td>brain</td><td class="n">−0.128</td><td class="n">−4.6</td><td class="n">7 of 8</td></tr>
+            <tr><td>size</td><td class="n">+0.061</td><td class="n">2.0</td><td class="n">6 of 8</td></tr>
+          </tbody>
+          <caption>Gut, eyes and antennae drift without direction. Carrying fruit that weighs pays for muscle; a costly brain does not pay for itself.</caption>
+        </table>
+      </div>
+      <p><strong>Evolution happens, the same way everywhere.</strong> It is adaptation to the world all colonies share. Conduct also passes from mother to daughter at no cost in population (0.4–0.7 lines of her own per ant, most inherited), but they are the same lines in every habitat.</p>
+      <p><strong>It is not local.</strong> We looked for each colony adapting to its habitat with a reciprocal transplant (every newborn raised in a random nest and followed until death) and with 20-year runs on 24 maps. What showed up was a <em>stranger advantage</em>: in every habitat, young from elsewhere left more offspring than locals (−0.41, t −2.9). We explained it: a local female may not mate with her brothers, often the best males of a small colony, and a newcomer is kin to no one. Once inbreeding depression was added the rule makes sense, and the advantage persists for a reason seen in nature too (genetic rescue). Local adaptation, none.</p>
+      <p><strong>Why, as far as we measured:</strong> colonies of 12–19 adults dwindle to a handful and are replaced by their neighbours (≈7% of nest-years empty, 115 refoundings on 16 maps), erasing what had built up. Bigger colonies (a ceiling of 60) remain the untried remedy. The game's <em>Evolution</em> panel draws these curves live, colony by colony.</p>
     </section>
 
     <!-- 10 -->
     <section id="metodo">
-      <h2><span class="num">11</span>Method and rigor</h2>
+      <h2><span class="num">12</span>Method and rigor</h2>
       <div class="grid2">
         <div>
           <h3>Determinism and fingerprints</h3>
@@ -447,33 +542,37 @@
 
     <!-- 11 -->
     <section id="limites">
-      <h2><span class="num">12</span>Limitations</h2>
+      <h2><span class="num">13</span>Limitations</h2>
       <ul>
         <li><strong>Formats are matched by items, not by bits.</strong> A rule about a trait and a verdict about a fruit cost one each. Matching by information about the chemistry is still pending (Prystawski et al., 2025, show that channel rate matters).</li>
         <li><strong>A verdict only covers fruit the teacher knew.</strong> That is the nature of a conclusion, and also why it generalizes less.</li>
         <li><strong>The pilot shaped the hypotheses.</strong> Confirmatory tests use new seeds, but some hypotheses (explore or return, diversity) were written after seeing a pilot.</li>
         <li><strong>Survivorship bias.</strong> In the self-rewriting studies deaths are not yet logged, which biases what is learned toward those who survive.</li>
         <li><strong>It is a toy ant.</strong> Parameters are inspired by the literature but tuned by hand; external validity comes from the direction of the effects, not their magnitudes.</li>
+        <li><strong>Small colonies.</strong> With 12–19 adults per nest, drift and mixing through refounding outweigh weak local selection; that is why the game shows global evolution and not local.</li>
+        <li><strong>Inheriting what was learned was tested by repairing a sabotage.</strong> It does not show that learning finds something the innate program lacks.</li>
         <li><strong>A single author.</strong> External review is missing; this site exists partly to get it.</li>
       </ul>
     </section>
 
     <!-- 12 -->
     <section id="ruta">
-      <h2><span class="num">13</span>Roadmap</h2>
+      <h2><span class="num">14</span>Roadmap</h2>
       <ol>
         <li><strong>Realism metrics.</strong> Tyrrell's (1993) 14 action-selection requirements as the main measure of how "alive" it behaves.</li>
         <li><strong>A scientific night.</strong> Sleep that poses questions and designs the next day's experiments with the current body.</li>
         <li><strong>Learned drives.</strong> Wanting versus liking: <em>W = κ·V</em> (Zhang and Berridge, 2009).</li>
         <li><strong>Free-flow selection</strong> as the decision controller, versus the current hierarchy.</li>
-        <li><strong>Evolving body</strong> with pressures that reverse direction and ≥10 seeds per cell.</li>
+        <li><strong>A world where the innate order is not optimal without sabotage</strong> (seasons or maps where the right priority changes): the next step the inheritance preregistration set.</li>
+        <li><strong>A richer grammar</strong>, so entities can build more than an order of lines.</li>
+        <li><strong>Bigger colonies</strong> (a ceiling of 60) to take up local adaptation again, and more lives to measure the cost of learning with the program intact (H4).</li>
         <li><strong>Match formats by information</strong> in the reasons versus conclusions study.</li>
       </ol>
     </section>
 
     <!-- 13 -->
     <section id="reproducir">
-      <h2><span class="num">14</span>Reproduce</h2>
+      <h2><span class="num">15</span>Reproduce</h2>
       <p>Raw rows are not versioned; each <code>manifest.json</code> stores the design, the seeds and the commit, enough to regenerate them exactly. Node ≥ 22.</p>
 <pre><code><span class="c"># main lab study (12,800 lineages, ~5 min)</span>
 node research/run.js --design research/designs/main.json
@@ -483,13 +582,21 @@ node research/confirm.js research/results/main
 node research/run.js --design research/designs/sensitivity.json
 node research/sensitivity.js research/results/sensitivity --a verdict --b rule
 
+<span class="c"># inheriting what was learned (preregistration: docs/research/prereg-lineage-inheritance.md)</span>
+node scripts/lineage-selection.js --arm inherit --pop 0 --seed0 20000 --sabotage dusk \
+  --set PROGRAM.judge=1 --set PROGRAM.darkTrials=1 --set PROGRAM.exploreByState=1
+node scripts/lineage-analysis.js research/prereg-lineage
+
+<span class="c"># the game's world: colonies, habitats, years</span>
+node scripts/game-world.js --interval 30 --seeds 8 --seed 7500 --years 20 --jobs 16
+
 <span class="c"># all tests, including the decision fingerprints</span>
 npm test</code></pre>
     </section>
 
     <!-- 14 -->
     <section id="referencias">
-      <h2><span class="num">15</span>References</h2>
+      <h2><span class="num">16</span>References</h2>
       <p class="muted">Grouped by the idea the project takes from each one. The full review is in <code>reports/Razones frente a conclusiones culturales.md</code>, which worked mostly from abstracts.</p>
 
       <h3>Transmitting theories and cumulative culture</h3>
@@ -557,6 +664,7 @@ npm test</code></pre>
         <li>Atkinson, D. (1994). <span class="why">Temperature-size rule.</span></li>
         <li>Hinton, G. E. and Nowlan, S. J. (1987). How learning can guide evolution. <span class="why">Baldwin effect.</span></li>
         <li>Moore, R. S., Kaletsky, R. and Murphy, C. T. (2019). <span class="why"><em>C. elegans</em> inherits a learned avoidance for about 4 generations.</span></li>
+        <li>Ralls, K., Ballou, J. D. and Templeton, A. (1988). <em>Conservation Biology</em>, 2, 185. <span class="why">The cost of inbreeding in 40 captive mammal populations: 1.57 lethal equivalents.</span></li>
         <li>de Bruin et al. (2026). <span class="why">Predictable versus unpredictable change for inheriting what was lived.</span></li>
       </ol>
 
@@ -576,7 +684,7 @@ npm test</code></pre>
 
 <footer>
   Fagi · first-agi · an artificial life experiment. Code, protocols and regenerable data are in the project repository.<br />
-  Results marked as exploratory were not preregistered and should be read as description.
+  Results marked as exploratory were not preregistered and should be read as description. Updated 8 October 2026.
 </footer>
 
 <script type="module" src="../site.js"></script>

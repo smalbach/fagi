@@ -200,7 +200,7 @@ a:hover { text-decoration-thickness: 2px; }
 /* ---------- key numbers ---------- */
 .stats {
   max-width: var(--wide); margin: 0 auto 2rem; padding: 0 1rem;
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem;
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: .8rem;
 }
 .stat {
   position: relative; overflow: hidden;
@@ -214,7 +214,8 @@ a:hover { text-decoration-thickness: 2px; }
 .stat b { display: block; font: 800 2.3rem/1 var(--display); letter-spacing: -.04em; color: var(--ink); font-variant-numeric: tabular-nums; margin-bottom: .45rem; }
 .stat b small { font-size: .5em; color: var(--ink-3); font-weight: 700; margin-left: .1em; }
 .stat span { font: .82rem/1.4 var(--sans); color: var(--ink-3); display: block; }
-@media (max-width: 760px) { .stats { grid-template-columns: repeat(2, 1fr); } .stat b { font-size: 1.9rem; } }
+@media (max-width: 960px) { .stats { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 760px) { .stats { grid-template-columns: repeat(2, 1fr); } .stat:last-child { grid-column: span 2; } .stat b { font-size: 1.9rem; } }
 
 /* ---------- layout: rail + column ---------- */
 .layout {

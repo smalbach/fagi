@@ -1,5 +1,6 @@
 import { startHero } from './hero.js';
-import { T } from './strings.js';
+import { T, pct } from './strings.js';
+import { lineChart } from './charts.js';
 import './lab.js';
 
 // ---------- theme: light, dark, or whatever the system says ----------
@@ -114,3 +115,21 @@ document.querySelectorAll('[data-results]').forEach((b) => b.addEventListener('c
   drawResults(b.dataset.results);
 }));
 drawResults('lab');
+
+// ---------- inheriting what was learned, by generation ----------
+// Share alive at 7200 s, 512 lives per point, copied from docs/research/prereg-lineage-results.md.
+// Each arm takes a colour of the formats above: born grey, learn blue, any mother orange, survivors green.
+const INHERIT = [
+  ['none', 'born', [0.477, 0.426, 0.502, 0.486, 0.479, 0.449]],
+  ['verdict', 'learn', [0.508, 0.475, 0.525, 0.500, 0.508, 0.471]],
+  ['rule', 'inheritAny', [0.508, 0.527, 0.588, 0.588, 0.605, 0.541]],
+  ['evidence', 'inherit', [0.508, 0.516, 0.592, 0.613, 0.617, 0.576]],
+];
+const inheritHost = document.getElementById('inherit-chart');
+if (inheritHost) {
+  document.getElementById('inherit-title').textContent = T.inheritTitle;
+  inheritHost.innerHTML = lineChart(
+    INHERIT.map(([key, arm, values]) => ({ key, label: T.arms[arm], values })),
+    { yMax: 0.8, yFmt: pct, xLabel: T.generation },
+  );
+}

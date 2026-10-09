@@ -15,6 +15,8 @@ const ES = {
   carriers: 'hormigas la llevan', isFalse: 'falsa en ese mundo', empty: 'Ninguna creencia pasó de hormiga a hormiga.',
   beliefs: (n, f) => `${n} creencias transmitidas con «${f}»; se muestran las más longevas`,
   summary: (f, a, m) => `${f}: ${a} de supervivientes en la generación 6 · ${m} mitos por hormiga`,
+  inheritTitle: 'Vivas a las 2 horas, por generación · programa con «volver al anochecer» al final',
+  arms: { born: 'innato', learn: 'aprende', inheritAny: 'hereda de cualquiera', inherit: 'hereda de supervivientes' },
 };
 
 const EN = {
@@ -32,6 +34,8 @@ const EN = {
   carriers: 'ants carry it', isFalse: 'false in that world', empty: 'No belief went from ant to ant.',
   beliefs: (n, f) => `${n} beliefs passed on with “${f}”; the longest-lived are shown`,
   summary: (f, a, m) => `${f}: ${a} survivors in generation 6 · ${m} myths per ant`,
+  inheritTitle: 'Alive at 2 hours, by generation · program with “go home at dusk” moved last',
+  arms: { born: 'born', learn: 'learns', inheritAny: 'inherits from any', inherit: 'inherits from survivors' },
 };
 
 export const LANG = document.documentElement.lang === 'en' ? 'en' : 'es';
