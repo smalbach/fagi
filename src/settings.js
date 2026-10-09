@@ -335,6 +335,11 @@ const GROUPS = [
     n(PROGRAM, 'crisisRise', 'Crisis: rise over 20 s', 'Crisis: subida en 20 s', 0.05, 0.5, 0.05),
     b(PROGRAM, 'share', 'Share moments with sisters in nest', 'Comparte momentos con sus hermanas en el nido'),
     n(PROGRAM, 'shareBudget', 'Moments passed at one exchange', 'Momentos que pasa en un intercambio', 1, 500, 1),
+    b(PROGRAM, 'troubleTrials', 'Try other lines only after trouble', 'Prueba otras líneas solo tras un mal momento'),
+    n(PROGRAM, 'troubleAt', 'Distress that counts as trouble', 'Malestar que cuenta como mal momento', 0.1, 0.95, 0.05),
+    n(PROGRAM, 'troubleHalf', 'Seconds for trouble to halve', 'Segundos en que el mal momento se reduce a la mitad', 60, 3600, 60),
+    b(PROGRAM, 'confirm', 'Learned lines on probation before reaching the egg', 'Líneas aprendidas a prueba antes de pasar al huevo'),
+    n(PROGRAM, 'confirmFor', 'Probation (seconds)', 'Prueba (segundos)', 300, 7200, 100),
   ]},
   { title: { en: 'Colony (new sessions)', es: 'Colonia (sesiones nuevas)' }, cat: 'colony', fieldsOf: [
     n(SOCIAL, 'size', 'Individuals in the colony (1 = Fagi alone)', 'Individuos en la colonia (1 = Fagi sola)', 1, 8, 1),
@@ -697,6 +702,7 @@ const adaptiveSections = [
   ['Evidence and evaluation', 'Evidencia y evaluación', ['judge', 'horizon', 'power', 'minSupport', 'alpha', 'margin', 'strictness']],
   ['Crisis learning', 'Aprendizaje en crisis', ['crisis', 'crisisThreshold', 'crisisRise']],
   ['Sharing experience', 'Compartir experiencias', ['share', 'shareBudget']],
+  ['Learning that leaves alone what works', 'Aprender sin estropear lo que funciona', ['troubleTrials', 'troubleAt', 'troubleHalf', 'confirm', 'confirmFor']],
 ];
 GROUPS.splice(adaptiveIndex, 1, ...adaptiveSections.map(([en, es, keys]) => ({
   title: { en, es }, cat: 'mind',

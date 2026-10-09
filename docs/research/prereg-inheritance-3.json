@@ -1,0 +1,17 @@
+{
+  "cells": ["intact/born", "intact/learn", "intact/inherit", "intact-T/learn", "intact-T/inherit", "dusk/learn", "dusk/inherit", "dusk-T/learn", "dusk-T/inherit", "shelter-T/learn", "shelter-T/inherit"],
+  "repairPrefixes": ["dusk-before-", "shelter-before-"],
+  "alpha": 0.05,
+  "margin": 0.05,
+  "permutations": 20000,
+  "permutationSeed": 2027,
+  "hypotheses": [
+    { "id": "H5a", "family": "primary", "kind": "noninferiority", "a": "intact-T/inherit", "b": "intact/born", "gens": [3, 4, 5] },
+    { "id": "H5b", "family": "primary", "kind": "superiority", "a": "dusk-T/inherit", "b": "dusk-T/learn", "gens": [3, 4, 5] },
+    { "id": "H5c", "family": "secondary", "kind": "superiority", "a": "intact-T/inherit", "b": "intact/inherit", "gens": [3, 4, 5] },
+    { "id": "H5d", "family": "secondary", "kind": "noninferiority", "a": "intact-T/learn", "b": "intact/born", "gens": [0, 1, 2, 3, 4, 5] },
+    { "id": "H5e", "family": "secondary", "kind": "superiority", "a": "shelter-T/inherit", "b": "shelter-T/learn", "gens": [3, 4, 5] },
+    { "id": "H5f", "family": "secondary", "kind": "noninferiority", "a": "dusk-T/inherit", "b": "dusk/inherit", "gens": [3, 4, 5] },
+    { "id": "R4", "family": "secondary", "kind": "superiority", "a": "intact/born", "b": "intact/inherit", "gens": [3, 4, 5] }
+  ]
+}
