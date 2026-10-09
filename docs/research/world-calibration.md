@@ -286,3 +286,18 @@ Winter is not what empties colonies. A colony that empties held 1–5 alive the 
 | 6 | 15.0 | 3.5 % | 6 | 1.20 |
 
 No difference worth the name: in these six years refounding is rarer than before (8 in 48 map-years) and seldom fails. The game keeps the pair. What drives mixing is not failed refounding but colonies that dwindle to a handful, with 12–19 adults per nest, and are then replaced.
+
+## Closing the local-adaptation line (2026-10-08)
+
+What the game now has, each step measured in the game itself (`scripts/game-world.js`, `scripts/transplant.js`):
+
+- a world that presses (fruit every 30 s: food and winter set how many live, cold deaths are hungry winter foragers, not artifacts);
+- three colonies, each in a habitat of its own (cold, hot, poison close by), dealt at random per map;
+- inheritance of what was lived, in body (epigenetic mark) and conduct (lines learned with evidence pass into the egg), at no cost in population;
+- inbreeding depression, so the rule that keeps kin from mating pays;
+- refounding from the nearest colony;
+- and a bug fixed: further nests' water and trees used to fall off the map.
+
+What it shows: evolution towards the world all colonies share, consistent across maps over 20 years (muscle up, brain down).
+
+What it does not show, after five attempts (transplant, opposite habitats, 20 years, 24 maps, milder winters, bigger refounding parties): colonies adapted each to its own habitat. Size genes lean bigger in cold (+0.037, 15/23 maps) without reaching significance. The cause, as far as measured: colonies of 12–19 adults dwindle to a handful and are replaced by neighbours, erasing what had built up. Bigger colonies (a ceiling of 60) remain the untried remedy, at twice the cost per run.
