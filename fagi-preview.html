@@ -6,6 +6,19 @@ import { drawFagi } from '/src/fagi-sprite.js';
 
 const ctx = document.getElementById('c').getContext('2d');
 
+// The game's own forest floor behind her: realism is judged against the
+// ground she walks on, not a flat color.
+const floor = new Image();
+floor.src = '/assets/forest-floor.webp';
+function ground() {
+  if (floor.complete && floor.naturalWidth) {
+    ctx.fillStyle = ctx.createPattern(floor, 'repeat');
+    ctx.fillRect(0, 0, 1180, 700);
+  } else {
+    ctx.fillStyle = '#3a342a'; ctx.fillRect(0, 0, 1180, 700);
+  }
+}
+
 // A fake Fagi: only what the drawing asks her for.
 function fagi(x, y, angle, extra = {}) {
   return { x, y, angle, alive: true, stride: 0, targetKind: null, castSide: 1,
@@ -23,9 +36,23 @@ function critter(f, scaleOf, t, label) {
   if (label) { ctx.fillStyle = '#cfd3dc'; ctx.textAlign = 'center'; ctx.fillText(label, f.x, f.y + 13 * scaleOf + 8); }
 }
 
+// #close: one female and one male up close, to judge the detail.
+const close = location.hash === '#close' || location.hash === '#macro';
+const macro = location.hash === '#macro';
+
 function frame(ms) {
   const t = ms / 1000;
-  ctx.fillStyle = '#3a342a'; ctx.fillRect(0, 0, 1180, 700);   // background soil
+  if (close) {
+    ground();
+    if (macro) critter(fagi(560, 350, 0), 34, t);
+    else {
+      critter(fagi(330, 350, -0.25), 17, t);
+      critter(fagi(900, 350, 0.25, { sex: 'male' }), 12, t);
+    }
+    requestAnimationFrame(frame);
+    return;
+  }
+  ground();
 
   // Big, female and male, to look at the shape.
   critter(fagi(170, 170, 0), 6, t, 'female');

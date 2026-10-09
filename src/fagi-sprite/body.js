@@ -2,13 +2,13 @@
 // is back to front and bottom to top.
 
 import { mix, seededRng } from '../sprite-kit.js';
-import { shell, edgeLine, outline } from './light.js';
-import { gasterPath, mesosomaPath } from './silhouettes.js';
-import { ellipse, point, line, arc } from './stroke.js';
+import { shade, setae } from './light.js';
+import { gasterPath, mesosomaPath, GASTER, MESOSOMA_PLATES, MESOSOMA_SUTURES } from './silhouettes.js';
+import { ellipse, point, arc } from './stroke.js';
 import { drawLeaf } from './leaf.js';
 import { head } from './head.js';
 
-// Fixed randomness: the speckles and hairs must come out the SAME every frame,
+// Fixed randomness: the pits and hairs must come out the SAME every frame,
 // or the ant would shimmer.
 const GRAIN = 0x5f3a1c7b;
 
@@ -20,20 +20,20 @@ export function drawBody(ctx, c, leaf, L, alive, fill = { x: 1, y: 1 }, shape = 
   const rnd = seededRng(GRAIN);
 
   ctx.save();
-  ctx.translate(-3.4, 0);
+  ctx.translate(-3.5, 0);
   ctx.scale(fill.x, fill.y);
-  ctx.translate(3.4, 0);
+  ctx.translate(3.5, 0);
   gaster(ctx, c, L, alive, rnd);
   drawLeaf(ctx, leaf, L);
   ctx.restore();
-  petiole(ctx, c, L);
-  scaledAt(ctx, 2.0, shape?.thorax ?? 1, () => mesosoma(ctx, c, L));
+  petiole(ctx, c, L, alive);
+  scaledAt(ctx, 2.0, shape?.thorax ?? 1, () => mesosoma(ctx, c, L, alive, rnd));
   // The head grows from the neck forward.
   scaledAt(ctx, 5.7, shape?.head ?? 1, () => head(ctx, c, L, alive, rnd, shape?.eyes ?? 1));
 }
 
 // Draws `paint` scaled by `k` about the point (x, 0) of the body's axis.
-function scaledAt(ctx, x, k, paint) {
+export function scaledAt(ctx, x, k, paint) {
   if (k === 1) return paint();
   ctx.save();
   ctx.translate(x, 0);
@@ -43,108 +43,82 @@ function scaledAt(ctx, x, k, paint) {
   ctx.restore();
 }
 
-// The gaster: the big piece, and the one that catches the most light. It has
-// the tergites —the abdomen's rings— because a smooth egg reads as a drop.
+// The gaster: the big piece, and the one that catches the most light.
 function gaster(ctx, c, L, alive, rnd) {
+  const { x, rx, ry } = GASTER;
+  shade(ctx, gasterPath, x, 0, rx, ry, c.gaster, L, { alive, gloss: 1, glow: 0.34 });
+
   ctx.save();
   gasterPath(ctx);
   ctx.clip();
-
-  ctx.fillStyle = shell(ctx, -9.6, 0, 7.4, c.gaster, L, 0.34, 0.66);
-  ctx.fillRect(-18, -8, 18, 16);
-
-  tergites(ctx);
-  gasterGrain(ctx, rnd);
-  if (alive) gasterShine(ctx, L);
+  tergites(ctx, c, alive);
+  pits(ctx, rnd, x, rx * 0.95, ry * 0.9, 60);
   ctx.restore();
 
-  outline(ctx, gasterPath, 0.75);
-  edgeLine(ctx, gasterPath, -9.8, 0, 7.4, mix(c.gaster, '#ffeccb', 0.6), 0.32, 0.9, L);
-
-  if (alive) gasterHairs(ctx);
+  if (alive) setae(ctx, rnd, 26, x, 0, rx * 0.95, ry * 0.85, 0.7, 0.16);
 }
 
-// Tergites: the abdomen's rings. Each one overlaps the one behind, so the
-// seam bows toward the tail and has its light lip in front. They are faint
-// on purpose: strongly marked they read as the stripes of a ball.
-function tergites(ctx) {
+// Tergites: the abdomen's plates. Each one overlaps the one behind, so the
+// seam bows toward the tail. The back rim of each plate is thin and lets the
+// light through —a pale amber band— and it casts a hairline of shade on the
+// next one. Painted strongly they would read as the stripes of a ball.
+function tergites(ctx, c, alive) {
   ctx.lineCap = 'butt';
-  for (const [x, ry] of [[-7.6, 5.7], [-10.8, 5.2], [-13.6, 3.9]]) {
-    arc(ctx, x + 2.4, 0, 2.4, ry, Math.PI * 0.62, Math.PI * 1.38, 'rgba(40,20,8,0.24)', 0.9);
-    arc(ctx, x + 3.1, 0, 2.4, ry, Math.PI * 0.62, Math.PI * 1.38, 'rgba(255,226,176,0.12)', 0.6);
+  const rim = alive ? mix(c.gaster, '#ffc27a', 0.5) : mix(c.gaster, '#c8ccd4', 0.3);
+  for (const [x, ry] of [[-7.4, 4.8], [-10.4, 4.6], [-13.0, 3.6]]) {
+    ctx.globalAlpha = 0.3;
+    arc(ctx, x + 2.55, 0, 2.2, ry, Math.PI * 0.64, Math.PI * 1.36, rim, 0.55);
+    ctx.globalAlpha = 1;
+    arc(ctx, x + 2.2, 0, 2.2, ry, Math.PI * 0.64, Math.PI * 1.36, 'rgba(36,14,4,0.22)', 0.25);
   }
   ctx.lineCap = 'round';
 }
 
-// Chitin grain: fine pitting, no two dots alike.
-function gasterGrain(ctx, rnd) {
-  for (let i = 0; i < 46; i++) {
+// Microsculpture: fine pitting, no two dots alike.
+function pits(ctx, rnd, cx, rx, ry, n) {
+  for (let i = 0; i < n; i++) {
     const a = rnd() * Math.PI * 2;
-    const d = Math.sqrt(rnd()) * 6.4;
-    const color = rnd() < 0.5
-      ? `rgba(58,28,10,${0.06 + rnd() * 0.12})`
-      : `rgba(255,232,190,${0.04 + rnd() * 0.08})`;
-    point(ctx, -9.8 + Math.cos(a) * d, Math.sin(a) * d * 0.85, 0.32 + rnd() * 0.4, color);
+    const d = Math.sqrt(rnd());
+    const color = rnd() < 0.65
+      ? `rgba(48,20,6,${0.04 + rnd() * 0.08})`
+      : `rgba(255,232,196,${0.03 + rnd() * 0.05})`;
+    point(ctx, cx + Math.cos(a) * d * rx, Math.sin(a) * d * ry, 0.12 + rnd() * 0.16, color);
   }
 }
 
-// The specular shine: a small, elongated, very light spot where the light
-// comes in. It is the only thing that says "this is hard and polished".
-function gasterShine(ctx, L) {
-  ctx.save();
-  ctx.translate(-9.8 + L.x * 3.4, L.y * 3.0);
-  ctx.rotate(Math.atan2(L.y, L.x) + Math.PI / 2);
-  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 3.2);
-  g.addColorStop(0, `rgba(255,240,214,0.34)`);
-  g.addColorStop(1, 'rgba(255,240,214,0)');
-  ellipse(ctx, 0, 0, 3.2, 1.5, g);
-  ctx.restore();
+// The petiole: a thin stalk with one upright scale-like knot. It is the trait
+// only ants have, and from above it is what separates the gaster from the
+// thorax.
+function petiole(ctx, c, L, alive) {
+  const base = mix(c.thorax, '#3a1a08', 0.12);
+  ellipse(ctx, -2.4, 0, 0.9, 0.5, mix(base, '#1a0a03', 0.35));
+  const knot = (cx) => { cx.beginPath(); cx.ellipse(-2.4, 0, 0.75, 1.15, 0, 0, Math.PI * 2); };
+  shade(ctx, knot, -2.4, 0, 0.75, 1.15, base, L, { alive, gloss: 0.8, glow: 0.2 });
 }
 
-// Gaster hairs: short, stiff and only along the edge. They show against the
-// ground and are the difference between a critter and a piece of plastic.
-function gasterHairs(ctx) {
-  ctx.strokeStyle = 'rgba(70,38,16,0.5)';
-  ctx.lineWidth = 0.55;
-  for (let i = 0; i < 11; i++) {
-    const a = Math.PI * (0.35 + (i / 10) * 1.3) * (i % 2 ? 1 : -1);
-    const x = -9.8 + Math.cos(a) * 6.6;
-    const y = Math.sin(a) * 5.6;
-    line(ctx, x, y, x + Math.cos(a) * 1.9, y + Math.sin(a) * 1.9);
-  }
-  ctx.lineWidth = 1;
-}
+// The mesosoma: three plates, each with its own dome of light, and the
+// sutures between them.
+function mesosoma(ctx, c, L, alive, rnd) {
+  shade(ctx, mesosomaPath, 2.0, 0, 3.8, 2.3, c.thorax, L, { alive, gloss: 0.5, glow: 0.24 });
 
-// The petiole: the two little knots of the waist. It is the trait only ants
-// have, and from above it is what separates the gaster from the thorax
-// instead of two ovals touching.
-function petiole(ctx, c, L) {
-  // The shadow the gaster and thorax cast over the gap.
-  ellipse(ctx, -2.5, 0, 2.4, 2.6, 'rgba(24,12,5,0.45)');
-
-  for (const [x, r] of [[-3.0, 1.55], [-1.5, 1.35]]) {
-    ellipse(ctx, x, 0, r, r * 1.05, shell(ctx, x, 0, r, mix(c.thorax, '#2a1708', 0.18), L, 0.4, 0.55));
-  }
-}
-
-// The mesosoma, with its hump and its neck. The groove across it is the
-// suture separating the pronotum from the rest.
-function mesosoma(ctx, c, L) {
   ctx.save();
   mesosomaPath(ctx);
   ctx.clip();
-
-  ctx.fillStyle = shell(ctx, 2.0, 0, 4.4, c.thorax, L, 0.4, 0.62);
-  ctx.fillRect(-3, -6, 11, 12);
-
-  arc(ctx, -0.6, 0, 3.4, 4.4, -1.1, 1.1, 'rgba(46,24,10,0.4)', 0.9);
-  arc(ctx, -1.2, 0, 3.4, 4.4, -1.05, 1.05, 'rgba(255,228,182,0.2)', 0.6);
-  ctx.lineWidth = 1;
+  for (const { x, rx, ry } of MESOSOMA_PLATES) {
+    const g = ctx.createRadialGradient(x + L.x * rx * 0.4, L.y * ry * 0.4, 0, x + L.x * rx * 0.4, L.y * ry * 0.4, rx * 0.9);
+    g.addColorStop(0, `rgba(255,246,228,${alive ? 0.22 : 0.08})`);
+    g.addColorStop(1, 'rgba(255,246,228,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x - rx * 2, -ry * 2, rx * 4, ry * 4);
+  }
+  for (const [x, ry] of MESOSOMA_SUTURES) {
+    arc(ctx, x + 0.45, 0, 0.55, ry, Math.PI * 0.62, Math.PI * 1.38, 'rgba(34,14,4,0.3)', 0.16);
+  }
+  pits(ctx, rnd, 2.0, 3.6, 2.0, 24);
   ctx.restore();
 
-  outline(ctx, mesosomaPath, 0.6);
-  edgeLine(ctx, mesosomaPath, 2.0, 0, 4.4, mix(c.thorax, '#ffeccb', 0.7), 0.45, 1, L);
+  if (alive) setae(ctx, rnd, 8, 2.4, 0, 2.8, 1.6, 0.6, 0.2);
 
   // The neck: the dark gap where the head fits into the thorax.
-  ellipse(ctx, 5.7, 0, 1.3, 2.2, 'rgba(28,14,6,0.5)');
+  ellipse(ctx, 6.0, 0, 0.9, 1.2, 'rgba(22,10,3,0.6)');
 }
