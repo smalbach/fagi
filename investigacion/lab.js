@@ -47,13 +47,14 @@ if (form) {
     const change = form.change.value;
     document.getElementById('lab-lines').innerHTML = lineChart(
       done.map((f) => ({ key: f, label: T.formats[f], values: out.runs[f].rows.map((r) => r[key]) })),
-      { yMax: maxOf(key), yFmt: fmtOf(key), mark: change === 'none' ? null : MARK, markLabel: T.change, xLabel: T.generation, height: 210 },
+      { yMax: maxOf(key), yFmt: fmtOf(key), mark: change === 'none' ? null : MARK, markLabel: T.change, xLabel: T.generation, width: 900, height: 280 },
     );
     const f = treeFormat();
     const run = out.runs[f];
     if (run) {
       document.getElementById('lab-tree').innerHTML = lifelines(run.genealogy, {
         mark: change === 'none' ? null : MARK,
+        width: 900,
         labels: { change: T.change, carriers: T.carriers, false: T.isFalse, empty: T.empty },
       });
       document.getElementById('lab-tree-note').textContent = T.beliefs(run.genealogy.length, T.formats[f]);

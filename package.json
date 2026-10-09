@@ -1,7 +1,7 @@
 {
   "name": "fagi",
   "private": true,
-  "version": "0.1.184",
+  "version": "0.1.189",
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -19,7 +19,8 @@
     "test": "node --env-file-if-exists=.env --test --test-concurrency=1",
     "batch": "node scripts/batch.js",
     "site-data": "node scripts/site-data.js",
-    "site-game-data": "node scripts/site-game-data.js"
+    "site-game-data": "node scripts/site-game-data.js",
+    "site-inheritance-data": "node scripts/site-inheritance-data.js research/prereg-inheritance-2"
   },
   "devDependencies": {
     "vite": "^5.4.0"

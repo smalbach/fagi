@@ -312,7 +312,7 @@ footer {
 .lab-summary i, .sw { display: inline-block; width: .65rem; height: .65rem; border-radius: 3px; margin-right: .4rem; vertical-align: -1px; }
 .sw.ok { background: var(--leaf); } .sw.bad { background: var(--warn); margin-left: .5rem; }
 .lab-note { font: .78rem/1.5 var(--sans); color: var(--ink-3); margin: .6rem 0 0; }
-.chart .mono { font-family: var(--mono); font-size: 9.5px; }
+.chart .mono { font-family: var(--mono); font-size: 11px; }
 .chart .line { transition: opacity .3s; }
 
 .lang-switch { display: inline-flex; padding: 3px; gap: 2px; border-radius: 2px; background: var(--surface-2); border: 1px solid var(--rule); font: 600 .72rem/1 var(--sans); }
@@ -338,3 +338,30 @@ p code, li code, figcaption code { overflow-wrap: anywhere; }
 .toc { max-height: calc(100dvh - 3rem); overflow-y: auto; top: 1.5rem; }
 @media(max-width:760px) { #coverage-charts { grid-template-columns: 1fr; }.layout { padding: 0 1rem; }.tag { white-space: normal; line-height: 1.4; }.chart-row { min-width: 0; } }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { transition: none !important; animation: none !important; } }
+
+/* population explorer */
+.explorer-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem 1rem; margin-bottom: .4rem; }
+.explorer-controls .seg { margin-bottom: 0; }
+.pop-pick { display: flex; align-items: center; gap: .4rem; font: 500 .8rem/1 var(--sans); color: var(--ink-2); }
+.pop-pick label { display: flex; align-items: center; gap: .4rem; }
+.pop-pick input { width: 4.2rem; padding: .45rem .5rem; border: 1px solid var(--rule); background: var(--surface-2); color: var(--ink); font: inherit; font-variant-numeric: tabular-nums; border-radius: 2px; }
+.explorer-legend { margin: .9rem 0 .4rem; }
+.legend .dot { width: .7rem; height: .7rem; border-radius: 50%; display: inline-block; margin-right: .4rem; vertical-align: -1px; }
+.legend .dot.on { background: var(--s-evidence); }
+.legend .dot.off { background: var(--surface); border: 1.5px solid var(--rule-strong); }
+.legend .dot.ring { background: transparent; border: 2px solid var(--accent); }
+.explorer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem 1.4rem; margin-top: .6rem; }
+.ped h5 { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .6rem; margin: 0 0 .3rem; font: 600 .85rem/1.35 var(--sans); color: var(--ink); }
+.ped h5 i { width: .7rem; height: .7rem; border-radius: 2px; display: inline-block; }
+.ped h5 span { flex-basis: 100%; font-weight: 400; color: var(--ink-3); font-size: .78rem; font-variant-numeric: tabular-nums; }
+.ped svg { width: 100%; height: auto; display: block; }
+.ped svg text { fill: var(--ink-3); font-size: 11px; }
+@media (max-width: 760px) { .explorer-grid { grid-template-columns: 1fr; } }
+/* the earlier study's detail, folded */
+details.more { margin: 1.4rem 0; border: 1px solid var(--rule); background: var(--surface); padding: 0 1.1rem; }
+details.more > summary { cursor: pointer; padding: 1rem 0; font: 600 .9rem/1.4 var(--sans); color: var(--ink); }
+details.more[open] > summary { border-bottom: 1px solid var(--rule); margin-bottom: 1rem; }
+details.more > :last-child { margin-bottom: 1.2rem; }
+/* the culture lab, one panel under the other so its text stays legible */
+.lab-grid.lab-stack { grid-template-columns: 1fr; }
+main h4 { margin: 1.4rem 0 .5rem; font: 600 .95rem/1.4 var(--sans); color: var(--ink); }

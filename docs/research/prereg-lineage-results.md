@@ -47,3 +47,20 @@ Generations 3–5 (1536 lives per arm):
 ## Next (as preregistered for H1 supported)
 
 A world where the born order is not optimal without sabotage (for instance, seasons or maps where the right priority changes), and a larger H4 run before turning anything on in the game.
+
+## Sensitivity: the population as the unit (2026-10-09, exploratory, after the run)
+
+Daughters in one population share mothers (about 8 distinct mothers per 16 daughters in generations 3–5), so the paired lives above are not independent. `node scripts/lineage-by-population.js research/prereg-lineage` treats each of the 32 populations as one number (its survival in generations 3–5) and compares arms population by population (sign-flip permutation, 20 000 draws). The same command on today's code reproduces the stored lives byte for byte (checked on `inherit-7`).
+
+| | diff | populations ahead / behind | t (31 df) | one-sided 95 % lower bound | p |
+|---|---|---|---|---|---|
+| H1 inherit > learn | +0.109 | 31 / 1 | 11.0 | +0.093 | < 0.0001 |
+| H2 learn > born | +0.021 | 19 / 5 | 3.7 | +0.012 | 0.0006 |
+| H3 inherit > inheritAny | +0.024 | 20 / 9 | 1.8 | +0.002 | 0.043 |
+| inherit > born | +0.131 | 31 / 1 | 11.7 | +0.112 | < 0.0001 |
+
+H1 by generation: +0.041 (gen 1), +0.066 (2), +0.113 (3), +0.109 (4), +0.105 (5). The gain builds over two generations and then holds.
+
+Reading: H1 and H2 do not depend on counting lives as independent. H3 survives at the population level only narrowly. A preregistered follow-up with the population as its unit: docs/research/prereg-inheritance-2.md.
+
+Second study (preregistered, 2026-10-09): docs/research/prereg-inheritance-2-results.md. H1 replicates on new seeds (+11.0, 43/4 populations) and extends to a second damage (`shelter`, +10.3, 30/1); H3 replicates with `dusk`; H4 is now decided against: with the intact program learning costs 5.3 points and inheriting 9.0.

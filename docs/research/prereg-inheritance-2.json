@@ -1,0 +1,18 @@
+{
+  "damages": ["dusk", "shelter", "intact"],
+  "repairPrefix": { "dusk": "dusk-before-", "shelter": "shelter-before-", "intact": "" },
+  "alpha": 0.05,
+  "margin": 0.05,
+  "permutations": 20000,
+  "permutationSeed": 2026,
+  "hypotheses": [
+    { "id": "R1", "family": "primary", "kind": "superiority", "damage": "dusk", "a": "inherit", "b": "learn", "gens": [3, 4, 5] },
+    { "id": "G1", "family": "primary", "kind": "superiority", "damage": "shelter", "a": "inherit", "b": "learn", "gens": [3, 4, 5] },
+    { "id": "R2", "family": "secondary", "kind": "superiority", "damage": "dusk", "a": "learn", "b": "born", "gens": [3, 4, 5] },
+    { "id": "R3", "family": "secondary", "kind": "superiority", "damage": "dusk", "a": "inherit", "b": "inheritAny", "gens": [3, 4, 5] },
+    { "id": "G2", "family": "secondary", "kind": "superiority", "damage": "shelter", "a": "learn", "b": "born", "gens": [3, 4, 5] },
+    { "id": "G3", "family": "secondary", "kind": "superiority", "damage": "shelter", "a": "inherit", "b": "inheritAny", "gens": [3, 4, 5] },
+    { "id": "N1", "family": "secondary", "kind": "noninferiority", "damage": "intact", "a": "learn", "b": "born", "gens": [0, 1, 2, 3, 4, 5] },
+    { "id": "N2", "family": "secondary", "kind": "noninferiority", "damage": "intact", "a": "inherit", "b": "born", "gens": [3, 4, 5] }
+  ]
+}

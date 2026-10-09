@@ -11,11 +11,13 @@ import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
 import sessionRoutes from './routes/sessions.js';
 import { frontDoor } from './front-door.js';
+import { createMailer } from './mail.js';
 
-export async function buildApp({ pool, adminEmail = process.env.ADMIN_EMAIL, secure = process.env.NODE_ENV === 'production', staticDir, logger = false, rateLimitMax = 10 } = {}) {
+export async function buildApp({ pool, adminEmail = process.env.ADMIN_EMAIL, secure = process.env.NODE_ENV === 'production', staticDir, logger = false, rateLimitMax = 10, mailer = createMailer(), appUrl = process.env.APP_URL } = {}) {
   const app = Fastify({ logger, bodyLimit: 1024 * 1024, trustProxy: true });
   app.decorate('db', pool);
-  app.decorate('opts', { adminEmail: adminEmail?.toLowerCase() ?? null, secure, rateLimitMax });
+  app.decorate('opts', { adminEmail: adminEmail?.toLowerCase() ?? null, secure, rateLimitMax, appUrl: appUrl?.replace(/\/+$/, '') || null });
+  app.decorate('sendMail', mailer);
 
   await app.register(cookie);
   await app.register(rateLimit, { global: false });

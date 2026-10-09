@@ -2,6 +2,7 @@ import { startHero } from './hero.js';
 import { T, pct, num } from './strings.js';
 import { lineChart, groupedBars } from './charts.js';
 import './lab.js';
+import './explorer.js';
 import game from './data/game.json';
 
 // ---------- theme: light, dark, or whatever the system says ----------
@@ -121,7 +122,26 @@ if (inheritHost) {
   );
 }
 
-// ---------- information-matched replication (Figure 4) ----------
+// ---------- second inheritance study (Figure 4) ----------
+// Survival in generations 3-5 per damage, from docs/research/prereg-inheritance-2-results.md
+// (the intact program has no "any mother" arm).
+const INHERIT2 = [
+  ['none', 'born', [0.467, 0.550, 0.744]],
+  ['verdict', 'learn', [0.495, 0.564, 0.686]],
+  ['rule', 'inheritAny', [0.576, 0.645, null]],
+  ['evidence', 'inherit', [0.605, 0.667, 0.654]],
+];
+const inherit2Host = document.getElementById('inherit2-chart');
+if (inherit2Host) {
+  document.getElementById('inherit2-title').textContent = T.inherit2Title;
+  inherit2Host.innerHTML = groupedBars(
+    T.damages.map((label, i) => ({ label, values: INHERIT2.map(([, , v]) => v[i]) })),
+    INHERIT2.map(([key, arm]) => ({ key, label: T.arms[arm] })),
+    { yMax: 0.8, yFmt: pct },
+  );
+}
+
+// ---------- information-matched replication (Figure 8) ----------
 // Differences between formats, from docs/research/results.md (main study) and
 // the replication on research/codigo-cultural: [counting items, matching information].
 const COVERAGE = [
@@ -137,7 +157,7 @@ if (coverageHost) {
   }).join('');
 }
 
-// ---------- world calibration (Figure 5) ----------
+// ---------- world calibration (Figure 2) ----------
 // Share alive at 7200 s, docs/research/world-calibration.md (survival table).
 const CALIB_X = [300, 450, 525, 550, 575, 590, 600, 675, 750];
 const CALIB = [
@@ -155,7 +175,7 @@ if (calibHost) {
   );
 }
 
-// ---------- the game over 20 years and the transplant (Figures 7 and 8) ----------
+// ---------- the game over 20 years and the transplant (Figures 9 and 10) ----------
 // From investigacion/data/game.json (node scripts/site-game-data.js). Habitats
 // take the formats' colours: cold blue, hot orange, toxic green.
 const HAB_KEY = { cold: 'verdict', hot: 'rule', toxic: 'evidence' };
