@@ -551,6 +551,7 @@ const GROUPS = [
     n(MAPGEN, 'size', 'Map size (× each side, new maps)', 'Tamaño del mapa (× cada lado, mapas nuevos)', 1, 4, 0.5),
     n(MAPGEN, 'pools', 'Ponds when generating a map', 'Estanques al generar mapa', 1, 30, 1),
     n(MAPGEN, 'species', 'Wild species with hidden chemistry (0 = classic map)', 'Especies silvestres con química oculta (0 = mapa clásico)', 0, 12, 1),
+    b(MAPGEN, 'inside', 'Trees and ponds wholly inside the map (new maps)', 'Árboles y estanques enteros dentro del mapa (mapas nuevos)'),
     n(MAPGEN, 'treeMinNestDistance', 'Minimum tree distance from nest', 'Distancia mínima del árbol al nido', 100, 900, 10),
     n(MAPGEN, 'treeMaxNestDistance', 'Maximum tree distance from nest', 'Distancia máxima del árbol al nido', 100, 1000, 10),
     n(MAPGEN, 'rocks', 'Rocks when generating a map', 'Rocas al generar mapa', 0, 40, 1),

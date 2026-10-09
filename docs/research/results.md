@@ -123,6 +123,33 @@ is the better teacher while the world holds and, when it inverts, leaves
 22–27 percentage points fewer survivors than passing on verdicts, and the reason-lineages walk into
 the inversion carrying more myths than the verdict-lineages.
 
+### Sensitivity: species trees off the map
+
+Found after the fact (2026-10-07), not preregistered. The species maps were
+drawn with no bounds check (`placeFarFrom` in `src/mapgen.js`): in 101 of the
+600 maps of this confirmation (16.8%) one wild species' tree lies wholly off
+the map, its fruit clamped onto a line along the wall and partly beyond the
+reach of the tree's `maxNear` cap. `MAPGEN.inside` (commit `ea9613c`) now
+keeps every tree inside; it is off by default, so these maps, and this result,
+reproduce number for number.
+
+The 300 lineages were run again at `6c71c7c` and reproduce the table above to
+the last digit. With the lineages that met such a map left out, all three
+hypotheses still hold (Holm over three, as above):
+
+| test | all | without: any gen feeding the outcome (0–3 / 0–4) | without: measured gens only (1–3 / 4) | only those with one |
+|---|---|---|---|---|
+| H1 | 0.332, n 75 | 0.304 [0.183, 0.427], n 40, p .0003 | 0.296 [0.190, 0.403], n 47 | 0.364 [0.257, 0.469], n 35 |
+| H2a | 0.223, n 75 | 0.210 [0.089, 0.339], n 31, p .0075 | 0.219 [0.121, 0.316], n 64 | 0.233 [0.114, 0.358], n 44 |
+| H3 | 0.827, n 75 | 0.992 [0.677, 1.331], n 31, p .0003 | 0.813 [0.594, 1.043], n 64 | 0.710 [0.466, 0.938], n 44 |
+
+Every pair of formats lives in the same maps, so a missing tree weighs on both
+sides of each contrast; the lineages that met one show the same differences as
+those that did not. Absolute levels (bites, survivors) are not covered by
+this check, nor are the other studies on species maps (organism, organism2,
+concepts, social, diversity, forage, adaptive decision, caution), where 10–23%
+of maps have a tree off the edge and the same paired design applies.
+
 ### Exploratory (game)
 
 Not preregistered; every pair of formats and outcome in

@@ -260,6 +260,10 @@ export default {
       'Mud patches in new maps. Needs Hazard terrain on. Higher → more slow ground to avoid; lower → fewer traps; 0 → none.',
       'Zonas de barro en mapas nuevos. Requiere Terreno peligroso encendido. Más alto → más terreno lento que evitar; más bajo → menos trampas; 0 → ninguna.',
     ],
+    'Map objects.inside': [
+      'Places every tree and pond around a nest wholly inside the map, on new maps. On → no tree or pond falls off the edge where she could see it but never reach it; off → maps drawn as the preregistered studies drew them, number for number.',
+      'Coloca cada árbol y estanque alrededor de un nido entero dentro del mapa, en mapas nuevos. Encendido → ningún árbol ni estanque queda fuera del borde, donde podría verlo pero nunca alcanzarlo; apagado → mapas dibujados como en los estudios preregistrados, número por número.',
+    ],
     'Map objects.foodVariety': [
       'Multiplier on the number of trees in new classic maps, spread over a wider arc around the nest. Higher → more trees in more directions; lower → fewer trees. No effect with wild species.',
       'Multiplicador del número de árboles en mapas clásicos nuevos, repartidos en un arco más amplio alrededor del nido. Más alto → más árboles en más direcciones; más bajo → menos árboles. Sin efecto con especies silvestres.',

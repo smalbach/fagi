@@ -1,20 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { HABITATS, COLONIES, OBJECT_TYPES } from '../src/config.js';
+import { HABITATS, COLONIES, OBJECT_TYPES, MAPGEN } from '../src/config.js';
 import { createWorld, nestsOf } from '../src/world.js';
 import { generateMap } from '../src/mapgen.js';
 import { airAt, fruitRateOf, habitatOfNest } from '../src/habitats.js';
 import { rng, withRng } from '../scripts/batch/random.js';
 
+// As the game makes them: three colonies, every tree and pond inside the map.
 const map = (seed, { habitats = 1, colonies = 3 } = {}) => {
-  const was = [HABITATS.enabled, COLONIES.count];
+  const was = [HABITATS.enabled, COLONIES.count, MAPGEN.inside];
   HABITATS.enabled = habitats;
   COLONIES.count = colonies;
+  MAPGEN.inside = 1;
   try {
     return withRng(rng(seed), () => { const w = createWorld(); generateMap(w); return w; });
   } finally {
-    [HABITATS.enabled, COLONIES.count] = was;
+    [HABITATS.enabled, COLONIES.count, MAPGEN.inside] = was;
   }
 };
 const on = (fn) => { const was = HABITATS.enabled; HABITATS.enabled = 1; try { return fn(); } finally { HABITATS.enabled = was; } };
