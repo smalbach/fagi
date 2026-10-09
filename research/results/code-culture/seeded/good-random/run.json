@@ -1,0 +1,27 @@
+{
+ "seeded": "good",
+ "lines": [
+  {
+   "id": "taste-novel",
+   "if": {
+    "novel": true,
+    "hungerBelow": 75
+   },
+   "do": "taste"
+  },
+  {
+   "id": "leave-harmed-mostly",
+   "if": {
+    "harmedMostly": true
+   },
+   "do": "leave"
+  }
+ ],
+ "select": "random",
+ "R": 10,
+ "G": 20,
+ "K": 30,
+ "C": 3,
+ "T": 3,
+ "group": "evo"
+}

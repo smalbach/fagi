@@ -89,6 +89,14 @@ export const GROUPS = {
   // Lineages (revision 1 of the rules of conduct): development, and confirmation apart.
   lin: { seed: 47000, map: (i) => 2400000 + 89 * i },
   lin2: { seed: 49000, map: (i) => 2500000 + 97 * i },
+  // Evolving rules (docs/research/plan-evolucion-de-reglas.md) and step 0 of
+  // docs/research/plan-codigo-cultural.md: does selection have force?
+  evo: { seed: 55000, map: (i) => 3000000 + 113 * i },
+  // Code that is inherited and told (docs/research/plan-codigo-cultural.md):
+  // development and confirmation. Above every map and seed used before (the
+  // plan's 2800000/2900000 met earlier maps 148 times).
+  cdev: { seed: 70000, map: (i) => 4000000 + 107 * i },
+  cconf: { seed: 90000, map: (i) => 5000000 + 109 * i },
 };
 
 // --- integrating caution in the game (plan-reglas-de-conducta.md, option 2) ---

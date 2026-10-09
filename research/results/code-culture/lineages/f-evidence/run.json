@@ -1,0 +1,24 @@
+{
+ "select": "tournament",
+ "R": 6,
+ "G": 8,
+ "K": 16,
+ "T": 3,
+ "mutate": 0.3,
+ "model": "qwen3.6",
+ "group": "cdev",
+ "blind": false,
+ "diary": true,
+ "until": 8,
+ "rules": true,
+ "start": "oracle",
+ "sets": {
+  "HEALTH.poison": 200
+ },
+ "families": [
+  "stable",
+  "novel"
+ ],
+ "invertAt": 4,
+ "format": "evidence"
+}

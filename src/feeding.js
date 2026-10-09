@@ -20,6 +20,7 @@ import { pantryEstimate, roomAtHome } from './larder.js';
 import { judge, chewing } from './decision/bite.js';
 import { noteMeal } from './learned/conduct.js';
 import { learnConduct } from './learned/conduct-learn.js';
+import { noteBite } from './learned/diary.js';
 
 // When hungry she eats it on the spot. When not hungry she picks it up and takes it to the nest:
 // that's the difference between eating and working. And with the pantry stocked she doesn't even
@@ -147,6 +148,7 @@ export function eat(fagi, type, { hunger = null, portion: meant = 1, variant = n
   fagi.chewed = (fagi.chewed ?? 0) + weight * hardness * portion;   // her gut's work (MORPH plasticity)
   const meal = noteMeal(fagi, { key: type, portion, before: hungerBefore, after: fagi.hunger });   // CONDUCT only
   if (meal) learnConduct(fagi, meal);
+  noteBite(fagi, { key: type, portion, before: hungerBefore, after: fagi.hunger });   // CODE only
   afterBite(fagi, ep.reward, added, type);
   if (added > 0) hurt(fagi, HEALTH.poison * portion / bodyMult(fagi, 'tolerance'), 'poison');   // poison harms her too (health.js)
   fagi.lastMeal = {

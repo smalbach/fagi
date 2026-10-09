@@ -1,0 +1,12 @@
+{
+  "name": "coverage-dev",
+  "description": "Development look (not confirmatory): the main study's formats with the budget counted by coverage (species an item speaks about, SOCIAL.cost) instead of items. Seeds of their own.",
+  "base": { "switchAt": 6, "generations": 12, "choices": 3, "life": 1800, "sets": { "SOCIAL.cost": "coverage" } },
+  "factors": {
+    "format": ["none", "verdict", "rule", "evidence"],
+    "change": ["none", "invert"],
+    "family": ["one", "conj"]
+  },
+  "seeds": 60,
+  "seed0": 3001
+}

@@ -16,20 +16,25 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 
 import { enableOrganism } from '../../src/organism.js';
+import { createWorld } from '../../src/world.js';
+import { generateMap } from '../../src/mapgen.js';
+import { createChemistry, invertChemistry } from '../../src/chemistry.js';
+import { rng } from '../../scripts/batch/random.js';
 import { set, runEpisode } from './episode.js';
 import { BATTERY, BATTERY_HORIZON, DEV_SEED, devMapSeed, DEV_WORLDS, FOOD, GROUPS } from './design.js';
 import { foodSchedule, foodTicker, FOOD_FAMILIES, FOOD_PARAMS } from './foodworlds.js';
 import './judges.js';
 import '../../src/adaptive-decision/index.js';
 import './competitors.js';
+import '../../src/learned/code-judge.js';
 import { makeWorld, scheduleOf, ticker, FAMILIES, WORLD_PARAMS } from './worlds.js';
 import { setup } from './controllers.js';
 
 const argv = process.argv.slice(2);
 const opt = (name, dflt) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : dflt);
 
-export function battleEpisode({ domain = 'where', controller, family, i, sets = {}, world = {}, group = 'dev' }) {
-  if (domain === 'food') return foodEpisode({ controller, family, i, sets, world, group });
+export function battleEpisode({ domain = 'where', controller, family, i, sets = {}, world = {}, group = 'dev', chem = null }) {
+  if (domain === 'food') return foodEpisode({ controller, family, i, sets, world, group, chem });
   const params = { ...WORLD_PARAMS, ...world };
   enableOrganism();
   set(BATTERY);
@@ -46,7 +51,22 @@ export function battleEpisode({ domain = 'where', controller, family, i, sets = 
 
 // Revision 1: the experimental map of step 1, the connected choice for where
 // to go, and `controller` judging what to eat.
-function foodEpisode({ controller, family, i, sets, world, group }) {
+// `chem` ({ dim, seed }, code culture step 3c): instead of the map's own
+// chemistry, one fixed by `seed` where one value of trait `dim` poisons and
+// another nourishes (chemistry.js family 'one'). The species are still the
+// map's own draw, so a lineage meets new species under the same rule.
+function chemWorld(chem) {
+  return () => {
+    const w = createWorld();
+    const c = createChemistry(rng(chem.seed), { family: 'one', dim: chem.dim });
+    // chem.invert (code culture step 4): the rule turned upside down, what
+    // poisoned nourishes and the other way round.
+    generateMap(w, { chemistry: chem.invert ? invertChemistry(c) : c });
+    return w;
+  };
+}
+
+function foodEpisode({ controller, family, i, sets, world, group, chem = null }) {
   const params = { ...FOOD_PARAMS, ...world };
   enableOrganism();
   set(FOOD);
@@ -56,7 +76,7 @@ function foodEpisode({ controller, family, i, sets, world, group }) {
   const mapSeed = g.map(i);
   const schedule = foodSchedule(family, mapSeed, params);
   const t0 = process.hrtime.bigint();
-  const r = runEpisode({ seed: g.seed + i, mapSeed, horizon: BATTERY_HORIZON, tick: foodTicker(schedule, mapSeed, params) });
+  const r = runEpisode({ seed: g.seed + i, mapSeed, horizon: BATTERY_HORIZON, tick: foodTicker(schedule, mapSeed, params), makeWorld: chem ? chemWorld(chem) : null });
   const ms = Number(process.hrtime.bigint() - t0) / 1e6;
   return { domain: 'food', group, controller, family, i, change: schedule[0]?.at ?? null, ms: Math.round(ms), ...r };
 }

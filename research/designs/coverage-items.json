@@ -1,0 +1,8 @@
+{
+  "name": "coverage-items",
+  "description": "Information-matched replication (docs/research/preregistration-coverage.md), budget counted in items as in the main study. Fresh seeds 4001-4200.",
+  "base": { "switchAt": 6, "generations": 12, "choices": 3, "life": 1800, "family": "one", "change": "invert", "sets": { "SOCIAL.cost": "items" } },
+  "factors": { "format": ["none", "verdict", "rule", "evidence"] },
+  "seeds": 200,
+  "seed0": 4001
+}

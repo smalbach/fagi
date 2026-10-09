@@ -1,0 +1,32 @@
+{
+ "domain": "food",
+ "group": "dev2",
+ "controller": "learned",
+ "sets": {
+  "CONDUCT.enabled": 1,
+  "CONDUCT.born": [
+   {
+    "id": "taste-novel",
+    "if": {
+     "novel": true,
+     "hungerBelow": 75
+    },
+    "do": "taste"
+   },
+   {
+    "id": "leave-harmed-mostly",
+    "if": {
+     "harmedMostly": true
+    },
+    "do": "leave"
+   }
+  ]
+ },
+ "world": {},
+ "families": [
+  "stable",
+  "invert",
+  "novel"
+ ],
+ "worlds": 40
+}

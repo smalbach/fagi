@@ -43,6 +43,10 @@ export const trustOf = (r) => r.source?.trust ?? 1;
 // `budget` caps the items passed at once (a rule, a verdict and a bite each
 // count one; 0 = no cap). With a cap, what she trusts and weighs most goes
 // first. That is how research/ compares the formats on equal terms.
+// SOCIAL.cost 'coverage' counts instead how many species of the world an item
+// speaks about: a verdict, a rule about one fruit and a bite cost one; a rule
+// about a trait costs as many as the species that have it. The formats are
+// then equal in what they say about the world, not in how many sentences.
 //
 // `kind` is the source mark ('told' between sisters, 'born' from an elder to
 // a newborn) and `scale` how much of the giver's trust survives the telling.
@@ -56,7 +60,9 @@ export function pass(giver, receiver, now, { kind, scale, budget = 0, format = S
   const at = round(now);
   const has = (subject) => mine.rules.list.some((x) => subjectOf(x) === subject);
   const tasted = (key) => (mine.facts[key]?.tries ?? 0) > 0;
-  const room = () => !budget || out.length < budget;
+  let spent = 0;
+  const room = (cost = 1) => !budget || spent + cost <= budget;
+  const spend = (cost = 1) => { spent += cost; };
 
   const adopt = (r, trust, origin) => {
     const copy = JSON.parse(JSON.stringify(r));
@@ -75,6 +81,7 @@ export function pass(giver, receiver, now, { kind, scale, budget = 0, format = S
       if (!room()) break;
       const id = `${v.verdict}-${v.key}`;
       if (has(v.key) || tasted(v.key)) continue;
+      spend(1);
       adopt({
         id, on: SCOPE[v.verdict], when: { key: v.key }, verdict: v.verdict, weight: v.rule.weight,
         because: [{ sense: 'told', v: v.verdict === 'avoid' ? -1 : 1 }], tries: 0, stage: 'short',
@@ -91,17 +98,31 @@ export function pass(giver, receiver, now, { kind, scale, budget = 0, format = S
     if (has(subject)) continue;
     // A fruit she has tasted is judged by her own experience.
     if (r.when.key && tasted(r.when.key)) continue;
+    // By coverage, a rule too broad for what is left is skipped for a narrower one.
+    const cost = SOCIAL.cost === 'coverage' ? coverageOf(r) : 1;
+    if (!room(cost)) continue;
+    spend(cost);
     const origin = originOf(giver, r);
     adopt(r, trustOf(r) * scale, origin);
     out.push({ id: r.id, origin, kind: 'rule' });
     if (format !== 'evidence') continue;
     for (const b of backing(giver, r)) {
       if (!room()) break;
+      spend(1);
       learnSeen(mine, b.key, b.reward, now, giver.id);
       out.push({ id: r.id, origin, kind: 'bite', key: b.key });
     }
   }
   return out;
+}
+
+// How many species of the world a rule speaks about (SOCIAL.cost 'coverage').
+function coverageOf(r) {
+  if (r.when?.key) return 1;
+  if (r.cases) return Math.max(1, r.cases.length);
+  let n = 0;
+  for (const [k, t] of Object.entries(POINT_TYPES)) if (t.species && t.traits && traitsMatch(r, k, cuesOf(k))) n++;
+  return Math.max(1, n);
 }
 
 // Where a rule was first lived: a rule she lived herself starts a lineage.

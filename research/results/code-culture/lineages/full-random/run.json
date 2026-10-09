@@ -1,0 +1,11 @@
+{
+ "select": "random",
+ "R": 10,
+ "G": 20,
+ "K": 24,
+ "T": 3,
+ "mutate": 0.2,
+ "model": "qwen3.6",
+ "group": "cdev",
+ "blind": false
+}

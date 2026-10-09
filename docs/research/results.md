@@ -180,3 +180,30 @@ at most the lineages in progress. A lineage depends only on its seed and the
 options (checked: lineage 2 of a two-lineage process and the same seed run
 alone come out byte-identical), so the lineages and the analysis are the
 same ones.
+
+## Réplica igualada por información (2026-10-05)
+
+Preregistro: `preregistration-coverage.md`, congelado en `a9c3265` antes de correr. Semillas 4001–4200, 200 linajes por celda, química de un rasgo, inversión en la generación 6, vidas de 1800 s. Datos: `research/results/coverage-{items,coverage}`. Análisis: `research/confirm-coverage.js`.
+
+**6 de 6 se sostienen** (unilaterales, Holm, todas con p ajustada 0,0006):
+
+| id | afirmación | diferencia [IC 95 %] | dz |
+|---|---|---|---|
+| C0 | con ítems, las razones dejan menos supervivientes en la inversión (H2a replicado) | 0,232 [0,178, 0,285] | 0,61 |
+| C1 | esa brecha es mayor con ítems que con cobertura | 0,186 [0,129, 0,242] | 0,45 |
+| C2 | con cobertura, las razones llevan más mitos que las conclusiones | 0,902 [0,722, 1,076] | 0,71 |
+| C3 | con cobertura, la evidencia lleva menos mitos que las razones | 2,071 [1,910, 2,231] | 1,76 |
+| C4 | con cobertura, la evidencia enseña mejor que las conclusiones | 0,119 [0,101, 0,136] | 0,93 |
+| C5 | con cobertura, las razones enseñan mejor que las conclusiones | 0,029 [0,013, 0,044] | 0,25 |
+
+**Descriptivo preregistrado:** con cobertura, la brecha de supervivientes (conclusiones − razones) es **0,046 [0,017, 0,078]**. La cota superior queda por debajo de 0,10, como se predijo. Pero el IC no incluye 0, contra la predicción: queda una trampa pequeña.
+
+**Lectura:**
+- **A igual información, la trampa de supervivencia de las razones se reduce un 80 %:** de 0,232 a 0,046. La mayor parte del efecto principal (H2a) venía de que las razones transmiten más información sobre el mundo, y con ella más creencias que caen juntas cuando el mundo se invierte.
+- **Lo que sí es propio del formato no cambia:**
+  - las razones llevan casi un mito más por linaje que las conclusiones (C2, como H3: 0,90 frente a 0,86);
+  - la evidencia los corta (C3, igual que H4a: 2,07 frente a 2,00).
+- **Enseñar:**
+  - la ventaja de las razones se reduce de 0,224 a 0,029 (C5): sigue, pero es pequeña;
+  - la evidencia enseña mejor que las conclusiones aun a igual información (C4).
+- **El hallazgo queda más preciso.** Las razones no son peligrosas en sí: a igual información siembran más mitos, pero esos mitos casi no matan más. Lo peligroso es la combinación de razones con mucha información. La evidencia es la que mejor sale en las dos igualaciones.

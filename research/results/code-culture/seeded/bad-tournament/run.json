@@ -1,0 +1,19 @@
+{
+ "seeded": "bad",
+ "lines": [
+  {
+   "id": "leave-novel",
+   "if": {
+    "novel": true
+   },
+   "do": "leave"
+  }
+ ],
+ "select": "tournament",
+ "R": 10,
+ "G": 20,
+ "K": 30,
+ "C": 3,
+ "T": 3,
+ "group": "evo"
+}

@@ -1,0 +1,13 @@
+{
+ "domain": "food",
+ "group": "dev2",
+ "controller": "current",
+ "sets": {},
+ "world": {},
+ "families": [
+  "stable",
+  "invert",
+  "novel"
+ ],
+ "worlds": 40
+}

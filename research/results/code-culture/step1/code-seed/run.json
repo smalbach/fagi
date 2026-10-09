@@ -1,0 +1,16 @@
+{
+ "domain": "food",
+ "group": "dev2",
+ "controller": "code",
+ "sets": {
+  "CODE.enabled": 1,
+  "CODE.source": "function ground(obs, look, diary) {\n  // What she has always done with a fruit she touches.\n  return obs.innate;\n}"
+ },
+ "world": {},
+ "families": [
+  "stable",
+  "invert",
+  "novel"
+ ],
+ "worlds": 40
+}

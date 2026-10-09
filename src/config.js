@@ -328,6 +328,7 @@ export const SOCIAL = {
   seeRange: 1,        // fraction of her view range at which she notices a sister eat
   format: 'rule',     // what is passed on (social.js): 'rule' | 'verdict' | 'evidence'
   budget: 0,          // items passed in one exchange (a rule, a verdict, a bite); 0 = no cap
+  cost: 'items',      // what the budget counts: 'items', or 'coverage' (species an item speaks about; social.js)
   evidence: 2,        // bites behind each rule, in the 'evidence' format
   topic: 'all',       // what is passed on: 'all' rules, or only 'food' (rules about eating)
 };
@@ -1011,6 +1012,23 @@ export const CONDUCT = {
   explore: 0,           // chance she breaks a line that bans a fruit she wants, with a trial bite (revision 2)
   exploreBelow: 75,     // ...only while her hunger is below this
   kindFirst: 0,         // 1 = among near ties, a line about the kind wins over one about her hunger or a look
+};
+
+// A judge in code (docs/research/plan-codigo-cultural.md, step 1;
+// learned/code-judge.js, Node only): the source text of a function
+// ground(obs, look, diary) that answers 'eat' | 'taste' | 'carry' | 'leave'
+// when she touches a fruit, run apart from everything else. With it on she
+// also keeps a diary of her bites as plain data (learned/diary.js).
+//   source    : the function's text; null = the innate answer
+//   maxChars  : longer texts are refused (every bite then goes to the innate answer)
+//   timeoutMs : a call that runs longer fails, and that bite goes to the innate answer
+//   diary     : bites the diary keeps (the oldest go first)
+export const CODE = {
+  enabled: 0,
+  source: null,
+  maxChars: 4000,
+  timeoutMs: 50,
+  diary: 60,
 };
 
 // Her program (program.js) and how she rewrites it from what she lives

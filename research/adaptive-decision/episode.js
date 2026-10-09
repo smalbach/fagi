@@ -159,6 +159,8 @@ export function runEpisode({ seed, mapSeed, horizon = HORIZON, dt = DT, trace = 
   };
   if (fagi.adaptive) out.adaptive = adaptiveSummary(fagi);
   if (fagi.brain.conduct) out.conduct = conductSummary(fagi);
+  if (fagi.codeJudge) out.code = fagi.codeJudge;
+  if (fagi.diary) out.diary = fagi.diary;
   if (trace) out.segments = segments;
   return out;
 }

@@ -1,0 +1,16 @@
+{
+ "domain": "food",
+ "group": "dev2",
+ "controller": "code",
+ "sets": {
+  "CODE.enabled": 1,
+  "CODE.source": "function record(look, diary) {\n  let harms = 0, fed = 0;\n  for (const b of diary) if (b.key === look.key) { if (b.harmed) harms++; else fed++; }\n  return { harms, fed, mostly: harms > 0 && harms >= fed, novel: harms + fed === 0 };\n}\nfunction ground(obs, look, diary) {\n  const r = record(look, diary);\n  if (r.mostly) return 'leave';\n  if (r.novel && obs.hunger < 75) return 'taste';\n  return obs.innate;\n}\nfunction wants(obs, look, diary) {\n  const r = record(look, diary);\n  if (r.mostly) return false;\n  if (r.novel && obs.hunger < 75) return true;\n  return obs.innate;\n}"
+ },
+ "world": {},
+ "families": [
+  "stable",
+  "invert",
+  "novel"
+ ],
+ "worlds": 40
+}
