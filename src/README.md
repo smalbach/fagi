@@ -235,7 +235,7 @@ entry point (it exports the usual things and keeps the caches) and the pieces go
 
 | entry point | pieces |
 |---|---|
-| `fagi-sprite.js` | `fagi-sprite/`: `body` (gaster, petiole, mesosoma), `head`, `legs` (tripod gait, folded and on stilts), `antennae`, `leaf`, `cargo`, `silhouettes`, `palette`, `light` and `stroke.js` (ellipse, dot, line, arc) |
+| `fagi-sprite.js` | `fagi-sprite/`: `body` (gaster, petiole, mesosoma), `head`, `legs` (tripod gait, folded and on stilts), `antennae`, `leaf`, `cargo`, `silhouettes`, `palette`, `light` (ellipsoid shading, glint, cast shadows, setae) and `stroke.js` (ellipse, dot, line, arc, taper) |
 | `fruit-sprite.js` | `fruit-sprite/`: one painter per shape (`berry` round, `resin` drop, `spark` crystal, `eye` orb) plus `rotten`, and what they share in `common.js` |
 | `tree-sprite.js` | `tree-sprite/`: `trunk`, `branches`, `base`, `crown`, `realistic-crown`, `wind`, `fruits`; trunk and high branches share `trunkCanvas` (in `common.js`) |
 | `rock-sprite.js` | `rock-sprite/`: `realistic`, `materials`, `shape`, `surface`, `paint` |

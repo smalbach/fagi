@@ -61,7 +61,7 @@
   .screen-list td:first-child, .screen-list td:last-child { grid-column: 1 / -1; }
   .screen-list td:last-child { margin-top: 6px; }
   .screen-row-actions { justify-content: flex-start; flex-wrap: wrap; }
-  .screen-body, .screen-form, .screen-head { padding-left: 14px; padding-right: 14px; }
+  .screen-body, .screen-form, .screen-head, .screen-nav { padding-left: 14px; padding-right: 14px; }
   #screen { padding: 16px 10px 24px; }
   .screen-form input, .code-tools select, .code-tools input[type=text], #rp-speed, #lang { font-size: 16px; }
 }

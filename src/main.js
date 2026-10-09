@@ -88,6 +88,7 @@ export function createGame({ onExit } = {}) {
   const inspector = createInspector(document.getElementById('inspect-card'), {
     canFollow: () => mode === 'play',
     onFollow: (target) => followChosen(target),
+    adopt: (target) => followChosen(target),
     onCenter: (x, y) => { camera.follow = false; centerOn(camera, canvas, shown().w, { x, y }); },
     onAsk: (x, y) => input.onAsk(x, y),
   });
@@ -267,13 +268,14 @@ export function createGame({ onExit } = {}) {
   // The one you follow, by your choice (the inspector's "Follow her"): the
   // same swap as when she dies (colony.js swapInto), recorded the same way.
   function followChosen(target) {
-    if (mode !== 'play' || !session || session.rec.ended || target === fagi || !target?.alive) return;
+    if (mode !== 'play' || !session || session.rec.ended || target === fagi || !target?.alive) return false;
     const from = fagi.id;
     swapInto(fagi, target);
     resetCortex(fagi.cortex);
     session.rec.follow(fagi, from);
     followed(narrator, fagi, 'chosen', from);
     console.reset();
+    return true;
   }
 
   async function finishUp(reason) {
