@@ -344,6 +344,17 @@
           <caption>6 de 6 apoyadas; todo p ajustado 0,0006. Vive en la rama <code>research/codigo-cultural</code> (resultados <code>9a36719</code>).</caption>
         </table>
       </div>
+      <figure class="wide">
+        <div class="panel">
+          <div class="legend">
+            <span><i style="background:var(--s-rule)"></i>contando elementos (estudio principal)</span>
+            <span><i style="background:var(--s-verdict)"></i>igualando la información (réplica)</span>
+          </div>
+          <div id="coverage-charts" class="chart-row"></div>
+        </div>
+        <figcaption><b>Figura 4.</b> Cada barra es una diferencia entre formatos, en linajes pareados. Contando elementos: H2a de la réplica (C0) y H1, H3 y H4a del estudio principal; igualando la información: el descriptivo preregistrado y C5, C2 y C3. La trampa y la ventaja para enseñar casi desaparecen; los mitos no se mueven.</figcaption>
+      </figure>
+
       <p><strong>Lectura.</strong> Con la información igualada, la trampa de supervivencia de las razones se encoge un 80 % (de 0,232 a 0,046 [0,017; 0,078]; el preregistro predecía que llegaría a cero y no llegó: queda una trampa pequeña) y su ventaja para enseñar casi desaparece (0,224 → 0,029). Lo que no cambia son los mitos: las razones siguen cargando más creencias falsas, y la evidencia las sigue cortando. Buena parte del resultado principal era <em>cantidad</em> de información; los mitos son del <em>formato</em>.</p>
       <p class="muted">Análisis de sensibilidad (7 oct): en 101 de los 600 mapas del juego un árbol de especie quedaba fuera del mapa. Quitando esos linajes, H1, H2a y H3 siguen en pie (0,304; 0,210; 0,992).</p>
 
@@ -356,6 +367,18 @@
       <p><span class="tag conf">Confirmatorio</span> &nbsp;Protocolo congelado en el commit <code>2459b1c</code> el 6 de octubre de 2026; corrido ese mismo día sin cambiar una línea ni desviarse.</p>
       <blockquote>¿Una hija que nace con las revisiones de programa de su madre superviviente vive más que una que aprende igual, pero desde cero?</blockquote>
       <p>Antes hubo que encontrar un mundo donde la conducta decida. En el mundo por defecto todo programa sobrevive, incluso uno roto a propósito: ningún aprendizaje puede notarse. Barriendo cada cuánto dan fruto los árboles, la supervivencia cae como un acantilado (100 % con un fruto cada 450 s, 0 % a 750 s). <strong>A 575 s</strong> el programa innato vive el 75 % de vidas de dos horas y romper su calor, su descanso o su comida cuesta 27–37 puntos: ahí lo que hace decide si vive.</p>
+      <figure class="wide">
+        <div class="panel">
+          <div class="legend">
+            <span><i style="background:var(--s-evidence)"></i>programa innato</span>
+            <span><i style="background:var(--s-verdict)"></i>sin calor (sus 4 líneas al final)</span>
+            <span><i style="background:var(--s-rule)"></i>sin comida (cargar y perseguir al final)</span>
+            <span><i style="background:var(--s-none)"></i>aprende su programa (juez de 15 s)</span>
+          </div>
+          <div class="chart"><h5 id="calib-title"></h5><div id="calib-chart"></div></div>
+        </div>
+        <figcaption><b>Figura 5.</b> Supervivencia a las 2 horas según cada cuánto da fruto un árbol (24 vidas por punto; 48 en 550, 575 y 590), mapas variados, pareadas por semilla. Lo que hace solo decide cerca del borde del acantilado; a 575 s romper una parte del programa cuesta 27–37 puntos (<code>docs/research/world-calibration.md</code>).</figcaption>
+      </figure>
       <p>En ese mundo movimos <code>dusk</code> (volver al nido cuando se va la luz) al final de su programa: la supervivencia baja al 44 %, y el frío pasa a ser la primera causa de muerte.</p>
 
       <h3>Diseño</h3>
@@ -376,7 +399,7 @@
           </div>
           <div class="chart"><h5 id="inherit-title"></h5><div id="inherit-chart"></div></div>
         </div>
-        <figcaption><b>Figura 4.</b> Supervivencia por generación, 512 vidas por punto (<code>docs/research/prereg-lineage-results.md</code>). En la generación 0 todas las que aprenden parten igual; desde la 1, las que heredan se separan y no vuelven.</figcaption>
+        <figcaption><b>Figura 6.</b> Supervivencia por generación, 512 vidas por punto (<code>docs/research/prereg-lineage-results.md</code>). En la generación 0 todas las que aprenden parten igual; desde la 1, las que heredan se separan y no vuelven.</figcaption>
       </figure>
 
       <div class="table-wrap">
@@ -563,21 +586,49 @@
       </ul>
 
       <h3>Veinte años en el juego</h3>
-      <p><span class="tag expl">exploratorio</span> &nbsp;El juego con tres colonias, hábitats, fruto cada 30 s, cuerpo que evoluciona y herencia de lo vivido, durante 20 años (~50 generaciones) en 8 mapas (semillas 7500–7507; entonces el hábitat frío era −6 °C y refundaba el nido más lleno). Genes del año 1 al 20, colonias cálidas y venenosas:</p>
+      <p><span class="tag expl">exploratorio</span> &nbsp;El juego tal como está hoy —tres colonias, hábitats (frío −3 °C, cálido +6 °C, veneno cerca), fruto cada 30 s, cuerpo que evoluciona, variación individual, herencia de lo vivido y de lo aprendido— durante 20 años (~50 generaciones) en 8 mapas (semillas 7500–7507, corrida el 8 de octubre de 2026). Genes del año 1 al 20, todas las colonias de cada mapa juntas:</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Gen</th><th class="n">cambio</th><th class="n">t</th><th class="n">mapas en esa dirección</th></tr></thead>
           <tbody>
-            <tr><td>músculo</td><td class="n">+0,185</td><td class="n">5,0</td><td class="n">8 de 8</td></tr>
-            <tr><td>cerebro</td><td class="n">−0,128</td><td class="n">−4,6</td><td class="n">7 de 8</td></tr>
-            <tr><td>tamaño</td><td class="n">+0,061</td><td class="n">2,0</td><td class="n">6 de 8</td></tr>
+            <tr><td>músculo</td><td class="n">+0,160</td><td class="n">5,6</td><td class="n">8 de 8</td></tr>
+            <tr><td>cerebro</td><td class="n">−0,096</td><td class="n">−4,1</td><td class="n">7 de 8</td></tr>
+            <tr><td>tamaño</td><td class="n">+0,068</td><td class="n">3,5</td><td class="n">8 de 8</td></tr>
           </tbody>
-          <caption>Intestino, ojos y antenas derivan sin dirección. Cargar frutos que pesan paga el músculo; un cerebro caro no se paga solo. Con los ajustes actuales (frío −3 °C, refundar desde el nido más cercano) músculo y cerebro evolucionan igual.</caption>
+          <caption>Intestino, ojos y antenas derivan sin dirección. Cargar frutos que pesan paga el músculo; un cerebro caro no se paga solo. La primera corrida de 20 años (frío −6 °C, refundar desde el nido más lleno) dio lo mismo: músculo +0,185, cerebro −0,128, tamaño +0,061.</caption>
         </table>
       </div>
-      <p><strong>La evolución ocurre, y en todas partes igual.</strong> Es adaptación al mundo que todas las colonias comparten. La conducta también pasa de madre a hija sin coste de población (0,4–0,7 líneas propias por hormiga, la mayoría heredadas), pero son las mismas líneas en todos los hábitats.</p>
-      <p><strong>No es local.</strong> Buscamos que cada colonia se adaptara a su hábitat con un trasplante recíproco (cada recién nacida criada en un nido al azar y seguida hasta su muerte) y con corridas de 20 años en 24 mapas, en las que 2 de 16 mapas nuevos se extinguieron. Lo que apareció fue una <em>ventaja del forastero</em>: en todo hábitat, las crías venidas de fuera dejaban más descendencia que las locales (−0,41, t −2,9). La explicamos: una hembra local no puede aparearse con sus hermanos, a menudo los mejores machos de una colonia pequeña, y una recién llegada no es pariente de nadie. Al añadir depresión por endogamia la regla tiene sentido y la ventaja persiste por una razón que también se ve en la naturaleza (rescate genético). Adaptación local, ninguna.</p>
-      <p><strong>Por qué, hasta donde lo medimos:</strong> colonias de 12–19 adultas menguan hasta un puñado y las reemplazan las vecinas (≈7 % de los años-nido vacíos, 115 refundaciones en 16 mapas), borrando lo que se había acumulado. Colonias más grandes (techo de 60) quedan como remedio sin probar. El panel <em>Evolución</em> del juego dibuja estas curvas en vivo, colonia por colonia.</p>
+      <figure class="wide">
+        <div class="panel">
+          <div class="seg" role="tablist">
+            <button type="button" class="on" data-gene="muscle">Músculo</button>
+            <button type="button" data-gene="brain">Cerebro</button>
+            <button type="button" data-gene="size">Tamaño</button>
+          </div>
+          <div class="legend">
+            <span><i style="background:var(--s-verdict)"></i>hábitat frío</span>
+            <span><i style="background:var(--s-rule)"></i>hábitat cálido</span>
+            <span><i style="background:var(--s-evidence)"></i>hábitat venenoso</span>
+          </div>
+          <div class="chart"><h5 id="evo-title"></h5><div id="evo-chart"></div></div>
+        </div>
+        <figcaption id="evo-caption"><b>Figura 7.</b> Media de los genes de las hormigas vivas de cada hábitat en 8 mapas, al final de cada año; 1 es el valor de las fundadoras. Los tres hábitats suben músculo y bajan cerebro casi a la par: no se separan. Datos: <code>node scripts/game-world.js --interval 30 --seeds 8 --seed 7500 --years 20 --json …</code> y <code>scripts/site-game-data.js</code>.</figcaption>
+      </figure>
+
+      <p><strong>La evolución ocurre, y en todas partes igual.</strong> Es adaptación al mundo que todas las colonias comparten. La conducta también pasa de madre a hija: al año 20 cada hormiga lleva 0,9–1,0 líneas propias, unas 0,75 heredadas, y son las mismas en todos los hábitats («memoria antes que perseguir», «memoria antes que olor»). Con el juego actual el hábitat que sufre es el <em>cálido</em>: 7 vivas de media (23 % del techo) y vacío en 36 de 160 años-nido, frente a 16,5 en el frío y el venenoso; 91 refundaciones en 8 mapas.</p>
+      <p><strong>No es local.</strong> Buscamos que cada colonia se adaptara a su hábitat con un trasplante recíproco (cada recién nacida criada en un nido al azar y seguida hasta su muerte) y con corridas de 20 años en 24 mapas, en las que 2 de 16 mapas nuevos se extinguieron. Lo que apareció fue una <em>ventaja del forastero</em>: en todo hábitat, las crías venidas de fuera dejaban más descendencia que las locales (−0,41, t −2,9). La explicamos: una hembra local no puede aparearse con sus hermanos, a menudo los mejores machos de una colonia pequeña, y una recién llegada no es pariente de nadie. Al añadir depresión por endogamia la regla tiene sentido y la ventaja persiste por una razón que también se ve en la naturaleza (rescate genético). Adaptación local, ninguna. Repetido con el juego actual (12 mapas, semillas 7400–7411, 3 años y luego 2 de trasplante): locales − forasteros = −0,19 crías (t −0,67, locales por delante en 6 de 12 mapas). Ni adaptación local ni, ya, una ventaja clara del forastero.</p>
+      <figure class="wide">
+        <div class="panel">
+          <div class="legend">
+            <span><i style="background:var(--s-evidence)"></i>nacidas en ese nido</span>
+            <span><i style="background:var(--s-none)"></i>traídas de otro nido</span>
+          </div>
+          <div class="chart"><h5 id="tp-title"></h5><div id="tp-chart"></div></div>
+        </div>
+        <figcaption><b>Figura 8.</b> Trasplante recíproco con el juego actual: cada recién nacida se cría en su nido o en otro al azar y se sigue hasta su muerte. Medias por mapa (11 mapas por hábitat). En el venenoso las de fuera dejan más crías (2,67 frente a 1,82); en el frío y el cálido las locales van algo por delante (2,41 frente a 2,32; 2,65 frente a 2,35). Ningún patrón consistente de «las de aquí rinden más aquí».</figcaption>
+      </figure>
+
+      <p><strong>Por qué, hasta donde lo medimos:</strong> colonias de 12–19 adultas menguan hasta un puñado y las reemplazan las vecinas (≈7 % de los años-nido vacíos y 115 refundaciones en 16 mapas en la corrida de 24 mapas; 91 en 8 mapas hoy, sobre todo en el hábitat cálido), borrando lo que se había acumulado. Colonias más grandes (techo de 60) quedan como remedio sin probar. El panel <em>Evolución</em> del juego dibuja estas curvas en vivo, colonia por colonia.</p>
     </section>
 
     <!-- 10 -->

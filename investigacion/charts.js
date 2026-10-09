@@ -5,15 +5,17 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 
 // Lines over generations. series: [{ key, label, values: [..] }]; a value per
 // generation. mark: the generation where the world changes.
-export function lineChart(series, { yMax, yFmt = (v) => v, mark, markLabel = '', xLabel = '', height = 230, width = 560 } = {}) {
+// xTicks: a label per point instead of its index (shown every `xEvery`);
+// yMin: where the axis starts, for values that never come near 0.
+export function lineChart(series, { yMax, yMin = 0, yFmt = (v) => v, mark, markLabel = '', xLabel = '', xTicks, xEvery = 1, height = 230, width = 560 } = {}) {
   const W = width, H = height, L = 40, R = 14, T = 14, B = 34;
   const n = Math.max(...series.map((s) => s.values.length));
   const max = yMax ?? Math.max(1e-9, ...series.flatMap((s) => s.values)) * 1.08;
   const x = (g) => L + (g / Math.max(1, n - 1)) * (W - L - R);
-  const y = (v) => T + (1 - v / max) * (H - T - B);
+  const y = (v) => T + (1 - (v - yMin) / (max - yMin)) * (H - T - B);
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
   for (const f of [0, 0.25, 0.5, 0.75, 1]) {
-    const v = max * f;
+    const v = yMin + (max - yMin) * f;
     s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/>`;
     s += `<text class="lbl" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${esc(yFmt(v))}</text>`;
   }
@@ -21,14 +23,17 @@ export function lineChart(series, { yMax, yFmt = (v) => v, mark, markLabel = '',
     s += `<rect x="${x(mark) - 9}" y="${T}" width="18" height="${H - T - B}" fill="var(--accent-soft)" opacity=".8"/>`;
     s += `<text class="lbl" x="${x(mark) + 12}" y="${H - B - 6}" style="fill:var(--accent)">${esc(markLabel)}</text>`;
   }
-  for (let g = 0; g < n; g++) s += `<text class="lbl" x="${x(g)}" y="${H - B + 16}" text-anchor="middle">${g}</text>`;
+  for (let g = 0; g < n; g++) {
+    if (g % xEvery) continue;
+    s += `<text class="lbl" x="${x(g)}" y="${H - B + 16}" text-anchor="middle">${esc(xTicks ? xTicks[g] : g)}</text>`;
+  }
   if (xLabel) s += `<text class="lbl" x="${(L + W - R) / 2}" y="${H - 3}" text-anchor="middle">${esc(xLabel)}</text>`;
-  s += `<line class="axis" x1="${L}" x2="${W - R}" y1="${y(0)}" y2="${y(0)}"/>`;
+  s += `<line class="axis" x1="${L}" x2="${W - R}" y1="${y(yMin)}" y2="${y(yMin)}"/>`;
   for (const ser of series) {
     const pts = ser.values.map((v, g) => `${x(g).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
     s += `<polyline class="line" points="${pts}" fill="none" stroke="var(--s-${ser.key})" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
     ser.values.forEach((v, g) => {
-      s += `<circle cx="${x(g)}" cy="${y(v)}" r="3.2" fill="var(--surface)" stroke="var(--s-${ser.key})" stroke-width="2"><title>${esc(ser.label)} · g${g}: ${esc(yFmt(v))}</title></circle>`;
+      s += `<circle cx="${x(g)}" cy="${y(v)}" r="${n > 12 ? 2.2 : 3.2}" fill="var(--surface)" stroke="var(--s-${ser.key})" stroke-width="2"><title>${esc(ser.label)} · ${esc(xTicks ? xTicks[g] : `g${g}`)}: ${esc(yFmt(v))}</title></circle>`;
     });
   }
   return `${s}</svg>`;
@@ -68,5 +73,30 @@ export function lifelines(genealogy, { generations = 12, mark, limit = 28, label
     }
   });
   if (!rows.length) s += `<text class="lbl" x="${W / 2}" y="${T + 10}" text-anchor="middle">${esc(labels.empty ?? '')}</text>`;
+  return `${s}</svg>`;
+}
+
+// Bars side by side: one group per row, one bar per series in it.
+// groups: [{ label, values: [..] }]; series: [{ key, label }] (colors by --s-key).
+export function groupedBars(groups, series, { yMax, yFmt = (v) => v, height = 220, width = 560 } = {}) {
+  const W = width, H = height, L = 8, R = 8, T = 18, B = 40;
+  const max = yMax ?? Math.max(1e-9, ...groups.flatMap((g) => g.values)) * 1.12;
+  const gw = (W - L - R) / groups.length, bw = Math.min(46, (gw - 18) / series.length);
+  const y = (v) => T + (1 - v / max) * (H - T - B);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  for (const f of [0.25, 0.5, 0.75, 1]) s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(max * f)}" y2="${y(max * f)}"/>`;
+  s += `<line class="axis" x1="${L}" x2="${W - R}" y1="${y(0)}" y2="${y(0)}"/>`;
+  groups.forEach((g, i) => {
+    const x0 = L + i * gw + (gw - bw * series.length) / 2;
+    g.values.forEach((v, j) => {
+      const xx = x0 + j * bw, top = y(Math.max(0, v));
+      s += `<rect x="${xx + 2}" y="${top}" width="${bw - 4}" height="${Math.max(1.5, y(0) - top)}" rx="3" fill="var(--s-${series[j].key})"><title>${esc(g.label)} · ${esc(series[j].label)}: ${esc(yFmt(v))}</title></rect>`;
+      s += `<text class="val" x="${xx + bw / 2}" y="${top - 5}" text-anchor="middle">${esc(yFmt(v))}</text>`;
+    });
+    const words = String(g.label).split(' ');
+    const half = Math.ceil(words.length / 2);
+    const lines = words.length > 3 ? [words.slice(0, half).join(' '), words.slice(half).join(' ')] : [g.label];
+    lines.forEach((ln, k) => { s += `<text class="lbl" x="${L + i * gw + gw / 2}" y="${H - B + 16 + k * 13}" text-anchor="middle">${esc(ln)}</text>`; });
+  });
   return `${s}</svg>`;
 }

@@ -1,7 +1,8 @@
 import { startHero } from './hero.js';
-import { T, pct } from './strings.js';
-import { lineChart } from './charts.js';
+import { T, pct, num } from './strings.js';
+import { lineChart, groupedBars } from './charts.js';
 import './lab.js';
+import game from './data/game.json';
 
 // ---------- theme: light, dark, or whatever the system says ----------
 const root = document.documentElement;
@@ -131,5 +132,76 @@ if (inheritHost) {
   inheritHost.innerHTML = lineChart(
     INHERIT.map(([key, arm, values]) => ({ key, label: T.arms[arm], values })),
     { yMax: 0.8, yFmt: pct, xLabel: T.generation },
+  );
+}
+
+// ---------- information-matched replication (Figure 4) ----------
+// Differences between formats, from docs/research/results.md (main study) and
+// the replication on research/codigo-cultural: [counting items, matching information].
+const COVERAGE = [
+  [[0.232, 0.046], [0.224, 0.029]],
+  [[0.863, 0.902], [2.000, 2.071]],
+];
+const coverageHost = document.getElementById('coverage-charts');
+if (coverageHost) {
+  const series = T.coverageSeries.map((label, i) => ({ key: i ? 'verdict' : 'rule', label }));
+  coverageHost.innerHTML = COVERAGE.map((rows, panel) => {
+    const groups = rows.map((values, i) => ({ label: T.coverageGroups[panel * 2 + i], values }));
+    return `<div class="chart"><h5>${T.coverageTitles[panel]}</h5>${groupedBars(groups, series, { yFmt: (v) => num(v), width: 420, height: 240, yMax: panel ? 2.4 : 0.3 })}</div>`;
+  }).join('');
+}
+
+// ---------- world calibration (Figure 5) ----------
+// Share alive at 7200 s, docs/research/world-calibration.md (survival table).
+const CALIB_X = [300, 450, 525, 550, 575, 590, 600, 675, 750];
+const CALIB = [
+  ['evidence', 'born', [1.00, 0.96, 0.92, 0.94, 0.75, 0.44, 0.33, 0.04, 0]],
+  ['verdict', 'noWarmth', [1.00, 0.92, 0.67, 0.38, 0.38, 0.33, 0.29, 0, 0]],
+  ['rule', 'noFood', [1.00, 0.71, 0.79, 0.73, 0.48, 0.29, 0.21, 0, 0]],
+  ['none', 'learns', [1.00, 1.00, 1.00, 0.98, 0.58, 0.38, 0.29, 0, 0]],
+];
+const calibHost = document.getElementById('calib-chart');
+if (calibHost) {
+  document.getElementById('calib-title').textContent = T.calibTitle;
+  calibHost.innerHTML = lineChart(
+    CALIB.map(([key, v, values]) => ({ key, label: T.calib[v], values })),
+    { yMax: 1, yFmt: pct, xTicks: CALIB_X, xLabel: T.calibX, mark: 4, markLabel: T.calibMark },
+  );
+}
+
+// ---------- the game over 20 years and the transplant (Figures 7 and 8) ----------
+// From investigacion/data/game.json (node scripts/site-game-data.js). Habitats
+// take the formats' colours: cold blue, hot orange, toxic green.
+const HAB_KEY = { cold: 'verdict', hot: 'rule', toxic: 'evidence' };
+const evoHost = document.getElementById('evo-chart');
+// A year when every map's nest of that habitat stood empty keeps the last value.
+const fill = (xs) => xs.map((v, i) => v ?? xs.slice(0, i).reverse().find((u) => u != null) ?? 1);
+function drawEvo(gene) {
+  const ev = game.evolution;
+  const all = ev.habitats.flatMap((h) => ev.genes[gene][h]).filter((v) => v != null);
+  // Round ticks: the axis spans whole multiples of 0.2, so its grid falls on tenths.
+  const lo = Math.floor(Math.min(1, ...all) * 10) / 10;
+  const hi = lo + Math.ceil((Math.max(1, ...all) - lo) / 0.2) * 0.2;
+  document.getElementById('evo-title').textContent = T.evoTitle(T.genes[gene]);
+  evoHost.innerHTML = lineChart(
+    ev.habitats.map((h) => ({ key: HAB_KEY[h] ?? 'none', label: T.habitats[h] ?? h, values: fill(ev.genes[gene][h]) })),
+    { yMin: lo, yMax: hi, yFmt: (v) => num(v), xTicks: ev.years, xEvery: 2, xLabel: T.year },
+  );
+}
+if (evoHost) {
+  drawEvo('muscle');
+  document.querySelectorAll('[data-gene]').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-gene]').forEach((x) => x.classList.toggle('on', x === b));
+    drawEvo(b.dataset.gene);
+  }));
+}
+const tpHost = document.getElementById('tp-chart');
+if (tpHost) {
+  const tp = game.transplant;
+  document.getElementById('tp-title').textContent = T.tpTitle;
+  tpHost.innerHTML = groupedBars(
+    tp.habitats.map((h, i) => ({ label: T.habitats[h] ?? h, values: [tp.local[i], tp.foreign[i]] })),
+    T.tpSeries.map((label, i) => ({ key: i ? 'none' : 'evidence', label })),
+    { yFmt: (v) => num(v) },
   );
 }

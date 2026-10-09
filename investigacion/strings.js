@@ -17,6 +17,18 @@ const ES = {
   summary: (f, a, m) => `${f}: ${a} de supervivientes en la generación 6 · ${m} mitos por hormiga`,
   inheritTitle: 'Vivas a las 2 horas, por generación · programa con «volver al anochecer» al final',
   arms: { born: 'innato', learn: 'aprende', inheritAny: 'hereda de cualquiera', inherit: 'hereda de supervivientes' },
+  calibTitle: 'Vivas a las 2 horas según cada cuánto da fruto un árbol',
+  calibX: 'segundos entre frutos', calibMark: 'mundo de prueba',
+  calib: { born: 'innato', noWarmth: 'sin calor', noFood: 'sin comida', learns: 'aprende' },
+  coverageTitles: ['Supervivencia y enseñanza · diferencia', 'Mitos por hormiga · diferencia'],
+  coverageSeries: ['contando elementos', 'igualando información'],
+  coverageGroups: ['trampa en la inversión (veredictos − razones)', 'ventaja de las razones para enseñar', 'mitos de más con razones', 'mitos que corta la evidencia'],
+  habitats: { cold: 'frío', hot: 'cálido', toxic: 'venenoso' },
+  genes: { muscle: 'músculo', brain: 'cerebro', size: 'tamaño' },
+  evoTitle: (g) => `Gen de ${g} de las vivas, media de 8 mapas · 1 = fundadoras`,
+  year: 'año',
+  tpTitle: 'Crías por hormiga según dónde nació, en el nido donde se crió',
+  tpSeries: ['nacidas allí', 'traídas de otro nido'],
 };
 
 const EN = {
@@ -36,6 +48,18 @@ const EN = {
   summary: (f, a, m) => `${f}: ${a} survivors in generation 6 · ${m} myths per ant`,
   inheritTitle: 'Alive at 2 hours, by generation · program with “go home at dusk” moved last',
   arms: { born: 'born', learn: 'learns', inheritAny: 'inherits from any', inherit: 'inherits from survivors' },
+  calibTitle: 'Alive at 2 hours by how often a tree bears fruit',
+  calibX: 'seconds between fruit', calibMark: 'test world',
+  calib: { born: 'innate', noWarmth: 'no warmth', noFood: 'no food', learns: 'learns' },
+  coverageTitles: ['Survival and teaching · difference', 'Myths per ant · difference'],
+  coverageSeries: ['counting items', 'matching information'],
+  coverageGroups: ['trap at the inversion (verdicts − reasons)', 'reasons\' teaching edge', 'extra myths with reasons', 'myths evidence cuts'],
+  habitats: { cold: 'cold', hot: 'hot', toxic: 'toxic' },
+  genes: { muscle: 'muscle', brain: 'brain', size: 'size' },
+  evoTitle: (g) => `${g[0].toUpperCase()}${g.slice(1)} gene of the living, mean of 8 maps · 1 = founders`,
+  year: 'year',
+  tpTitle: 'Offspring per ant by where she was born, in the nest that raised her',
+  tpSeries: ['born there', 'brought from another nest'],
 };
 
 export const LANG = document.documentElement.lang === 'en' ? 'en' : 'es';

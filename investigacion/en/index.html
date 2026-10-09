@@ -344,6 +344,17 @@
           <caption>6 of 6 supported; every adjusted p is 0.0006. Lives on branch <code>research/codigo-cultural</code> (results <code>9a36719</code>).</caption>
         </table>
       </div>
+      <figure class="wide">
+        <div class="panel">
+          <div class="legend">
+            <span><i style="background:var(--s-rule)"></i>counting items (main study)</span>
+            <span><i style="background:var(--s-verdict)"></i>matching information (replication)</span>
+          </div>
+          <div id="coverage-charts" class="chart-row"></div>
+        </div>
+        <figcaption><b>Figure 4.</b> Each bar is a difference between formats, in paired lineages. Counting items: the replication's H2a (C0) and the main study's H1, H3 and H4a; matching information: the preregistered descriptive and C5, C2 and C3. The trap and the teaching edge nearly vanish; the myths do not move.</figcaption>
+      </figure>
+
       <p><strong>Reading.</strong> With information matched, reasons' survival trap shrinks by 80% (from 0.232 to 0.046 [0.017, 0.078]; the preregistration predicted it would reach zero and it did not: a small trap remains) and their teaching edge nearly vanishes (0.224 → 0.029). What does not change are the myths: reasons still carry more false beliefs, and evidence still cuts them. Much of the main result was <em>quantity</em> of information; the myths belong to the <em>format</em>.</p>
       <p class="muted">Sensitivity analysis (7 Oct): in 101 of the game's 600 maps a species tree lay off the map. Dropping those lineages, H1, H2a and H3 still hold (0.304; 0.210; 0.992).</p>
 
@@ -356,6 +367,18 @@
       <p><span class="tag conf">Confirmatory</span> &nbsp;Protocol frozen at commit <code>2459b1c</code> on 6 October 2026; run that same day without changing a line or deviating.</p>
       <blockquote>Does a daughter born with her surviving mother's program revisions live longer than one that learns the same way, but from scratch?</blockquote>
       <p>First we needed a world where behavior decides. In the default world every program survives, even one broken on purpose: no learning can show. Sweeping how often trees bear fruit, survival falls off a cliff (100% with one fruit every 450 s, 0% at 750 s). <strong>At 575 s</strong> the innate program lives through 75% of two-hour lives, and breaking its warmth, rest or food lines costs 27–37 points: there, what she does decides whether she lives.</p>
+      <figure class="wide">
+        <div class="panel">
+          <div class="legend">
+            <span><i style="background:var(--s-evidence)"></i>innate program</span>
+            <span><i style="background:var(--s-verdict)"></i>no warmth (its 4 lines moved last)</span>
+            <span><i style="background:var(--s-rule)"></i>no food (carry and pursue moved last)</span>
+            <span><i style="background:var(--s-none)"></i>learns its program (15 s judge)</span>
+          </div>
+          <div class="chart"><h5 id="calib-title"></h5><div id="calib-chart"></div></div>
+        </div>
+        <figcaption><b>Figure 5.</b> Survival at 2 hours by how often a tree bears fruit (24 lives per point; 48 at 550, 575 and 590), varied maps, paired by seed. What she does decides only near the edge of the cliff; at 575 s breaking one part of the program costs 27–37 points (<code>docs/research/world-calibration.md</code>).</figcaption>
+      </figure>
       <p>In that world we moved <code>dusk</code> (going home as the light goes) to the end of her program: survival drops to 44%, and cold becomes the leading cause of death.</p>
 
       <h3>Design</h3>
@@ -376,7 +399,7 @@
           </div>
           <div class="chart"><h5 id="inherit-title"></h5><div id="inherit-chart"></div></div>
         </div>
-        <figcaption><b>Figure 4.</b> Survival by generation, 512 lives per point (<code>docs/research/prereg-lineage-results.md</code>). In generation 0 every learning arm starts equal; from generation 1 the inheriting arms pull away and stay away.</figcaption>
+        <figcaption><b>Figure 6.</b> Survival by generation, 512 lives per point (<code>docs/research/prereg-lineage-results.md</code>). In generation 0 every learning arm starts equal; from generation 1 the inheriting arms pull away and stay away.</figcaption>
       </figure>
 
       <div class="table-wrap">
@@ -563,21 +586,49 @@
       </ul>
 
       <h3>Twenty years in the game</h3>
-      <p><span class="tag expl">exploratory</span> &nbsp;The game with three colonies, habitats, fruit every 30 s, evolving body and inheritance of what was lived, over 20 years (~50 generations) on 8 maps (seeds 7500–7507; back then the cold habitat was −6 °C and the fullest nest refounded). Genes from year 1 to year 20, hot and toxic colonies:</p>
+      <p><span class="tag expl">exploratory</span> &nbsp;The game as it is today —three colonies, habitats (cold −3 °C, hot +6 °C, poison close by), fruit every 30 s, evolving body, individual variation, inheritance of what was lived and of what was learned— over 20 years (~50 generations) on 8 maps (seeds 7500–7507, run on 8 October 2026). Genes from year 1 to year 20, all colonies of each map together:</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Gene</th><th class="n">change</th><th class="n">t</th><th class="n">maps in that direction</th></tr></thead>
           <tbody>
-            <tr><td>muscle</td><td class="n">+0.185</td><td class="n">5.0</td><td class="n">8 of 8</td></tr>
-            <tr><td>brain</td><td class="n">−0.128</td><td class="n">−4.6</td><td class="n">7 of 8</td></tr>
-            <tr><td>size</td><td class="n">+0.061</td><td class="n">2.0</td><td class="n">6 of 8</td></tr>
+            <tr><td>muscle</td><td class="n">+0.160</td><td class="n">5.6</td><td class="n">8 of 8</td></tr>
+            <tr><td>brain</td><td class="n">−0.096</td><td class="n">−4.1</td><td class="n">7 of 8</td></tr>
+            <tr><td>size</td><td class="n">+0.068</td><td class="n">3.5</td><td class="n">8 of 8</td></tr>
           </tbody>
-          <caption>Gut, eyes and antennae drift without direction. Carrying fruit that weighs pays for muscle; a costly brain does not pay for itself. With today's settings (cold −3 °C, refounding from the nearest nest) muscle and brain evolve the same way.</caption>
+          <caption>Gut, eyes and antennae drift without direction. Carrying fruit that weighs pays for muscle; a costly brain does not pay for itself. The first 20-year run (cold −6 °C, refounding from the fullest nest) gave the same: muscle +0.185, brain −0.128, size +0.061.</caption>
         </table>
       </div>
-      <p><strong>Evolution happens, the same way everywhere.</strong> It is adaptation to the world all colonies share. Conduct also passes from mother to daughter at no cost in population (0.4–0.7 lines of her own per ant, most inherited), but they are the same lines in every habitat.</p>
-      <p><strong>It is not local.</strong> We looked for each colony adapting to its habitat with a reciprocal transplant (every newborn raised in a random nest and followed until death) and with 20-year runs on 24 maps, in which 2 of 16 new maps died out. What showed up was a <em>stranger advantage</em>: in every habitat, young from elsewhere left more offspring than locals (−0.41, t −2.9). We explained it: a local female may not mate with her brothers, often the best males of a small colony, and a newcomer is kin to no one. Once inbreeding depression was added the rule makes sense, and the advantage persists for a reason seen in nature too (genetic rescue). Local adaptation, none.</p>
-      <p><strong>Why, as far as we measured:</strong> colonies of 12–19 adults dwindle to a handful and are replaced by their neighbours (≈7% of nest-years empty, 115 refoundings on 16 maps), erasing what had built up. Bigger colonies (a ceiling of 60) remain the untried remedy. The game's <em>Evolution</em> panel draws these curves live, colony by colony.</p>
+      <figure class="wide">
+        <div class="panel">
+          <div class="seg" role="tablist">
+            <button type="button" class="on" data-gene="muscle">Muscle</button>
+            <button type="button" data-gene="brain">Brain</button>
+            <button type="button" data-gene="size">Size</button>
+          </div>
+          <div class="legend">
+            <span><i style="background:var(--s-verdict)"></i>cold habitat</span>
+            <span><i style="background:var(--s-rule)"></i>hot habitat</span>
+            <span><i style="background:var(--s-evidence)"></i>toxic habitat</span>
+          </div>
+          <div class="chart"><h5 id="evo-title"></h5><div id="evo-chart"></div></div>
+        </div>
+        <figcaption id="evo-caption"><b>Figure 7.</b> Mean genes of the living ants of each habitat over 8 maps, at the end of each year; 1 is the founders' value. All three habitats raise muscle and lower brain almost in step: they do not pull apart. Data: <code>node scripts/game-world.js --interval 30 --seeds 8 --seed 7500 --years 20 --json …</code> and <code>scripts/site-game-data.js</code>.</figcaption>
+      </figure>
+
+      <p><strong>Evolution happens, the same way everywhere.</strong> It is adaptation to the world all colonies share. Conduct also passes from mother to daughter: by year 20 each ant carries 0.9–1.0 lines of her own, about 0.75 inherited, and they are the same in every habitat ("memory before pursue", "memory before scent"). In today's game the habitat that suffers is the <em>hot</em> one: 7 alive on average (23% of the ceiling) and empty in 36 of 160 nest-years, against 16.5 in the cold and toxic ones; 91 refoundings on 8 maps.</p>
+      <p><strong>It is not local.</strong> We looked for each colony adapting to its habitat with a reciprocal transplant (every newborn raised in a random nest and followed until death) and with 20-year runs on 24 maps, in which 2 of 16 new maps died out. What showed up was a <em>stranger advantage</em>: in every habitat, young from elsewhere left more offspring than locals (−0.41, t −2.9). We explained it: a local female may not mate with her brothers, often the best males of a small colony, and a newcomer is kin to no one. Once inbreeding depression was added the rule makes sense, and the advantage persists for a reason seen in nature too (genetic rescue). Local adaptation, none. Repeated with today's game (12 maps, seeds 7400–7411, 3 years then 2 of transplant): local − foreign = −0.19 offspring (t −0.67, locals ahead on 6 of 12 maps). Neither local adaptation nor, any more, a clear stranger advantage.</p>
+      <figure class="wide">
+        <div class="panel">
+          <div class="legend">
+            <span><i style="background:var(--s-evidence)"></i>born in that nest</span>
+            <span><i style="background:var(--s-none)"></i>brought from another nest</span>
+          </div>
+          <div class="chart"><h5 id="tp-title"></h5><div id="tp-chart"></div></div>
+        </div>
+        <figcaption><b>Figure 8.</b> Reciprocal transplant with today's game: every newborn is raised in her own nest or another at random and followed until death. Means per map (11 maps per habitat). In the toxic habitat those from elsewhere leave more offspring (2.67 vs 1.82); in the cold and hot ones locals are slightly ahead (2.41 vs 2.32; 2.65 vs 2.35). No consistent pattern of "those from here do better here".</figcaption>
+      </figure>
+
+      <p><strong>Why, as far as we measured:</strong> colonies of 12–19 adults dwindle to a handful and are replaced by their neighbours (≈7% of nest-years empty and 115 refoundings on 16 maps in the 24-map run; 91 on 8 maps today, mostly in the hot habitat), erasing what had built up. Bigger colonies (a ceiling of 60) remain the untried remedy. The game's <em>Evolution</em> panel draws these curves live, colony by colony.</p>
     </section>
 
     <!-- 10 -->
