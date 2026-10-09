@@ -1,5 +1,7 @@
 # Classic action-selection, ethology and robotics references: verification
 
+> **Errata (2026-10-01):** Tyrrell 1993 ends on p. **420** (not 419); the environment has **13** sub-problems (not 15); Hull 1943 first printing is D. Appleton-Century Company (confirmed, LCCN 43013698); Brooks 1990 phrase confirmed. See `pendientes-verificacion.md`.
+
 Method note: in this session WebFetch and curl were blocked by the egress proxy for every full-text host tried (era.ed.ac.uk, joannajbryson.org, sagepub, arxiv, PMC, scholarpedia, wikipedia, klha.at, tufts, biu.ac.il, Semantic Scholar, Crossref). Verification therefore rests on search-engine records from publisher and index pages: IEEE Xplore, T&F, SAGE, PubMed, PhilArchive, ERA handle, Cambridge, White Rose, and the CMU AI repository. No full text was read. Status labels:
 - **VERIFIED**: bibliographic data confirmed by a publisher, index or repository record.
 - **CORRECTED**: our version was wrong or imprecise.

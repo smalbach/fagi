@@ -1,151 +1,244 @@
-# LIBERA: estado del trabajo (para continuar en local)
+# LIBERA: estado del trabajo
 
-Resumen de una sesión de análisis y diseño. **No hay código cambiado todavía**: solo
-documentación. Todo lo que sigue es plan; nada está implementado.
+Estado: plan, **no hay código cambiado**.
+
+Historia del plan:
+- **Nube (commit `397449a`).** El primer borrador se escribió allí, sobre un código 30 commits atrasado.
+- **2026-10-01, en local.** Se actualizó al código actual.
+- **2026-10-02, reordenado:**
+  - la pieza más defendible (la noche que experimenta) va primero, sobre el cuerpo actual;
+  - los órganos solo se construyen cuando una hipótesis los pida;
+  - **sin LLM por ahora**;
+  - queda un hueco para una característica generacional (§8, por definir).
+
+Rama: `research/libera`, sacada de `main`.
 
 | archivo | qué es |
 |---|---|
-| `README.md` | este archivo: dónde quedamos y cómo seguir |
-| `informe-libera.md` | el informe completo: bibliografía verificada, ideas, novedad, método, hipótesis, fases |
-| `notes/classic_refs_verification.md` | verificación de Lorenz, Hinde, Tinbergen, Tyrrell, Rosenblatt & Payton, Brooks, Gat, Maes, Hull, Toates, Bryson |
-| `notes/homeostasis_motivation.md` | Keramati & Gutkin, Sterling, Seth, Barrett, Friston, Pezzulo, Damasio, Cañamero, Berridge, Cabanac, saciedad/sed, fatiga muscular |
-| `notes/neuromod_sleep_curiosity_symbolic.md` | Doya, Krichmar, Yu & Dayan, sistemas endocrinos artificiales, sueño (CLS, SHY, replay), curiosidad (Oudeyer), DreamCoder, Voyager, XCS |
-| `notes/novelty_prior_art.md` | trabajos previos (Creatures, Blumberg, PSI/MicroPsi, OpenWorm, NeuroMechFly…) y análisis de novedad |
+| `README.md` | este archivo: el plan vigente |
+| `informe-libera.md` | el informe de la nube (bibliografía, mecanismos, novedad). Las erratas van al principio |
+| `cuerpo-evolutivo.md` | diseño de la fase 5: cuerpo heredable con costes, plasticidad y límites |
+| `notes/reciente-*.md`, `notes/cuerpo-evolutivo-literatura.md` | literatura 2019–2026 y costes biológicos |
+| `notes/pendientes-verificacion.md` | verificación local con textos completos y correcciones. **Prevalece sobre las demás notas** |
+| `notes/*.md` (otros) | notas de la nube: referencias clásicas, homeostasis, neuromodulación/sueño/curiosidad, trabajos previos |
 
 ---
 
-## 1. Cómo funciona Fagi hoy (punto de partida)
+## 1. Cómo decide Fagi hoy (punto de partida real)
 
-```
-requestAnimationFrame (main.js, dt ≤ 0.05 s)
-  └─ step(world, fagi, dt)                         simulation.js
-       ├─ stepWorld: viento → lluvia → árboles → fruta → nido → olores → feromona
-       └─ updateFagi                               fagi.js
-            cuerpo/olvido → perceive() → notice() → cortex (async, nunca espera)
-            → decide() → act() → consecuencias (needs, salud, sueño, guardado)
-  └─ render → UI → consola → grabadora → servidor (eventos)
-```
+`decide()` (`src/decision.js`) recorre `firstToAnswer()`:
 
-- `decision.js`: lista `RULES` por prioridad (survive → endure → provide → clues → explore).
-  **Winner-take-all: gana la primera regla que responde.**
-- Aprendizaje: episodio → `interoception.js` (recompensa = delta del cuerpo) → `memory.js`
-  (valor + confianza) → `learned/synth.js` escribe reglas en el DSL → `learned/rules.js` (`verdict()`).
-- Sinapsis Hebbianas (`synapses.js`), conceptos (`concepts.js`), noche (`consolidation.js`, `night/`,
-  `experiment.js`).
-- Restricción clave: con los bloques del organismo apagados, la simulación debe ser **idéntica
-  hasta el último número aleatorio** (estudios preregistrados).
+1. **Programa** (`src/program.js`, `fagi.brain.program`).
+   - Son líneas `{ id, tier, do, if?, source }` con `tier` ∈ `survive | endure | provide | clues | explore`.
+   - Fagi nace con `INNATE`, que es la antigua jerarquía `RULES`.
+   - **Gana la primera línea que responde** (winner-take-all). Si ninguna responde, explora.
+2. **El programa se reescribe solo** (`src/program/`):
+   - `watch.js` anota qué línea actuó.
+   - `imagine.js` simula las de abajo.
+   - `learn.js` prueba otra línea y la escribe delante si la evidencia lo respalda (`PROGRAM.alpha`, `margin`, `minSupport`).
+   - `share.js` intercambia momentos con las hermanas.
+3. **Punto de decisión** (`DECIDE`, `src/decision/point.js`): los reflejos `survive` y `endure` van primero. Después se consulta a un controlador registrado; hoy es `choice` (`src/choice.js`). **Es el enchufe para un selector free-flow.**
+4. **Punto de bocado y conducta:**
+   - `DECIDE.eat` (`src/decision/bite.js`).
+   - `CONDUCT` (`src/learned/conduct*.js`): líneas sobre frutas, escritas y retiradas con una puerta de evidencia.
+5. **La noche y el experimento existen ya:**
+   - `consolidation.js` cierra el día con preguntas: frutas vistas y no probadas, y rasgos con excepciones.
+   - `experiment.js` (`agendaFrom`) convierte esas preguntas en la agenda del día siguiente: un bocado pequeño (`EXPERIMENT.portion`) cuando nada aprieta.
+   - `night/` es la mente nocturna. Propone reglas, dudas o exploraciones; una puerta (`trial`) las admite solo si las respaldan las frutas que ella probó. El backend `local` es determinista y no usa LLM.
+6. **Lo que ya se midió de esa noche** (`research/results/organism/report.md`, protocolo `organism-protocol.md`):
+   - **H5, "ordenar el día de noche mejora el juicio": no se confirmó.** La diferencia fue 0,014 [−0,022; 0,051].
+   - Quitar la mente nocturna (`noNightMind`) apenas cambia nada.
+   - Quitar curiosidad y experimentos (`noCuriosity`) **sí empeora el juicio**: −0,095 [−0,131; −0,059].
+   - **Lectura: experimentar sirve, y la noche que lo organiza todavía no aporta.** Ahí está el hueco que LIBERA ataca primero.
+7. **Valor:**
+   - `interoception.js` (recompensa = delta del cuerpo).
+   - `memory.js`, `learned/` (`verdict()`, `cues.js`, `dsl.js`).
+   - `synapses.js`, `concepts.js`.
+8. **Determinismo:**
+   - Huella dorada: `scripts/trace.js` y `test/fixtures/decisions.json`, comprobada en `test/program.test.js`.
+   - `scripts/batch.js --check`.
+   - Todos los bloques arrancan apagados (`src/organism.js`).
 
-## 2. La idea del usuario
+## 2. Qué es LIBERA (sin LLM)
 
-Separar a Fagi en **órganos** (estómago, "glándula de sed" = hipotálamo/osmorreceptores + ADH,
-músculos con fatiga, ojos, nariz, lengua, nociceptores) que **mandan mensajes** al cerebro, y que el
-cerebro decida/priorice al recibirlos, con todo "cableado".
+Cuatro piezas, ordenadas por lo defendibles que son:
 
-Decisiones ya tomadas en la conversación:
+| pieza | qué afirma | qué existe ya | qué falta | amenaza a la novedad |
+|---|---|---|---|---|
+| **(iii) noche científica** | el sueño genera preguntas falsables, se vuelven experimentos del día siguiente y solo se admite lo que la evidencia vivida respalda | preguntas, agenda, bocado de prueba, puerta `trial` | cerrar el ciclo (§4) | **baja**: nadie lo tiene (Creatures, Grandroids, IMGEP, Adam, Drescher) |
+| **(i) liberadores aprendidos** | cero liberadores innatos sobre objetos: el impulso se abre con W = κ(estado)·V(señal) aprendido | V (`memory.js`, `cues.js`); las necesidades como κ | depósitos de impulso, modo `innate` para la ablación | **media-alta**: Blumberg 1996 ya aprende liberadores (premio externo, sobre una base innata, winner-take-all). Hay que matizar frente a él, a Creatures y a Cos-Aguilera/Cañamero. Lo que distingue a Fagi: cero liberadores de partida, señal interoceptiva y free-flow |
+| **(ii) selección free-flow** | las líneas del programa votan con peso y un selector central con persistencia se compromete | el enchufe `DECIDE` | `src/decision/freeflow.js` | baja como novedad; Bryson y Seth hacen plausible un resultado nulo |
+| **(iv) conocimiento legible** | lo aprendido queda en líneas legibles: programa, DSL, `CONDUCT` | todo | compresión durante el sueño (opcional) | media (Drescher). **Sin LLM** por ahora |
 
-1. **No usar un Web Worker real** para el cerebro: rompe el determinismo, el modo batch y los tests.
-   En su lugar, un **bus de mensajes síncrono dentro del tick**, con latencia de nervios medida en
-   **tiempo simulado** (segundos → ticks), no en milisegundos reales.
-2. Dos tipos de señal: **tónica** (se mantiene: hambre 0.62, en un tablero) y **fásica** (evento:
-   dolor, amargo, "veo algo nuevo"; puede interrumpir).
-3. Todo detrás de un flag (`ORGANS.enabled` / `LIBERA.*`), apagado por defecto, como `CYCLE`,
-   `THERMAL`, `SEX`, `SLEEP`.
+**El cuerpo de órganos** (bus, nervios con latencia, estómago en dos tiempos, aliestesia, fatiga, reflejos locales) pasa a ser **infraestructura bajo demanda**. Solo se construye el órgano que una hipótesis necesite.
+
+**Integración con el LLM (plan C, rama `research/codigo-cultural`): aplazada.** Cuando se retome, el juez en código leerá señales de LIBERA y la puerta de evidencia será la misma de la pieza (iii).
 
 ## 3. Lo que aportan los autores (verificado)
 
-- **Brooks 1986** (subsumption): capas que funcionan solas; suprimir/inhibir; reflejos en los
-  órganos, no en el cerebro. Construcción incremental.
-- **Lorenz 1950** (hidráulico): depósitos de impulso, liberador abre la válvula, umbral baja con la
-  acumulación, actividad en vacío, el acto consumatorio vacía. Crítica: **Hinde 1960**.
-- **Tyrrell 1993** (tesis, Edimburgo): free-flow (Rosenblatt & Payton 1989) > winner-take-all en un
-  entorno de 15 subproblemas / 35 acciones; 14 requisitos (solo el n.º 12, "compromise candidates",
-  verificado literalmente).
-- **Matiz importante**: Bryson 2000 superó al free-flow con jerarquías secuenciales en el mismo
-  entorno; Crabbe: el compromiso aporta poco; Avila-García et al. 2003: depende del entorno.
-  ⇒ **diseño híbrido**: free-flow + **selector central con persistencia** (tipo ganglios basales,
-  Redgrave, Prescott & Gurney 1999) + pocas secuencias.
-- **Gat 1998**: arquitectura de tres capas (reactiva / secuenciador / deliberador).
+Detalle en `notes/pendientes-verificacion.md`.
 
-Correcciones bibliográficas: Maes "How to do the right thing" = **1989**; Tyrrell Adaptive Behavior
-1(4): 387–**419**; Hull 1943 = **Appleton-Century**; crítica de energía = **Hinde 1960**; "the world is
-its own best model" ≈ **Brooks 1990** ("Elephants don't play chess", sin confirmar); Digital Hormone
-Model = Shen, Will, Galstyan & Chuong 2004; Man & Damasio 2019 (revisar si hay un tercer autor "Neven").
+**Tyrrell 1993** (tesis):
+- 14 requisitos (§10.5).
+- Entorno con 13 subproblemas: 8 comunes, 4 de dirección y el borde. Son 35 acciones.
+- Fitness medio: free-flow extendido 8,31 > Hull 6,23 > jerarquía rígida 6,11 > Lorenz 2,71 > Maes 0,25.
+- **Tabla 10.1:** el free-flow extendido cumple 12 de 14 requisitos. Quedan con "?" la **persistencia** y las **secuencias contiguas**. Esos dos huecos son justo los que aprovechó Bryson. Así se justifica, con el propio Tyrrell, un selector central con persistencia y secuencias.
+- **El Lorenz puro falla 7 de 14 requisitos** y en 2 queda con "?". Los depósitos alimentan al selector; nunca son el selector.
 
-## 4. Ideas nuevas con base verificada (detalle en `informe-libera.md`)
+**Bryson 2000:** una jerarquía con secuencias supera al free-flow en 3 de 4 mundos y es unas 10 veces más simple. El programa de líneas de Fagi ya es ese tipo de jerarquía.
 
-| mecanismo | fuente | dónde en Fagi |
+**Crabbe 2007:** el compromiso aporta un 1,1 %.
+
+**Seth 2007:** la selección emerge sin árbitro y su racionalidad depende del nicho.
+
+**Mecanismos con base verificada para el cuerpo y la noche:**
+
+| mecanismo | fuente | dónde va |
 |---|---|---|
-| Impulso no lineal (HRRL) — Fagi ya es casi esto | Keramati & Gutkin 2014 | `interoception.js` |
-| Estómago en dos tiempos (oral rápido / post-absortivo lento) | Zimmerman 2016, Chen 2015, Betley 2015 | órgano estómago / sed |
-| Aliestesia: el placer depende de la carencia | Cabanac 1971 | lengua (`taste.js`) |
-| Liberador aprendido = W = κ(estado)·V(señal) ("querer" ≠ "gustar") | Zhang & Berridge 2009 | depósitos |
-| Consigna alostática (anticipa demandas) | Sterling 2012 | hipotálamo |
-| Fatiga muscular de tres compartimentos | Xia & Frey Law 2008 | músculos |
-| "Humores" globales en el bus (DA, 5HT, NE, ACh, estrés) | Doya 2002, Yu & Dayan 2005, Krichmar 2008 | bus |
-| Sueño por etapas: replay NREM → reducción sináptica → REM con ruido | McClelland 1995, Tononi & Cirelli 2006/2014, Hoel 2021, Lewis 2018 | `consolidation.js`, `night/` |
-| Curiosidad por progreso de aprendizaje | Oudeyer, Kaplan & Hafner 2007 | agenda nocturna / `experiment.js` |
-| Reglas con contabilidad XCS + compresión del DSL (MDL) | Wilson 1995, DreamCoder 2021 | `learned/` |
+| HRRL | Keramati & Gutkin 2014 | `interoception.js` |
+| W = κ·V | Zhang & Berridge 2009 | depósitos |
+| Curiosidad por progreso de aprendizaje | Oudeyer, Kaplan & Hafner 2007 | agenda |
+| Replay, escalado sináptico y REM | McClelland 1995, Tononi & Cirelli 2014, Lewis 2018 | `consolidation.js` |
+| Contabilidad XCS | Wilson 1995 | líneas y reglas |
+| Estómago en dos tiempos, aliestesia, fatiga, alostasis | Zimmerman 2016, Cabanac 1971, Xia & Frey Law 2008, Sterling 2012 | órganos bajo demanda |
 
-## 5. Novedad (honesta)
+## 4. Métricas: realismo primero
 
-- Lo más cercano: **Creatures** (Grand & Cliff 1998): órganos, química, hormonas, recompensa por
-  reducción de impulso, genes, sueño que entrena. ⇒ "recompensa = delta del cuerpo" **no es nuevo**.
-- Afirmación defendible (conjuntiva, "no encontrado en las fuentes consultadas"):
-  (i) **cero liberadores innatos** sobre objetos, (ii) selección **free-flow**, (iii) **sueño que
-  genera preguntas → experimentos del día siguiente**, admitidas solo con evidencia vivida,
-  (iv) **reglas legibles sin LLM**.
-- Órganos con nervios y reflejos = ingeniería, salvo que H4 muestre una interacción.
+El objetivo de Fagi es la **conducta realista, no la supervivencia**. Morir está bien; lo que es un bug son las muertes por artefacto. Por eso las **métricas primarias son los 14 requisitos de Tyrrell, convertidos en medidas de conducta**. La supervivencia y ∫D(t)dt pasan a ser secundarias.
 
-## 6. Método LIBERA — hipótesis
+| requisito | medida en Fagi (borrador) |
+|---|---|
+| 1 todos los subproblemas | fracción del tiempo con algún déficit crítico desatendido; causas de muerte |
+| 2 persistencia | duración de los actos consumatorios (comer, beber, dormir) más allá de que su déficit deje de ser el mayor |
+| 3 activación ∝ déficit | correlación entre la urgencia que se ve en la conducta y el déficit |
+| 4–5 consumatorio > apetitivo | con recurso al alcance: probabilidad de consumir frente a seguir buscando |
+| 6 competencia equilibrada | ningún comportamiento acaparado por su número de entradas (sesgo por línea) |
+| 7 secuencias contiguas | cambios de acción por minuto; fracción de secuencias que se abandonan |
+| 8 interrumpir si hace falta | latencia de respuesta a una amenaza (agua, frío, nocicepción) |
+| 9 oportunismo | fracción de consumos de paso (comer camino del agua) |
+| 10 sin WTA a nivel de sistema | fracción de decisiones en las que más de un sistema influye |
+| 11–12 combinación y compromiso | acciones que reducen dos déficits a la vez |
+| 13–14 sensores reales, combinación flexible | se documentan; no se miden |
 
-| # | hipótesis | ablación |
-|---|---|---|
-| H1 | liberadores aprendidos ≈ viabilidad de innatos y se adaptan antes a un cambio a mitad de vida | `learned` vs `innate` (V precargado y congelado, NO el Fagi actual) |
-| H2 | free-flow + selector central > `RULES` actual y > free-flow puro | `priority` vs `freeflow` vs `freeflow+central` |
-| H3 | agenda nocturna con puerta acorta el aprendizaje sin más creencias falsas | `none` / `replay-only` / `agenda-ungated` / `agenda-gated` |
-| H4 | la latencia daña menos con reflejos en los órganos (interacción) | 2×2 latencia × reflejos |
-| H5–H7 | revaloración instantánea (κ·V); saciedad anticipatoria; curiosidad LP evita trampas de ruido | secundarias, Holm |
-
-Un resultado nulo o inverso en H2 (como el de Bryson) también es publicable: preregistrarlo así.
-
-## 7. Plan por fases (nada hecho aún)
+## 5. Plan por fases (reordenado, sin LLM)
 
 ```
-Fase 0  métricas tipo Tyrrell en scripts/batch.js + test "golden": con todo apagado,
-        salida idéntica byte a byte a main. Medir la Fagi actual (línea base). Protocolo congelado.
-Fase 1  src/organs/: bus síncrono + tablero; estómago (2 tiempos), hipotálamo, músculos.
-        Conducta igual (adaptador a fagi.hunger/thirst/energy). Flag apagado.
-Fase 2  reflejos en órganos (salir del agua, escupir, dolor, agotamiento) con cables suppress/inhibit.
-Fase 3  depósitos de Lorenz con liberadores aprendidos W = κ·V; actividad en vacío.
-Fase 4  selector free-flow + selector central con persistencia, conviviendo con RULES.
-Fase 5  comparación preregistrada en batch (H1–H4) con research/stats.js (bootstrapCI, holm…).
-Fase 6  nervios con latencia/ruido (sub-flujo de semilla propio del cuerpo), humores, pesos aprendidos.
+Fase 0  Medir. Los 14 requisitos como métricas en scripts/batch.js; línea base `program` y
+        `program+learn`; presupuesto de coste por tick; dinámica de población (nacimientos, huevos,
+        tamaño de colonia). La huella dorada se amplía a cada flag nuevo. Protocolo congelado.
+
+        ── Después de la fase 0, dos líneas en paralelo (no dependen entre sí) ──
+
+Línea A · MENTE
+Fase 1  (iii) LA NOCHE CIENTÍFICA, sobre el cuerpo actual. Cerrar el ciclo que hoy está abierto:
+        a. cada pregunta lleva su hipótesis y su predicción ("si pruebo X, me hará daño");
+        b. la agenda se ordena por progreso de aprendizaje esperado × seguridad (Oudeyer), no por
+           "lo más preguntado"; las preguntas de error alto sin progreso se marcan "ruidosas";
+        c. experimentos más allá de la fruta: las pruebas de líneas de program/learn.js (`trial`)
+           también salen de la agenda nocturna;
+        d. el resultado del experimento vuelve a la noche siguiente: la hipótesis se confirma o se
+           refuta, con procedencia (pregunta → experimento → veredicto);
+        e. la puerta exige verificación en memoria (`trial`) Y un experimento vivido que la confirme.
+        Hipótesis H3. Antes: entender por qué H5 de `organism` no se confirmó.
+Fase 2  (i) LIBERADORES APRENDIDOS sobre las necesidades actuales (hambre, sed y energía como κ).
+        Depósitos que alimentan la urgencia; W = κ·V; modo `innate`. Hipótesis H1 y H5.
+Fase 3  (ii) SELECTOR. src/decision/freeflow.js como controlador de DECIDE; las líneas que se cumplen
+        votan; selector central con histéresis y secuencias (cubre los "?" de Tyrrell). Hipótesis H2.
+
+Línea B · CUERPO
+Fase 5  CUERPO EVOLUTIVO (`cuerpo-evolutivo.md`): cerebro, estómago, músculos, ojos, antenas y tamaño
+        heredables con costes energéticos, plasticidad en vida, herencia darwin/baldwin/epigenética,
+        límites físicos (Kleiber, cuadrado-cubo) y sprite que cambia. Hipótesis G1–G5.
+        Se apoya en el genoma, la colonia y el sprite actuales. **Requisito previo: la reproducción
+        de la colonia debe escalar bien** (`notes/reproduccion-diagnostico.md`).
+Fase 4  CUERPO BAJO DEMANDA. Solo lo que pida una hipótesis: estómago en dos tiempos (H6), lengua con
+        aliestesia, y bus con reflejos y latencia (H4). Los órganos de la fase 5 son su base natural.
+
+        ── Convergen ──
+        G4 (cuerpo × cultura) y H1 con cuerpos distintos necesitan las dos líneas.
+Fase 6  Batería preregistrada (research/libera/, con research/stats.js).
 ```
 
-Reglas de implementación acordadas:
-- Cada bloque nuevo en `src/config.js` con `enabled: 0`, registrado en `src/organism.js`,
-  activable con `--set` en `scripts/batch.js`.
-- El ruido de los nervios usa **su propio sub-flujo aleatorio** para no desplazar los sorteos de Fagi.
-- Latencia en segundos, con un test de que el resultado no depende de `dt`.
-- `RULES` se conserva como condición base de H2.
-- Presupuesto de coste por tick en cada fase.
+Reglas:
+- Bloques nuevos con `enabled: 0`, registrados en `src/organism.js` y activables con `--set`.
+- Con todo apagado, la huella dorada y `--check` pasan sin tocar el fixture.
+- Sub-flujos aleatorios propios.
+- Latencia en segundos, con un test de que no depende de `dt`.
+- Coste por tick ≤ 1,5×.
 
-## 8. Pendientes
+## 6. Hipótesis
 
-- [ ] Leer a mano (estaban bloqueados desde la sesión en la nube): informe técnico de Creatures
-      (CSRP 434, sobre todo el "concept lobe" y los órganos), Grandroids/Phantasia ("imaginación"),
-      IMGEP de Oudeyer, los 14 requisitos de Tyrrell en el PDF de la tesis
-      (https://era.ed.ac.uk/handle/1842/20257), resultados de Bryson 2000.
-- [ ] Revisar el artículo **PMC2440771** que envió el usuario
-      (https://pmc.ncbi.nlm.nih.gov/articles/PMC2440771/): no se pudo abrir (PubMed Central bloqueado
-      por el proxy). Pendiente: identificarlo y ver dónde encaja en LIBERA.
-- [ ] Revisar las referencias marcadas [P] (parcialmente verificadas) en `informe-libera.md`.
-- [ ] Decidir si empezar por la **Fase 0**.
+| # | hipótesis | condiciones | fase |
+|---|---|---|---|
+| H3 | la noche científica (pregunta → experimento → veredicto) acorta el tiempo hasta la creencia correcta **sin** más creencias falsas | `none` / `replay-only` / `agenda-actual` / `agenda-LP` / `agenda-LP-gated` | 1 |
+| H1 | los liberadores aprendidos alcanzan una viabilidad comparable a los innatos y se adaptan antes a un cambio a mitad de vida | `learned` vs `innate` (dentro de LIBERA) | 2 |
+| H5 | W = κ·V revalora al instante tras una privación | `kappa` vs `V-only` | 2 |
+| H2 | free-flow + selector central puntúa mejor en los requisitos de Tyrrell que el programa WTA y que el free-flow puro | `program` / `program+learn` / `freeflow` / `freeflow+central` | 3 |
+| H6 | el estómago en dos tiempos produce saciedad anticipatoria | `two-stage` vs `instant` | 4 |
+| H4 | la latencia daña menos con los reflejos en los órganos | 2×2 | 4 |
+| H7 | la curiosidad por progreso de aprendizaje evita las trampas de ruido | `LP` vs `uncertainty` | 1 |
 
-## 9. Para retomar en local
+Un resultado nulo o inverso en H2 se preregistra como publicable.
 
-Prompt sugerido para la nueva sesión:
+## 7. Pendientes de verificación
 
-> Lee `docs/research/libera/README.md` e `informe-libera.md`. Primero revisa el artículo
-> PMC2440771 y los pendientes de la sección 8; después empieza la Fase 0 (métricas tipo Tyrrell
-> en `scripts/batch.js` y test golden de que con todo apagado la salida es idéntica).
+- [x] 14 requisitos, entorno (13 = 8 + 4 + borde) y Tabla 10.1 de Tyrrell (leída a mano en el PDF, p. 220).
+- [x] Bryson, Crabbe, Seth (PMC2440771), Creatures CSRP 434, Grandroids, IMGEP, Cos-Aguilera, referencias [P].
+- [x] Neal & Timmis 2003: 27(2). Hull 1943: D. Appleton-Century (la nube acertaba). Blumberg 1994: liberadores fijos. **Blumberg 1996: aprende liberadores** (amenaza a la pieza i). Creatures AAMAS 1998: registro confirmado.
+- [ ] Comparar Creatures AAMAS 1998 con CSRP 434: el texto completo es de pago.
+
+## 8. Cuerpo evolutivo (idea del usuario, 2026-10-02)
+
+Diseño en `cuerpo-evolutivo.md`; literatura en `notes/cuerpo-evolutivo-literatura.md`.
+
+En resumen, cada rasgo del cuerpo (cerebro, estómago, músculos, ojos, antenas, tamaño) tiene:
+- un beneficio;
+- un coste en energía o en ciclo de vida (crías, longevidad);
+- un límite físico;
+- una regla de plasticidad en vida;
+- un efecto visible en el sprite.
+
+Herencia: se comparan tres modos (Darwin, Baldwin, epigenético que decae en ~4 generaciones). Selección: natural en el juego, torneo en las baterías.
+
+Se apoya en lo que ya existe: el genoma en `generations.js`, `BODY_TRAITS` en `biology.js`, la colonia y el sprite.
+
+Literatura reciente de las otras piezas: `notes/reciente-noche.md`, `notes/reciente-cuerpo-seleccion.md`, `notes/reciente-generacional.md`.
+
+## 8b. Estado de la Fase 0 (2026-10-02)
+
+Métricas de Tyrrell implementadas (`--tyrrell`, `c980bf0`) y línea base `program` / `program+learn` en `notes/fase0-linea-base.md`. Hallazgos:
+- el hambre no activa la búsqueda: se forrajea por la despensa;
+- aprender empeora la contigüidad y cuesta 1,66× (por encima del presupuesto de 1,5×);
+- casi no hay compromiso entre necesidades.
+
+## 8c. Estado de la Fase 1 (2026-10-02)
+
+- **H5 de `organism`, explicada:** el repaso nocturno empeora el juicio y la agenda lo mejora; en H5 se sumaron y se cancelaron (§25.13 de la especificación). El repaso ya está apagado por defecto.
+- **Noche científica implementada** (`SCIENCE`, `8337c7b` y `5ccaff2`): predicción por pregunta, agenda y decisión por progreso × seguridad, y veredictos con procedencia.
+- **H3 no se sostiene** en el mundo de 6 especies (`notes/bateria-h3-resultados.md`, `notes/bateria-h3b-resultados.md`): no hay escasez de preguntas que priorizar. La agenda en sí vale mucho. Las predicciones previas aciertan menos de la mitad.
+- **H3c** (16 especies, 2 preguntas por noche; `notes/bateria-h3c-resultados.md`): no aprende más rápido, pero **sobrevive más (+10 % [3; 18])** y confía menos en veneno: priorizar por seguridad cambia qué aprende, no cuánto.
+- **H7 no se sostiene** (`notes/bateria-h7-resultados.md`): no hay trampa de ruido, porque la agenda nunca vuelve a preguntar por fruta ya probada. Haría falta re-preguntar lo incierto.
+- **Pendiente:** las piezas c y e (después de la Fase 3).
+
+## 8d. Estado de la Fase 2 (2026-10-02)
+
+Impulsos aprendidos (`DRIVE`, `8c27816`; apagados por defecto): W = κ·V con κ aprendido del alivio sentido. **H1 se sostiene** (tan viable como el innato). **H5a se sostiene:** una sed nunca vivida no se revalora al instante (+61 s hasta beber la primera vez). **H5b no** (IC incluye 0). Detalle en `notes/bateria-h1-h5-resultados.md`.
+
+## 8e. Estado de la Fase 3 (2026-10-02)
+
+Selector free-flow (`SELECT`, `f8aed4b`; `program` por defecto). **H2 no se sostiene:** `freeflow+central` frente a `program` da 2 victorias y 2 derrotas. El free-flow sigue mejor a la necesidad (R3) y combina más, pero cambia más de acción; el selector central recupera casi toda la contigüidad sin superar al programa (como Bryson 2000). Detalle en `notes/bateria-h2-resultados.md`.
+
+## 8f. Estado de la Fase 4 (2026-10-02)
+
+- **Estómago en dos tiempos** (`STOMACH`, `7578dfb`; apagado por defecto). **H6 se sostiene con efecto pequeño:** con saciedad anticipatoria come menos bocados por comida y no desperdicia (`notes/bateria-h6-resultados.md`). Es pequeño porque casi cada comida es una sola fruta.
+- **Calibración del selector** (`notes/calibracion-selector.md`): ningún ajuste iguala la continuidad del programa. El bono consumatorio (`SELECT.consume`) mejora R3, R4–5, R9 y R11–12.
+- **H2b no se sostiene** (`notes/bateria-h2b-resultados.md`): con `consume` 4 y semillas nuevas, 3 victorias (R3 +0,20, R9, R11–12) y 4 derrotas (R1, R7a, R7b, R8). R1 empeora porque, agotada, vota por buscar comida en vez de descansar. Falta algo estructural (un veto por necesidad crítica, o secuencias), no un parámetro. El juego sigue con `program`.
+- **H2c** (`notes/bateria-h2c-resultados.md`): el veto por necesidad crítica (`SELECT.veto`, `6b7e5aa`) **arregla la emergencia** (R1 de 0,35 a 0,18; 0 muertes por frío frente a 3) pero no la continuidad. Frente al programa, 2 victorias y 4 derrotas: H2c no se sostiene. La brecha de contigüidad ya se replicó tres veces; el siguiente candidato son las secuencias.
+- **H2d** (`notes/bateria-h2d-resultados.md`, código `19b0ebc`): el bono consumatorio tenía un error, porque premiaba seguir el propio rastro como si fuera comer; H2b y H2c se corrieron con él. Corregido, el selector **empata al programa en cambios de acción y cambia de meta un 12 % menos** (17 % con secuencias, `SELECT.sequence`). H2d queda en 3 victorias y 3 derrotas, así que no se sostiene. H2d-seq sí (3 y 0). Pendiente: R8, la respuesta al frío o calor, 2 a 4 s más lenta.
+- **Cierre de la Fase 3** (`notes/fase-3-cierre.md`, 2026-10-03): las baterías salen parejas porque el mundo no exige nada. Los mecanismos cambian el reparto del tiempo (explorar 34 → 23 %) pero no lo que come (7,47 · 7,50 · 7,50) ni quién vive (todas). La supervivencia es un precipicio entre una fruta cada 300 s y cada 900 s. Se cierra H2–H2d como nulo y se vuelve a la línea de autoría: plan C, paso 1.
+
+## 9. Para retomar
+
+> Lee `docs/research/libera/README.md`. Empieza la Fase 0: los 14 requisitos de Tyrrell como métricas en
+> `scripts/batch.js`, línea base `program` y `program+learn`, y coste por tick. Después, la Fase 1: por qué
+> H5 de `organism` no se confirmó.
