@@ -158,7 +158,8 @@ export function markOf(sel, world, fagi) {
 
 // --- the card ---
 
-// `hooks`: onFollow(target), onCenter(x, y), onAsk(x, y), canFollow() -> bool.
+// `hooks`: onFollow(target), onCenter(x, y), onAsk(x, y), canFollow() -> bool,
+// adopt(target) -> bool (follow her on selecting; true if it happened).
 export function createInspector(el, hooks = {}) {
   if (!el) return { select() {}, update() {}, clear() {}, get selection() { return null; } };
   let sel = null;
@@ -181,7 +182,7 @@ export function createInspector(el, hooks = {}) {
     else if (b.dataset.act === 'center' && it) hooks.onCenter?.(it.x, it.y);
     else if (b.dataset.act === 'follow' && it && sel.kind === 'fagi' && !sel.main) {
       hooks.onFollow?.(it);
-      sel = { kind: 'fagi', main: true, id: it.id };
+      sel = { kind: 'fagi', main: true, id: lastFagi.id };
       frozenUntil = 0;
     } else if (b.dataset.act === 'ask' && it) hooks.onAsk?.(it.x, it.y);
     else if (b.dataset.act === 'copy-phylogeny-mermaid' && lastWorld) {
@@ -206,7 +207,15 @@ export function createInspector(el, hooks = {}) {
   });
   onLangChange(() => { frozenUntil = 0; lastPaint = -Infinity; });
 
+  // Choosing a living Fagi (on the map, a relative's chip) makes her the one
+  // followed, when the game allows it (hooks.adopt): then the vision cone, the
+  // panels and the narrator are hers too, not just this card.
   function select(next) {
+    if (next?.kind === 'fagi' && !next.main && hooks.adopt && lastWorld) {
+      const it = resolve(next, lastWorld, lastFagi);
+      // The swap (colony.js swapInto) moved her into the followed object.
+      if (it && hooks.adopt(it)) next = { kind: 'fagi', main: true, id: lastFagi.id };
+    }
     sel = next;
     frozenUntil = 0;
     lastPaint = -Infinity;
