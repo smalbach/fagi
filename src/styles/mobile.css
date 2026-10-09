@@ -121,6 +121,11 @@
   #settings .field-reset { min-width: 36px; min-height: 36px; }
   #settings .ns-range { min-height: 32px; }
   #phylogeny-overlay { padding: 8px; }
+  #evolution-overlay { padding: 8px; }
+  #evolution-modal { max-height: calc(100dvh - 16px); }
+  #evolution-body { padding: 12px; }
+  .evo-plot { overflow-x: auto; }
+  .evo-chart { min-width: 600px; }
   #phylogeny-modal { width: 100%; max-height: calc(100dvh - 16px); }
   #phylogeny-modal header { flex-wrap: wrap; padding: 12px; }
   #phylogeny-modal header h2 { flex-basis: 100%; }

@@ -16,6 +16,7 @@ import { CYCLE, CONCEPT } from './config.js';
 import { sproutThings } from './things.js';
 import { dayAt } from './cycle.js';
 import { updateSeasons } from './seasons.js';
+import { recordEvolution } from './evolution.js';
 
 export function stepWorld(world, dt) {
   world.time = (world.time ?? 0) + dt;
@@ -41,4 +42,6 @@ export function step(world, fagi, dt) {
   updateFagi(fagi, world, dt);
   // Her sisters, if she has any (colony.js): they move after her.
   if (world.colony) updateSisters(world, world.colony, dt);
+  // What each colony carries, now and then, for the evolution panel. Reads only.
+  recordEvolution(world);
 }
