@@ -37,6 +37,11 @@ function cellOf(x, y) {
   return r * cols() + c;
 }
 
+// How well she knows the ground at (x, y): 0 never stepped on, 1 fully known.
+export function familiarity(map, x, y) {
+  return map ? Math.min(1, map[cellOf(x, y)] / EXPLORE.visitMax) : 1;
+}
+
 // Being in a place marks it; everything else slowly fades.
 export function markVisited(map, x, y, dt) {
   for (let k = 0; k < map.length; k++) {

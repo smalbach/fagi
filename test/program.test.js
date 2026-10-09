@@ -11,9 +11,16 @@ import { createFagi } from '../src/fagi.js';
 import { createWorld } from '../src/world.js';
 import { perceive } from '../src/perception.js';
 import { exportText, importText } from '../src/learned/store.js';
-import { SCENARIOS, trace, traceApart } from '../scripts/trace.js';
+import { SCENARIOS, trace, traceApart, fingerprintsFor, recordingKey } from '../scripts/trace.js';
 
 const FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/decisions.json', import.meta.url), 'utf8'));
+
+// This machine's fingerprints (scripts/trace.js): the last bit of floating
+// point differs between processors and Node versions, and a traced life
+// amplifies it, so each machine is held to the set recorded on it.
+const RECORDED = fingerprintsFor(FIXTURE);
+const NONE = RECORDED ? false
+  : `no fingerprints recorded for ${recordingKey()}: from a commit you trust, node scripts/trace.js --write`;
 
 // A line she wrote herself, for the tests that need one.
 const own = (id, spec) => line(id, { source: 'self', learnedAt: 10, ...spec });
@@ -131,17 +138,17 @@ test('the learned-code module carries her program, and importing it still reads 
 });
 
 // The fingerprints were recorded from decision.js's written RULES, before her
-// program existed (scripts/trace.js). If every scenario differs at once after
-// a Node upgrade, look at Node's floating point before looking at her.
+// program existed (scripts/trace.js). If every scenario differs at once on a
+// new machine or Node, look at its floating point before looking at her.
 for (const name of Object.keys(SCENARIOS)) {
-  test(`a program nobody edited decides as the written hierarchy did, frame by frame: ${name}`, () => {
-    const was = FIXTURE.scenarios[name];
+  test(`a program nobody edited decides as the written hierarchy did, frame by frame: ${name}`, { skip: NONE }, () => {
+    const was = RECORDED.scenarios[name];
     assert.ok(was, `no fingerprint recorded for ${name}: node scripts/trace.js --write`);
     const now = traceApart(name);
     if (now.digest !== was.digest) {
       const k = now.checkpoints.findIndex((c, j) => JSON.stringify(c) !== JSON.stringify(was.checkpoints[j]));
       const where = k >= 0 ? JSON.stringify({ was: was.checkpoints[k], now: now.checkpoints[k] }) : 'within the last minute';
-      assert.fail(`${name}: she no longer decides as recorded; first apart ${where}`);
+      assert.fail(`${name}: she no longer decides as recorded (${RECORDED.key}); first apart ${where}`);
     }
     assert.equal(now.steps, was.steps);
   });
@@ -152,20 +159,20 @@ for (const name of Object.keys(SCENARIOS)) {
 // acted, sisters tell each other their moments (program/share.js), and every
 // traced life is still the one recorded.
 for (const name of Object.keys(SCENARIOS)) {
-  test(`imagining every line, and telling it, changes nothing she does: ${name}`, () => {
+  test(`imagining every line, and telling it, changes nothing she does: ${name}`, { skip: NONE }, () => {
     const now = traceApart(name, ['PROGRAM.watch=2', 'PROGRAM.share=1']);
-    assert.equal(now.digest, FIXTURE.scenarios[name].digest);
+    assert.equal(now.digest, RECORDED.scenarios[name].digest);
   });
 }
 
 // The fingerprint is not blind: carrying before pursuing is a choice that
 // changes her life, and swapping those two lines shows.
-test('the fingerprint notices a program that decides otherwise', () => {
+test('the fingerprint notices a program that decides otherwise', { skip: NONE }, () => {
   const i = INNATE.findIndex((l) => l.id === 'carry');
   const j = INNATE.findIndex((l) => l.id === 'pursue');
   [INNATE[i], INNATE[j]] = [INNATE[j], INNATE[i]];
   try {
-    assert.notEqual(trace(SCENARIOS.classic).digest, FIXTURE.scenarios.classic.digest);
+    assert.notEqual(trace(SCENARIOS.classic).digest, RECORDED.scenarios.classic.digest);
   } finally {
     [INNATE[i], INNATE[j]] = [INNATE[j], INNATE[i]];
   }

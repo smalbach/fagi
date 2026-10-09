@@ -223,6 +223,7 @@ export function clearWorld(world) {
   world.points.length = 0;
   world.objects.length = 0;
   world.pheromone.length = 0;
+  world.mud = [];   // the mud belongs to the map that made it (mapgen.js)
   // New world, new terrain: the seed is the only thing that decides it.
   world.seed = null;
 }

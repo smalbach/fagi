@@ -97,13 +97,23 @@ export const FAGI = {
   trailMemory: 7.0,   // seconds she keeps searching for a trail she has lost
 };
 
+// Her gait (gait.js): how the ground and her situation change her pace.
+// Off here, so batch runs and tests stay the preregistered world; the game
+// turns it on (app/organism-on.js).
+//   - uphill she slows and spends more, downhill she goes a little faster;
+//   - on ground she barely knows, and with nothing pressing, she crawls;
+//   - racing home from rain, a front or the heat, or to what ends a critical
+//     need, she sprints, and pays for it in energy.
 export const MOVEMENT = {
-  crawlSpeed: 0.5,        // fraction of speed when probing or cautious in unfamiliar ground
-  sprintMult: 1.35,       // speed burst when escaping critical danger or rushing shelter in storm
+  enabled: 0,             // 0 = one pace everywhere, as before
+  crawlSpeed: 0.5,        // fraction of speed while cautious
+  sprintMult: 1.35,       // speed (and energy per second) while sprinting
   zigzagFreq: 2.2,        // sweep oscillation frequency (rad/s) when searching for trails
   zigzagAmp: 0.35,        // sweep angle amplitude (radians)
-  terrainAdapt: 1,        // adapt speed to local terrain slope/relief
-  cautiousThreshold: 0.25,// distress/uncertainty level that triggers cautious crawling
+  terrainAdapt: 1,        // slopes slow her uphill and speed her downhill
+  slope: 1,               // how much a slope weighs (0 = flat world)
+  cautiousThreshold: 0.6, // how unknown the ground must be (0-1) for her to crawl
+  sprintEnergy: 0.15,     // energy fraction under which she no longer sprints
 };
 
 export const HUNGER = {
@@ -351,6 +361,42 @@ export const GEN = {
   blend: 0,           // 0 = each innate bias comes whole from one parent; 1 = their average
   bodyMutation: 0.03, // spread of each body gene's step (a multiplier around 1)
   bodyRange: [0.8, 1.25], // how far a body gene can drift from 1
+};
+
+// Individual variation (variation.js): no two Fagis are born the same. Each
+// carries, in her genome, a multiplier around 1 per trait below: one is
+// born faster, another with more reserves, a thirstier one... drawn on a
+// log scale, so ×1.1 and ×0.91 are equally likely. Off here (batch and
+// tests are the preregistered world, everyone alike); the game turns it on
+// (app/organism-on.js).
+//   founders     : the first generation is born varied
+//   births       : every newborn is born varied too (off: newborns are standard)
+//   spread       : how much individuals differ: the typical gap from the
+//                  species' value (0.1 ≈ ±10 %)
+//   limit        : the furthest any trait may go from 1 (0.4 = ×0.6 … ×1.4)
+//   heritability : how much of a newborn's trait comes from her parents'
+//                  (their average), the rest a fresh draw. 0: every birth a
+//                  new lottery; near 1: the colony's traits drift where who
+//                  survives and breeds takes them (selection)
+//   weight       : how much each trait varies, × spread (0 = not at all)
+export const VARY = {
+  founders: 0,
+  births: 0,
+  spread: 0.1,
+  limit: 0.4,
+  heritability: 0.5,
+  weight: {
+    speed: 1,       // how fast she walks
+    energyMax: 1,   // her energy reserves
+    metabolism: 1,  // how fast she burns food (hunger and walking cost)
+    thirst: 1,      // how fast she gets thirsty
+    insulation: 1,  // how slowly heat and cold reach her body
+    view: 1,        // how far she sees
+    smell: 1,       // how keen her smell is
+    memory: 1,      // how slowly she forgets
+    tolerance: 1,   // how well she stands poison
+    life: 1,        // how long she lives (with LIFE)
+  },
 };
 
 // The evolving body (morph.js; docs/research/libera/cuerpo-evolutivo.md):

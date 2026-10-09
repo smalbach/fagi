@@ -43,6 +43,10 @@ function drag(world, fagi) {
   if (fagi.wet > 0) f *= 1 - (1 - WATER.wetSpeed) * (fagi.wet / WATER.dryTime);
   // She notices the pressure dropping: instinct to hurry (INSTINCT.pressureHaste).
   if (fagi.pressureFalling) f *= 1 + INSTINCT.pressureHaste * fagi.pressure;
+  // TODO(climate): snow, rime and frozen mud are only painted (climate-sprite.js,
+  // mud-sprite.js). Making them slow her (deep snow slower, frozen mud firmer,
+  // dried crust easier) would change the preregistered worlds, so it waits
+  // for a sim-side ground state that batch runs can switch off.
   // Heavy ground (world.mud, research worlds only): it slows whoever crosses it,
   // but repeated passage compacts and paves trails over time (niche construction).
   for (const m of world.mud ?? []) {
@@ -88,8 +92,8 @@ export function advance(fagi, world, dt) {
   // Her own legs (biology.js) and the cold stiffening them (thermal.js).
   const body = bodyOf(fagi).speed * thermalFactors(fagi).speed * lifeSpeed(fagi) * healthSpeed(fagi) * saltSpeed(fagi);
   let speed = FAGI.speed * statMult(fagi, 'speed') * weakness * drag(world, fagi) * body * loadSpeed(fagi);
-  if (fagi.cautious) speed *= (MOVEMENT?.crawlSpeed ?? 0.5);
-  else if (fagi.sprinting) speed *= (MOVEMENT?.sprintMult ?? 1.35);
+  // Slope, caution and sprint (gait.js; 1 with MOVEMENT off).
+  speed *= fagi.gaitSpeed ?? 1;
   const before = { x: fagi.x, y: fagi.y };
   fagi.stride += speed * dt;
   fagi.x += Math.cos(fagi.angle) * speed * dt;

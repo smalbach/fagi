@@ -150,6 +150,8 @@ export function bindDom() {
       el.title = t(el.dataset.i18nTitle);
       el.setAttribute('aria-label', el.title);
     }
+    // A tooltip that explains a control without renaming it for screen readers.
+    for (const el of document.querySelectorAll('[data-i18n-tip]')) el.title = t(el.dataset.i18nTip);
   };
   const selector = document.getElementById('lang');
   if (selector) {

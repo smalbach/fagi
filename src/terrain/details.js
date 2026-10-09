@@ -3,14 +3,15 @@
 // them back when zooming in. They all rely on the same light: a bright edge on
 // one side, shadow on the other.
 
-import { LIGHT, LX, LY, LEAF, BRANCH, DRY, MOSS_T } from './palette.js';
+import { LIGHT, LX, LY, LEAF, BRANCH, DRY, MOSS_T, mood } from './palette.js';
 
 // A pebble: it isn't a dot, it's a small stone. What gives it away is a bright
 // edge where the light hits and a shadow hugging the other side.
 export function pebble(ctx, x, y, r, rnd) {
   // Half buried: barely lighter than the earth. If it stands out, it stops being
   // a stone in the ground and looks like something dropped on top.
-  const gray = 52 + ((rnd() * 34) | 0);
+  // On pale sand a stone is pale too: dark ones would read as holes.
+  const gray = 52 + ((rnd() * 34) | 0) + Math.round(mood.arid * 62);
   const turn = rnd() * Math.PI;
   const flat = 0.5 + rnd() * 0.45;
 

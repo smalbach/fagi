@@ -13,7 +13,7 @@ import { learn } from './brain.js';
 import { hungerCause } from './appetite.js';
 import { oldAge } from './lifecycle.js';
 import { woundsCause } from './health.js';
-import { bodyOf, energyMax } from './biology.js';
+import { bodyOf, bodyMult, energyMax } from './biology.js';
 import { thermalFactors, thermalDeath } from './thermal.js';
 
 // The turn first allows drinking, eating or using the pantry and only afterwards
@@ -30,7 +30,7 @@ export function increaseNeeds(fagi, world, dt) {
   const metabolism = bodyOf(fagi).metabolism;
   const heat = thermalFactors(fagi);
   fagi.hunger += HUNGER.rate * statMult(fagi, 'hungerRate') * metabolism * heat.hunger * (sleeping ? NEST.restHunger : 1) * dt;
-  fagi.thirst += THIRST.rate * heat.thirst * (sleeping ? NEST.restThirst : 1) * dt;
+  fagi.thirst += THIRST.rate * bodyMult(fagi, 'thirst') * heat.thirst * (sleeping ? NEST.restThirst : 1) * dt;
   digest(fagi, dt);   // the stomach empties into her body (STOMACH)
 }
 
@@ -90,7 +90,7 @@ export function spendEnergy(fagi, world, dt, isMoving) {
   } else if (isMoving) {
     // In the rain, outside the nest, every drop shakes her about: it costs more.
     const drops = fagi.raining && !inNest ? RAIN.effort : 1;
-    fagi.energy -= ENERGY.drain * statMult(fagi, 'speed') * drops * (bodyOf(fagi).drain ?? bodyOf(fagi).metabolism) * loadEffort(fagi) * dt;
+    fagi.energy -= ENERGY.drain * statMult(fagi, 'speed') * drops * (bodyOf(fagi).drain ?? bodyOf(fagi).metabolism) * loadEffort(fagi) * (fagi.gaitEffort ?? 1) * dt;
   } else {
     fagi.energy += (inNest ? ENERGY.restNest : ENERGY.restOutside) * dt;
   }

@@ -3,7 +3,7 @@
 
 import { TERRAIN, WORLD } from '../config.js';
 import { canvasOf, noise } from '../sprite-kit.js';
-import { LIGHT, LX, LY, SOIL, DRY_TONE, MOSS, GRAVEL } from './palette.js';
+import { LIGHT, LX, LY, groundTones } from './palette.js';
 
 // Multi-octave value noise, sampleable at any point in the world.
 // The sprite-kit one returns a canvas; here the number is needed, because the
@@ -50,18 +50,27 @@ function lerp(a, b, t) {
 }
 
 // Color of a patch of ground: base earth, drier the higher it is, greener the
-// damper it is, and gravel where stone peeks through.
-function tone(tall, moisture, stone) {
-  let c = lerp(SOIL, DRY_TONE, Math.max(0, (tall - 0.45) / 0.55));
-  c = lerp(c, MOSS, Math.max(0, (moisture - TERRAIN.mossFrom) / (1 - TERRAIN.mossFrom)));
-  return lerp(c, GRAVEL, Math.max(0, (stone - TERRAIN.gravelFrom) / (1 - TERRAIN.gravelFrom)));
+// damper it is, and gravel where stone peeks through. The climate (climate.js)
+// picks the tones and how damp the ground must be before green takes hold:
+// in a dry place only the lowest hollows are green; in a rainy one, almost all.
+export function mossFromOf({ arid = 0, lush = 0 } = {}) {
+  return Math.min(0.92, Math.max(0.22, TERRAIN.mossFrom + arid * 0.32 - lush * 0.22));
+}
+
+function tone(tall, moisture, stone, look) {
+  const { soil, high, moss, gravel } = look.tones;
+  const from = look.mossFrom;
+  let c = lerp(soil, high, Math.max(0, (tall - 0.45) / 0.55));
+  c = lerp(c, moss, Math.max(0, (moisture - from) / (1 - from)));
+  return lerp(c, gravel, Math.max(0, (stone - TERRAIN.gravelFrom) / (1 - TERRAIN.gravelFrom)));
 }
 
 // Base: color and light in one go, on a coarse grid that is then stretched. The
 // relief isn't drawn, it's lit: the slope of the height field decides whether
 // a hillside faces the light or stays in shadow. That's what turns a blotch
 // of noise into hills.
-export function paintBase(ctx, w, h, tall, moisture, stone) {
+export function paintBase(ctx, w, h, tall, moisture, stone, climate = {}) {
+  const look = { tones: groundTones(climate), mossFrom: mossFromOf(climate) };
   const step = TERRAIN.lightCell;
   const gw = Math.ceil(w / step);
   const gh = Math.ceil(h / step);
@@ -74,7 +83,7 @@ export function paintBase(ctx, w, h, tall, moisture, stone) {
       const x = i * step;
       const y = j * step;
       const a = tall(x, y);
-      const col = tone(a, moisture(x, y), stone(x, y));
+      const col = tone(a, moisture(x, y), stone(x, y), look);
 
       // Slope by finite differences: which way the terrain falls here.
       const dx = (tall(x + step, y) - tall(x - step, y)) * TERRAIN.relief;
@@ -118,14 +127,16 @@ export function paintGrain(ctx, w, h, rnd) {
 
 // Very open dappled light. The patches have soft edges and a shared direction;
 // that way they seem to come from gaps in a distant canopy, not painted circles.
-export function paintClearings(ctx, w, h, rnd, moisture) {
+// A dry, open place gets harsher sun; a closed rainforest, less.
+export function paintClearings(ctx, w, h, rnd, moisture, { arid = 0, lush = 0 } = {}) {
+  const sun = 1 + arid * 1.4 - lush * 0.45;
   ctx.save();
   ctx.globalCompositeOperation = 'soft-light';
   for (let i = 0; i < TERRAIN.clearings * Math.max(1, (w * h) / (WORLD.baseWidth * WORLD.baseHeight)); i++) {
     const x = rnd() * w;
     const y = rnd() * h;
     const r = 24 + rnd() * 90;
-    const force = 0.025 + Math.max(0, 0.62 - moisture(x, y)) * 0.12;
+    const force = (0.025 + Math.max(0, 0.62 - moisture(x, y)) * 0.12) * sun;
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(LIGHT + (rnd() - 0.5) * 0.35);

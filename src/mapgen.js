@@ -198,9 +198,13 @@ export function generateMap(world, { chemistry = null } = {}) {
     registerSpecies([]);
     world.chemistry = null;
     world.species = [];
+    // foodVariety: more (or fewer) trees, spread over a wider arc around the
+    // nest. At 1 the map is the classic one, draw for draw.
+    const variety = MAPGEN.foodVariety ?? 1;
     placeFarFrom(
-      world, 'tree', MAPGEN.trees, nest,
+      world, 'tree', Math.max(0, Math.round(MAPGEN.trees * variety)), nest,
       MAPGEN.treeMinNestDistance, MAPGEN.treeMaxNestDistance, ang + Math.PI,
+      Math.min(Math.PI * 2, 1.2 * Math.max(1, variety)),
     );
   }
   placeColonies(world, nest);
@@ -212,15 +216,26 @@ export function generateMap(world, { chemistry = null } = {}) {
   // Last, so that with CONCEPT on the rest of the map is the same one.
   if (CONCEPT.enabled) placeThings(world);
 
-  // Mud patches and natural hazard zones when enabled in settings
-  if (MAPGEN.hazards && (MAPGEN.mudPatches ?? 0) > 0) {
-    world.mud ??= [];
-    for (let i = 0; i < (MAPGEN.mudPatches ?? 3); i++) {
-      const mx = MAPGEN.margin + 60 + Math.random() * (WORLD.width - 2 * (MAPGEN.margin + 60));
-      const my = MAPGEN.margin + 60 + Math.random() * (WORLD.height - 2 * (MAPGEN.margin + 60));
-      if (Math.hypot(mx - cx, my - cy) > MAPGEN.spawnClear) {
-        world.mud.push({ x: mx, y: my, r: 40 + Math.random() * 30, speed: 0.55 });
-      }
-    }
+  if (MAPGEN.hazards && (MAPGEN.mudPatches ?? 0) > 0) placeMud(world, MAPGEN.mudPatches);
+}
+
+// Mud patches (MAPGEN.hazards): hollows of soft ground that slow whoever
+// crosses them (movement.js). Never on top of the water, the nest, a tree or a
+// rock —mud under a pond or a boulder is neither seen nor walked through—,
+// not on each other, and never where Fagi is born.
+function placeMud(world, count) {
+  const mud = (world.mud ??= []);
+  const want = mud.length + count;
+  const cx = WORLD.width / 2;
+  const cy = WORLD.height / 2;
+  const edge = MAPGEN.margin + 30;
+  for (let attempt = 0; attempt < count * 40 && mud.length < want; attempt++) {
+    const r = 34 + Math.random() * 36;
+    const x = edge + r + Math.random() * (WORLD.width - 2 * (edge + r));
+    const y = edge + r + Math.random() * (WORLD.height - 2 * (edge + r));
+    if (Math.hypot(x - cx, y - cy) < MAPGEN.spawnClear + r) continue;
+    if (world.objects.some((o) => Math.hypot(o.x - x, o.y - y) < radiusOf(o) + r * 0.6 + 8)) continue;
+    if (mud.some((m) => Math.hypot(m.x - x, m.y - y) < m.r + r)) continue;
+    mud.push({ x, y, r: Math.round(r), speed: 0.55, seed: (Math.random() * 1e9) | 0 });
   }
 }

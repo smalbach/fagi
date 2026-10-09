@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 globalThis.HTMLInputElement = class { get value() { return ''; } };
 const { configSnapshot, applyConfig, configIdOf } = await import('../src/settings.js');
 delete globalThis.HTMLInputElement;
+globalThis.__cfg = await import('../src/config.js');
 const { PROGRAM, CAMERA, ATTENTION, SYNAPSE, EXPLAIN, MOVEMENT, HABITS, SLEEP, THERMAL, BACKEND, NIGHTAI } = await import('../src/config.js');
 
 test('regrouped adaptive settings retain their saved-session IDs', () => {
@@ -43,4 +44,25 @@ test('existing external API fields keep their original snapshot names', () => {
   for (const key of ['enabled', 'authority', 'minInterval', 'timeout', 'ttl', 'idleAfter']) {
     assert.equal(configIdOf(BACKEND, key), `External decision API.${key}`);
   }
+});
+
+test('every setting and every group explains itself in both languages', async () => {
+  const { settingsGroups } = await import('../src/settings.js');
+  const { fieldHelp, groupHelp } = await import('../src/settings-help.js');
+  const missing = [];
+  for (const g of settingsGroups()) {
+    for (const lang of ['en', 'es']) {
+      if (!groupHelp(g, lang)) missing.push(`group ${g.title.en} (${lang})`);
+      for (const f of g.fieldsOf) if (!fieldHelp(f, g, lang)) missing.push(`${f.id} (${lang})`);
+    }
+  }
+  assert.deepEqual(missing, []);
+});
+
+test('climate fields moved into their own groups keep the ids recordings carry', () => {
+  const { CYCLE, SEASONS, RAIN } = globalThis.__cfg;
+  assert.equal(configIdOf(CYCLE, 'mean'), 'Day and night.mean');
+  assert.equal(configIdOf(SEASONS, 'year'), 'Day and night.seasons.year');
+  assert.equal(configIdOf(RAIN, 'duration.max'), 'Rain.duration.max');
+  assert.equal(configIdOf(RAIN, 'puddles.min'), 'Rain.puddles.min');
 });

@@ -2,6 +2,7 @@
 
 import { sky } from './state.js';
 import { hash, smooth, noise, tessellate, screen, sight, windOf } from './util.js';
+import { snowShare } from '../climate-sprite.js';
 
 // Runs after the terrain and before the objects: it's the ground that gets wet.
 export function drawWetGround(ctx, world) {
@@ -46,7 +47,8 @@ export function drawOvercast(ctx, world, now) {
 const SPLASH_PER_PX2 = 380 / (1280 * 860);   // at full downpour
 
 export function drawSplashes(ctx, world, now) {
-  const n = sky.drops;
+  // Snow lands without a splash.
+  const n = sky.drops * (1 - snowShare());
   if (n <= 0.02) return;
   const { x0, y0, x1, y1, z } = sight(ctx);
   // Never smaller than what can be made out on screen.
