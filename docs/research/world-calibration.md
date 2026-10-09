@@ -301,3 +301,11 @@ What the game now has, each step measured in the game itself (`scripts/game-worl
 What it shows: evolution towards the world all colonies share, consistent across maps over 20 years (muscle up, brain down).
 
 What it does not show, after five attempts (transplant, opposite habitats, 20 years, 24 maps, milder winters, bigger refounding parties): colonies adapted each to its own habitat. Size genes lean bigger in cold (+0.037, 15/23 maps) without reaching significance. The cause, as far as measured: colonies of 12–19 adults dwindle to a handful and are replaced by neighbours, erasing what had built up. Bigger colonies (a ceiling of 60) remain the untried remedy, at twice the cost per run.
+
+## Rerun on today's game (2026-10-08, for the research site)
+
+The game as it is now (cold −3 °C, hot +6 °C, refounding from the nearest colony, individual variation, gait, conduct learned and inherited), same commands as above; per-year data in `investigacion/data/game.json` (`scripts/site-game-data.js`).
+
+**20 years, 8 maps (seeds 7500–7507), genes year 1 → 20, all nests of a map pooled:** muscle +0.160 (t 5.6, up in 8/8), brain −0.096 (t −4.1, down in 7/8), size +0.068 (t 3.5, up in 8/8). The same direction as the first 20-year run. The three habitats move in step. The sink is now the hot habitat: 7.0 alive per nest (23 % of the ceiling), empty in 36 of 160 nest-years, against 16.5 in cold and toxic; 91 refoundings. Lines carried at year 20: 0.9–1.0 own per ant, ~0.75 inherited, memory before pursue / memory before scent everywhere.
+
+**Transplant, 12 maps (seeds 7400–7411, 3 years then a 2-year window):** local − foreign offspring −0.19 (t −0.67, locals ahead on 6/12 maps); adulthood −0.000, days lived −0.86 (t −0.76). By habitat raised in: toxic 1.82 vs 2.67, cold 2.41 vs 2.32, hot 2.65 vs 2.35. Still no local adaptation, and the stranger advantage is no longer clear.
