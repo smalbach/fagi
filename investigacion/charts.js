@@ -42,13 +42,13 @@ export function lineChart(series, { yMax, yMin = 0, yFmt = (v) => v, mark, markL
 // Every belief that went from ant to ant, as a line across the generations it
 // lived in: green while it was true of that world, red once it was false;
 // thicker when more ants carried it.
-export function lifelines(genealogy, { generations = 12, mark, limit = 28, labels = {} } = {}) {
+export function lifelines(genealogy, { generations = 12, mark, limit = 28, labels = {}, width = 560 } = {}) {
   const rows = genealogy
     .filter((b) => b.trail?.length)
     .sort((a, b) => (b.trail.length - a.trail.length) || (b.maxCarriers - a.maxCarriers))
     .slice(0, limit)
     .sort((a, b) => a.bornG - b.bornG || b.trail.length - a.trail.length);
-  const W = 560, L = 190, R = 10, T = 18, rowH = 15;
+  const W = width, L = width > 700 ? 270 : 190, R = 10, T = 18, rowH = width > 700 ? 18 : 15;
   const H = T + rows.length * rowH + 26;
   const cw = (W - L - R) / generations;
   const x = (g) => L + g * cw;
@@ -64,7 +64,8 @@ export function lifelines(genealogy, { generations = 12, mark, limit = 28, label
   rows.forEach((b, i) => {
     const yy = T + i * rowH + rowH / 2;
     const name = b.origin.replace(/^[^/]*\//, '').replace(/@\d+$/, '');
-    const short = name.length > 30 ? `${name.slice(0, 29)}…` : name;
+    const max = width > 700 ? 40 : 30;
+    const short = name.length > max ? `${name.slice(0, max - 1)}…` : name;
     s += `<text class="lbl mono" x="${L - 8}" y="${yy + 3.5}" text-anchor="end">${esc(short)}<title>${esc(name)}</title></text>`;
     for (const t of b.trail) {
       const th = Math.min(11, 3 + t.carriers * 1.6);

@@ -2,6 +2,7 @@ import { startHero } from './hero.js';
 import { T, pct, num } from './strings.js';
 import { lineChart, groupedBars } from './charts.js';
 import './lab.js';
+import './explorer.js';
 import game from './data/game.json';
 
 // ---------- theme: light, dark, or whatever the system says ----------
@@ -121,7 +122,7 @@ if (inheritHost) {
   );
 }
 
-// ---------- second inheritance study (Figure 6b) ----------
+// ---------- second inheritance study (Figure 4) ----------
 // Survival in generations 3-5 per damage, from docs/research/prereg-inheritance-2-results.md
 // (the intact program has no "any mother" arm).
 const INHERIT2 = [
@@ -140,7 +141,7 @@ if (inherit2Host) {
   );
 }
 
-// ---------- information-matched replication (Figure 4) ----------
+// ---------- information-matched replication (Figure 8) ----------
 // Differences between formats, from docs/research/results.md (main study) and
 // the replication on research/codigo-cultural: [counting items, matching information].
 const COVERAGE = [
@@ -156,7 +157,7 @@ if (coverageHost) {
   }).join('');
 }
 
-// ---------- world calibration (Figure 5) ----------
+// ---------- world calibration (Figure 2) ----------
 // Share alive at 7200 s, docs/research/world-calibration.md (survival table).
 const CALIB_X = [300, 450, 525, 550, 575, 590, 600, 675, 750];
 const CALIB = [
@@ -174,7 +175,7 @@ if (calibHost) {
   );
 }
 
-// ---------- the game over 20 years and the transplant (Figures 7 and 8) ----------
+// ---------- the game over 20 years and the transplant (Figures 9 and 10) ----------
 // From investigacion/data/game.json (node scripts/site-game-data.js). Habitats
 // take the formats' colours: cold blue, hot orange, toxic green.
 const HAB_KEY = { cold: 'verdict', hot: 'rule', toxic: 'evidence' };
