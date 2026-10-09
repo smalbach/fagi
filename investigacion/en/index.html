@@ -7,7 +7,7 @@
   <meta name="description" content="Fagi: an artificial organism that learns from its body, writes its own rules and passes them on to its colony. Questions, methods, preregistered results and references." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script>
     // Theme before first paint, so a saved choice never flashes the other one.
     try { const t = localStorage.getItem('fagi-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
@@ -15,10 +15,10 @@
   <link rel="stylesheet" href="/investigacion/site.css" />
 </head>
 <body>
-<div class="bg-glow" aria-hidden="true"></div>
+<a class="skip-link" href="#resumen">Skip to content</a>
 
 <header class="topbar">
-  <a class="brand" href="#top"><span class="dot"></span>fagi <em>/ research</em></a>
+  <a class="brand" href="#top">fagi <em>/ an atlas of artificial life</em></a>
   <nav>
     <a href="#mundo" class="hide-sm">World</a>
     <a href="#organismo" class="hide-sm">Organism</a>
@@ -42,28 +42,25 @@
 
 <div class="hero" id="top">
   <div class="hero-text">
-    <div class="pill"><span class="live"></span>Ongoing research · updated 8 Oct 2026 · <a href="#herencia">new: inheriting what was learned →</a></div>
-    <h1>An organism that <span class="grad">learns from its body</span> and teaches its colony</h1>
-    <p class="lede">Fagi is a simulated ant that is born not knowing what is safe to eat. It tries things, gets sick, sleeps, remembers, writes its conclusions down as readable code and passes them to its sisters and daughters. Its world is our lab for questions that cannot be manipulated in real animals.</p>
-    <div class="cta">
-      <a class="btn primary" href="#resultado">See results</a>
-      <a class="btn ghost" href="#resumen">Read the abstract</a>
-    </div>
-    <p class="byline">By <b>Snheidert Smalbach</b> · artificial life · learning · cultural transmission</p>
+    <p class="eyebrow">Research notebook / 01</p>
+    <h1>A small life.<br><em>Enormous questions.</em></h1>
+    <p class="lede">An artificial organism that learns from its body and passes on what it learns. A small world to study how knowledge emerges, and when it becomes a harmful inheritance.</p>
+    <div class="cta"><a class="btn primary" href="#hallazgos">Explore the research <span aria-hidden="true">↗</span></a><a class="text-link" href="#laboratorio">Try the laboratory</a></div>
+    <p class="byline">By <b>Snheidert Smalbach</b><br>Artificial life · learning · cultural transmission</p>
   </div>
   <figure class="hero-art">
-    <canvas id="hero-canvas" aria-label="Several Fagi ants walk between the nest and the fruit, leaving a trail"></canvas>
-    <figcaption>Real sprites from the game, drawn live. The movement is decorative.</figcaption>
+    <div class="specimen"><canvas id="hero-canvas" aria-label="Specimen plate of Fagi, drawn with the game's actual sprite"></canvas><span class="specimen-label label-head">01 / Perceive</span><span class="specimen-label label-body">02 / Experience</span><span class="specimen-label label-memory">03 / Learn</span><span class="specimen-index" aria-hidden="true">F.</span></div>
+    <figcaption><span>Plate I / The organism</span><span>Game illustration · not an experiment</span></figcaption>
   </figure>
 </div>
-
-<div class="stats">
-  <div class="stat"><b data-count="12800">12,800</b><span>lineages simulated in the main study</span></div>
-  <div class="stat"><b>11<small>/11</small></b><span>hypotheses confirmed in the lab; 3/3 in the game</span></div>
-  <div class="stat"><b data-count="27">27</b><span>protocols and batteries frozen before running, negatives included</span></div>
-  <div class="stat"><b>3<small>/4</small></b><span>hypotheses supported on inheriting what was learned: +11 pts survival</span></div>
-  <div class="stat"><b>1<small> seed</small></b><span>= 1 life: repeats byte for byte on the same machine and Node version</span></div>
-</div>
+<div class="atlas-question"><p class="eyebrow">The central question</p><div><h2>Do we pass on knowledge,<br>or our mistakes too?</h2><p>In Fagi we can inspect each belief, change the world and repeat the conditions of an experiment.</p></div></div>
+<nav class="chapter-nav" aria-label="Routes through the atlas"><a href="#mundo"><span>01 / The world</span>A place to live ↗</a><a href="#organismo"><span>02 / The organism</span>From body to memory ↗</a><a href="#resultado"><span>03 / Inheritance</span>What daughters receive ↗</a><a href="#metodo"><span>04 / Evidence</span>How we know ↗</a></nav>
+<div class="findings" id="hallazgos" aria-labelledby="findings-title"><div class="findings-heading"><p class="eyebrow">Field notes / Results</p><h2 id="findings-title">What we know so far.</h2><p>Simulation results. Every conclusion has a scope.</p></div><div class="findings-grid">
+<a href="#resultado"><span class="tag conf">Cultural transmission</span><h3>Learning better is not always adapting better.</h3><p>Reasons reduce harm in a steady world. At an inversion, they leave fewer survivors than verdicts; matching transmitted coverage reduces the gap.</p><span class="finding-link">Read the study and replication ↗</span></a>
+<a href="#herencia"><span class="tag conf">Inherited learning</span><h3>A repair can reach the next generation.</h3><p>60% versus 49% survival when inheriting revisions from surviving mothers. Tested with a deliberately damaged program and individual lives.</p><span class="finding-link">See what this does and does not show ↗</span></a>
+<a href="#negativos"><span class="tag expl">Open questions</span><h3>Evolution does not mean adaptation to each habitat.</h3><p>Genes change in exploratory runs, but we found neither consistent local adaptation nor new behavior structure outperforming the human design.</p><span class="finding-link">Read limitations and negative results ↗</span></a>
+</div></div>
+<div class="stats"><div class="stat"><b>12,800</b><span>lineage runs across 64 conditions; 200 shared seeds</span></div><div class="stat"><b>11 / 11</b><span>hypotheses supported in the lab; 3 contrasts also confirmed in the study's game version</span></div><div class="stat"><b>6 / 6</b><span>tests supported in the coverage replication; one descriptive prediction did not hold</span></div></div>
 
 <div class="layout">
   <aside class="toc" aria-label="Contents">
@@ -94,18 +91,18 @@
     <section id="resumen">
       <h2><span class="num">01</span>Abstract</h2>
       <p>When a culture passes on <strong>reasons</strong> ("the sour one made me sick") instead of <strong>conclusions</strong> ("don't eat the red drop"), does it adapt better to a changing world, or does it get more stuck in false beliefs? We built an artificial organism whose knowledge can be inspected —every belief records where it came from— in a deterministic world, and we manipulated <em>what</em> is transmitted under an equal budget of items.</p>
-      <p>With the analysis frozen before running, we found that reasons are the best teacher while the world stays the same (40% fewer harmful bites than verdicts) and the worst inheritance when the world inverts: lineages that inherit reasons reach the inversion carrying more myths and lose <strong>22–27 percentage points more</strong> of that generation. Passing on the evidence together with the reasons keeps almost all of the teaching advantage and reduces myths and deaths, without removing them. The effect was confirmed in an abstract lab (11 of 11 hypotheses) and in the full game with body, space and night (3 of 3, same direction and similar size). A preregistered replication that matches the <em>information</em> passed on (6 of 6 supported) sharpens the reading: about four fifths of that trap came from reasons covering more; the myths do belong to the format.</p>
-      <p><strong>Most recent.</strong> A second preregistered study (6 October 2026), with four hypotheses, asked whether <strong>inheriting what was learned</strong> adds to learning in life. It does: with her program broken on purpose, daughters born with their surviving mother's revisions —each backed by evidence— survive 60% of the time, against 49% for daughters that learn the same way from scratch (<strong>+11 points</strong>, 224 versus 56 discordant pairs). Learning within a life helps little (+2) and selection adds some (+2.4); that learning costs nothing with the program intact could not be shown (<a href="#herencia">section 07</a>). In the game, three colonies in different habitats over 20 years (~50 generations) evolve towards the world they share —more muscle, less brain— but after six tests we found no colony adapting to its own habitat. We closed that line and report it in full.</p>
+      <p>With the analysis frozen before running, we found that reasons teach better than verdicts while the world stays the same (≈40% fewer harmful bites than verdicts) but leave the fewest survivors among the formats tested when the world inverts: lineages that inherit reasons reach the inversion carrying more myths and leave <strong>22–27 percentage points fewer survivors than verdicts</strong> in that generation. Passing on the evidence together with the reasons keeps almost all of the teaching advantage and reduces myths and deaths, without removing them. The effect was confirmed in an abstract lab (11 of 11 hypotheses) and in the full game with body, space and night (3 of 3, same direction and similar size). A preregistered replication that matches the budget by <em>species coverage</em> (6 of 6 supported) sharpens the reading: about four fifths of that trap came from reasons covering more; the difference in myths persists under this matching scheme. Neither bits nor all transmitted information were matched.</p>
+      <p><strong>Most recent.</strong> A second preregistered study (6 October 2026), with four hypotheses, asked whether <strong>inheriting what was learned</strong> adds to learning in life. It does: with her program broken on purpose, daughters born with their surviving mother's revisions —each backed by evidence— survive 60% of the time, against 49% for daughters that learn the same way from scratch (<strong>+11 points</strong>, 224 versus 56 discordant pairs). Learning within a life helps little (+2) and selection adds some (+2.4); a 5-point cost with the intact program could not be ruled out (<a href="#herencia">section 07</a>). In the game, three colonies in different habitats over 20 years (~50 generations) evolve towards the world they share —more muscle, less brain— but after six tests we found no colony adapting to its own habitat. We closed that line and report it in full.</p>
       <p>The same organism was used for eight other protocols —memory and sleep, concepts, diversity, social information, exploration, adaptive decision-making, caution—, for twelve batteries on its mind and body (scientific night, learned drives, action selector, stomach, evolving body) and for an attempt to have a language model rewrite its code. We report all of it, including what did not support our hypotheses.</p>
     </section>
 
     <!-- 2 -->
     <section id="pregunta">
-      <h2><span class="num">02</span>The question, and why no one has answered it</h2>
+      <h2><span class="num">02</span>The question we can put to the test</h2>
       <blockquote>Does passing on reasons instead of conclusions make a culture more adaptable, or more superstitious?</blockquote>
       <p>The literature pulls in two directions. In the "wheel" paradigm of Derex and colleagues (2019), passing on a theory did not speed up improvement and narrowed the learner's exploration; in 2025 they showed that transmitted theories guide learners whether they are correct or not. Roberts-Gaal, Bolic and Cushman (2025) found that when the world varies, people prefer to pass on goals and causes rather than procedures. Formal models (Beppu and Griffiths, 2009) predict that passing on beliefs beats passing on behavior. And the "hot stove" of Denrell and March (2001) explains why a learned avoidance is almost never corrected: whoever avoids something stops trying it.</p>
-      <p>What is missing is a <strong>controlled manipulation of what is transmitted under an equal budget</strong>, measuring both adaptation after a change and the persistence of false beliefs. In humans or animals this is almost impossible: you cannot know where each belief comes from, or run the same life twice. In Fagi you can.</p>
-      <div class="note"><b>Two rules that guide the whole project</b>Fagi is judged by <em>realism</em>, not survival: dying is fine if the cause is realistic; only artificial deaths are bugs (dying next to known water, getting stuck in a loop, sleeping while critically thirsty). And no claim counts without a protocol frozen before looking at the data.</div>
+      <p>The project proposes a <strong>controlled manipulation of what is transmitted under an equal budget</strong>, measuring both adaptation after a change and the persistence of false beliefs. Simulation lets us track beliefs and repeat conditions. This does not establish that the question has never been studied or transfer the results directly to animals or humans.</p>
+      <div class="note"><b>Two rules that guide the whole project</b>Fagi is judged by <em>realism</em>, not survival: dying is fine if the cause is realistic; only artificial deaths are bugs (dying next to known water, getting stuck in a loop, sleeping while critically thirsty). Confirmatory claims require a protocol frozen before looking at the data; exploratory findings are identified as such.</div>
     </section>
 
     <!-- 3 -->
@@ -244,14 +241,14 @@
         <li><strong>Unit of analysis:</strong> the lineage (12 generations of colonies of 5). Rows from one lineage are never treated as independent.</li>
         <li><strong>Four formats</strong> with the same budget of 4 items: <em>nothing</em>; <em>verdicts</em> (per-fruit conclusions about fruit the teacher knew); <em>reasons</em> (rules about traits); <em>reasons + evidence</em> (rules and the bites that back them).</li>
         <li><strong>World change</strong> at generation 6: none, inversion (poisonous becomes nutritious and vice versa), rotation, or shift to another dimension.</li>
-        <li><strong>Lab:</strong> 64 cells × 200 lineages, seeds 1001–1200, 12,800 lineages in 281 s. Paired cells: each lineage has a twin in every other cell living the same worlds.</li>
+        <li><strong>Lab:</strong> 64 cells × 200 lineages, seeds 1001–1200, 12,800 lineages in 281 s. Formats are paired by seed within each condition. Changing the change type can also change the initial catalog; not every cell shares exactly the same world.</li>
         <li><strong>Game:</strong> 75 lineages per format, seeds 5000–5074, lifespans of 1800 s, inversion at generation 4; ≈40 min on 18 cores.</li>
         <li><strong>Analysis:</strong> paired permutation tests with 10,000 sign flips, Holm correction, 95% bootstrap intervals and effect size <em>d<sub>z</sub></em>.</li>
       </ul>
 
       <figure class="wide">
         <div class="panel">
-          <div class="seg" role="tablist">
+          <div class="seg" role="group">
             <button type="button" class="on" data-results="lab">Lab</button>
             <button type="button" data-results="game">Full game</button>
           </div>
@@ -263,13 +260,13 @@
           </div>
           <div id="result-charts" class="chart-row"></div>
         </div>
-        <figcaption><b>Figure 2.</b> Means per lineage. <span id="result-source"></span>. Reasons teach better while the world stays the same (left) but leave fewer survivors when it inverts (center), because they arrive with more myths —false beliefs never lived through— (right).</figcaption>
+        <figcaption><b>Figure 2.</b> Means per lineage. <span id="result-source"></span>. Reasons teach better while the world stays the same (left) but leave fewer survivors when it inverts (center), and carry more myths —false rules without personal experience— (right). These contrasts alone do not isolate causal mediation by myths.</figcaption>
       </figure>
 
 
       <figure class="wide">
         <div class="panel">
-          <div class="seg" role="tablist">
+          <div class="seg" role="group">
             <button type="button" class="on" data-curve="alive">Survivors</button>
             <button type="button" data-curve="myths">Myths</button>
             <button type="button" data-curve="harmful">Harmful bites</button>
@@ -283,7 +280,7 @@
           </div>
           <div class="chart"><h5 id="curves-title"></h5><div id="curves-chart"></div></div>
         </div>
-        <figcaption><b>Figure 3.</b> The main cell generation by generation: one-trait chemistry, lifespans of 1800 s, inversion at generation 6, means of 200 lineages per format (seeds 1001–1200). Generated with <code>node scripts/site-data.js</code> from the same study code; generation 6 exactly reproduces the preregistered table. Everything runs level until the change: then the reasons line drops on its own, and recovers in the next generation.</figcaption>
+        <figcaption><b>Figure 3.</b> The main cell generation by generation: one-trait chemistry, lifespans of 1800 s, inversion at generation 6, means of 200 lineages per format (seeds 1001–1200). Generated with <code>node scripts/site-data.js</code> from the same study code; generation 6 exactly reproduces the preregistered table. Everything runs level until the change: reasons show the largest survival drop, followed by recovery in later generations.</figcaption>
       </figure>
 
       <h3>The eleven lab hypotheses</h3>
@@ -322,14 +319,14 @@
 
       <h3>What exploration shows (not preregistered)</h3>
       <ul>
-        <li><strong>The trap needs an inversion.</strong> If the poison rotates to another value or moves to another dimension, reasons lineages also carry more myths (1.3–2.5 times), but no one dies from them: 98–100% survival in every format. Only inversion makes the old reason point right at the new food, and rejection turns into starvation.</li>
+        <li><strong>The large drop occurs with the inversion studied.</strong> If the poison rotates to another value or moves to another dimension, reasons lineages also carry more myths (1.3–2.5 times), without a comparable survival drop: survival is 98–100% in every format. Only inversion makes the old reason point right at the new food, and rejection turns into starvation.</li>
         <li><strong>Conjunctive chemistry</strong> (poison = color AND smell): same pattern, smaller (80% versus 92% survivors).</li>
         <li><strong>Recovery.</strong> After any change, what is taught to newborns takes longer to correct with reasons (1.7–2.1 generations versus 1.2–1.7).</li>
         <li><strong>Short lifespans</strong> reduce deaths but not myths: the belief is just as false, there is simply no time to starve because of it.</li>
         <li><strong>After the inversion</strong> reasons lineages are again the ones that suffer least harm: the survivors relearn.</li>
       </ul>
-      <h3>Replication with information matched <span class="tag conf">confirmatory</span></h3>
-      <p>Protocol frozen at <code>a9c3265</code> (5 October 2026), new seeds 4001–4200, 200 lineages per cell, Holm over six. The budget is no longer counted in items but in <em>coverage</em>: how much of the world what is passed on covers (<code>SOCIAL.cost</code> "coverage"). Counted in items, the main study reproduces identically.</p>
+      <h3>Replication with a coverage-matched budget <span class="tag conf">confirmatory</span></h3>
+      <p>Protocol frozen at <code>a9c3265</code> (5 October 2026), new seeds 4001–4200, 200 lineages per cell, Holm over six. The budget is no longer counted in items but in <em>coverage</em>: how much of the world what is passed on covers (<code>SOCIAL.cost</code> "coverage"). The item mode reproduces the original study with its original seeds; with new seeds, C0 estimates a 0.232 gap, versus 0.274 in the main study.</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Test</th><th class="n">Difference [95% CI]</th><th class="n">d<sub>z</sub></th></tr></thead>
@@ -347,18 +344,19 @@
       <figure class="wide">
         <div class="panel">
           <div class="legend">
-            <span><i style="background:var(--s-rule)"></i>counting items (main study)</span>
-            <span><i style="background:var(--s-verdict)"></i>matching information (replication)</span>
+            <span><i style="background:var(--s-rule)"></i>items (replication C0; main H1/H3/H4a)</span>
+            <span><i style="background:var(--s-verdict)"></i>matching coverage (replication)</span>
           </div>
           <div id="coverage-charts" class="chart-row"></div>
         </div>
-        <figcaption><b>Figure 4.</b> Each bar is a difference between formats, in paired lineages. Counting items: the replication's H2a (C0) and the main study's H1, H3 and H4a; matching information: the preregistered descriptive and C5, C2 and C3. The trap and the teaching edge nearly vanish; the myths do not move.</figcaption>
+        <figcaption><b>Figure 4.</b> Each bar is a difference between formats, in paired lineages. Counting items: the replication's H2a (C0) and the main study's H1, H3 and H4a; matching coverage: the preregistered descriptive and C5, C2 and C3. The survival gap and teaching edge shrink; differences in myths remain similar in size.</figcaption>
       </figure>
 
-      <p><strong>Reading.</strong> With information matched, reasons' survival trap shrinks by 80% (from 0.232 to 0.046 [0.017, 0.078]; the preregistration predicted it would reach zero and it did not: a small trap remains) and their teaching edge nearly vanishes (0.224 → 0.029). What does not change are the myths: reasons still carry more false beliefs, and evidence still cuts them. Much of the main result was <em>quantity</em> of information; the myths belong to the <em>format</em>.</p>
-      <p class="muted">Sensitivity analysis (7 Oct): in 101 of the game's 600 maps a species tree lay off the map. Dropping those lineages, H1, H2a and H3 still hold (0.304; 0.210; 0.992).</p>
+      <p><strong>Reading.</strong> With the budget matched by species coverage, reasons' survival trap shrinks by 80% (from 0.232 to 0.046 [0.017, 0.078]; the preregistration predicted an interval including zero; that did not hold: a small gap remains) and their teaching edge nearly vanishes (0.224 → 0.029). What does not change are the myths: reasons still carry more false beliefs, and evidence still cuts them. The comparison indicates that <em>coverage</em> accounts for much of the survival gap in this design. Differences in myths persist, without establishing a universal property of the format.</p>
+      <p class="muted">Sensitivity analysis (7 Oct): in 101 of the game's 600 maps a species tree lay off the map. Dropping those lineages, H1, H2a and H3 still hold (0.304; 0.210; 0.992). This post-hoc analysis does not validate absolute survival levels or the other studies affected by species maps.</p>
 
       <div class="note warn"><b>A limitation found while reading the results</b>Each lineage's catalog is drawn so that every epoch has at least two poisons and two foods, so the world before the change depends on which change comes after. Comparisons between formats are not affected (they are paired within the same world); the H5a/H5b interactions are not a pure common-random-numbers contrast.</div>
+    <p class="source-note"><b>Result sources</b><code>docs/research/results.md · docs/research/preregistration-coverage.md</code></p>
     </section>
 
     <!-- inheritance -->
@@ -366,7 +364,7 @@
       <h2><span class="num">07</span>Second result: inheriting what was learned (four hypotheses)</h2>
       <p><span class="tag conf">Confirmatory</span> &nbsp;Protocol frozen at commit <code>2459b1c</code> on 6 October 2026; run that same day without changing a line or deviating.</p>
       <blockquote>Does a daughter born with her surviving mother's program revisions live longer than one that learns the same way, but from scratch?</blockquote>
-      <p>First we needed a world where behavior decides. In the default world every program survives, even one broken on purpose: no learning can show. Sweeping how often trees bear fruit, survival falls off a cliff (100% with one fruit every 450 s, 0% at 750 s). <strong>At 575 s</strong> the innate program lives through 75% of two-hour lives, and breaking its warmth, rest or food lines costs 27–37 points: there, what she does decides whether she lives.</p>
+      <p>First we needed a world where behavior decides. In the default world every program survives, even one broken on purpose: no learning can show. Sweeping how often trees bear fruit, survival falls off a cliff (96% for the innate program with one fruit every 450 s, 0% at 750 s). <strong>At 575 s</strong> the innate program lives through 75% of two-hour lives, and breaking its warmth, rest or food lines costs 27–37 points: there, what she does decides whether she lives.</p>
       <figure class="wide">
         <div class="panel">
           <div class="legend">
@@ -379,7 +377,7 @@
         </div>
         <figcaption><b>Figure 5.</b> Survival at 2 hours by how often a tree bears fruit (24 lives per point; 48 at 550, 575 and 590), varied maps, paired by seed. What she does decides only near the edge of the cliff; at 575 s breaking one part of the program costs 27–37 points (<code>docs/research/world-calibration.md</code>).</figcaption>
       </figure>
-      <p>In that world we moved <code>dusk</code> (going home as the light goes) to the end of her program: survival drops to 44%, and cold becomes the leading cause of death.</p>
+      <p>In that world we moved <code>dusk</code> (going home as the light goes) to the end of her program: in the pilot, survival drops to 44%, and cold becomes the leading cause of death.</p>
 
       <h3>Design</h3>
       <ul>
@@ -404,7 +402,7 @@
 
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Hypothesis</th><th class="n">pairs (better / worse)</th><th class="n">one-sided p</th><th class="n">difference</th><th>Verdict</th></tr></thead>
+          <thead><tr><th>Hypothesis</th><th class="n">pairs (better / worse)</th><th class="n">one-sided p / H4 bound</th><th class="n">difference</th><th>Verdict</th></tr></thead>
           <tbody>
             <tr><td><strong>H1 (primary)</strong> · inherit &gt; learn</td><td class="n">224 / 56</td><td class="n">&lt; 0.0001</td><td class="n">+10.9 pts</td><td><span class="tag conf">supported</span></td></tr>
             <tr><td>H2 · learn &gt; born</td><td class="n">72 / 39</td><td class="n">0.0011</td><td class="n">+2.2 pts</td><td><span class="tag conf">supported</span></td></tr>
@@ -417,7 +415,7 @@
       <ul>
         <li><strong>What one life finds too late saves its daughters.</strong> Nearly every inheriting daughter carries <code>dusk-before-pursue</code> from birth; in single lives only 69% write it, and late.</li>
         <li><strong>Learning within a life helps, but little</strong> (+2 points). Selection adds a little on top of inheritance (+2.4).</li>
-        <li><strong>H4 was not supported:</strong> 96 lives cannot rule out that learning costs 5 points when there is nothing to repair. So the preregistration did not switch it on in the game; it was switched on later after measuring it in the game itself (8 maps × 4 years, no population cost: +0.8 ants per nest, 5 of 8 maps).</li>
+        <li><strong>H4 was not supported:</strong> 96 lives cannot rule out that learning costs 5 points when the program is intact. So the preregistration did not switch it on in the game; it was switched on later after measuring it in the game itself (8 maps × 4 years, exploratory comparison: +0.8 ants per nest, 5 of 8 maps, t = 1.3; this neither demonstrates no cost nor resolves H4).</li>
       </ul>
 
       <h3>How we got here (exploratory)</h3>
@@ -427,12 +425,13 @@
         <li><strong>Changing the judge did:</strong> judged by her reserves and with safe night trials she stops writing those lines and writes the real repair, <code>dusk-before-pursue</code> (0.44 → 0.53 within one life, 9 versus 0 pairs).</li>
       </ul>
       <div class="note warn"><b>What this result does not say</b>The gain is the repair of a program broken on purpose. It shows that learning and inheritance recover what was lost; not that they find something the innate program lacks. One world, daughters living alone rather than in a colony, and rewrites within the grammar (one behavior in front of another under one condition).</div>
+    <p class="source-note"><b>Result sources</b><code>docs/research/prereg-lineage-results.md · docs/research/prereg-lineage-inheritance.md</code></p>
     </section>
 
     <!-- live lab -->
     <section id="laboratorio">
       <h2><span class="num">08</span>Try it: the lab in your browser</h2>
-      <p>This is not an animation: it is the study code running in your browser. Each button launches four lineages of 12 generations —one per format— in <strong>the same world</strong> (same chemistry, same catalog, same maps), with the game's brain, body and social code. The same seed always gives the same result, here and in <code>node research/run.js</code>.</p>
+      <p>This is not an animation: it is the study code running in your browser. Each button launches four lineages of 12 generations —one per format— in <strong>the same world</strong> (same chemistry and catalog, without a simulated spatial map), with the game's brain, body and social code. The seed, parameters and code version allow the experiment to be repeated. Numerical identity across browsers, architectures and Node versions is not guaranteed.</p>
       <form id="lab-form" class="lab wide" autocomplete="off">
         <div class="lab-controls">
           <label>World change at generation 6
@@ -496,7 +495,7 @@
         </div>
         <div class="card">
           <h4>The misinformed sister <span class="tag conf">2 of 3</span></h4>
-          <p>A sister who tells false rules does not harm the colony's judgment (0.800 versus 0.813), and only 26% of the false rules adopted are still standing at the end. But a well-informed sister did not reduce the poison eaten either.</p>
+          <p>A sister who tells false rules meets the preregistered 0.05 non-inferiority margin for judgment (0.800 versus 0.813); this does not mean zero harm, and only 26% of the false rules adopted are still standing at the end. But a well-informed sister did not reduce the poison eaten either.</p>
           <div class="where">social-protocol.md</div>
         </div>
         <div class="card">
@@ -512,12 +511,12 @@
         <div class="card">
           <h4>Is there anything to learn without sabotage? <span class="tag expl">exploratory</span></h4>
           <p>We tried all 171 possible moves (an innate line put in front of one above it), 24 lives each, in the scarce world and in five more (warm nights, cold, long nights, hot days, rain). None beats the innate order: 102 change nothing and several are lethal. The one hint (<code>memory&gt;thermal</code> on long nights) did not replicate on 48 new seeds.</p>
-          <p>The innate order is a robust local optimum, partly because its behaviors already learn inside (she goes home at dusk only once darkness means cold to her).</p>
+          <p>No improvement over the innate order was found among the moves and worlds examined, partly because its behaviors already learn inside (she goes home at dusk only once darkness means cold to her).</p>
           <div class="where">world-calibration.md · scripts/order-screen.js</div>
         </div>
         <div class="card">
           <h4>A world that presses, in the game <span class="tag expl">exploratory</span></h4>
-          <p>With fruit every 8 s colonies lived at 71–73% of their ceiling and died of old age. At 30 s, food and winter decide how many live and cold kills more than age; in 3 years no map dies out (in 20 years, 2 of 16 do). The autopsy confirms these deaths are realistic: all 57 in winter, 39 at night, nearly all far from the nest and 38 very hungry: foragers caught out by the cold.</p>
+          <p>With fruit every 8 s colonies lived at 71–73% of their ceiling and died of old age. At 30 s, food and winter decide how many live and cold kills more than age; in 3 years no map dies out (in 20 years, 2 of 16 do). The autopsy is consistent with exposure and hunger deaths: all 57 in winter, 39 at night, nearly all far from the nest and 38 very hungry: foragers caught out by the cold.</p>
           <p>Along the way a bug turned up: water and trees of the further nests fell off the map (583 of 2000 objects) and ants were dying of thirst by the edge. Fixed.</p>
           <div class="where">world-calibration.md · scripts/game-world.js</div>
         </div>
@@ -528,7 +527,7 @@
         </div>
         <div class="card">
           <h4>Learned drives and stomach <span class="tag conf">3 of 4</span></h4>
-          <p>Learning how much food is worth at each level of hunger costs no life (−0.002) and, as in animals, after the first deprivation she takes longer to go and drink (+61 s [32, 92]); the second prediction did not hold. A two-stage stomach cuts bites per meal and waste, with a small effect. Drives are on in the game; the stomach is not.</p>
+          <p>Learning food value meets the 0.02 non-inferiority margin for safe life (difference −0.002) and, as in animals, after the first deprivation she takes longer to go and drink (+61 s [32, 92]); the second prediction did not hold. A two-stage stomach reduces bites and waste compared with no satiety; those outcomes do not differ from the instant stomach. Drives are on in the game; the stomach is not.</p>
           <div class="where">docs/research/libera/notes · src/drive.js · src/stomach.js</div>
         </div>
         <div class="card">
@@ -538,7 +537,7 @@
         </div>
         <div class="card">
           <h4>A language model rewrites its code <span class="tag neg">line closed</span></h4>
-          <p>A local LLM rewrote each ant's bite judge and selection chose. With a tournament, texts beat the current one in new worlds (+0.056 [0.019, 0.087]), but through vocabulary: "leave what harmed" shows up in 10 of 10 texts with clear names and in 1 of 20 with blind names. A rule specific to each lineage is learned by none (0 of 10), and a seeded rule is erased by rewriting (70–84%). The model brings its priors; it does not extract rules from life.</p>
+          <p>A local LLM rewrote each ant's bite judge and selection chose. With a tournament, texts beat the current one in new worlds (+0.056 [0.019, 0.087]), but through vocabulary: "leave what harmed" shows up in 10 of 10 texts with clear names and in 1 of 20 with blind names. A rule specific to each lineage is learned by none (0 of 10), and a seeded rule is erased by rewriting (70–84%). In these tests, the model appears to contribute prior knowledge without learning the lineage-specific rule.</p>
           <div class="where">research/code-culture/ · src/learned/code-judge.js</div>
         </div>
       </div>
@@ -560,7 +559,7 @@
             <tr><td>Nightly consolidation improves judgment</td><td>0.852 versus 0.838, p 0.229.</td><td><span class="tag neg">not supported</span></td></tr>
             <tr><td>Learning her program judged by 15 s of distress</td><td>0.58 versus 0.75 for the innate program (9 versus 1 pairs, replicated). The cost is the trials; the lines she writes do not help.</td><td><span class="tag neg">worse</span></td></tr>
             <tr><td>Selection as the judge (only mothers that live pass their program on)</td><td>No effect: 24 versus 23 pairs. Every life writes the same lines.</td><td><span class="tag neg">not supported</span></td></tr>
-            <tr><td>H4 · with the program intact, learning costs nothing</td><td>0.750 versus 0.771; 96 lives cannot rule out a 5-point cost.</td><td><span class="tag neg">not supported</span></td></tr>
+            <tr><td>H4 · rule out a 5-point cost with the intact program</td><td>0.750 versus 0.771; 96 lives cannot rule out a 5-point cost.</td><td><span class="tag neg">not supported</span></td></tr>
             <tr><td>Each colony adapts to its habitat</td><td>Six tests: reciprocal transplant, opposite habitats, 20 years, 24 maps, milder winters, refounding with parties. No local adaptation. Size genes lean bigger in the cold (+0.037, 15 of 23 maps) without holding up on the new maps.</td><td><span class="tag neg">line closed</span></td></tr>
             <tr><td>A milder winter keeps colonies from emptying</td><td>No: 6.6% of years empty versus 8.3% and 6.9%. Colonies that empty had already dwindled to 1–5 the year before.</td><td><span class="tag neg">not supported</span></td></tr>
             <tr><td>Refounding a nest with 4 or 6 instead of a pair</td><td>No difference (4.9 / 4.9 / 3.5% of years empty).</td><td><span class="tag neg">not supported</span></td></tr>
@@ -571,13 +570,13 @@
           </tbody>
         </table>
       </div>
-      <div class="note"><b>Where we stand on self-rewriting</b>Today the organism writes <em>rules</em> about what to eat, with confirmed success, and reorders lines of its program with a fixed grammar. With evidence, it repairs a broken program within a life and its daughters inherit the repair (+11 points, preregistered). But without sabotage there is nothing to reorder: the innate order is a robust optimum across six worlds. That it can invent new behavior structure that beats the human design is not yet shown; for that the world must demand a priority nobody programmed, or the grammar must let it build more than an order.</div>
+      <div class="note"><b>Where we stand on self-rewriting</b>Today the organism writes <em>rules</em> about what to eat, with confirmed success, and reorders lines of its program with a fixed grammar. With evidence, it repairs a broken program within a life and its daughters inherit the repair (+11 points, preregistered). Without sabotage, no improvement was found among the 171 reorderings and six worlds examined. This does not prove that no better behavior exists. That it can invent new behavior structure that beats the human design is not yet shown; for that the world must demand a priority nobody programmed, or the grammar must let it build more than an order.</div>
     </section>
 
     <!-- 9 -->
     <section id="cuerpo">
       <h2><span class="num">11</span>In the game: colonies that evolve</h2>
-      <p><span class="tag wip">in progress</span> &nbsp;Six heritable organs —brain, gut, muscle, eyes, antennae, size— each a multiplier with a benefit and an energy cost. Costs grow faster than linearly and metabolism scales with mass to the ¾ (Kleiber, 1932). A large brain costs about 18 times as much as muscle per gram (Elia, 1992) and, as in the fish of Kotrschal et al. (2013), shrinks the gut and the offspring. Within a life, each organ can adjust by up to ±25%, but only when experience moves outside the typical.</p>
+      <p><span class="tag expl">exploratory</span> &nbsp;Six heritable organs —brain, gut, muscle, eyes, antennae, size— each a multiplier with a benefit and an energy cost. Costs grow faster than linearly and metabolism scales with mass to the ¾ (Kleiber, 1932). A large brain costs about 18 times as much as muscle per gram (Elia, 1992) and, as in the fish of Kotrschal et al. (2013), shrinks the gut and the offspring. Within a life, each organ can adjust by up to ±25%, but only when experience moves outside the typical.</p>
       <p>We compare three forms of inheritance: <strong>Darwinian</strong> (genes only), <strong>Baldwin</strong> (the capacity to adjust is inherited) and <strong>epigenetic</strong> (part of the mother's adjustment is inherited, like the learned avoidance that <em>C. elegans</em> keeps for about 4 generations; Moore et al., 2019).</p>
       <ul>
         <li><span class="tag expl">exploratory</span> With cold winters, cold became the cause of half or more of the deaths (before, 100% were old age); epigenetic inheritance had fewer cold deaths. With 3 seeds per cell, no difference is firm.</li>
@@ -586,7 +585,7 @@
       </ul>
 
       <h3>Twenty years in the game</h3>
-      <p><span class="tag expl">exploratory</span> &nbsp;The game as it is today —three colonies, habitats (cold −3 °C, hot +6 °C, poison close by), fruit every 30 s, evolving body, individual variation, inheritance of what was lived and of what was learned— over 20 years (~50 generations) on 8 maps (seeds 7500–7507, run on 8 October 2026). Genes from year 1 to year 20, all colonies of each map together:</p>
+      <p><span class="tag expl">exploratory</span> &nbsp;The game version measured on 8 October 2026 —three colonies, habitats (cold −3 °C, hot +6 °C, poison close by), fruit every 30 s, evolving body, individual variation, inheritance of what was lived and of what was learned— over 20 years (~50 generations) on 8 maps (seeds 7500–7507, run on 8 October 2026). Genes from year 1 to year 20, all colonies of each map together:</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Gene</th><th class="n">change</th><th class="n">t</th><th class="n">maps in that direction</th></tr></thead>
@@ -600,7 +599,7 @@
       </div>
       <figure class="wide">
         <div class="panel">
-          <div class="seg" role="tablist">
+          <div class="seg" role="group">
             <button type="button" class="on" data-gene="muscle">Muscle</button>
             <button type="button" data-gene="brain">Brain</button>
             <button type="button" data-gene="size">Size</button>
@@ -616,7 +615,7 @@
       </figure>
 
       <p><strong>Evolution happens, the same way everywhere.</strong> It is adaptation to the world all colonies share. Conduct also passes from mother to daughter: by year 20 each ant carries 0.9–1.0 lines of her own, about 0.75 inherited, and they are the same in every habitat ("memory before pursue", "memory before scent"). In today's game the habitat that suffers is the <em>hot</em> one: 7 alive on average (23% of the ceiling) and empty in 36 of 160 nest-years, against 16.5 in the cold and toxic ones; 91 refoundings on 8 maps.</p>
-      <p><strong>It is not local.</strong> We looked for each colony adapting to its habitat with a reciprocal transplant (every newborn raised in a random nest and followed until death) and with 20-year runs on 24 maps, in which 2 of 16 new maps died out. What showed up was a <em>stranger advantage</em>: in every habitat, young from elsewhere left more offspring than locals (−0.41, t −2.9). We explained it: a local female may not mate with her brothers, often the best males of a small colony, and a newcomer is kin to no one. Once inbreeding depression was added the rule makes sense, and the advantage persists for a reason seen in nature too (genetic rescue). Local adaptation, none. Repeated with today's game (12 maps, seeds 7400–7411, 3 years then 2 of transplant): local − foreign = −0.19 offspring (t −0.67, locals ahead on 6 of 12 maps). Neither local adaptation nor, any more, a clear stranger advantage.</p>
+      <p><strong>It is not local.</strong> We looked for each colony adapting to its habitat with a reciprocal transplant (every newborn raised in a random nest and followed until death) and with 20-year runs on 24 maps, in which 2 of 16 new maps died out. What showed up was a <em>stranger advantage</em>: in every habitat, young from elsewhere left more offspring than locals (−0.41, t −2.9). We explained it: a local female may not mate with her brothers, often the best males of a small colony, and a newcomer is kin to no one. Once inbreeding depression was added the rule makes sense, and the advantage persists for a reason seen in nature too (genetic rescue). No consistent local adaptation was detected. Repeated with today's game (12 maps, seeds 7400–7411, 3 years then 2 of transplant): local − foreign = −0.19 offspring (t −0.67, locals ahead on 6 of 12 maps). Neither local adaptation nor, any more, a clear stranger advantage.</p>
       <figure class="wide">
         <div class="panel">
           <div class="legend">
@@ -629,6 +628,7 @@
       </figure>
 
       <p><strong>Why, as far as we measured:</strong> colonies of 12–19 adults dwindle to a handful and are replaced by their neighbours (≈7% of nest-years empty and 115 refoundings on 16 maps in the 24-map run; 91 on 8 maps today, mostly in the hot habitat), erasing what had built up. Bigger colonies (a ceiling of 60) remain the untried remedy. The game's <em>Evolution</em> panel draws these curves live, colony by colony.</p>
+    <p class="source-note"><b>Result sources</b><code>docs/research/world-calibration.md · investigacion/data/game.json</code></p>
     </section>
 
     <!-- 10 -->
@@ -637,15 +637,15 @@
       <div class="grid2">
         <div>
           <h3>Determinism and fingerprints</h3>
-          <p>Every random number comes from a seed. A lineage depends only on its seed and its options: run alone or inside a batch, it comes out identical byte for byte on the same machine (rounding can differ between ARM and x64 processors or between Node major versions, so fingerprints are kept per machine). A live game is not seeded: it is recorded and replayed from its events. Seeded lives are reduced to a fingerprint of decisions; the tests compare them against fingerprints recorded before each architecture change, so a refactor cannot silently change what the ant does.</p>
+          <p>In research runs, random numbers come from a seed. A lineage depends only on its seed and its options: run alone or inside a batch, it comes out identical byte for byte on the same machine (rounding can differ between ARM and x64 processors or between Node major versions, so fingerprints are kept per machine). A live game is not seeded: it is recorded and replayed from its events. Seeded lives are reduced to a fingerprint of decisions; the tests compare them against fingerprints recorded before each architecture change, so a refactor cannot silently change what the ant does.</p>
           <h3>Preregistration</h3>
           <p>Hypotheses, measures, contrasts, direction, correction and success criterion are frozen in a commit before running. Anything that was not there is reported as exploratory. Execution deviations are documented (a container restarted and the runs were relaunched per lineage, with an identity check).</p>
         </div>
         <div>
           <h3>Statistics</h3>
-          <p>Unit = lineage or colony, never the row. Cells with common random numbers: the same worlds in every condition, paired contrasts. Paired sign permutations (10,000), Holm for multiple tests, 95% bootstrap, <em>d<sub>z</sub></em> and lineages needed for 80% power. Latin hypercube designs over the hand-tuned parameters to see whether an effect keeps its sign.</p>
+          <p>In transmission studies the unit is the lineage; in other protocols it is the colony or life according to the design. The inheritance study uses paired lives grouped in populations with shared ancestry: dependence between descendants limits treating them as independent replicates. Cells with common random numbers: the same worlds in every condition, paired contrasts. Paired sign permutations (10,000), Holm for multiple tests, 95% bootstrap, <em>d<sub>z</sub></em> and lineages needed for 80% power. Latin hypercube designs over the hand-tuned parameters to see whether an effect keeps its sign.</p>
           <h3>Lab versus game</h3>
-          <p>The lab removes space, water, nest and larder, but keeps everything that is learned and everything that is transmitted, with the same code. It runs about 20 lineages of 12 generations per second on 4 cores. Every lab result is then checked in the full game.</p>
+          <p>The lab removes space, water, nest and larder, but keeps the learning and transmission mechanisms evaluated in that study, with the same code. It runs about 20 lineages of 12 generations per second on 4 cores. Three preregistered contrasts from the main study were checked in the game: H1, H2a and H3. The coverage replication has no equivalent game confirmation here.</p>
         </div>
       </div>
     </section>
@@ -654,11 +654,12 @@
     <section id="limites">
       <h2><span class="num">13</span>Limitations</h2>
       <ul>
-        <li><strong>The main study matched formats by items.</strong> Matched by information (coverage), the survival trap shrinks by 80%; the myths stay. The 22–27 point figure should be read with that replication (Prystawski et al., 2025, show that channel rate matters).</li>
+        <li><strong>Original maps and sensitivity.</strong> In 101 of the 600 game-confirmation maps a tree was outside the boundary. The three contrasts retain their direction after affected lineages are excluded; absolute levels and other studies are not validated by this check.</li>
+        <li><strong>The main study matched formats by items.</strong> With budgets matched by species coverage, the survival trap shrinks by 80%; the myths stay. The 22–27 point figure should be read with that replication (Prystawski et al., 2025, show that channel rate matters).</li>
         <li><strong>A verdict only covers fruit the teacher knew.</strong> That is the nature of a conclusion, and also why it generalizes less.</li>
         <li><strong>The pilot shaped the hypotheses.</strong> Confirmatory tests use new seeds, but some hypotheses (explore or return, diversity) were written after seeing a pilot.</li>
         <li><strong>Survivorship bias.</strong> In the self-rewriting studies deaths are not yet logged, which biases what is learned toward those who survive.</li>
-        <li><strong>It is a toy ant.</strong> Parameters are inspired by the literature but tuned by hand; external validity comes from the direction of the effects, not their magnitudes.</li>
+        <li><strong>It is a toy ant.</strong> Parameters are inspired by the literature but tuned by hand; neither the direction nor magnitude of the effects alone establishes validity in animals or human cultures.</li>
         <li><strong>Small colonies.</strong> With 12–19 adults per nest, drift and mixing through refounding outweigh weak local selection; that is why the game shows global evolution and not local.</li>
         <li><strong>Inheriting what was learned was tested by repairing a sabotage.</strong> It does not show that learning finds something the innate program lacks.</li>
         <li><strong>Studies run on earlier code.</strong> The LIBERA batteries (2–3 Oct) and the language-model plan (1–5 Oct) ran on the code of those days; the game has changed since (habitats, colonies, inheritance of what was learned), so their numbers describe that organism.</li>
@@ -669,7 +670,7 @@
     <!-- 12 -->
     <section id="ruta">
       <h2><span class="num">14</span>Roadmap</h2>
-      <p><strong>Done since the previous version:</strong> Tyrrell's realism metrics as a baseline; scientific night, learned drives and free-flow selector tested (the first two switched on in the game); formats matched by information; a body that evolves under real pressures; inheriting what was learned, preregistered.</p>
+      <p><strong>Done since the previous version:</strong> Tyrrell's realism metrics as a baseline; scientific night, learned drives and free-flow selector tested (the first two switched on in the game); budgets matched by species coverage; a body that evolves under real pressures; inheriting what was learned, preregistered.</p>
       <ol>
         <li><strong>A world where the innate order is not optimal without sabotage</strong> (seasons or maps where the right priority changes): the next step the inheritance preregistration set.</li>
         <li><strong>A richer grammar</strong>, so entities can build more than an order of lines: the underlying aim is that they rewrite their own behavior.</li>
@@ -682,7 +683,7 @@
     <!-- 13 -->
     <section id="reproducir">
       <h2><span class="num">15</span>Reproduce</h2>
-      <p>Raw rows are not versioned: <code>research/run.js</code> writes next to them a <code>manifest.json</code> with the design, the seeds and the commit, enough to regenerate them exactly. Node ≥ 22.</p>
+      <p>Many raw rows are not versioned: <code>research/run.js</code> writes next to them a <code>manifest.json</code> with the design, the seeds and the commit, to repeat them with the same revision and runtime environment. The commands below use the checked-out code; reproducing historical figures requires each study’s recorded commit. Node ≥ 22.</p>
 <pre><code><span class="c"># main lab study (12,800 lineages, ~5 min)</span>
 node research/run.js --design research/designs/main.json
 node research/confirm.js research/results/main
@@ -702,7 +703,7 @@ node scripts/lineage-analysis.js research/prereg-lineage   <span class="c"># + H
 <span class="c"># the game's world: colonies, habitats, years</span>
 node scripts/game-world.js --interval 30 --seeds 8 --seed 7500 --years 20 --jobs 16   <span class="c"># with the game's current settings</span>
 
-<span class="c"># information-matched replication</span>
+<span class="c"># coverage-budget-matched replication</span>
 node research/run.js --design research/designs/coverage-items.json
 node research/run.js --design research/designs/coverage-coverage.json
 node research/confirm-coverage.js research/results/coverage-items research/results/coverage-coverage
@@ -801,7 +802,7 @@ npm test</code></pre>
 
 <footer>
   Fagi · first-agi · an artificial life experiment. Code, protocols and regenerable data are in the project repository.<br />
-  Results marked as exploratory were not preregistered and should be read as description. Updated 8 October 2026.
+  Results marked as exploratory were not preregistered and should be read as description. Editorial review: 9 October 2026. Game data: 8 October 2026.
 </footer>
 
 <script type="module" src="/investigacion/site.js"></script>

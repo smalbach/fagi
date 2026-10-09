@@ -18,30 +18,16 @@ document.querySelectorAll('[data-theme-set]').forEach((b) => b.addEventListener(
   saveTheme(b.dataset.themeSet);
 }));
 
-// ---------- things appear as they scroll in ----------
-const revealed = new IntersectionObserver((entries) => {
-  for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); revealed.unobserve(e.target); }
-}, { rootMargin: '0px 0px -8% 0px' });
-document.querySelectorAll('main section > *, .stat, .card').forEach((el) => {
-  el.classList.add('reveal');
-  revealed.observe(el);
+// Expose the selected result/metric on each native button group.
+function syncSelections() {
+  document.querySelectorAll('.seg button').forEach((button) => {
+    button.setAttribute('aria-pressed', String(button.classList.contains('on')));
+  });
+}
+syncSelections();
+document.querySelectorAll('.seg').forEach((group) => {
+  group.addEventListener('click', () => queueMicrotask(syncSelections));
 });
-
-// ---------- the big numbers count up once ----------
-const counted = new IntersectionObserver((entries) => {
-  for (const e of entries) {
-    if (!e.isIntersecting) continue;
-    counted.unobserve(e.target);
-    const to = Number(e.target.dataset.count), t0 = performance.now();
-    const tick = (now) => {
-      const k = Math.min(1, (now - t0) / 1100), v = Math.round(to * (1 - (1 - k) ** 3));
-      e.target.textContent = document.documentElement.lang === 'en' ? v.toLocaleString('en-US') : v.toLocaleString('es-ES').replace(/\./g, ' ');
-      if (k < 1) requestAnimationFrame(tick);
-    };
-    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(tick);
-  }
-});
-document.querySelectorAll('[data-count]').forEach((el) => counted.observe(el));
 
 // ---------- hero ----------
 const heroCanvas = document.getElementById('hero-canvas');

@@ -7,7 +7,7 @@
   <meta name="description" content="Fagi: un organismo artificial que aprende de su cuerpo, escribe sus propias reglas y las transmite a su colonia. Preguntas, métodos, resultados preregistrados y referencias." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script>
     // Theme before first paint, so a saved choice never flashes the other one.
     try { const t = localStorage.getItem('fagi-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
@@ -15,10 +15,10 @@
   <link rel="stylesheet" href="/investigacion/site.css" />
 </head>
 <body>
-<div class="bg-glow" aria-hidden="true"></div>
+<a class="skip-link" href="#resumen">Saltar al contenido</a>
 
 <header class="topbar">
-  <a class="brand" href="#top"><span class="dot"></span>fagi <em>/ investigación</em></a>
+  <a class="brand" href="#top">fagi <em>/ atlas de vida artificial</em></a>
   <nav>
     <a href="#mundo" class="hide-sm">Mundo</a>
     <a href="#organismo" class="hide-sm">Organismo</a>
@@ -42,28 +42,25 @@
 
 <div class="hero" id="top">
   <div class="hero-text">
-    <div class="pill"><span class="live"></span>Investigación en curso · actualizado 8 oct 2026 · <a href="#herencia">nuevo: heredar lo aprendido →</a></div>
-    <h1>Un organismo que <span class="grad">aprende de su cuerpo</span> y le enseña a su colonia</h1>
-    <p class="lede">Fagi es una hormiga simulada que nace sin saber qué se come. Prueba, enferma, duerme, recuerda, escribe sus conclusiones como código legible y las pasa a sus hermanas e hijas. Su mundo es nuestro laboratorio para preguntas que no se pueden manipular en animales reales.</p>
-    <div class="cta">
-      <a class="btn primary" href="#resultado">Ver resultados</a>
-      <a class="btn ghost" href="#resumen">Leer el resumen</a>
-    </div>
-    <p class="byline">Por <b>Snheidert Smalbach</b> · vida artificial · aprendizaje · transmisión cultural</p>
+    <p class="eyebrow">Cuaderno de investigación / 01</p>
+    <h1>Una vida pequeña.<br><em>Preguntas enormes.</em></h1>
+    <p class="lede">Un organismo artificial que aprende de su cuerpo y transmite lo aprendido. Un mundo pequeño para estudiar cómo nace el conocimiento y cuándo se convierte en una mala herencia.</p>
+    <div class="cta"><a class="btn primary" href="#hallazgos">Explorar la investigación <span aria-hidden="true">↗</span></a><a class="text-link" href="#laboratorio">Probar el laboratorio</a></div>
+    <p class="byline">Por <b>Snheidert Smalbach</b><br>Vida artificial · aprendizaje · transmisión cultural</p>
   </div>
   <figure class="hero-art">
-    <canvas id="hero-canvas" aria-label="Varias hormigas Fagi caminan entre el nido y los frutos dejando un rastro"></canvas>
-    <figcaption>Sprites reales del juego, dibujados en vivo. El movimiento es decorativo.</figcaption>
+    <div class="specimen"><canvas id="hero-canvas" aria-label="Lámina de Fagi, dibujada con el sprite real del juego"></canvas><span class="specimen-label label-head">01 / Percibir</span><span class="specimen-label label-body">02 / Experimentar</span><span class="specimen-label label-memory">03 / Aprender</span><span class="specimen-index" aria-hidden="true">F.</span></div>
+    <figcaption><span>Lámina I / El organismo</span><span>Ilustración del juego · no es un experimento</span></figcaption>
   </figure>
 </div>
-
-<div class="stats">
-  <div class="stat"><b data-count="12800">12 800</b><span>linajes simulados en el estudio principal</span></div>
-  <div class="stat"><b>11<small>/11</small></b><span>hipótesis confirmadas en laboratorio; 3/3 en el juego</span></div>
-  <div class="stat"><b data-count="27">27</b><span>protocolos y baterías congelados antes de correr, negativos incluidos</span></div>
-  <div class="stat"><b>3<small>/4</small></b><span>hipótesis apoyadas al heredar lo aprendido: +11 pts de supervivencia</span></div>
-  <div class="stat"><b>1<small> semilla</small></b><span>= 1 vida: se repite byte a byte en la misma máquina y versión de Node</span></div>
-</div>
+<div class="atlas-question"><p class="eyebrow">La pregunta central</p><div><h2>¿Transmitimos conocimiento<br>o también nuestros errores?</h2><p>En Fagi podemos inspeccionar cada creencia, cambiar el mundo y repetir las condiciones de un experimento.</p></div></div>
+<nav class="chapter-nav" aria-label="Recorridos del atlas"><a href="#mundo"><span>01 / El mundo</span>Un lugar para vivir ↗</a><a href="#organismo"><span>02 / El organismo</span>Del cuerpo a la memoria ↗</a><a href="#resultado"><span>03 / La herencia</span>Lo que pasa a las hijas ↗</a><a href="#metodo"><span>04 / La evidencia</span>Cómo lo sabemos ↗</a></nav>
+<div class="findings" id="hallazgos" aria-labelledby="findings-title"><div class="findings-heading"><p class="eyebrow">Notas de campo / Resultados</p><h2 id="findings-title">Lo que sabemos hasta ahora.</h2><p>Resultados de simulación. Cada conclusión tiene un alcance.</p></div><div class="findings-grid">
+<a href="#resultado"><span class="tag conf">Transmisión cultural</span><h3>Aprender mejor no siempre es adaptarse mejor.</h3><p>Las razones reducen el daño en un mundo estable. Al invertirlo, dejan menos supervivientes que las conclusiones; la brecha se reduce al igualar la cobertura transmitida.</p><span class="finding-link">Leer el estudio y su réplica ↗</span></a>
+<a href="#herencia"><span class="tag conf">Herencia del aprendizaje</span><h3>Una reparación puede pasar a la siguiente generación.</h3><p>60 % frente a 49 % de supervivencia al heredar revisiones de madres supervivientes. Se probó con un programa dañado a propósito y vidas individuales.</p><span class="finding-link">Ver qué demuestra y qué no ↗</span></a>
+<a href="#negativos"><span class="tag expl">Preguntas abiertas</span><h3>Evolucionar no significa adaptarse a cada hábitat.</h3><p>En las corridas exploratorias cambian los genes, pero no encontramos adaptación local consistente ni conducta nueva que supere al diseño humano.</p><span class="finding-link">Consultar límites y resultados negativos ↗</span></a>
+</div></div>
+<div class="stats"><div class="stat"><b>12 800</b><span>ejecuciones de linajes en 64 condiciones; 200 semillas compartidas</span></div><div class="stat"><b>11 / 11</b><span>hipótesis apoyadas en laboratorio; 3 contrastes confirmados también en el juego del estudio</span></div><div class="stat"><b>6 / 6</b><span>pruebas apoyadas en la réplica por cobertura; una predicción descriptiva no se cumplió</span></div></div>
 
 <div class="layout">
   <aside class="toc" aria-label="Contenido">
@@ -94,18 +91,18 @@
     <section id="resumen">
       <h2><span class="num">01</span>Resumen</h2>
       <p>Cuando una cultura transmite <strong>razones</strong> («lo agrio me enfermó») en lugar de <strong>conclusiones</strong> («no comas la gota roja»), ¿se adapta mejor a un mundo que cambia, o queda más atrapada en creencias falsas? Construimos un organismo artificial cuyo conocimiento es inspeccionable —cada creencia guarda de dónde vino— y cuyo mundo es determinista, y manipulamos <em>qué</em> se transmite con un presupuesto igual de elementos.</p>
-      <p>Con el análisis congelado antes de correr, encontramos que las razones son el mejor maestro mientras el mundo se mantiene (40 % menos bocados dañinos que los veredictos) y la peor herencia cuando el mundo se invierte: los linajes que heredan razones llegan a la inversión cargando más mitos y pierden <strong>22–27 puntos porcentuales más</strong> de esa generación. Transmitir la evidencia junto con las razones conserva casi toda la ventaja de enseñanza y reduce mitos y muertes, sin eliminarlos. El efecto se confirmó en un laboratorio abstracto (11 de 11 hipótesis) y en el juego completo con cuerpo, espacio y noche (3 de 3, misma dirección y tamaño parecido). Una réplica preregistrada que iguala la <em>información</em> transmitida (6 de 6 apoyadas) precisa la lectura: unos cuatro quintos de esa trampa venían de que las razones cubren más; los mitos sí son propios del formato.</p>
-      <p><strong>Lo más reciente.</strong> Un segundo estudio preregistrado (6 de octubre de 2026), con cuatro hipótesis, preguntó si <strong>heredar lo aprendido</strong> suma a aprender en vida. Sí: con su programa roto a propósito, las hijas que nacen con las revisiones de su madre superviviente —cada una respaldada por evidencia— sobreviven el 60 % de las veces, frente al 49 % de las que aprenden igual desde cero (<strong>+11 puntos</strong>, 224 frente a 56 pares discordantes). Aprender en vida ayuda poco (+2) y la selección suma algo (+2,4); que aprender no cueste nada con el programa intacto no se pudo demostrar (<a href="#herencia">sección 07</a>). En el juego, tres colonias en hábitats distintos durante 20 años (~50 generaciones) evolucionan hacia el mundo que comparten —más músculo, menos cerebro—, pero tras seis pruebas no encontramos que cada colonia se adapte a su propio hábitat. Cerramos esa línea y la contamos entera.</p>
+      <p>Con el análisis congelado antes de correr, encontramos que las razones enseñan mejor que los veredictos mientras el mundo se mantiene (≈40 % menos bocados dañinos que los veredictos) pero dejan menos supervivientes que los otros formatos probados cuando el mundo se invierte: los linajes que heredan razones llegan a la inversión cargando más mitos y dejan <strong>22–27 puntos porcentuales menos de supervivientes que los veredictos</strong> en esa generación. Transmitir la evidencia junto con las razones conserva casi toda la ventaja de enseñanza y reduce mitos y muertes, sin eliminarlos. El efecto se confirmó en un laboratorio abstracto (11 de 11 hipótesis) y en el juego completo con cuerpo, espacio y noche (3 de 3, misma dirección y tamaño parecido). Una réplica preregistrada que iguala el presupuesto por <em>cobertura de especies</em> (6 de 6 apoyadas) precisa la lectura: unos cuatro quintos de esa trampa venían de que las razones cubren más; la diferencia en mitos persiste bajo esa forma de igualación. No se igualaron bits ni toda la información transmitida.</p>
+      <p><strong>Lo más reciente.</strong> Un segundo estudio preregistrado (6 de octubre de 2026), con cuatro hipótesis, preguntó si <strong>heredar lo aprendido</strong> suma a aprender en vida. Sí: con su programa roto a propósito, las hijas que nacen con las revisiones de su madre superviviente —cada una respaldada por evidencia— sobreviven el 60 % de las veces, frente al 49 % de las que aprenden igual desde cero (<strong>+11 puntos</strong>, 224 frente a 56 pares discordantes). Aprender en vida ayuda poco (+2) y la selección suma algo (+2,4); no se pudo descartar un coste de 5 puntos con el programa intacto (<a href="#herencia">sección 07</a>). En el juego, tres colonias en hábitats distintos durante 20 años (~50 generaciones) evolucionan hacia el mundo que comparten —más músculo, menos cerebro—, pero tras seis pruebas no encontramos que cada colonia se adapte a su propio hábitat. Cerramos esa línea y la contamos entera.</p>
       <p>El mismo organismo sirvió para otros ocho protocolos —memoria y sueño, conceptos, diversidad, información social, exploración, decisión adaptativa, cautela—, para doce baterías sobre su mente y su cuerpo (noche científica, impulsos aprendidos, selector de acciones, estómago, cuerpo evolutivo) y para un intento de que un modelo de lenguaje reescriba su código. Reportamos todo, incluido lo que no apoyó nuestras hipótesis.</p>
     </section>
 
     <!-- 2 -->
     <section id="pregunta">
-      <h2><span class="num">02</span>La pregunta y por qué nadie la ha respondido</h2>
+      <h2><span class="num">02</span>La pregunta que podemos poner a prueba</h2>
       <blockquote>¿Transmitir razones en vez de conclusiones hace a una cultura más adaptable o más supersticiosa?</blockquote>
       <p>La literatura tira en dos direcciones. En el paradigma de la «rueda» de Derex y colaboradores (2019), transmitir una teoría no aceleró la mejora y estrechó la exploración de quien aprendía; en 2025 mostraron que las teorías transmitidas guían a los aprendices sean correctas o no. Roberts-Gaal, Bolic y Cushman (2025) encontraron que, cuando el mundo varía, las personas prefieren pasar metas y causas en lugar de procedimientos. Los modelos formales (Beppu y Griffiths, 2009) predicen que pasar creencias supera a pasar conducta. Y la «estufa caliente» de Denrell y March (2001) explica por qué una evitación aprendida casi nunca se corrige: quien evita algo deja de probarlo.</p>
-      <p>Lo que falta es una <strong>manipulación controlada de qué se transmite con presupuesto igual</strong>, midiendo a la vez la adaptación tras un cambio y la persistencia de creencias falsas. En humanos o animales eso es casi imposible: no se puede saber de dónde viene cada creencia ni repetir la misma vida dos veces. En Fagi sí.</p>
-      <div class="note"><b>Dos reglas que guían todo el proyecto</b>Fagi se juzga por <em>realismo</em>, no por supervivencia: morir está bien si la causa es realista; solo son errores las muertes artificiales (morir junto a agua conocida, quedarse en un bucle, dormir con sed crítica). Y ninguna afirmación vale sin un protocolo congelado antes de mirar los datos.</div>
+      <p>El proyecto propone una <strong>manipulación controlada de qué se transmite con presupuesto igual</strong>, midiendo a la vez la adaptación tras un cambio y la persistencia de creencias falsas. La simulación permite rastrear el origen de cada creencia y repetir las condiciones. Esto no establece que la pregunta no se haya estudiado antes ni traslada los resultados directamente a animales o personas.</p>
+      <div class="note"><b>Dos reglas que guían todo el proyecto</b>Fagi se juzga por <em>realismo</em>, no por supervivencia: morir está bien si la causa es realista; solo son errores las muertes artificiales (morir junto a agua conocida, quedarse en un bucle, dormir con sed crítica). Las afirmaciones confirmatorias requieren un protocolo congelado antes de mirar los datos; los resultados exploratorios se identifican como tales.</div>
     </section>
 
     <!-- 3 -->
@@ -227,7 +224,7 @@
         <li><strong>Siente.</strong> El sabor solo existe en la boca. Un mal bocado trae malestar y aversión a ese olor tras un solo ensayo, como en Garcia y Koelling (1966).</li>
         <li><strong>Recuerda.</strong> Cada experiencia mueve valor y confianza con una regla tipo Rescorla-Wagner, de corto a largo plazo (la confianza a corto plazo se desvanece en ≈1 día simulado; la de largo plazo, en semanas).</li>
         <li><strong>Escribe.</strong> Si una creencia cruza un umbral, se convierte en regla, con histéresis para que no parpadee.</li>
-        <li><strong>Duerme.</strong> Cada noche, dormida en el nido, ordena el día y convierte sus dudas en preguntas con una predicción, que al día siguiente responde con un bocado de prueba, empezando por lo que más le enseña sin ponerla en peligro.</li>
+        <li><strong>Duerme.</strong> Cada noche, dormida en el nido, ordena el día y convierte sus dudas en preguntas con una predicción, que al día siguiente responde con un bocado de prueba, priorizando el progreso esperado y la seguridad estimada; esa prioridad no demostró acelerar el aprendizaje.</li>
         <li><strong>Agrupa.</strong> Con cosas sin categoría innata (solo color, forma y textura), forma conceptos que predicen especies nuevas y los retira cuando fallan; tras una sorpresa, duda de todo un tiempo (Behrens y cols., 2007). <span class="muted">En los estudios; apagado en el juego.</span></li>
         <li><strong>Reordena su programa.</strong> Si poner una conducta delante de otra le ahorra reservas una y otra vez, escribe esa línea con su evidencia; sus hijas la heredan.</li>
         <li><strong>Transmite.</strong> A hermanas y a la siguiente generación, con el formato que el experimento decida: nada, veredictos, razones o razones con evidencia.</li>
@@ -244,14 +241,14 @@
         <li><strong>Unidad de análisis:</strong> el linaje (12 generaciones de colonias de 5). Las filas de un linaje nunca se tratan como independientes.</li>
         <li><strong>Cuatro formatos</strong> con el mismo presupuesto de 4 elementos: <em>nada</em>; <em>veredictos</em> (conclusiones por fruto que quien enseña conoció); <em>razones</em> (reglas sobre rasgos); <em>razones + evidencia</em> (reglas y los bocados que las respaldan).</li>
         <li><strong>Cambio del mundo</strong> en la generación 6: ninguno, inversión (lo venenoso pasa a nutritivo y viceversa), rotación o desplazamiento a otra dimensión.</li>
-        <li><strong>Laboratorio:</strong> 64 celdas × 200 linajes, semillas 1001–1200, 12 800 linajes en 281 s. Celdas pareadas: cada linaje tiene un gemelo en cada otra celda viviendo los mismos mundos.</li>
+        <li><strong>Laboratorio:</strong> 64 celdas × 200 linajes, semillas 1001–1200, 12 800 linajes en 281 s. Formatos pareados por semilla dentro de cada condición. Cambiar el tipo de cambio puede modificar también el catálogo inicial; no todas las celdas comparten exactamente el mismo mundo.</li>
         <li><strong>Juego:</strong> 75 linajes por formato, semillas 5000–5074, vidas de 1800 s, inversión en la generación 4; ≈40 min en 18 núcleos.</li>
         <li><strong>Análisis:</strong> pruebas de permutación pareadas con 10 000 inversiones de signo, corrección de Holm, intervalos bootstrap del 95 % y tamaño de efecto <em>d<sub>z</sub></em>.</li>
       </ul>
 
       <figure class="wide">
         <div class="panel">
-          <div class="seg" role="tablist">
+          <div class="seg" role="group">
             <button type="button" class="on" data-results="lab">Laboratorio</button>
             <button type="button" data-results="game">Juego completo</button>
           </div>
@@ -263,13 +260,13 @@
           </div>
           <div id="result-charts" class="chart-row"></div>
         </div>
-        <figcaption><b>Figura 2.</b> Medias por linaje. <span id="result-source"></span>. Las razones enseñan mejor mientras el mundo se mantiene (izquierda) pero dejan menos supervivientes cuando se invierte (centro), porque llegan con más mitos —creencias falsas nunca vividas— (derecha).</figcaption>
+        <figcaption><b>Figura 2.</b> Medias por linaje. <span id="result-source"></span>. Las razones enseñan mejor mientras el mundo se mantiene (izquierda) pero dejan menos supervivientes cuando se invierte (centro), y se observa una mayor carga de mitos —reglas falsas sin experiencia propia— (derecha). Estos contrastes no aíslan por sí solos la mediación causal de los mitos.</figcaption>
       </figure>
 
 
       <figure class="wide">
         <div class="panel">
-          <div class="seg" role="tablist">
+          <div class="seg" role="group">
             <button type="button" class="on" data-curve="alive">Supervivientes</button>
             <button type="button" data-curve="myths">Mitos</button>
             <button type="button" data-curve="harmful">Bocados dañinos</button>
@@ -283,7 +280,7 @@
           </div>
           <div class="chart"><h5 id="curves-title"></h5><div id="curves-chart"></div></div>
         </div>
-        <figcaption><b>Figura 3.</b> La celda principal generación a generación: química de un rasgo, vidas de 1800 s, inversión en la generación 6, medias de 200 linajes por formato (semillas 1001–1200). Generada con <code>node scripts/site-data.js</code> desde el mismo código del estudio; la generación 6 reproduce exactamente la tabla preregistrada. Todo va parejo hasta el cambio: entonces la línea de las razones cae sola, y en la generación siguiente se recupera.</figcaption>
+        <figcaption><b>Figura 3.</b> La celda principal generación a generación: química de un rasgo, vidas de 1800 s, inversión en la generación 6, medias de 200 linajes por formato (semillas 1001–1200). Generada con <code>node scripts/site-data.js</code> desde el mismo código del estudio; la generación 6 reproduce exactamente la tabla preregistrada. Todo va parejo hasta el cambio: las razones muestran la mayor caída de supervivencia, seguida de una recuperación en las generaciones posteriores.</figcaption>
       </figure>
 
       <h3>Las once hipótesis del laboratorio</h3>
@@ -322,14 +319,14 @@
 
       <h3>Lo que se ve al explorar (no preregistrado)</h3>
       <ul>
-        <li><strong>La trampa necesita una inversión.</strong> Si el veneno rota a otro valor o pasa a otra dimensión, los linajes de razones también cargan más mitos (1,3–2,5 veces), pero nadie muere por ellos: 98–100 % de supervivencia en todos los formatos. Solo la inversión hace que la vieja razón apunte justo a la comida nueva, y el rechazo se vuelve inanición.</li>
+        <li><strong>La gran caída se observa con la inversión estudiada.</strong> Si el veneno rota a otro valor o pasa a otra dimensión, los linajes de razones también cargan más mitos (1,3–2,5 veces), sin una caída comparable de supervivencia: se observa un 98–100 % en todos los formatos. Solo la inversión hace que la vieja razón apunte justo a la comida nueva, y el rechazo se vuelve inanición.</li>
         <li><strong>Química conjuntiva</strong> (veneno = color Y olor): mismo patrón, más pequeño (80 % frente a 92 % de supervivientes).</li>
         <li><strong>Recuperación.</strong> Tras cualquier cambio, lo que se enseña a las recién nacidas tarda más en corregirse con razones (1,7–2,1 generaciones frente a 1,2–1,7).</li>
         <li><strong>Vidas cortas</strong> reducen las muertes pero no los mitos: la creencia es igual de falsa, solo no hay tiempo de morir de hambre por ella.</li>
         <li><strong>Después de la inversión</strong> los linajes de razones vuelven a ser los que menos daño sufren: las supervivientes reaprenden.</li>
       </ul>
-      <h3>Réplica con la información igualada <span class="tag conf">confirmatorio</span></h3>
-      <p>Protocolo congelado en <code>a9c3265</code> (5 de octubre de 2026), semillas nuevas 4001–4200, 200 linajes por celda, Holm sobre seis. El presupuesto ya no se cuenta en elementos sino en <em>cobertura</em>: cuánto del mundo cubre lo transmitido (<code>SOCIAL.cost</code> «coverage»). Contado en elementos, el estudio principal se reproduce idéntico.</p>
+      <h3>Réplica con el presupuesto igualado por cobertura <span class="tag conf">confirmatorio</span></h3>
+      <p>Protocolo congelado en <code>a9c3265</code> (5 de octubre de 2026), semillas nuevas 4001–4200, 200 linajes por celda, Holm sobre seis. El presupuesto ya no se cuenta en elementos sino en <em>cobertura</em>: cuánto del mundo cubre lo transmitido (<code>SOCIAL.cost</code> «coverage»). El modo de elementos reproduce el estudio original con sus semillas; con semillas nuevas, la réplica C0 estima una brecha de 0,232, frente a 0,274 en el estudio principal.</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Prueba</th><th class="n">Diferencia [IC 95 %]</th><th class="n">d<sub>z</sub></th></tr></thead>
@@ -347,18 +344,19 @@
       <figure class="wide">
         <div class="panel">
           <div class="legend">
-            <span><i style="background:var(--s-rule)"></i>contando elementos (estudio principal)</span>
-            <span><i style="background:var(--s-verdict)"></i>igualando la información (réplica)</span>
+            <span><i style="background:var(--s-rule)"></i>elementos (C0 réplica; H1/H3/H4a principal)</span>
+            <span><i style="background:var(--s-verdict)"></i>igualando cobertura (réplica)</span>
           </div>
           <div id="coverage-charts" class="chart-row"></div>
         </div>
-        <figcaption><b>Figura 4.</b> Cada barra es una diferencia entre formatos, en linajes pareados. Contando elementos: H2a de la réplica (C0) y H1, H3 y H4a del estudio principal; igualando la información: el descriptivo preregistrado y C5, C2 y C3. La trampa y la ventaja para enseñar casi desaparecen; los mitos no se mueven.</figcaption>
+        <figcaption><b>Figura 4.</b> Cada barra es una diferencia entre formatos, en linajes pareados. Contando elementos: H2a de la réplica (C0) y H1, H3 y H4a del estudio principal; igualando cobertura: el descriptivo preregistrado y C5, C2 y C3. La brecha de supervivencia y la ventaja para enseñar se reducen; las diferencias en mitos son de tamaño parecido.</figcaption>
       </figure>
 
-      <p><strong>Lectura.</strong> Con la información igualada, la trampa de supervivencia de las razones se encoge un 80 % (de 0,232 a 0,046 [0,017; 0,078]; el preregistro predecía que llegaría a cero y no llegó: queda una trampa pequeña) y su ventaja para enseñar casi desaparece (0,224 → 0,029). Lo que no cambia son los mitos: las razones siguen cargando más creencias falsas, y la evidencia las sigue cortando. Buena parte del resultado principal era <em>cantidad</em> de información; los mitos son del <em>formato</em>.</p>
-      <p class="muted">Análisis de sensibilidad (7 oct): en 101 de los 600 mapas del juego un árbol de especie quedaba fuera del mapa. Quitando esos linajes, H1, H2a y H3 siguen en pie (0,304; 0,210; 0,992).</p>
+      <p><strong>Lectura.</strong> Con el presupuesto igualado por cobertura de especies, la trampa de supervivencia de las razones se encoge un 80 % (de 0,232 a 0,046 [0,017; 0,078]; el preregistro predecía un IC que incluyera cero; no se cumplió: queda una brecha pequeña) y su ventaja para enseñar casi desaparece (0,224 → 0,029). Lo que no cambia son los mitos: las razones siguen cargando más creencias falsas, y la evidencia las sigue cortando. La comparación indica que la <em>cobertura</em> explica gran parte de la brecha de supervivencia en este diseño. Las diferencias en mitos persisten, sin que esto establezca una propiedad universal del formato.</p>
+      <p class="muted">Análisis de sensibilidad (7 oct): en 101 de los 600 mapas del juego un árbol de especie quedaba fuera del mapa. Quitando esos linajes, H1, H2a y H3 siguen en pie (0,304; 0,210; 0,992). Este análisis posterior no valida los niveles absolutos de supervivencia ni los otros estudios afectados por mapas de especies.</p>
 
       <div class="note warn"><b>Una limitación encontrada al leer los resultados</b>El catálogo de cada linaje se sortea para que cada época tenga al menos dos venenos y dos alimentos, así que el mundo antes del cambio depende de qué cambio viene después. Las comparaciones entre formatos no se afectan (son pareadas dentro del mismo mundo); las interacciones H5a/H5b no son un contraste puro de números aleatorios comunes.</div>
+    <p class="source-note"><b>Fuentes del resultado</b><code>docs/research/results.md · docs/research/preregistration-coverage.md</code></p>
     </section>
 
     <!-- inheritance -->
@@ -366,7 +364,7 @@
       <h2><span class="num">07</span>Segundo resultado: heredar lo aprendido (cuatro hipótesis)</h2>
       <p><span class="tag conf">Confirmatorio</span> &nbsp;Protocolo congelado en el commit <code>2459b1c</code> el 6 de octubre de 2026; corrido ese mismo día sin cambiar una línea ni desviarse.</p>
       <blockquote>¿Una hija que nace con las revisiones de programa de su madre superviviente vive más que una que aprende igual, pero desde cero?</blockquote>
-      <p>Antes hubo que encontrar un mundo donde la conducta decida. En el mundo por defecto todo programa sobrevive, incluso uno roto a propósito: ningún aprendizaje puede notarse. Barriendo cada cuánto dan fruto los árboles, la supervivencia cae como un acantilado (100 % con un fruto cada 450 s, 0 % a 750 s). <strong>A 575 s</strong> el programa innato vive el 75 % de vidas de dos horas y romper su calor, su descanso o su comida cuesta 27–37 puntos: ahí lo que hace decide si vive.</p>
+      <p>Antes hubo que encontrar un mundo donde la conducta decida. En el mundo por defecto todo programa sobrevive, incluso uno roto a propósito: ningún aprendizaje puede notarse. Barriendo cada cuánto dan fruto los árboles, la supervivencia cae como un acantilado (96 % para el programa innato con un fruto cada 450 s, 0 % a 750 s). <strong>A 575 s</strong> el programa innato vive el 75 % de vidas de dos horas y romper su calor, su descanso o su comida cuesta 27–37 puntos: ahí lo que hace decide si vive.</p>
       <figure class="wide">
         <div class="panel">
           <div class="legend">
@@ -379,7 +377,7 @@
         </div>
         <figcaption><b>Figura 5.</b> Supervivencia a las 2 horas según cada cuánto da fruto un árbol (24 vidas por punto; 48 en 550, 575 y 590), mapas variados, pareadas por semilla. Lo que hace solo decide cerca del borde del acantilado; a 575 s romper una parte del programa cuesta 27–37 puntos (<code>docs/research/world-calibration.md</code>).</figcaption>
       </figure>
-      <p>En ese mundo movimos <code>dusk</code> (volver al nido cuando se va la luz) al final de su programa: la supervivencia baja al 44 %, y el frío pasa a ser la primera causa de muerte.</p>
+      <p>En ese mundo movimos <code>dusk</code> (volver al nido cuando se va la luz) al final de su programa: en el piloto la supervivencia baja al 44 %, y el frío pasa a ser la primera causa de muerte.</p>
 
       <h3>Diseño</h3>
       <ul>
@@ -404,7 +402,7 @@
 
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Hipótesis</th><th class="n">pares (mejor / peor)</th><th class="n">p unilateral</th><th class="n">diferencia</th><th>Veredicto</th></tr></thead>
+          <thead><tr><th>Hipótesis</th><th class="n">pares (mejor / peor)</th><th class="n">p unilateral / cota H4</th><th class="n">diferencia</th><th>Veredicto</th></tr></thead>
           <tbody>
             <tr><td><strong>H1 (primaria)</strong> · heredar &gt; aprender</td><td class="n">224 / 56</td><td class="n">&lt; 0,0001</td><td class="n">+10,9 pts</td><td><span class="tag conf">apoyada</span></td></tr>
             <tr><td>H2 · aprender &gt; innato</td><td class="n">72 / 39</td><td class="n">0,0011</td><td class="n">+2,2 pts</td><td><span class="tag conf">apoyada</span></td></tr>
@@ -417,7 +415,7 @@
       <ul>
         <li><strong>Lo que una vida encuentra demasiado tarde salva a sus hijas.</strong> Casi toda hija que hereda lleva <code>dusk-before-pursue</code> desde que nace; en vidas sueltas solo el 69 % la escribe, y tarde.</li>
         <li><strong>Aprender en vida ayuda, pero poco</strong> (+2 puntos). La selección suma algo encima de la herencia (+2,4).</li>
-        <li><strong>H4 no se apoyó:</strong> 96 vidas no descartan que aprender cueste 5 puntos cuando no hay nada que reparar. Por eso no se encendió en el juego por el preregistro; se encendió después de medirlo en el propio juego (8 mapas × 4 años, sin coste de población: +0,8 hormigas por nido, 5 de 8 mapas).</li>
+        <li><strong>H4 no se apoyó:</strong> 96 vidas no descartan que aprender cueste 5 puntos cuando el programa está intacto. Por eso no se encendió en el juego por el preregistro; se encendió después de medirlo en el propio juego (8 mapas × 4 años, comparación exploratoria: +0,8 hormigas por nido, 5 de 8 mapas, t = 1,3; no demuestra ausencia de coste ni resuelve H4).</li>
       </ul>
 
       <h3>Cómo llegamos aquí (exploratorio)</h3>
@@ -427,12 +425,13 @@
         <li><strong>Cambiar el juez sí:</strong> juzgada por sus reservas y con ensayos nocturnos seguros deja de escribir esas líneas y escribe la reparación real, <code>dusk-before-pursue</code> (0,44 → 0,53 en una vida, 9 frente a 0 pares).</li>
       </ul>
       <div class="note warn"><b>Lo que este resultado no dice</b>La ganancia es la reparación de un programa roto a propósito. Muestra que aprender y heredar recuperan lo perdido; no que encuentren algo que el programa innato no tenga. Un mundo, hijas que viven solas y no en colonia, y reescrituras dentro de la gramática (una conducta delante de otra bajo una condición).</div>
+    <p class="source-note"><b>Fuentes del resultado</b><code>docs/research/prereg-lineage-results.md · docs/research/prereg-lineage-inheritance.md</code></p>
     </section>
 
     <!-- live lab -->
     <section id="laboratorio">
       <h2><span class="num">08</span>Pruébalo: el laboratorio en tu navegador</h2>
-      <p>Esto no es una animación: es el código del estudio corriendo en tu navegador. Cada botón lanza cuatro linajes de 12 generaciones —uno por formato— en <strong>el mismo mundo</strong> (misma química, mismo catálogo, mismos mapas), con el cerebro, el cuerpo y el código social del juego. La misma semilla da siempre el mismo resultado, aquí y en <code>node research/run.js</code>.</p>
+      <p>Esto no es una animación: es el código del estudio corriendo en tu navegador. Cada botón lanza cuatro linajes de 12 generaciones —uno por formato— en <strong>el mismo mundo</strong> (misma química y mismo catálogo, sin un mapa espacial simulado), con el cerebro, el cuerpo y el código social del juego. La semilla, los parámetros y la versión de código permiten repetir el experimento. La identidad numérica entre navegadores, arquitecturas y versiones de Node no está garantizada.</p>
       <form id="lab-form" class="lab wide" autocomplete="off">
         <div class="lab-controls">
           <label>Cambio del mundo en la generación 6
@@ -496,7 +495,7 @@
         </div>
         <div class="card">
           <h4>La hermana mal informada <span class="tag conf">2 de 3</span></h4>
-          <p>Una hermana que cuenta reglas falsas no daña el juicio de la colonia (0,800 frente a 0,813), y solo el 26 % de las reglas falsas adoptadas sigue en pie al final. Pero una hermana bien informada tampoco redujo el veneno ingerido.</p>
+          <p>Una hermana que cuenta reglas falsas cumple el margen preregistrado de no inferioridad de 0,05 en juicio (0,800 frente a 0,813); esto no equivale a daño cero, y solo el 26 % de las reglas falsas adoptadas sigue en pie al final. Pero una hermana bien informada tampoco redujo el veneno ingerido.</p>
           <div class="where">social-protocol.md</div>
         </div>
         <div class="card">
@@ -512,12 +511,12 @@
         <div class="card">
           <h4>¿Hay algo que aprender sin sabotaje? <span class="tag expl">exploratorio</span></h4>
           <p>Probamos los 171 movimientos posibles (una línea innata delante de otra que estaba por encima), 24 vidas cada uno, en el mundo escaso y en cinco mundos más (noches cálidas, frío, noches largas, días calurosos, lluvia). Ninguno supera al orden innato: 102 no cambian nada y varios son letales. La única pista (<code>memory&gt;thermal</code> en noches largas) no se replicó con 48 semillas nuevas.</p>
-          <p>El orden innato es un óptimo local robusto, en parte porque sus conductas ya aprenden por dentro (vuelve al anochecer solo cuando la oscuridad ya significa frío para ella).</p>
+          <p>No se encontró una mejora del orden innato entre los movimientos y mundos examinados, en parte porque sus conductas ya aprenden por dentro (vuelve al anochecer solo cuando la oscuridad ya significa frío para ella).</p>
           <div class="where">world-calibration.md · scripts/order-screen.js</div>
         </div>
         <div class="card">
           <h4>Un mundo que aprieta, en el juego <span class="tag expl">exploratorio</span></h4>
-          <p>Con fruto cada 8 s las colonias vivían al 71–73 % del techo y morían de viejas. A 30 s, la comida y el invierno deciden cuántas viven y el frío mata más que la vejez; en 3 años ningún mapa se extingue (en 20 años, 2 de 16 sí). La autopsia confirma que esas muertes son realistas: las 57 en invierno, 39 de noche, casi todas lejos del nido y 38 con hambre alta: forrajeras sorprendidas por el frío.</p>
+          <p>Con fruto cada 8 s las colonias vivían al 71–73 % del techo y morían de viejas. A 30 s, la comida y el invierno deciden cuántas viven y el frío mata más que la vejez; en 3 años ningún mapa se extingue (en 20 años, 2 de 16 sí). La autopsia es compatible con muertes por exposición y hambre: las 57 en invierno, 39 de noche, casi todas lejos del nido y 38 con hambre alta: forrajeras sorprendidas por el frío.</p>
           <p>De paso apareció un error: el agua y los árboles de los nidos lejanos caían fuera del mapa (583 de 2000 objetos) y había hormigas muriendo de sed junto al borde. Corregido.</p>
           <div class="where">world-calibration.md · scripts/game-world.js</div>
         </div>
@@ -528,7 +527,7 @@
         </div>
         <div class="card">
           <h4>Impulsos aprendidos y estómago <span class="tag conf">3 de 4</span></h4>
-          <p>Aprender cuánto vale la comida según el hambre no cuesta vida (−0,002) y, como en los animales, tras la primera privación tarda más en ir a beber (+61 s [32; 92]); la segunda predicción no se cumplió. Un estómago en dos etapas reduce bocados por comida y desperdicio, con efecto pequeño. Los impulsos están encendidos en el juego; el estómago, no.</p>
+          <p>Aprender el valor de la comida cumple el margen de no inferioridad de 0,02 en vida segura (diferencia −0,002) y, como en los animales, tras la primera privación tarda más en ir a beber (+61 s [32; 92]); la segunda predicción no se cumplió. Un estómago en dos etapas reduce bocados y desperdicio frente a no sentir saciedad; no cambia esos resultados frente al estómago instantáneo. Los impulsos están encendidos en el juego; el estómago, no.</p>
           <div class="where">docs/research/libera/notes · src/drive.js · src/stomach.js</div>
         </div>
         <div class="card">
@@ -538,7 +537,7 @@
         </div>
         <div class="card">
           <h4>Un modelo de lenguaje reescribe su código <span class="tag neg">línea cerrada</span></h4>
-          <p>Un LLM local reescribía el juez de bocados de cada hormiga y la selección elegía. Con torneo, los textos superan al actual en mundos nuevos (+0,056 [0,019; 0,087]), pero por el vocabulario: «dejar lo que dañó» aparece en 10 de 10 textos con nombres claros y en 1 de 20 con nombres ciegos. Una regla propia de cada linaje no la aprende ninguno (0 de 10), y una regla sembrada la borra la reescritura (70–84 %). El modelo trae sus ideas previas, no extrae reglas de la vida.</p>
+          <p>Un LLM local reescribía el juez de bocados de cada hormiga y la selección elegía. Con torneo, los textos superan al actual en mundos nuevos (+0,056 [0,019; 0,087]), pero por el vocabulario: «dejar lo que dañó» aparece en 10 de 10 textos con nombres claros y en 1 de 20 con nombres ciegos. Una regla propia de cada linaje no la aprende ninguno (0 de 10), y una regla sembrada la borra la reescritura (70–84 %). En estas pruebas, el modelo parece aportar conocimiento previo sin aprender la regla específica del linaje.</p>
           <div class="where">research/code-culture/ · src/learned/code-judge.js</div>
         </div>
       </div>
@@ -560,8 +559,8 @@
             <tr><td>La consolidación nocturna mejora el juicio</td><td>0,852 frente a 0,838, p 0,229.</td><td><span class="tag neg">no apoyado</span></td></tr>
             <tr><td>Aprender su programa juzgando por malestar a 15 s</td><td>0,58 frente a 0,75 del innato (9 frente a 1 pares, replicado). El coste son los ensayos; las líneas que escribe no ayudan.</td><td><span class="tag neg">peor</span></td></tr>
             <tr><td>La selección como juez (solo las madres que viven pasan su programa)</td><td>Sin efecto: 24 frente a 23 pares. Todas las vidas escriben las mismas líneas.</td><td><span class="tag neg">no apoyado</span></td></tr>
-            <tr><td>H4 · con el programa intacto, aprender no cuesta</td><td>0,750 frente a 0,771; 96 vidas no descartan un coste de 5 puntos.</td><td><span class="tag neg">no apoyado</span></td></tr>
-            <tr><td>Cada colonia se adapta a su hábitat</td><td>Seis pruebas: trasplante recíproco, hábitats opuestos, 20 años, 24 mapas, inviernos más suaves, refundar con grupos. Ninguna adaptación local. Los genes de tamaño se inclinan hacia más grande en el frío (+0,037, 15 de 23 mapas) sin confirmarse en los mapas nuevos.</td><td><span class="tag neg">línea cerrada</span></td></tr>
+            <tr><td>H4 · descartar un coste de 5 puntos con el programa intacto</td><td>0,750 frente a 0,771; 96 vidas no descartan un coste de 5 puntos.</td><td><span class="tag neg">no apoyado</span></td></tr>
+            <tr><td>Cada colonia se adapta a su hábitat</td><td>Seis pruebas: trasplante recíproco, hábitats opuestos, 20 años, 24 mapas, inviernos más suaves, refundar con grupos. No se detectó adaptación local consistente. Los genes de tamaño se inclinan hacia más grande en el frío (+0,037, 15 de 23 mapas) sin confirmarse en los mapas nuevos.</td><td><span class="tag neg">línea cerrada</span></td></tr>
             <tr><td>Un invierno más suave evita que las colonias se vacíen</td><td>No: 6,6 % de años vacíos frente a 8,3 % y 6,9 %. Las colonias que se vacían ya habían menguado a 1–5 el año anterior.</td><td><span class="tag neg">no apoyado</span></td></tr>
             <tr><td>Refundar un nido con 4 o 6 en vez de una pareja</td><td>Sin diferencia (4,9 / 4,9 / 3,5 % de años vacíos).</td><td><span class="tag neg">no apoyado</span></td></tr>
             <tr><td>Un LLM reescribe su código a partir de su vida</td><td>0 de 10 linajes aprenden una regla propia de su mundo, con o sin el diario de la madre; la reescritura borra las reglas sembradas.</td><td><span class="tag neg">línea cerrada</span></td></tr>
@@ -571,13 +570,13 @@
           </tbody>
         </table>
       </div>
-      <div class="note"><b>Dónde estamos con la auto-reescritura</b>Hoy el organismo escribe <em>reglas</em> de qué comer con éxito confirmado y reordena líneas de su programa con una gramática fija. Con evidencia, repara en vida un programa roto y sus hijas heredan la reparación (+11 puntos, preregistrado). Pero sin sabotaje no hay nada que reordenar: el orden innato es un óptimo robusto en seis mundos. Que invente estructura de conducta nueva que supere al diseño humano todavía no está demostrado; para eso el mundo tiene que exigir una prioridad que nadie programó, o la gramática tiene que dejarle construir más que un orden.</div>
+      <div class="note"><b>Dónde estamos con la auto-reescritura</b>Hoy el organismo escribe <em>reglas</em> de qué comer con éxito confirmado y reordena líneas de su programa con una gramática fija. Con evidencia, repara en vida un programa roto y sus hijas heredan la reparación (+11 puntos, preregistrado). Sin sabotaje, no se encontró una mejora entre las 171 reordenaciones y los seis mundos examinados. Esto no prueba que no exista otra conducta mejor. Que invente estructura de conducta nueva que supere al diseño humano todavía no está demostrado; para eso el mundo tiene que exigir una prioridad que nadie programó, o la gramática tiene que dejarle construir más que un orden.</div>
     </section>
 
     <!-- 9 -->
     <section id="cuerpo">
       <h2><span class="num">11</span>En el juego: colonias que evolucionan</h2>
-      <p><span class="tag wip">en curso</span> &nbsp;Seis órganos heredables —cerebro, intestino, músculo, ojos, antenas, tamaño— cada uno un multiplicador con beneficio y coste energético. Los costes crecen más rápido que lineal y el metabolismo escala con la masa a la ¾ (Kleiber, 1932). Un cerebro grande cuesta unas 18 veces lo que el músculo por gramo (Elia, 1992) y, como en los peces de Kotrschal y cols. (2013), achica el intestino y la descendencia. Dentro de la vida, cada órgano puede ajustarse hasta ±25 %, pero solo cuando la experiencia sale de lo típico.</p>
+      <p><span class="tag expl">exploratorio</span> &nbsp;Seis órganos heredables —cerebro, intestino, músculo, ojos, antenas, tamaño— cada uno un multiplicador con beneficio y coste energético. Los costes crecen más rápido que lineal y el metabolismo escala con la masa a la ¾ (Kleiber, 1932). Un cerebro grande cuesta unas 18 veces lo que el músculo por gramo (Elia, 1992) y, como en los peces de Kotrschal y cols. (2013), achica el intestino y la descendencia. Dentro de la vida, cada órgano puede ajustarse hasta ±25 %, pero solo cuando la experiencia sale de lo típico.</p>
       <p>Comparamos tres formas de herencia: <strong>darwiniana</strong> (solo genes), <strong>Baldwin</strong> (se hereda la capacidad de ajustarse) y <strong>epigenética</strong> (se hereda parte del ajuste de la madre, como la evitación aprendida que <em>C. elegans</em> mantiene unas 4 generaciones; Moore y cols., 2019).</p>
       <ul>
         <li><span class="tag expl">exploratorio</span> Con inviernos fríos, el frío pasó a causar la mitad o más de las muertes (antes, el 100 % era vejez); la herencia epigenética tuvo menos muertes por frío. Con 3 semillas por celda, ninguna diferencia es firme.</li>
@@ -586,7 +585,7 @@
       </ul>
 
       <h3>Veinte años en el juego</h3>
-      <p><span class="tag expl">exploratorio</span> &nbsp;El juego tal como está hoy —tres colonias, hábitats (frío −3 °C, cálido +6 °C, veneno cerca), fruto cada 30 s, cuerpo que evoluciona, variación individual, herencia de lo vivido y de lo aprendido— durante 20 años (~50 generaciones) en 8 mapas (semillas 7500–7507, corrida el 8 de octubre de 2026). Genes del año 1 al 20, todas las colonias de cada mapa juntas:</p>
+      <p><span class="tag expl">exploratorio</span> &nbsp;La versión del juego medida el 8 de octubre de 2026 —tres colonias, hábitats (frío −3 °C, cálido +6 °C, veneno cerca), fruto cada 30 s, cuerpo que evoluciona, variación individual, herencia de lo vivido y de lo aprendido— durante 20 años (~50 generaciones) en 8 mapas (semillas 7500–7507, corrida el 8 de octubre de 2026). Genes del año 1 al 20, todas las colonias de cada mapa juntas:</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Gen</th><th class="n">cambio</th><th class="n">t</th><th class="n">mapas en esa dirección</th></tr></thead>
@@ -600,7 +599,7 @@
       </div>
       <figure class="wide">
         <div class="panel">
-          <div class="seg" role="tablist">
+          <div class="seg" role="group">
             <button type="button" class="on" data-gene="muscle">Músculo</button>
             <button type="button" data-gene="brain">Cerebro</button>
             <button type="button" data-gene="size">Tamaño</button>
@@ -616,7 +615,7 @@
       </figure>
 
       <p><strong>La evolución ocurre, y en todas partes igual.</strong> Es adaptación al mundo que todas las colonias comparten. La conducta también pasa de madre a hija: al año 20 cada hormiga lleva 0,9–1,0 líneas propias, unas 0,75 heredadas, y son las mismas en todos los hábitats («memoria antes que perseguir», «memoria antes que olor»). Con el juego actual el hábitat que sufre es el <em>cálido</em>: 7 vivas de media (23 % del techo) y vacío en 36 de 160 años-nido, frente a 16,5 en el frío y el venenoso; 91 refundaciones en 8 mapas.</p>
-      <p><strong>No es local.</strong> Buscamos que cada colonia se adaptara a su hábitat con un trasplante recíproco (cada recién nacida criada en un nido al azar y seguida hasta su muerte) y con corridas de 20 años en 24 mapas, en las que 2 de 16 mapas nuevos se extinguieron. Lo que apareció fue una <em>ventaja del forastero</em>: en todo hábitat, las crías venidas de fuera dejaban más descendencia que las locales (−0,41, t −2,9). La explicamos: una hembra local no puede aparearse con sus hermanos, a menudo los mejores machos de una colonia pequeña, y una recién llegada no es pariente de nadie. Al añadir depresión por endogamia la regla tiene sentido y la ventaja persiste por una razón que también se ve en la naturaleza (rescate genético). Adaptación local, ninguna. Repetido con el juego actual (12 mapas, semillas 7400–7411, 3 años y luego 2 de trasplante): locales − forasteros = −0,19 crías (t −0,67, locales por delante en 6 de 12 mapas). Ni adaptación local ni, ya, una ventaja clara del forastero.</p>
+      <p><strong>No es local.</strong> Buscamos que cada colonia se adaptara a su hábitat con un trasplante recíproco (cada recién nacida criada en un nido al azar y seguida hasta su muerte) y con corridas de 20 años en 24 mapas, en las que 2 de 16 mapas nuevos se extinguieron. Lo que apareció fue una <em>ventaja del forastero</em>: en todo hábitat, las crías venidas de fuera dejaban más descendencia que las locales (−0,41, t −2,9). La explicamos: una hembra local no puede aparearse con sus hermanos, a menudo los mejores machos de una colonia pequeña, y una recién llegada no es pariente de nadie. Al añadir depresión por endogamia la regla tiene sentido y la ventaja persiste por una razón que también se ve en la naturaleza (rescate genético). No se detectó adaptación local consistente. Repetido con el juego actual (12 mapas, semillas 7400–7411, 3 años y luego 2 de trasplante): locales − forasteros = −0,19 crías (t −0,67, locales por delante en 6 de 12 mapas). Ni adaptación local ni, ya, una ventaja clara del forastero.</p>
       <figure class="wide">
         <div class="panel">
           <div class="legend">
@@ -629,6 +628,7 @@
       </figure>
 
       <p><strong>Por qué, hasta donde lo medimos:</strong> colonias de 12–19 adultas menguan hasta un puñado y las reemplazan las vecinas (≈7 % de los años-nido vacíos y 115 refundaciones en 16 mapas en la corrida de 24 mapas; 91 en 8 mapas hoy, sobre todo en el hábitat cálido), borrando lo que se había acumulado. Colonias más grandes (techo de 60) quedan como remedio sin probar. El panel <em>Evolución</em> del juego dibuja estas curvas en vivo, colonia por colonia.</p>
+    <p class="source-note"><b>Fuentes del resultado</b><code>docs/research/world-calibration.md · investigacion/data/game.json</code></p>
     </section>
 
     <!-- 10 -->
@@ -637,15 +637,15 @@
       <div class="grid2">
         <div>
           <h3>Determinismo y huellas</h3>
-          <p>Todo número aleatorio sale de una semilla. Un linaje depende solo de su semilla y sus opciones: corrido solo o dentro de un lote, sale idéntico byte a byte en la misma máquina (el redondeo puede cambiar entre procesadores ARM y x64 o entre versiones mayores de Node, así que las huellas se guardan por máquina). Una partida en vivo no se siembra: se graba y se reproduce desde sus eventos. Vidas sembradas se reducen a una huella de decisiones; los tests las comparan contra huellas grabadas antes de cada cambio de arquitectura, así que un refactor no puede cambiar en silencio lo que ella hace.</p>
+          <p>En las corridas de investigación, los números aleatorios salen de una semilla. Un linaje depende solo de su semilla y sus opciones: corrido solo o dentro de un lote, sale idéntico byte a byte en la misma máquina (el redondeo puede cambiar entre procesadores ARM y x64 o entre versiones mayores de Node, así que las huellas se guardan por máquina). Una partida en vivo no se siembra: se graba y se reproduce desde sus eventos. Vidas sembradas se reducen a una huella de decisiones; los tests las comparan contra huellas grabadas antes de cada cambio de arquitectura, así que un refactor no puede cambiar en silencio lo que ella hace.</p>
           <h3>Preregistro</h3>
           <p>Hipótesis, medidas, contrastes, dirección, corrección y criterio de éxito se congelan en un commit antes de correr. Lo que no estaba ahí se reporta como exploratorio. Las desviaciones de ejecución se documentan (un contenedor se reinició y las corridas se relanzaron por linaje, con verificación de identidad).</p>
         </div>
         <div>
           <h3>Estadística</h3>
-          <p>Unidad = linaje o colonia, nunca la fila. Celdas con números aleatorios comunes: mismos mundos en cada condición, contrastes pareados. Permutaciones de signo pareadas (10 000), Holm para múltiples pruebas, bootstrap del 95 %, <em>d<sub>z</sub></em> y linajes necesarios para 80 % de potencia. Diseños de hipercubo latino sobre los parámetros afinados a mano para ver si un efecto conserva su signo.</p>
+          <p>En los estudios de transmisión, la unidad es el linaje; en otros protocolos, la colonia o la vida según el diseño. El estudio de herencia usa vidas pareadas agrupadas en poblaciones con ascendencia compartida: la dependencia entre descendientes limita una interpretación como réplicas independientes. Celdas con números aleatorios comunes: mismos mundos en cada condición, contrastes pareados. Permutaciones de signo pareadas (10 000), Holm para múltiples pruebas, bootstrap del 95 %, <em>d<sub>z</sub></em> y linajes necesarios para 80 % de potencia. Diseños de hipercubo latino sobre los parámetros afinados a mano para ver si un efecto conserva su signo.</p>
           <h3>Laboratorio frente a juego</h3>
-          <p>El laboratorio quita espacio, agua, nido y despensa, pero conserva todo lo que aprende y todo lo que se transmite, con el mismo código. Corre unos 20 linajes de 12 generaciones por segundo en 4 núcleos. Cada resultado del laboratorio se comprueba después en el juego completo.</p>
+          <p>El laboratorio quita espacio, agua, nido y despensa, pero conserva los mecanismos de aprendizaje y transmisión evaluados en ese estudio, con el mismo código. Corre unos 20 linajes de 12 generaciones por segundo en 4 núcleos. En el estudio principal se comprobaron tres contrastes preregistrados en el juego: H1, H2a y H3. La réplica por cobertura no cuenta aquí con una confirmación equivalente en el juego.</p>
         </div>
       </div>
     </section>
@@ -654,11 +654,12 @@
     <section id="limites">
       <h2><span class="num">13</span>Limitaciones</h2>
       <ul>
-        <li><strong>El estudio principal igualó formatos por elementos.</strong> Igualados por información (cobertura), la trampa de supervivencia se encoge un 80 %; los mitos se mantienen. La cifra de 22–27 puntos debe leerse con esa réplica (Prystawski y cols., 2025, muestran que la tasa del canal importa).</li>
+        <li><strong>Mapas originales y sensibilidad.</strong> En 101 de los 600 mapas de la confirmación del juego había un árbol fuera del borde. Los tres contrastes mantienen su dirección al excluir los linajes afectados; los niveles absolutos y los demás estudios no quedan validados por esa comprobación.</li>
+        <li><strong>El estudio principal igualó formatos por elementos.</strong> Al igualar el presupuesto por cobertura de especies, la trampa de supervivencia se encoge un 80 %; los mitos se mantienen. La cifra de 22–27 puntos debe leerse con esa réplica (Prystawski y cols., 2025, muestran que la tasa del canal importa).</li>
         <li><strong>Un veredicto solo cubre frutos que quien enseña conoció.</strong> Es la naturaleza de una conclusión, y también por qué generaliza menos.</li>
         <li><strong>El piloto dio forma a las hipótesis.</strong> Las pruebas confirmatorias usan semillas nuevas, pero algunas hipótesis (explorar o volver, diversidad) se escribieron después de ver un piloto.</li>
         <li><strong>Supervivencia sesgada.</strong> En los estudios de auto-reescritura las muertes aún no quedan registradas, lo que sesga lo que se aprende hacia quien sobrevive.</li>
-        <li><strong>Es una hormiga de juguete.</strong> Los parámetros están inspirados en la literatura pero afinados a mano; la validez externa viene de la dirección de los efectos, no de sus magnitudes.</li>
+        <li><strong>Es una hormiga de juguete.</strong> Los parámetros están inspirados en la literatura pero afinados a mano; ni la dirección ni la magnitud de los efectos establecen por sí solas validez en animales o culturas humanas.</li>
         <li><strong>Colonias pequeñas.</strong> Con 12–19 adultas por nido, la deriva y la mezcla por refundación pesan más que una selección local débil; por eso el juego muestra evolución global y no local.</li>
         <li><strong>Heredar lo aprendido se probó reparando un sabotaje.</strong> No demuestra que el aprendizaje encuentre algo que el programa innato no tenga.</li>
         <li><strong>Estudios hechos sobre código anterior.</strong> Las baterías LIBERA (2–3 oct) y el plan con modelo de lenguaje (1–5 oct) se corrieron sobre el código de esos días; desde entonces el juego cambió (hábitats, colonias, herencia de lo aprendido), así que sus números describen aquel organismo.</li>
@@ -669,7 +670,7 @@
     <!-- 12 -->
     <section id="ruta">
       <h2><span class="num">14</span>Hoja de ruta</h2>
-      <p><strong>Hecho desde la versión anterior:</strong> métricas de realismo de Tyrrell como línea base; noche científica, impulsos aprendidos y selector de flujo libre probados (los dos primeros encendidos en el juego); igualar formatos por información; un cuerpo que evoluciona con presiones reales; heredar lo aprendido, preregistrado.</p>
+      <p><strong>Hecho desde la versión anterior:</strong> métricas de realismo de Tyrrell como línea base; noche científica, impulsos aprendidos y selector de flujo libre probados (los dos primeros encendidos en el juego); igualar presupuestos por cobertura de especies; un cuerpo que evoluciona con presiones reales; heredar lo aprendido, preregistrado.</p>
       <ol>
         <li><strong>Un mundo donde el orden innato no sea óptimo sin sabotaje</strong> (estaciones o mapas donde la prioridad correcta cambia): el paso siguiente que fijó el preregistro de la herencia.</li>
         <li><strong>Una gramática más rica</strong>, para que las entidades construyan más que un orden de líneas: el objetivo de fondo es que reescriban su propia conducta.</li>
@@ -682,7 +683,7 @@
     <!-- 13 -->
     <section id="reproducir">
       <h2><span class="num">15</span>Reproducir</h2>
-      <p>Las filas crudas no se versionan: <code>research/run.js</code> escribe junto a ellas un <code>manifest.json</code> con el diseño, las semillas y el commit, suficiente para regenerarlas exactamente. Node ≥ 22.</p>
+      <p>Muchas filas crudas no se versionan: <code>research/run.js</code> escribe junto a ellas un <code>manifest.json</code> con el diseño, las semillas y el commit, para repetirlas con la misma revisión y entorno de ejecución. Los comandos siguientes usan el código del checkout; para reproducir cifras históricas, hay que usar el commit de cada estudio. Node ≥ 22.</p>
 <pre><code><span class="c"># estudio principal de laboratorio (12 800 linajes, ~5 min)</span>
 node research/run.js --design research/designs/main.json
 node research/confirm.js research/results/main
@@ -702,7 +703,7 @@ node scripts/lineage-analysis.js research/prereg-lineage   <span class="c"># + H
 <span class="c"># el mundo del juego: colonias, hábitats, años</span>
 node scripts/game-world.js --interval 30 --seeds 8 --seed 7500 --years 20 --jobs 16   <span class="c"># con los ajustes actuales del juego</span>
 
-<span class="c"># réplica igualada por información</span>
+<span class="c"># réplica con presupuesto igualado por cobertura</span>
 node research/run.js --design research/designs/coverage-items.json
 node research/run.js --design research/designs/coverage-coverage.json
 node research/confirm-coverage.js research/results/coverage-items research/results/coverage-coverage
@@ -801,7 +802,7 @@ npm test</code></pre>
 
 <footer>
   Fagi · first-agi · un experimento de vida artificial. Código, protocolos y datos regenerables en el repositorio del proyecto.<br />
-  Los resultados marcados como exploratorios no fueron preregistrados y deben leerse como descripción. Actualizado el 8 de octubre de 2026.
+  Los resultados marcados como exploratorios no fueron preregistrados y deben leerse como descripción. Revisión editorial: 9 de octubre de 2026. Datos del juego: 8 de octubre de 2026.
 </footer>
 
 <script type="module" src="/investigacion/site.js"></script>
