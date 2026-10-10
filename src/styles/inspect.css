@@ -57,3 +57,20 @@
 @media (max-width: 720px) {
   #inspect-card { right: 8px; left: 8px; top: auto; bottom: 8px; width: auto; max-height: 55%; }
 }
+
+/* --- god mode (godmode-panel.js): her numbers by hand, under her card --- */
+#inspect-card .ins-card { display: contents; }
+#inspect-card .ins-extra { flex: none; max-height: 50%; overflow-y: auto; overscroll-behavior: contain; }
+#inspect-card .ins-extra:empty { display: none; }
+.ins-actions .ins-god-btn { border-color: #ffb70388; color: #ffd166; }
+.god-panel { border-top: 2px solid #ffb703; padding: 6px 12px 10px; background: #ffb7030d; }
+.god-head { display: flex; align-items: baseline; gap: 8px; }
+.god-head b { color: #ffd166; font-size: 13px; }
+.god-head small { flex: 1; color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.god-note { font-size: 10.5px; color: var(--muted); font-style: italic; margin: 4px 0 6px; }
+.god-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.god-actions button { width: auto; padding: 3px 9px; font-size: 11px; }
+.god-group h4 { margin: 8px 0 2px; font-size: 10.5px; letter-spacing: .6px; text-transform: uppercase; color: #cfd3dd; font-weight: 600; }
+.god-row { display: grid; grid-template-columns: 1fr auto; column-gap: 8px; align-items: center; padding: 2px 0; color: var(--muted); }
+.god-row output { color: var(--text); font-variant-numeric: tabular-nums; }
+.god-row input[type=range] { grid-column: 1 / -1; width: 100%; margin: 1px 0 3px; accent-color: #ffb703; }

@@ -17,7 +17,8 @@ import { cycleAt } from './cycle.js';
 import { updateTrails } from './smell.js';
 import { render } from './render.js';
 import { createInput, INSPECT } from './input.js';
-import { createInspector, pickAt, pickFagiAt, markOf } from './inspect.js';
+import { createInspector, pickAt, pickFagiAt, markOf, resolve } from './inspect.js';
+import { createGodPanel } from './godmode-panel.js';
 import { createAskCard } from './ask.js';
 import { createColony, successorOf, swapInto } from './colony.js';
 import { createCamera, centerOn, fit } from './camera.js';
@@ -91,6 +92,17 @@ export function createGame({ onExit } = {}) {
     adopt: (target) => followChosen(target),
     onCenter: (x, y) => { camera.follow = false; centerOn(camera, canvas, shown().w, { x, y }); },
     onAsk: (x, y) => input.onAsk(x, y),
+    canGod: () => mode === 'play' && !player,
+    onGod: (target) => god.open(target, world),
+  });
+  // God mode (godmode.js): her numbers by hand, under her card, live sessions only.
+  const god = createGodPanel(inspector.extra);
+  // From the top bar: the followed Fagi, selected and with her panel open.
+  document.getElementById('btn-god')?.addEventListener('click', () => {
+    if (mode !== 'play' || player || !fagi.alive) return;
+    inspector.select({ kind: 'fagi', main: true, id: fagi.id });
+    layout.reveal();
+    god.open(fagi, world);
   });
   // Small targets get some slack, less the closer the camera is.
   const slack = () => 2 + 8 / camera.zoom;
@@ -229,6 +241,7 @@ export function createGame({ onExit } = {}) {
     // The clock starts with the session, not with the map: the time spent
     // setting up doesn't count.
     world.time = 0;
+    world.god = 0;   // edits by hand (godmode.js): a fresh session starts clean
     const sink = createSink(s.id);
     const rec = createRecorder(world, { send: (batch) => sink.send(batch) });
     world.rec = rec;
@@ -327,6 +340,7 @@ export function createGame({ onExit } = {}) {
     updateTrails(world, dt);
     render(ctx, world, null, camera, markOf(inspector.selection, world, null), input.editing);
     inspector.update(null, world, { live: false });
+    god.update(null, world, false);
     ui.paintMap(world);
   }
 
@@ -361,6 +375,7 @@ export function createGame({ onExit } = {}) {
     ui.update(fagi, world);
     ui.paintMap(world);
     inspector.update(fagi, world);
+    god.update(resolve(inspector.selection, world, fagi), world, mode === 'play' && !player);
     console.update(fagi, lines);
     learnedPanel.update();
     brainMap.update(fagi, world);
@@ -386,6 +401,7 @@ export function createGame({ onExit } = {}) {
     render(ctx, player.world, player.fagi, camera, markOf(inspector.selection, player.world, player.fagi));
     ui.update(player.fagi, player.world);
     inspector.update(player.fagi, player.world, { live: false });
+    god.update(null, player.world, false);
     // Going back leaves lines from the future in the console: repaint it whole.
     if (player.logEpoch !== replaying.logEpoch) {
       console.reset();

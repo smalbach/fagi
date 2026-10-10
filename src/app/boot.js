@@ -147,6 +147,7 @@ function describe(ev) {
   if (ev.type === 'fagi_death') return t('replay.ev.fagi_death', { cause: t(`cause.${ev.cause}`) });
   if (ev.type === 'fagi_rule') return t('replay.ev.fagi_rule', { rule: ev.rule });
   if (ev.type === 'config') return t('replay.ev.config', { id: ev.id, to: ev.to });
+  if (ev.type === 'god') return t('replay.ev.god', { id: ev.id ?? '?', param: ev.param, from: ev.from, to: ev.to });
   return t(`replay.ev.${ev.type}`, { what: what });
 }
 

@@ -1,5 +1,5 @@
 /* --- game modes --- */
-#setup-bar, #replay-bar, #btn-end { display: none; }
+#setup-bar, #replay-bar, #btn-end, #btn-god { display: none; }
 body.mode-idle #hud, body.mode-idle #console, body.mode-idle #topbar { display: none; }
 
 /* Setup: the map without Fagi, the buttons to place things and the settings
@@ -24,7 +24,8 @@ body.mode-setup.immersive #stage { flex: 1 1 420px; min-width: 300px; padding: 1
 body.mode-setup.immersive #canvas { max-width: 100%; max-height: calc(100vh - 32px); border-radius: 8px; }
 body.mode-setup #hud { width: 280px; }
 
-body.mode-play #btn-end { display: inline-block; }
+body.mode-play #btn-end, body.mode-play #btn-god { display: inline-block; }
+#btn-god { border-color: #ffb70388; color: #ffd166; }
 body.mode-play #btn-reset { display: none; }
 
 /* Replay: the map and Fagi's status, with nothing that edits. */
@@ -58,6 +59,7 @@ body.mode-replay .code-tools { display: none; }
 .rp-fagi_rule { background: #b57bff; }
 .rp-fagi_death { background: #d95b7e; width: 8px !important; }
 .rp-config { background: #4cc9f0; }
+.rp-god { background: #ffb703; }
 #rp-time { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--muted); white-space: nowrap; }
 #rp-event { width: 100%; font-size: 12px; color: #cfd3dd; min-height: 1.2em; }
 #rp-speed { background: #2a2e3a; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
