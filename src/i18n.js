@@ -1,4 +1,5 @@
-// Languages. English by default; the chosen language is saved in the browser.
+// Languages. The browser's language on the first visit (English if it's neither
+// English nor Spanish); the one chosen afterwards is saved in the browser.
 //
 // Nothing stores already-translated text: modules store KEYS and translate
 // when painting, so switching language also relabels what's already on
@@ -20,7 +21,18 @@ function readSaved() {
   try {
     const saved = localStorage.getItem('fagi.lang');
     if (saved && DICT[saved]) return saved;
-  } catch { /* no localStorage: English and that's it */ }
+  } catch { /* no localStorage: the browser's language, every visit */ }
+  return browserLang();
+}
+
+// The first of the browser's preferred languages we have ('es-CO' -> 'es').
+function browserLang() {
+  // Only in a browser: Node has a navigator too, with the machine's locale.
+  const prefs = typeof document === 'undefined' ? [] : (navigator.languages?.length ? navigator.languages : [navigator.language]);
+  for (const p of prefs) {
+    const base = String(p ?? '').toLowerCase().split('-')[0];
+    if (DICT[base]) return base;
+  }
   return 'en';
 }
 
@@ -141,8 +153,10 @@ function traitLabel(key) {
 // Fills in the HTML's fixed texts (the ones with data-i18n) and does it
 // again every time the language changes.
 export function bindDom() {
+  const selector = document.getElementById('lang');
   const applySets = () => {
     document.documentElement.lang = lang;
+    if (selector) selector.value = lang;
     for (const el of document.querySelectorAll('[data-i18n]')) {
       el.textContent = t(el.dataset.i18n);
     }
@@ -153,9 +167,7 @@ export function bindDom() {
     // A tooltip that explains a control without renaming it for screen readers.
     for (const el of document.querySelectorAll('[data-i18n-tip]')) el.title = t(el.dataset.i18nTip);
   };
-  const selector = document.getElementById('lang');
   if (selector) {
-    selector.value = lang;
     selector.addEventListener('change', () => setLang(selector.value));
   }
   onLangChange(applySets);

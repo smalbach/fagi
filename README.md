@@ -17,6 +17,12 @@ rest stay on the waitlist until the admin approves them from the
 **Admin** button on the sessions screen. To make another already registered
 account an admin: `npm run make-admin -- email@example.com`.
 
+**Forgot password**: the sign-in screen sends a one-time link by email (valid
+for 60 minutes; using it closes every open session). Emails go through
+[Brevo](https://www.brevo.com) with `BREVO_API_KEY`, `MAIL_FROM_EMAIL` (a sender
+verified in Brevo) and `MAIL_FROM_NAME`; the link is built from `APP_URL`.
+Without `BREVO_API_KEY`, locally the email is printed to the API's console.
+
 `npm test` runs everything. The server tests need `DATABASE_URL_TEST`
 (a separate database: it is **wiped entirely** on every test); without it they are skipped.
 
@@ -25,7 +31,9 @@ account an admin: `npm run make-admin -- email@example.com`.
 1. Add a Postgres service to the project and, in the game's service, the
    variable `DATABASE_URL=${{Postgres.DATABASE_URL}}`.
 2. In the game's service: `ADMIN_EMAIL` and `NODE_ENV=production` (cookies
-   over HTTPS only).
+   over HTTPS only), plus `BREVO_API_KEY`, `MAIL_FROM_EMAIL`, `MAIL_FROM_NAME`
+   and `APP_URL` (the public address, e.g. `https://your-domain`) for the
+   password reset emails.
 3. `railway.json` builds with `npm run build` and starts with `npm start`.
 
 ## Sessions

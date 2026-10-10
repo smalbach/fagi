@@ -71,6 +71,12 @@ async function game() {
   // The fixture was recorded on the maps drawn before MAPGEN.inside existed:
   // it holds her decisions, not the map, so it keeps those maps.
   CONFIG.MAPGEN.inside = 0;
+  // And so did the fixes for walking in circles (2026-10-09): a bare tree
+  // that stops pulling her, a trail followed only forward and onward, a
+  // scent that ends at its source. They change what she goes for.
+  CONFIG.SOURCES.bare = 0;
+  CONFIG.PHERO.ahead = 0;
+  CONFIG.PLUME.arrive = 0;
 }
 
 // Long enough for the rarer lines to answer: anticipating rain (classic),

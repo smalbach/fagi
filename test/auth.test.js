@@ -70,3 +70,55 @@ test('mutations without the app header are rejected', { skip: SKIP }, async (t) 
   const res = await app.inject({ method: 'POST', url: '/api/auth/register', payload: { email: 'x@fagi.test', password: 'a-long-password' } });
   assert.equal(res.statusCode, 403);
 });
+
+test('forgot password: emailed one-time link sets a new password', { skip: SKIP }, async (t) => {
+  const sent = [];
+  const { app, close } = await mount({ appUrl: 'https://fagi.example/', mailer: async (m) => { sent.push(m); } });
+  t.after(close);
+  const c = client(app);
+  await c.post('/api/auth/register', { email: 'mia@fagi.test', password: 'old-long-password' });
+
+  // Same answer for an existing email and an unknown one; only the first gets mail.
+  const known = await c.post('/api/auth/forgot', { email: 'MIA@fagi.test', lang: 'en' });
+  const unknown = await c.post('/api/auth/forgot', { email: 'nobody@fagi.test' });
+  assert.equal(known.status, 200);
+  assert.deepEqual(known.body, unknown.body);
+  await new Promise((r) => setImmediate(r));
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].to, 'mia@fagi.test');
+  assert.match(sent[0].subject, /Reset/);
+  const token = sent[0].text.match(/https:\/\/fagi\.example\/jugar#reset=([\w-]+)/)?.[1];
+  assert.ok(token);
+
+  assert.equal((await c.post('/api/auth/reset', { token, password: 'short' })).status, 400);
+  assert.equal((await c.post('/api/auth/reset', { token: 'not-a-token', password: 'new-long-password' })).body.error, 'invalid_token');
+
+  // The reset closes the old sessions and opens a new one.
+  const other = client(app);
+  await other.post('/api/auth/login', { email: 'mia@fagi.test', password: 'old-long-password' });
+  const ok = await c.post('/api/auth/reset', { token, password: 'new-long-password' });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.body.user.email, 'mia@fagi.test');
+  assert.equal((await c.get('/api/auth/me')).status, 200);
+  assert.equal((await other.get('/api/auth/me')).status, 401);
+
+  // The link works once; the old password no longer does.
+  assert.equal((await c.post('/api/auth/reset', { token, password: 'third-long-password' })).status, 400);
+  assert.equal((await other.post('/api/auth/login', { email: 'mia@fagi.test', password: 'old-long-password' })).status, 401);
+  assert.equal((await other.post('/api/auth/login', { email: 'mia@fagi.test', password: 'new-long-password' })).status, 200);
+});
+
+test('forgot password: a newer link replaces the older one', { skip: SKIP }, async (t) => {
+  const sent = [];
+  const { app, close } = await mount({ appUrl: 'https://fagi.example', mailer: async (m) => { sent.push(m); } });
+  t.after(close);
+  const c = client(app);
+  await c.post('/api/auth/register', { email: 'teo@fagi.test', password: 'old-long-password' });
+  await c.post('/api/auth/forgot', { email: 'teo@fagi.test' });
+  await c.post('/api/auth/forgot', { email: 'teo@fagi.test' });
+  await new Promise((r) => setImmediate(r));
+  const [first, second] = sent.map((m) => m.text.match(/#reset=([\w-]+)/)[1]);
+  assert.match(sent[0].subject, /Restablece/);
+  assert.equal((await c.post('/api/auth/reset', { token: first, password: 'new-long-password' })).status, 400);
+  assert.equal((await c.post('/api/auth/reset', { token: second, password: 'new-long-password' })).status, 200);
+});

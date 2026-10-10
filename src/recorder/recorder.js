@@ -184,13 +184,15 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
   function observeMind(fagi) {
     const changes = {};
     let has = false;
-    for (const [part, value] of Object.entries(mind(fagi, world.time))) {
+    // What changes little by little (the network, the places, the map of
+    // where she's been) isn't needed on every sample: with one every few
+    // seconds it looks the same, and the session weighs half as much. Those
+    // not due yet aren't even built: they are the biggest, and they grow
+    // all session long.
+    const due = (part) => !SLOW[part] || !fagi.alive || world.time - (slowAt[part] ?? -Infinity) >= SLOW[part];
+    for (const [part, value] of Object.entries(mind(fagi, world.time, due))) {
       const json = JSON.stringify(value) ?? 'null';
       if (json === mindPrev[part]) continue;
-      // What changes little by little (the network, the places, the map of
-      // where she's been) isn't needed on every sample: with one every few
-      // seconds it looks the same, and the session weighs half as much.
-      if (SLOW[part] && fagi.alive && world.time - (slowAt[part] ?? -Infinity) < SLOW[part]) continue;
       if (SLOW[part]) slowAt[part] = world.time;
       // The thought carries distances and scores that move on every
       // sample: if only those numbers change, one per second is enough.
@@ -321,13 +323,15 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
 // Parts of the mind that are recorded at most every so many seconds.
 const SLOW = { synapses: 4, places: 4, explored: 5 };
 
-function mind(fagi, now) {
+// `due(part)` says whether a SLOW part is wanted this time; the ones that
+// aren't are left out of the snapshot. Without it, everything.
+function mind(fagi, now, due = () => true) {
   const th = fagi.thought;
   const facts = {};
   for (const [k, r] of Object.entries(fagi.brain?.facts ?? {})) {
     facts[k] = { value: round(r.value, 3), confidence: round(r.confidence, 2), confirms: r.confirms, stage: r.stage, tries: r.tries };
   }
-  return {
+  const snap = {
     thought: th ? {
       action: th.action, reason: th.reason ?? null,
       hungerU: round(th.hungerU, 2), thirstU: round(th.thirstU, 2), energyU: round(th.energyU, 2),
@@ -349,15 +353,15 @@ function mind(fagi, now) {
     lastRule: lastRuleOf(fagi.brain?.lastRule),
     // The network and what she remembers of each place, at the resolution
     // that's visible: that way it's only recorded when something really changes.
-    synapses: Object.values(fagi.brain?.synapses ?? {}).map((s) => [s.a, s.b, s.kind, round(s.w, 1), round(s.born, 0)]),
-    places: Object.fromEntries(Object.entries(fagi.brain?.places ?? {}).map(([k, p]) => [k, {
+    synapses: due('synapses') ? Object.values(fagi.brain?.synapses ?? {}).map((s) => [s.a, s.b, s.kind, round(s.w, 1), round(s.born, 0)]) : undefined,
+    places: due('places') ? Object.fromEntries(Object.entries(fagi.brain?.places ?? {}).map(([k, p]) => [k, {
       x: step(p.x, 5), y: step(p.y, 5), error: step(p.error, 10), confidence: round(p.confidence, 1), stage: p.stage,
-    }])),
+    }])) : undefined,
     puddleLife: fagi.brain?.puddleLife != null ? Math.round(fagi.brain.puddleLife) : null,
     // What each trait means to her and the bites she explains herself with.
     cues: Object.fromEntries(Object.entries(fagi.brain?.cues ?? {}).map(([c, e]) => [c, { w: round(e.w, 2), n: e.n }])),
     bites: fagi.brain?.bites ?? [],
-    explored: fagi.explored ? Array.from(fagi.explored, (v) => Math.round(v)).join('') : null,
+    explored: !due('explored') ? undefined : fagi.explored ? Array.from(fagi.explored, (v) => Math.round(v)).join('') : null,
     episode: episode(fagi.lastEpisode),
     // Effects are stored by when they end, not by how much is left:
     // otherwise they'd change on every sample.
@@ -370,6 +374,8 @@ function mind(fagi, now) {
       dunks: fagi.dunks ?? 0, rainLessons: fagi.rainLessons ?? 0, puddleGone: fagi.puddleGone ?? 0,
     },
   };
+  for (const part of Object.keys(SLOW)) if (snap[part] === undefined) delete snap[part];
+  return snap;
 }
 
 function lastRuleOf(r) {

@@ -5,7 +5,8 @@
 // click away.
 //
 // It watches: nothing here changes the world. Following another Fagi is main.js's
-// (onFollow), asking what she thinks of a fruit is ask.js's (onAsk).
+// (onFollow), asking what she thinks of a fruit is ask.js's (onAsk), setting
+// her numbers by hand is godmode-panel.js's (onGod).
 //
 // Live the objects carry every number; in a replay the sisters carry only what
 // the recording kept (position, stage, load), and the card shows what there is.
@@ -158,18 +159,32 @@ export function markOf(sel, world, fagi) {
 
 // --- the card ---
 
-// `hooks`: onFollow(target), onCenter(x, y), onAsk(x, y), canFollow() -> bool.
+// `hooks`: onFollow(target), onCenter(x, y), onAsk(x, y), canFollow() -> bool,
+// adopt(target) -> bool (follow her on selecting; true if it happened),
+// canGod() -> bool, onGod(target) (god mode on her).
+// The card is repainted into its own child: `extra` is a spot under it that
+// the repaint leaves alone (the god-mode panel lives there).
 export function createInspector(el, hooks = {}) {
-  if (!el) return { select() {}, update() {}, clear() {}, get selection() { return null; } };
+  if (!el) return { select() {}, update() {}, clear() {}, get selection() { return null; }, extra: null };
   let sel = null;
   let lastPaint = -Infinity;
   let frozenUntil = 0;
   let lastWorld = null;
   let lastFagi = null;
   const open = new Map([['needs', true], ['now', true], ['family', true], ['what', true], ['time', true], ['stock', true], ['eggs', true]]);
+  const card = document.createElement('div');
+  card.className = 'ins-card';
+  const extra = document.createElement('div');
+  extra.className = 'ins-extra';
+  el.replaceChildren(card, extra);
 
-  // A press on the card holds the repaint, so the click lands on the same element.
-  el.addEventListener('pointerdown', () => { frozenUntil = performance.now() + 600; });
+  // A press on the card holds the repaint while it lasts (a slider being
+  // dragged) and a moment after, so the click lands on the same element.
+  let pressing = false;
+  el.addEventListener('pointerdown', () => { pressing = true; frozenUntil = Infinity; });
+  const release = () => { if (pressing) { pressing = false; frozenUntil = performance.now() + 600; } };
+  window.addEventListener('pointerup', release);
+  window.addEventListener('pointercancel', release);
   el.addEventListener('toggle', (e) => { const s = e.target?.dataset?.sec; if (s) open.set(s, e.target.open); }, true);
   el.addEventListener('click', (e) => {
     const b = e.target.closest('button');
@@ -181,9 +196,10 @@ export function createInspector(el, hooks = {}) {
     else if (b.dataset.act === 'center' && it) hooks.onCenter?.(it.x, it.y);
     else if (b.dataset.act === 'follow' && it && sel.kind === 'fagi' && !sel.main) {
       hooks.onFollow?.(it);
-      sel = { kind: 'fagi', main: true, id: it.id };
+      sel = { kind: 'fagi', main: true, id: lastFagi.id };
       frozenUntil = 0;
     } else if (b.dataset.act === 'ask' && it) hooks.onAsk?.(it.x, it.y);
+    else if (b.dataset.act === 'god' && it && sel.kind === 'fagi') hooks.onGod?.(it);
     else if (b.dataset.act === 'copy-phylogeny-mermaid' && lastWorld) {
       const mmd = renderPhylogenyMermaid(lastWorld);
       if (navigator.clipboard) {
@@ -206,7 +222,15 @@ export function createInspector(el, hooks = {}) {
   });
   onLangChange(() => { frozenUntil = 0; lastPaint = -Infinity; });
 
+  // Choosing a living Fagi (on the map, a relative's chip) makes her the one
+  // followed, when the game allows it (hooks.adopt): then the vision cone, the
+  // panels and the narrator are hers too, not just this card.
   function select(next) {
+    if (next?.kind === 'fagi' && !next.main && hooks.adopt && lastWorld) {
+      const it = resolve(next, lastWorld, lastFagi);
+      // The swap (colony.js swapInto) moved her into the followed object.
+      if (it && hooks.adopt(it)) next = { kind: 'fagi', main: true, id: lastFagi.id };
+    }
     sel = next;
     frozenUntil = 0;
     lastPaint = -Infinity;
@@ -224,20 +248,20 @@ export function createInspector(el, hooks = {}) {
     if (now < frozenUntil || now - lastPaint < 250) return;
     lastPaint = now;
     const it = resolve(sel, world, fagi);
-    const scroll = el.querySelector('.ins-body')?.scrollTop ?? 0;
-    el.innerHTML = it ? paint(sel, it, world, fagi, live) : gone(sel);
-    for (const d of el.querySelectorAll('details[data-sec]')) d.open = open.get(d.dataset.sec) ?? false;
-    const body = el.querySelector('.ins-body');
+    const scroll = card.querySelector('.ins-body')?.scrollTop ?? 0;
+    card.innerHTML = it ? paint(sel, it, world, fagi, live) : gone(sel);
+    for (const d of card.querySelectorAll('details[data-sec]')) d.open = open.get(d.dataset.sec) ?? false;
+    const body = card.querySelector('.ins-body');
     if (body) body.scrollTop = scroll;
   }
 
   function paint(s, it, world, fagi, live) {
-    if (s.kind === 'fagi') return paintFagi(it, world, fagi, s.main, live && hooks.canFollow?.());
+    if (s.kind === 'fagi') return paintFagi(it, world, fagi, s.main, live && hooks.canFollow?.(), live && hooks.canGod?.());
     if (s.kind === 'point') return paintPoint(it, world, fagi);
     return paintObject(it, world, fagi);
   }
 
-  return { select, update, clear, get selection() { return sel; } };
+  return { select, update, clear, get selection() { return sel; }, extra };
 }
 
 function head(title, sub, color, actions) {
@@ -278,7 +302,7 @@ function actionOf(f) {
   return a ? t(`action.${a}`) : null;
 }
 
-function paintFagi(f, world, main, isMain, canFollow) {
+function paintFagi(f, world, main, isMain, canFollow, canGod) {
   const fam = world.lineage || world.colony ? familyOf(world, main, f.id ?? 1) : null;
   const stage = f.lifeStage ? stageName(f) : null;
   const caste = CASTES.enabled ? casteOf(f) : null;
@@ -292,7 +316,8 @@ function paintFagi(f, world, main, isMain, canFollow) {
     isMain ? `<span class="ins-tag">${L('followed', 'seguida')}</span>` : null,
   ].filter(Boolean).join(' · ');
   const actions = `<button type="button" data-act="center">⦿ ${L('Center', 'Centrar')}</button>`
-    + (!isMain && canFollow && f.alive ? `<button type="button" data-act="follow">★ ${L('Follow her', 'Seguirla')}</button>` : '');
+    + (!isMain && canFollow && f.alive ? `<button type="button" data-act="follow">★ ${L('Follow her', 'Seguirla')}</button>` : '')
+    + (canGod && f.alive ? `<button type="button" data-act="god" class="ins-god-btn">⚡ ${L('God mode', 'Modo dios')}</button>` : '');
 
   const now = actionOf(f);
   const needs = [

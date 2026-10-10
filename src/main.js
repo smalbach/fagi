@@ -13,10 +13,12 @@ import { createWorld, resetWorld, record } from './world.js';
 import { generateMap } from './mapgen.js';
 import { createFagi } from './fagi.js';
 import { step } from './simulation.js';
+import { cycleAt } from './cycle.js';
 import { updateTrails } from './smell.js';
 import { render } from './render.js';
 import { createInput, INSPECT } from './input.js';
-import { createInspector, pickAt, pickFagiAt, markOf } from './inspect.js';
+import { createInspector, pickAt, pickFagiAt, markOf, resolve } from './inspect.js';
+import { createGodPanel } from './godmode-panel.js';
 import { createAskCard } from './ask.js';
 import { createColony, successorOf, swapInto } from './colony.js';
 import { createCamera, centerOn, fit } from './camera.js';
@@ -87,8 +89,20 @@ export function createGame({ onExit } = {}) {
   const inspector = createInspector(document.getElementById('inspect-card'), {
     canFollow: () => mode === 'play',
     onFollow: (target) => followChosen(target),
+    adopt: (target) => followChosen(target),
     onCenter: (x, y) => { camera.follow = false; centerOn(camera, canvas, shown().w, { x, y }); },
     onAsk: (x, y) => input.onAsk(x, y),
+    canGod: () => mode === 'play' && !player,
+    onGod: (target) => god.open(target, world),
+  });
+  // God mode (godmode.js): her numbers by hand, under her card, live sessions only.
+  const god = createGodPanel(inspector.extra);
+  // From the top bar: the followed Fagi, selected and with her panel open.
+  document.getElementById('btn-god')?.addEventListener('click', () => {
+    if (mode !== 'play' || player || !fagi.alive) return;
+    inspector.select({ kind: 'fagi', main: true, id: fagi.id });
+    layout.reveal();
+    god.open(fagi, world);
   });
   // Small targets get some slack, less the closer the camera is.
   const slack = () => 2 + 8 / camera.zoom;
@@ -227,6 +241,7 @@ export function createGame({ onExit } = {}) {
     // The clock starts with the session, not with the map: the time spent
     // setting up doesn't count.
     world.time = 0;
+    world.god = 0;   // edits by hand (godmode.js): a fresh session starts clean
     const sink = createSink(s.id);
     const rec = createRecorder(world, { send: (batch) => sink.send(batch) });
     world.rec = rec;
@@ -266,13 +281,14 @@ export function createGame({ onExit } = {}) {
   // The one you follow, by your choice (the inspector's "Follow her"): the
   // same swap as when she dies (colony.js swapInto), recorded the same way.
   function followChosen(target) {
-    if (mode !== 'play' || !session || session.rec.ended || target === fagi || !target?.alive) return;
+    if (mode !== 'play' || !session || session.rec.ended || target === fagi || !target?.alive) return false;
     const from = fagi.id;
     swapInto(fagi, target);
     resetCortex(fagi.cortex);
     session.rec.follow(fagi, from);
     followed(narrator, fagi, 'chosen', from);
     console.reset();
+    return true;
   }
 
   async function finishUp(reason) {
@@ -324,21 +340,42 @@ export function createGame({ onExit } = {}) {
     updateTrails(world, dt);
     render(ctx, world, null, camera, markOf(inspector.selection, world, null), input.editing);
     inspector.update(null, world, { live: false });
+    god.update(null, world, false);
     ui.paintMap(world);
   }
 
+  // Time-lapse (scripts/site-clips.js films the research site's clips with
+  // it): `globalThis.__fagiPace = N` runs N steps of the world per frame drawn.
+  // Not in the game's UI; 1 when unset.
+  const paceNow = () => Math.max(1, Math.min(400, Math.floor(Number(globalThis.__fagiPace) || 1)));
+  // What that script reads to know when to slow down (a shower, a season).
+  globalThis.__fagiProbe = () => {
+    const sky = cycleAt(world.time);
+    return {
+      mode, time: world.time, rain: Boolean(world.rain?.on),
+      season: world.season?.name ?? null, year: world.season?.year ?? null, depth: world.season?.depth ?? 0,
+      day: sky.day, night: sky.isNight, air: sky.ambient, age: fagi.age,
+      beliefs: Object.keys(fagi.brain?.facts ?? {}).length, rules: fagi.brain?.rules?.list?.length ?? 0,
+    };
+  };
+
   function framePlay(dt) {
-    step(world, fagi, dt);
-    const lines = narrate(narrator, fagi);
-    if (session && !session.rec.ended) {
-      session.rec.observe(fagi, lines);
-      if (!fagi.alive) followOrClose();
+    let lines;
+    for (let k = paceNow(); k > 0; k--) {
+      step(world, fagi, dt);
+      lines = narrate(narrator, fagi);
+      if (session && !session.rec.ended) {
+        session.rec.observe(fagi, lines);
+        if (!fagi.alive) followOrClose();
+      }
+      if (!session || session.rec.ended) break;
     }
     if (camera.follow) centerOn(camera, canvas, world, fagi);
     render(ctx, world, fagi, camera, markOf(inspector.selection, world, fagi), input.editing);
     ui.update(fagi, world);
     ui.paintMap(world);
     inspector.update(fagi, world);
+    god.update(resolve(inspector.selection, world, fagi), world, mode === 'play' && !player);
     console.update(fagi, lines);
     learnedPanel.update();
     brainMap.update(fagi, world);
@@ -364,6 +401,7 @@ export function createGame({ onExit } = {}) {
     render(ctx, player.world, player.fagi, camera, markOf(inspector.selection, player.world, player.fagi));
     ui.update(player.fagi, player.world);
     inspector.update(player.fagi, player.world, { live: false });
+    god.update(null, player.world, false);
     // Going back leaves lines from the future in the console: repaint it whole.
     if (player.logEpoch !== replaying.logEpoch) {
       console.reset();

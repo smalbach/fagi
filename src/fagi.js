@@ -147,6 +147,7 @@ export function createFagi(born = {}) {
     lastDrink: null,
 
     saveIn: LEARN.autosaveEvery,  // countdown to the next recoverable save
+    god: 0,            // her numbers set by hand (godmode.js): edits so far
   };
 }
 

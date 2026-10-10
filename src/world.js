@@ -203,6 +203,7 @@ export function resetWorld(world) {
   sizeWorld(world);
   world.nextId = 1;
   world.time = 0;
+  world.god = 0;      // edits by hand (godmode.js)
   world.day = null;   // the next step records day 1 again (simulation.js)
   world.rec = null;
   world.wind = createWind();

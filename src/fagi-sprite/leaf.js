@@ -16,10 +16,11 @@ function shape(ctx) {
 // own shadow on it: without it the leaf would look painted on the shell.
 export function drawLeaf(ctx, leaf, L) {
   ctx.save();
-  ctx.translate(-10.4, -0.5);
-  ctx.rotate(0.62);
+  ctx.translate(-10.6, 0.3);
+  ctx.rotate(0.55);
+  ctx.scale(0.84, 0.84);
 
-  ellipse(ctx, -L.x * 1.3, -L.y * 1.3, 5.6, 3.1, 'rgba(20,12,6,0.4)');
+  ellipse(ctx, -L.x * 0.7, -L.y * 0.7, 5.3, 2.8, 'rgba(20,12,6,0.26)');
 
   shape(ctx);
   const g = ctx.createLinearGradient(L.x * -5, L.y * -3, L.x * 5, L.y * 3);
@@ -35,7 +36,7 @@ export function drawLeaf(ctx, leaf, L) {
   halfInShade(ctx);
 
   ctx.strokeStyle = leaf.vein;
-  ctx.lineWidth = 0.7;
+  ctx.lineWidth = 0.32;
   ctx.beginPath();
   ctx.moveTo(-4.7, 0);
   ctx.quadraticCurveTo(0, -0.4, 4.9, 0);
@@ -43,11 +44,22 @@ export function drawLeaf(ctx, leaf, L) {
 
   // And its edge, so it does not melt into the ant.
   shape(ctx);
-  ctx.strokeStyle = 'rgba(18,34,22,0.45)';
-  ctx.lineWidth = 0.5;
+  ctx.strokeStyle = 'rgba(18,34,22,0.3)';
+  ctx.lineWidth = 0.22;
   ctx.stroke();
 
+  ctx.save();
+  shape(ctx);
+  ctx.clip();
+  ctx.strokeStyle = leaf.vein;
   secondaryVeins(ctx);
+  // A leaf is waxy: one soft gleam where the light falls on it.
+  const gl = ctx.createRadialGradient(L.x * 2, L.y * 0.8 - 0.8, 0, L.x * 2, L.y * 0.8 - 0.8, 2.6);
+  gl.addColorStop(0, 'rgba(236,255,230,0.3)');
+  gl.addColorStop(1, 'rgba(236,255,230,0)');
+  ctx.fillStyle = gl;
+  ctx.fillRect(-6, -4, 12, 8);
+  ctx.restore();
   ctx.lineWidth = 1;
   ctx.restore();
 }
@@ -67,10 +79,10 @@ function halfInShade(ctx) {
   ctx.restore();
 }
 
-// With the edge color still set: they run from the midrib toward the edges.
+// With the vein color already set: they run from the midrib toward the edges.
 function secondaryVeins(ctx) {
-  ctx.lineWidth = 0.4;
-  ctx.globalAlpha = 0.7;
+  ctx.lineWidth = 0.2;
+  ctx.globalAlpha = 0.45;
   for (let i = -2; i <= 2; i++) {
     const x = i * 1.5;
     for (const sideOf of [-1, 1]) {

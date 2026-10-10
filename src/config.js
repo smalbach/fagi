@@ -681,6 +681,12 @@ export const PLUME = {
   radius: 34,         // how far from the thread the smell is perceived
   nodesPerAroma: 0.7, // max segments of the thread = aroma × this
   faint: 0.85,        // how much it dilutes from the source to the tip
+  // Tracking it (movement.js trackScent). Every breath of it renews how long
+  // she keeps after it (FAGI.trailMemory), so once at the source (it smells
+  // full, 1) with nothing there to take, she kept tracking it, in knots
+  // around it, until something more pressing called her. 1 = arriving there
+  // ends the trail: what she finds is up to her eyes (2026-10-09).
+  arrive: 0,
   // Drawing only: 1 = every trail on the map is drawn; 0 = a trail shows only
   // while a Fagi is smelling it, and fades away when none does. With many trees
   // and fruit, drawing them all buries the map under threads.
@@ -806,6 +812,11 @@ export const PHERO = {
   life: 600,          // seconds for a mark to evaporate (Lasius niger: ~47 min half-life). The game uses 60 (app/organism-on.js)
   every: 0.1,         // how often she leaves a mark while carrying: ~7 px, a continuous trail
   sense: 12,          // at what distance she detects a mark: what the antennae reach (~6 mm)
+  ahead: 0,           // 1 = only marks in front of her (within 90° of her heading), each farther
+                      // from the nest than the last she followed: the antennae reach forward and
+                      // a trail leads onward. Off, a mark behind her can be the next one, one
+                      // closer than her turning radius she orbits, and a ring of marks she
+                      // goes round and round (2026-10-09)
   // Following the trail is learned like anything else: if within learnWindow
   // seconds it leads her to food, the belief about the pheromone rises (found); if
   // not, it drops (miss). She's born not knowing the trail is good for anything.
@@ -1533,8 +1544,14 @@ export const TASTE = {
 // she learns by seeing fruit lying there. Part of the organism, off by default
 // (off: every tree is a food source to her from birth, and she knows its fruit).
 //   near : fruit within the tree's radius × this is taken as that tree's
+//   bare : 1 = a tree she has come up to and found nothing she would eat under
+//          is no food source to her (not by sight, memory or smell) until a
+//          fruit could have fallen again (TREE.interval s), or until she sees
+//          fruit there. Off, a bare tree pulls her in forever: she walks up to
+//          the crown, loses it, turns back for it and circles (2026-10-09).
 export const SOURCES = {
   enabled: 0,
   near: 2.1,
+  bare: 0,
 };
 

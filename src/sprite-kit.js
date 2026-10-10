@@ -119,3 +119,34 @@ export function cacheSprite(mapOf, key, paint, cap = 400) {
   mapOf.set(key, img);
   return img;
 }
+
+// A photo stamped rotated, filtered and with a drop shadow, baked once into a
+// canvas at detail scale. `ctx.filter` and `shadowBlur` are among the slowest
+// things a canvas does; on the main canvas they ran for every tree, rock and
+// lake every frame although what they produce only changes in steps. The key
+// must name everything that changes the result (seed, size, the filter's
+// inputs); the detail scale is added here. Blur and offset are in world
+// units, so the shadow keeps its size against the object at any zoom.
+export function bakedPhoto(mapOf, key, spec, cap = 160) {
+  const z = scaleOf;
+  return cacheSprite(mapOf, `${key}|${z}`, () => {
+    const { image, width, tall, turn = 0, filter = 'none', shadow, blur = 0, offX = 0, offY = 0 } = spec;
+    const half = Math.hypot(width, tall) / 2 + blur * 1.5 + Math.hypot(offX, offY);
+    const size = Math.max(1, Math.ceil(half * 2 * z));
+    const img = canvasOf(size, size);
+    const c = img.getContext('2d');
+    c.translate(size / 2, size / 2);
+    c.scale(z, z);
+    c.rotate(turn);
+    // Shadow settings ignore the transform: they go in canvas pixels.
+    if (shadow) {
+      c.shadowColor = shadow;
+      c.shadowBlur = blur * z;
+      c.shadowOffsetX = offX * z;
+      c.shadowOffsetY = offY * z;
+    }
+    c.filter = filter;
+    c.drawImage(image, -width / 2, -tall / 2, width, tall);
+    return img;
+  }, cap);
+}

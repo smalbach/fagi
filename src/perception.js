@@ -4,7 +4,7 @@
 // Each candidate carries which sense it came in through, so whoever decides knows it.
 
 import { feltHungerU } from './stomach.js';
-import { FAGI, BRAIN, THIRST, HUNGER, ENERGY, MEMORY, TREE, NEST, RAIN, CONCEPT, SOURCES, SITES } from './config.js';
+import { FAGI, BRAIN, THIRST, HUNGER, ENERGY, MEMORY, TREE, NEST, RAIN, CONCEPT, SOURCES, SITES, PHERO } from './config.js';
 import { seenPoints, seesObject, viewRangeOf, distanceTo } from './vision.js';
 import { smelledPoints, smellsObject, aromaOf, scentStrengthOfObject } from './smell.js';
 import { isWater, isTree, radiusOf, waterZone } from './obstacles.js';
@@ -23,6 +23,7 @@ import { saltUrge } from './taste.js';
 import { noteSites, bestSite, worthVisiting } from './sites.js';
 import { updateChoice } from './choice.js';
 import { pantryEstimate } from './larder.js';
+import { verdict } from './learned/rules.js';
 
 // The nearest visible pool. Water isn't learned: it's instinct.
 function nearestWater(fagi, world) {
@@ -110,17 +111,38 @@ function learnSources(fagi, world) {
   return known;
 }
 
+// A tree she came up to and found bare (SOURCES.bare): up at its crown, where
+// it stops being a candidate (buildCandidates), she sees nothing under it she
+// would eat. For TREE.interval s, the time a fruit takes to fall again, it is
+// no source to her; seeing fruit under it ends that sooner.
+export const bareTree = (fagi, o) => Boolean(SOURCES.bare) && fagi.bare?.[o?.id] != null
+  && fagi.age - fagi.bare[o.id] < TREE.interval;
+
+function noteBare(fagi, world) {
+  if (!SOURCES.bare) return;
+  const bare = (fagi.bare ??= {});
+  const seen = seenPoints(fagi, world.points, world).filter(({ point }) => verdict(fagi, 'eat', point.type) !== 'avoid');
+  for (const o of world.objects) {
+    if (!isTree(o)) continue;
+    const fruit = seen.some(({ point }) => Math.hypot(point.x - o.x, point.y - o.y) <= radiusOf(o) * SOURCES.near);
+    if (fruit) delete bare[o.id];
+    else if (distanceTo(fagi, o) - radiusOf(o) <= FAGI.eatRadius * 2) bare[o.id] = fagi.age;
+  }
+}
+
 function rememberFoodSource(fagi, world) {
   const known = SOURCES.enabled ? learnSources(fagi, world) : null;
   const edibleInSight = SITES.enabled ? noteSites(fagi, world) : null;
+  noteBare(fagi, world);
   const isKnownTree = known ? (o) => isTree(o) && Boolean(known[o.id]) : isTree;
   // With SITES, a tree she has learned gives nothing now is not a source to her.
-  const isSource = SITES.enabled ? (o) => isKnownTree(o) && worthVisiting(fagi, o) : isKnownTree;
+  const isSource = SITES.enabled ? (o) => isKnownTree(o) && worthVisiting(fagi, o)
+    : (o) => isKnownTree(o) && !bareTree(fagi, o);
   const visible = nearestVisible(fagi, world, isSource);
   let smelled = null;
   let strength = 0;
   for (const object of world.objects) {
-    if (!isTree(object)) continue;
+    if (!isTree(object) || bareTree(fagi, object)) continue;
     const current = scentStrengthOfObject(fagi, object, world);
     if (current > strength) { smelled = object; strength = current; }
   }
@@ -136,6 +158,8 @@ function rememberFoodSource(fagi, world) {
     forgetPlace(fagi.brain, 'foodSource');
     return { visible: null, source: null, smelled, strength };
   }
+  // She remembers it, but she has just found it bare: she doesn't go back yet.
+  if (place && bareTree(fagi, place.ref)) return { visible, source: visible, smelled, strength };
   return { visible, source: visible ?? place, smelled, strength };
 }
 
@@ -219,7 +243,15 @@ function buildCandidates(fagi, world, {
   // It's one more candidate: whether following it is worth it is said by what she has learned
   // (the belief 'pheromone'), not by a rule. It's right underneath: distance 0.
   if (nestObj && forage > 0) {
-    const mark = followPheromone(world, fagi, Math.hypot(nestObj.x - fagi.x, nestObj.y - fagi.y), true);
+    // Along a trail she goes onward (PHERO.ahead): each mark farther from the nest than
+    // the last one she followed, not just farther than she stands. On a ring of marks
+    // she stands nearer and farther by turns, and went round it again and again.
+    let floor = Math.hypot(nestObj.x - fagi.x, nestObj.y - fagi.y);
+    if (PHERO.ahead) {
+      if (fagi.targetKind === 'phero' && fagi.target?.dNest != null) fagi.pheroLast = { d: fagi.target.dNest, at: fagi.age };
+      if (fagi.pheroLast && fagi.age - fagi.pheroLast.at < FAGI.memorySec) floor = Math.max(floor, fagi.pheroLast.d);
+    }
+    const mark = followPheromone(world, fagi, floor, true);
     if (mark) {
       add({ key: 'pheromone', kind: 'trail', ref: mark, dist: 0, range: 1,
             urgency: forage, via: 'antennae', penalty: 0 });

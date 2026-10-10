@@ -1,117 +1,152 @@
 // Fagi's head: armor, compound eyes, frons and mandibles.
 
 import { mix } from '../sprite-kit.js';
-import { shell, edgeLine, outline } from './light.js';
-import { headPath } from './silhouettes.js';
+import { shade, setae } from './light.js';
+import { headPath, HEAD } from './silhouettes.js';
 import { ellipse, point, line } from './stroke.js';
 
 export function head(ctx, c, L, alive, rnd, eyeScale = 1) {
+  // Mandibles first: they come out from under the clypeus.
+  mandibles(ctx, c, L, alive);
+
+  const { x, rx, ry } = HEAD;
+  shade(ctx, headPath, x, 0, rx, ry, c.head, L, { alive, gloss: 0.8, glow: 0.22 });
+
   ctx.save();
   headPath(ctx);
   ctx.clip();
 
-  ctx.fillStyle = shell(ctx, 8.4, 0, 4.7, c.head, L, 0.4, 0.62);
-  ctx.fillRect(4, -6, 10, 12);
-
-  // The three ocelli and the frontal groove: an ant's frons is not smooth.
-  ctx.strokeStyle = 'rgba(52,26,10,0.34)';
-  ctx.lineWidth = 0.7;
-  line(ctx, 6.6, 0, 10.6, 0);
-
-  for (let i = 0; i < 26; i++) {
-    const a = rnd() * Math.PI * 2;
-    const d = Math.sqrt(rnd()) * 4.0;
-    const color = `rgba(60,30,12,${0.05 + rnd() * 0.1})`;
-    point(ctx, 8.4 + Math.cos(a) * d, Math.sin(a) * d * 0.9, 0.3 + rnd() * 0.3, color);
+  // The frons is not smooth: a fine groove down the middle and the two frontal
+  // carinae, the ridges that guard the antennal sockets.
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = 'rgba(40,16,4,0.18)';
+  ctx.lineWidth = 0.18;
+  line(ctx, 6.8, 0, 9.6, 0);
+  for (const sideOf of [-1, 1]) {
+    ctx.strokeStyle = 'rgba(40,16,4,0.2)';
+    ctx.lineWidth = 0.2;
+    ctx.beginPath();
+    ctx.moveTo(10.6, 0.8 * sideOf);
+    ctx.quadraticCurveTo(9.6, 1.05 * sideOf, 8.6, 0.8 * sideOf);
+    ctx.stroke();
   }
+
+  for (let i = 0; i < 34; i++) {
+    const a = rnd() * Math.PI * 2;
+    const d = Math.sqrt(rnd());
+    point(ctx, x + Math.cos(a) * d * rx, Math.sin(a) * d * ry, 0.12 + rnd() * 0.14,
+      `rgba(48,20,6,${0.04 + rnd() * 0.08})`);
+  }
+
+  // The clypeus: the mouth plate, set into the front edge, a touch lighter
+  // and translucent at its rim.
+  ctx.fillStyle = mix(c.head, '#ffd49a', alive ? 0.14 : 0.05);
+  ctx.beginPath();
+  ctx.moveTo(10.6, -1.9);
+  ctx.quadraticCurveTo(12.0, -1.3, 12.0, 0);
+  ctx.quadraticCurveTo(12.0, 1.3, 10.6, 1.9);
+  ctx.quadraticCurveTo(11.2, 0, 10.6, -1.9);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(40,16,4,0.3)';
+  ctx.lineWidth = 0.25;
+  ctx.stroke();
   ctx.restore();
 
-  outline(ctx, headPath, 0.6);
-  edgeLine(ctx, headPath, 8.4, 0, 4.7, mix(c.head, '#ffeccb', 0.7), 0.45, 1, L);
-
-  // The clypeus: the mouth plate, a little lighter and set into the front.
-  ctx.fillStyle = mix(c.head, '#ffdca8', 0.24);
-  ctx.beginPath();
-  ctx.moveTo(10.2, -1.9);
-  ctx.quadraticCurveTo(11.9, -1.2, 11.9, 0);
-  ctx.quadraticCurveTo(11.9, 1.2, 10.2, 1.9);
-  ctx.quadraticCurveTo(10.9, 0, 10.2, -1.9);
-  ctx.fill();
+  // The antennal sockets: small dark pits the scapes plug into.
+  for (const sideOf of [-1, 1]) {
+    ellipse(ctx, 10.0, 1.6 * sideOf, 0.55, 0.45, 'rgba(26,10,3,0.55)');
+  }
 
   eyes(ctx, L, alive, eyeScale);
-  mandibles(ctx, c);
+  if (alive) setae(ctx, rnd, 6, 9.0, 0, 2.2, 2.6, 0.5, 0.14);
 }
 
-// Compound eyes: small, matte and on the sides of the head, not the front.
-// A worker's eye is a tiny pill; a shiny black marble turns the critter
-// into a doll.
+// Compound eyes: small, set on the sides of the head and bulging a little.
+// A worker's eye is an oval of dark facets with one wet glint; a big black
+// marble turns the critter into a doll.
 function eyes(ctx, L, alive, k = 1) {
   for (const sideOf of [-1, 1]) {
-    const x = 7.9;
-    const y = 3.5 * sideOf;
-    const turn = 0.4 * sideOf;
-
     ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(turn);
+    ctx.translate(9.5, 3.15 * sideOf);
+    ctx.rotate(0.35 * sideOf);
     if (k !== 1) ctx.scale(k, k);
 
-    // The rim: the eye is set into the head, not stuck on top.
-    ellipse(ctx, 0, 0, 1.55, 1.2, 'rgba(46,24,10,0.5)');
+    // The socket: the eye sits in the head, not on it.
+    ellipse(ctx, 0, 0, 1.15, 0.85, 'rgba(30,12,3,0.45)');
 
-    // Matte and brown, not patent black: a compound eye does not reflect like glass.
-    const g = ctx.createRadialGradient(L.x * 0.5, L.y * 0.4, 0.1, 0, 0, 1.3);
-    g.addColorStop(0, alive ? '#4f4234' : '#565b66');
-    g.addColorStop(0.6, alive ? '#2e241a' : '#43474f');
-    g.addColorStop(1, alive ? '#17100a' : '#2f323a');
-    ellipse(ctx, 0, 0, 1.25, 0.95, g);
+    const g = ctx.createRadialGradient(L.x * 0.35, L.y * 0.3, 0.05, 0, 0, 1.0);
+    g.addColorStop(0, alive ? '#5a4a3a' : '#5b606a');
+    g.addColorStop(0.55, alive ? '#2a1f16' : '#41454d');
+    g.addColorStop(1, alive ? '#0e0905' : '#2a2d33');
+    ellipse(ctx, 0, 0, 0.98, 0.7, g);
 
-    // Facets: two crossed little lines, just enough so it is not a smooth drop.
-    ctx.strokeStyle = 'rgba(255,240,214,0.1)';
-    ctx.lineWidth = 0.25;
-    for (const i of [-0.45, 0.45]) {
-      line(ctx, -1.05, i, 1.05, i);
-      line(ctx, i * 1.3, -0.8, i * 1.3, 0.8);
+    // Facets: a fine honeycomb, just enough that it is not a smooth drop.
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 0.98, 0.7, 0, 0, Math.PI * 2);
+    ctx.clip();
+    for (let row = -3; row <= 3; row++) {
+      for (let col = -4; col <= 4; col++) {
+        point(ctx, col * 0.24 + (row % 2 ? 0.12 : 0), row * 0.21, 0.06, 'rgba(255,240,214,0.09)');
+      }
     }
+    ctx.restore();
 
-    // A small speck of sky: it shines, but not like a doll's eye.
-    if (alive) ellipse(ctx, L.x * 0.55, L.y * 0.45, 0.3, 0.24, 'rgba(224,232,242,0.42)');
+    if (alive) {
+      ellipse(ctx, L.x * 0.42, L.y * 0.3, 0.26, 0.15, 'rgba(240,246,255,0.75)', Math.atan2(L.y, L.x));
+    }
     ctx.restore();
   }
 }
 
-// Mandibles: two toothed sickles crossing in front of the mouth. They are the
-// tool Fagi carries with, so they are drawn as such.
-function mandibles(ctx, c) {
+// Mandibles: two toothed triangular blades closing in front of the mouth,
+// darker and redder than the head, and black at the tips where they are
+// hardest. They are the tool Fagi carries with, so they are drawn as such.
+function mandibles(ctx, c, L, alive) {
+  const base = mix(c.legs, '#3a1206', 0.32);
   for (const sideOf of [-1, 1]) {
     ctx.save();
     ctx.scale(1, sideOf);
 
-    // The sickle: it leaves the head wide, curves outward and closes to a point
-    // crossing in front of the mouth. The inner edge is toothed.
-    ctx.fillStyle = mix(c.legs, '#3b2009', 0.25);
-    ctx.beginPath();
-    ctx.moveTo(10.6, 0.9);
-    ctx.quadraticCurveTo(13.4, 3.1, 15.8, 0.9);   // outer edge
-    ctx.quadraticCurveTo(15.2, 0.2, 14.4, -0.1);  // the tip, crossed
-    ctx.quadraticCurveTo(13.6, 1.1, 12.5, 0.8);   // inner teeth
-    ctx.quadraticCurveTo(11.8, 0.6, 11.0, 0.0);
-    ctx.closePath();
+    const blade = () => {
+      ctx.beginPath();
+      ctx.moveTo(10.9, 2.2);
+      ctx.quadraticCurveTo(13.0, 1.9, 14.1, 0.35);  // outer edge
+      ctx.lineTo(14.15, -0.15);                     // the tip, at the midline
+      // The masticatory margin: a row of small teeth, not a smooth blade.
+      ctx.lineTo(13.75, 0.08);
+      ctx.lineTo(13.55, -0.05);
+      ctx.lineTo(13.2, 0.22);
+      ctx.lineTo(12.95, 0.1);
+      ctx.lineTo(12.6, 0.38);
+      ctx.lineTo(12.3, 0.3);
+      ctx.quadraticCurveTo(11.6, 0.55, 11.0, 0.6);
+      ctx.closePath();
+    };
+
+    const ly = L.y * sideOf;
+    const g = ctx.createLinearGradient(12.5 + L.x * 1.2, 1.2 + ly * 1.2, 12.5 - L.x * 1.2, 1.2 - ly * 1.2);
+    g.addColorStop(0, mix(base, '#ffd6a0', alive ? 0.32 : 0.1));
+    g.addColorStop(0.5, base);
+    g.addColorStop(1, mix(base, '#100602', 0.55));
+    blade();
+    ctx.fillStyle = g;
     ctx.fill();
-
-    ctx.strokeStyle = 'rgba(22,12,4,0.55)';
-    ctx.lineWidth = 0.4;
+    ctx.strokeStyle = 'rgba(16,6,2,0.4)';
+    ctx.lineWidth = 0.2;
     ctx.stroke();
 
-    // The back of the mandible, where the light hits it.
-    ctx.strokeStyle = mix(c.legs, '#ffe2b4', 0.5);
-    ctx.globalAlpha = 0.55;
-    ctx.lineWidth = 0.6;
-    ctx.beginPath();
-    ctx.moveTo(11.2, 1.05);
-    ctx.quadraticCurveTo(13.4, 2.6, 15.3, 0.9);
-    ctx.stroke();
-    ctx.globalAlpha = 1;
+    // The tips and teeth: hardened, almost black.
+    ctx.save();
+    blade();
+    ctx.clip();
+    const tip = ctx.createLinearGradient(12.4, 0, 15.0, 0);
+    tip.addColorStop(0, 'rgba(14,5,1,0)');
+    tip.addColorStop(1, 'rgba(14,5,1,0.75)');
+    ctx.fillStyle = tip;
+    ctx.fillRect(12, -1, 4, 4);
+    ctx.restore();
+
     ctx.restore();
   }
   ctx.lineWidth = 1;

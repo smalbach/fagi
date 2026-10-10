@@ -1,6 +1,7 @@
 // Boot: who you are decides what you see.
 //
-//   not logged in       → log in / sign up
+//   not logged in       → log in / sign up / forgot password
+//   #reset=<token>      → choose a new password (link from the email)
 //   on the waitlist     → notice, until an admin approves the account
 //   approved            → home: saved sessions and "New session"
 //   new session         → set up the map and the settings, and "Start session"
@@ -9,7 +10,7 @@
 // its factory values).
 import './organism-on.js';
 import { get, ApiError } from './api.js';
-import { showLogin, showWaitlist, showHome, showAdmin, hide, esc } from './screens.js';
+import { showLogin, showReset, showWaitlist, showHome, showAdmin, hide, esc } from './screens.js';
 import { createGame } from '../main.js';
 import { retryPending } from '../recorder/sink.js';
 import { t, onLangChange, getLang } from '../i18n.js';
@@ -18,6 +19,14 @@ let user = null;
 const game = createGame({ onExit: () => goHome() });
 
 async function start() {
+  // The reset link from the email: the token leaves the address bar at once
+  // (history, screenshots) and the screen keeps it.
+  const reset = /^#reset=([\w-]+)$/.exec(location.hash)?.[1];
+  if (reset) {
+    history.replaceState(null, '', location.pathname + location.search);
+    showReset(reset, { onDone: decide });
+    return;
+  }
   try {
     ({ user } = await get('/auth/me'));
   } catch (err) {
@@ -138,6 +147,7 @@ function describe(ev) {
   if (ev.type === 'fagi_death') return t('replay.ev.fagi_death', { cause: t(`cause.${ev.cause}`) });
   if (ev.type === 'fagi_rule') return t('replay.ev.fagi_rule', { rule: ev.rule });
   if (ev.type === 'config') return t('replay.ev.config', { id: ev.id, to: ev.to });
+  if (ev.type === 'god') return t('replay.ev.god', { id: ev.id ?? '?', param: ev.param, from: ev.from, to: ev.to });
   return t(`replay.ev.${ev.type}`, { what: what });
 }
 

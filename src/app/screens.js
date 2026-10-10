@@ -1,12 +1,12 @@
-// Screens outside the game: log in, sign up, waitlist, home (sessions) and
+// Screens outside the game: log in, sign up, forgot/reset password, waitlist, home (sessions) and
 // admin panel. All of them are drawn inside #screen, which covers the game
 // while it's visible.
 //
 // Everything that comes from the server (emails, names) goes through esc()
 // before going into the HTML.
 
-import { get, post, del } from './api.js';
-import { t, formatDuration, getLang } from '../i18n.js';
+import { get, post, del, ApiError } from './api.js';
+import { t, formatDuration, getLang, setLang, onLangChange, LANGS } from '../i18n.js';
 import { versionLabel, versionTitle } from '../version.js';
 
 const root = () => document.getElementById('screen');
@@ -15,15 +15,22 @@ export function esc(v) {
   return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-function paint(html) {
+// The screen on view, drawn again when the language changes.
+let current = null;
+onLangChange(() => current?.());
+
+function paint(html, again) {
+  current = again;
   const el = root();
   el.innerHTML = `<div class="screen-card">${html}</div>`;
+  el.querySelectorAll('.screen-lang button').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
   el.hidden = false;
   document.body.classList.add('screen-open');
   return el;
 }
 
 export function hide() {
+  current = null;
   root().hidden = true;
   root().innerHTML = '';
   document.body.classList.remove('screen-open');
@@ -46,7 +53,16 @@ function labelIt(list) {
 
 const date = (iso) => (iso ? new Date(iso).toLocaleString(getLang(), { dateStyle: 'medium', timeStyle: 'short' }) : '—');
 
+// The research site in the same language: / is Spanish, /en/ English.
+const siteHref = () => (getLang() === 'es' ? '/' : '/en/');
+
 const header = (title, extra = '') => `
+  <nav class="screen-nav">
+    <a href="${siteHref()}" class="screen-back">← ${t('nav.research')}</a>
+    <span class="screen-lang" role="group" aria-label="${t('nav.lang')}">${LANGS.map((l) => `
+      <button type="button" data-lang="${l}" ${l === getLang() ? 'aria-current="true"' : ''}>${l.toUpperCase()}</button>`).join('')}
+    </span>
+  </nav>
   <header class="screen-head">
     <h1>${t('app.title')}</h1>
     <span class="screen-sub">${title}</span>
@@ -64,9 +80,11 @@ export function showLogin({ onDone }) {
       <label>${t('auth.password')}<input name="password" type="password" autocomplete="current-password" required></label>
       <p class="screen-error" role="alert"></p>
       <button type="submit" class="primary">${t('auth.loginBtn')}</button>
+      <p class="screen-alt"><a href="#" id="go-forgot">${t('auth.forgot')}</a></p>
       <p class="screen-alt">${t('auth.noAccount')} <a href="#" id="go-register">${t('auth.register')}</a></p>
-    </form>`);
+    </form>`, () => showLogin({ onDone }));
   el.querySelector('#go-register').addEventListener('click', (e) => { e.preventDefault(); showRegister({ onDone }); });
+  el.querySelector('#go-forgot').addEventListener('click', (e) => { e.preventDefault(); showForgot({ onDone }); });
   submitForm(el.querySelector('#f-login'), async (data) => {
     const { user } = await post('/auth/login', { email: data.email, password: data.password });
     onDone(user);
@@ -84,10 +102,52 @@ export function showRegister({ onDone }) {
       <p class="screen-error" role="alert"></p>
       <button type="submit" class="primary">${t('auth.registerBtn')}</button>
       <p class="screen-alt">${t('auth.haveAccount')} <a href="#" id="go-login">${t('auth.login')}</a></p>
-    </form>`);
+    </form>`, () => showRegister({ onDone }));
   el.querySelector('#go-login').addEventListener('click', (e) => { e.preventDefault(); showLogin({ onDone }); });
   submitForm(el.querySelector('#f-register'), async (data) => {
     const { user } = await post('/auth/register', data);
+    onDone(user);
+  });
+}
+
+// Asks for the reset link. The server answers the same whether the email
+// has an account or not, so the screen does too.
+export function showForgot({ onDone }) {
+  const el = paint(`
+    ${header(t('auth.forgotTitle'))}
+    <form class="screen-form" id="f-forgot">
+      <p class="screen-muted">${t('auth.forgotHelp')}</p>
+      <label>${t('auth.email')}<input name="email" type="email" autocomplete="email" required></label>
+      <p class="screen-error" role="alert"></p>
+      <button type="submit" class="primary">${t('auth.forgotBtn')}</button>
+      <p class="screen-alt"><a href="#" id="go-login">${t('auth.backToLogin')}</a></p>
+    </form>`, () => showForgot({ onDone }));
+  el.querySelector('#go-login').addEventListener('click', (e) => { e.preventDefault(); showLogin({ onDone }); });
+  const form = el.querySelector('#f-forgot');
+  submitForm(form, async (data) => {
+    await post('/auth/forgot', { email: data.email, lang: getLang() });
+    form.querySelector('label').remove();
+    form.querySelector('button[type=submit]').remove();
+    form.querySelector('.screen-muted').textContent = t('auth.forgotSent', { email: data.email.trim() });
+  });
+}
+
+// Opened from the emailed link (#reset=<token>): chooses the new password.
+export function showReset(token, { onDone }) {
+  const el = paint(`
+    ${header(t('auth.resetTitle'))}
+    <form class="screen-form" id="f-reset">
+      <label>${t('auth.newPassword')}<input name="password" type="password" autocomplete="new-password" minlength="8" required>
+        <small>${t('auth.passwordHint')}</small></label>
+      <label>${t('auth.repeatPassword')}<input name="repeat" type="password" autocomplete="new-password" minlength="8" required></label>
+      <p class="screen-error" role="alert"></p>
+      <button type="submit" class="primary">${t('auth.resetBtn')}</button>
+      <p class="screen-alt"><a href="#" id="go-forgot">${t('auth.resetAgain')}</a></p>
+    </form>`, () => showReset(token, { onDone }));
+  el.querySelector('#go-forgot').addEventListener('click', (e) => { e.preventDefault(); showForgot({ onDone }); });
+  submitForm(el.querySelector('#f-reset'), async (data) => {
+    if (data.password !== data.repeat) throw new ApiError(400, 'password_mismatch');
+    const { user } = await post('/auth/reset', { token, password: data.password });
     onDone(user);
   });
 }
@@ -127,7 +187,7 @@ export function showWaitlist(user, { onRetry, onLogout }) {
         <button id="w-retry">${t('wait.check')}</button>
         <button id="w-logout">${t('auth.logout')}</button>
       </div>
-    </div>`);
+    </div>`, () => showWaitlist(user, { onRetry, onLogout }));
   el.querySelector('#w-retry').addEventListener('click', onRetry);
   el.querySelector('#w-logout').addEventListener('click', () => logout(onLogout));
 }
@@ -148,7 +208,7 @@ export async function showHome(user, { onNew, onReplay, onAdmin, onLogout }) {
         <span class="screen-error" role="alert"></span>
       </div>
       <div id="h-list" class="screen-list"><p class="screen-muted">${t('home.loading')}</p></div>
-    </div>`);
+    </div>`, () => showHome(user, { onNew, onReplay, onAdmin, onLogout }));
   el.querySelector('#h-new').addEventListener('click', onNew);
   el.querySelector('#h-logout').addEventListener('click', () => logout(onLogout));
   el.querySelector('#h-admin')?.addEventListener('click', onAdmin);
@@ -262,7 +322,7 @@ export async function showAdmin(user, { onBack }) {
       <div class="screen-tabs">${FILTERS.map((f) => `<button data-f="${f}">${t(`admin.f.${f || 'all'}`)}</button>`).join('')}</div>
       <p class="screen-error" role="alert"></p>
       <div id="a-list" class="screen-list"></div>
-    </div>`);
+    </div>`, () => showAdmin(user, { onBack }));
   el.querySelector('#a-back').addEventListener('click', onBack);
   const error = el.querySelector('.screen-error');
   el.querySelectorAll('.screen-tabs button').forEach((b) => b.addEventListener('click', () => { filterFn = b.dataset.f; paintList(); }));

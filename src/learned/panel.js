@@ -4,6 +4,7 @@
 // automatic, but taking what was learned into another game is a decision.
 
 import { t, onLangChange } from '../i18n.js';
+import { watchShown, every } from '../pane-visibility.js';
 import { exportText, exportProgramText, importText, load, restore, wipe } from './store.js';
 
 const BACKEND_KEY = 'fagi.backend';
@@ -128,6 +129,12 @@ export function createLearnedPanel(fagi, { onBackendChange } = {}) {
   onLangChange(() => { paintRecover(); });
   paintRecover();
   paintCode();
+  // The version moves every second and on every bite: re-exporting the whole
+  // module (and reading the saved copy back) is only worth it while the pane
+  // can be seen, and at most a few times a second. Hidden, the marks below
+  // stay behind, so it catches up as soon as it shows.
+  const shown = watchShown(el.code?.closest('.pane-body'));
+  const due = every(250);
 
   return {
     // Repainting the code every frame would waste CPU for nothing: it's only needed
@@ -139,6 +146,7 @@ export function createLearnedPanel(fagi, { onBackendChange } = {}) {
     update(de = fagi) {
       const version = de.brain.version ?? 0;
       if (de.brain.rules.seq === seenSeq && version === versionView && de === seen) return;
+      if (!shown() || !due()) return;
       seenSeq = de.brain.rules.seq;
       versionView = version;
       seen = de;

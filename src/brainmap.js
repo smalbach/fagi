@@ -17,8 +17,9 @@
 //   7. Explore   — with SITES, CHOICE or LARDER: her wiring for where to look for
 //      or come     food (each site she remembers and exploring, as thick as the
 //      back        chance she'd take it), her noise, her last decisions, the pantry.
-//   8. Mental    — what she remembers of the place: where she has been, where she
-//      map         thinks the water, the tree and her food sites are, and her home.
+//
+// What she remembers of the place (the mental map) has its own pane, next to
+// the body map: painting it here too drew it twice.
 //
 // It computes nothing that isn't already computed: it reads fagi.thought (decision.js),
 // fagi.brain (memory.js, learned/) and fagi.lastEpisode (episodes.js). The canvas
@@ -29,6 +30,7 @@
 // shared brushes from brainmap/brushes.js.
 
 import { t } from './i18n.js';
+import { watchShown, every } from './pane-visibility.js';
 import { createBrushes } from './brainmap/brushes.js';
 import { paintFeel } from './brainmap/feel.js';
 import { paintPerceive } from './brainmap/perceive.js';
@@ -36,8 +38,9 @@ import { paintInstinct } from './brainmap/instinct.js';
 import { paintDecide } from './brainmap/decide.js';
 import { paintLearn } from './brainmap/learn.js';
 import { paintNetwork } from './brainmap/network.js';
-import { paintMentalMap } from './brainmap/mental-map.js';
 import { paintForage } from './brainmap/forage.js';
+
+const PAINT_MS = 66;   // ~15 paints a second
 
 export function createBrainMap(canvas, statusEl, expandBtn) {
   if (!canvas) return { update() {} };
@@ -72,7 +75,7 @@ export function createBrainMap(canvas, statusEl, expandBtn) {
 
   // The sections, one below another: each starts where the previous
   // one ended and returns where it ends. The total is the canvas height.
-  function everything(fagi, worldState) {
+  function everything(fagi) {
     brushes.begin();
     let y = 12 * brushes.s;
     y = paintFeel(brushes, fagi, y);
@@ -81,18 +84,21 @@ export function createBrainMap(canvas, statusEl, expandBtn) {
     y = paintDecide(brushes, fagi, y);
     y = paintLearn(brushes, fagi, y);
     y = paintNetwork(brushes, fagi, y);
-    y = paintForage(brushes, fagi, y);
-    return paintMentalMap(brushes, fagi, worldState, y);
+    return paintForage(brushes, fagi, y);
   }
 
-  function update(fagi, world = null) {
+  // Painted only while it can be seen, and a few times a second.
+  const shown = watchShown(canvas.closest('.pane-body') ?? canvas);
+  const due = every(PAINT_MS);
+
+  function update(fagi) {
+    if (!shown() || !due()) return;   // tab hidden, pane collapsed, out of sight
     state(fagi);
-    if (!canvas.getBoundingClientRect().width) return;   // panel collapsed or hidden
     if (brushes.cssW === 0) brushes.adjust(200);
-    const tall = everything(fagi, world);
+    const tall = everything(fagi);
     // The height changed (more beliefs, more neurons): resizing clears the
     // canvas, so it's painted again in the same frame.
-    if (brushes.adjust(Math.ceil(tall))) everything(fagi, world);
+    if (brushes.adjust(Math.ceil(tall))) everything(fagi);
   }
 
   return { update };

@@ -244,3 +244,4 @@ body.layout-setup .palette-grid { grid-template-columns: repeat(3, minmax(0, 1fr
   body.layout-setup #setup-bar { flex-wrap: wrap; }
   body.layout-setup #setup-bar .help { flex-basis: 100%; white-space: normal; text-align: left; }
 }
+body.layout-dock #inspect-card .ins-extra, body.layout-mobile #inspect-card .ins-extra { max-height: none; overflow: visible; }

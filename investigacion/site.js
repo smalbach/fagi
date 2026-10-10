@@ -3,6 +3,7 @@ import { T, pct, num } from './strings.js';
 import { lineChart, groupedBars } from './charts.js';
 import './lab.js';
 import './explorer.js';
+import './clips.js';
 import game from './data/game.json';
 
 // ---------- theme: light, dark, or whatever the system says ----------

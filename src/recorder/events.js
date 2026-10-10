@@ -67,6 +67,8 @@ export const EVENT_TYPES = {
   // Loaded to a full nest (LARDER, larder.js): what she did with her load.
   nest_full: ['what', 'did'],
   people: ['people'],   // what the night mind proposed and what was kept (night/)
+  // God mode (godmode.js): a parameter of a Fagi set by hand mid-session.
+  god: ['id', 'param', 'from', 'to'],
 };
 
 // Columns of each point in a `track` block, in this order.
@@ -76,7 +78,7 @@ export const TRACK_FIELDS = ['t', 'x', 'y', 'angle', 'action', 'targetId', 'carr
   'temperature', 'thermalStress', 'sleepPressure', 'sex'];
 
 // Events that deserve a mark on the player's timeline.
-export const MARKER_TYPES = new Set(['fagi_eat', 'fagi_pick', 'fagi_deposit', 'fagi_pantry', 'fagi_rule', 'fagi_death', 'config', 'night_report']);
+export const MARKER_TYPES = new Set(['fagi_eat', 'fagi_pick', 'fagi_deposit', 'fagi_pantry', 'fagi_rule', 'fagi_death', 'config', 'night_report', 'god']);
 
 // Returns null if the event is valid, or the reason if not.
 export function invalidEvent(ev) {
