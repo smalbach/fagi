@@ -63,6 +63,17 @@ export function startRain(world) {
   record(world, 'rain', { on: true });
 }
 
+// Clears the sky now (the settings button): the shower ends as if its time
+// were up, and the next one is drawn as usual.
+export function stopRain(world) {
+  const rain = (world.rain ??= createRain());
+  if (!rain.on) return;
+  rain.on = false;
+  rain.pending = 0;
+  next(rain);
+  record(world, 'rain', { on: false });
+}
+
 export function updateRain(world, dt) {
   const rain = (world.rain ??= createRain());
 

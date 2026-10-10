@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 
 import { SEASONS, CYCLE } from '../src/config.js';
 import { createWorld } from '../src/world.js';
-import { updateSeasons, seasonNow } from '../src/seasons.js';
+import { updateSeasons, seasonNow, seasonView, jumpSeason } from '../src/seasons.js';
+import { invalidEvent } from '../src/recorder/events.js';
 import { cycleAt } from '../src/cycle.js';
 
 const on = (fn) => { SEASONS.enabled = 1; try { return fn(); } finally { SEASONS.enabled = 0; SEASONS.unpredictable = 0; } };
@@ -99,4 +100,37 @@ test('far years: only the trees beyond the middle distance bear; near years, onl
       assert.ok(1000 - far.timer > 1000 - near.timer, `far ${far.timer} near ${near.timer}`);
     } finally { SEASONS.farYears = 0; SEASONS.persist = 0; }
   });
+});
+
+test('jumping to a season: the seasons\' clock moves ahead to it, the world clock stays', () => {
+  on(() => {
+    const w = createWorld();
+    w.time = 10;
+    updateSeasons(w);
+    assert.equal(seasonView(w).name, 'summer');
+    for (const name of ['autumn', 'winter', 'spring', 'summer']) {
+      jumpSeason(w, name);
+      assert.equal(seasonView(w).name, name);
+      assert.equal(w.time, 10);
+    }
+    assert.equal(seasonNow().name, 'summer');
+    // Always ahead: a full year went by.
+    assert.ok(w.seasonShift > 0);
+    assert.equal(seasonView(w).year, 2);
+  });
+});
+
+test('season view: what comes next, and when', () => {
+  on(() => {
+    const w = createWorld();
+    jumpSeason(w, 'autumn');
+    const v = seasonView(w);
+    assert.equal(v.next, 'winter');
+    assert.ok(v.inSec > 0 && v.inSec < SEASONS.year);
+  });
+  assert.equal(seasonView(createWorld()), null);
+});
+
+test('the season turning is an event a recording may carry', () => {
+  assert.equal(invalidEvent({ seq: 0, t: 1, type: 'season', name: 'winter', year: 1 }), null);
 });

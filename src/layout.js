@@ -6,8 +6,11 @@
 //   │ console (its two halves side by side)                  │  │
 //   └────────────────────────────────────────────────────────┴──┘
 //
+// The rail holds every button of the session (the panels, the views, the
+// modals, ending it) and the version; the strip keeps only the language.
+//
 // Three views:
-//   observe  the map alone, and the strip (world.immersive: no aids drawn)
+//   observe  the map alone, the strip and the rail (world.immersive: no aids drawn)
 //   normal   the dock shows ONE section at a time (Fagi, Map, Inspector),
 //            chosen on the rail; the console lies at the bottom
 //   deep     everything at once: a wide dock with every section in columns
@@ -34,7 +37,6 @@ function readState() {
 
 // `world` gets immersive = (view is observe). `hooks`:
 //   isSession()        playing or replaying (the dock layout applies)
-//   onSettings()       open the settings
 //   isSetup()          setting up a session
 //   onRelayout(dock)   the console changed orientation (panel-layout.js)
 export function initLayout(world, hooks = {}) {
@@ -70,6 +72,7 @@ export function initLayout(world, hooks = {}) {
     for (const v of VIEWS) body.classList.toggle(`view-${v}`, state.view === v);
     body.classList.toggle('immersive', world.immersive);
     body.classList.toggle('layout-dock', dock);
+    body.classList.toggle('layout-rail', session);
     body.classList.toggle('layout-setup', Boolean(hooks.isSetup?.()) && mq.matches);
     body.dataset.setup = state.setupTab;
     for (const b of document.querySelectorAll('#setup-tabs [data-setup]')) {
@@ -121,17 +124,20 @@ export function initLayout(world, hooks = {}) {
   rail.addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b) return;
+    // Observing there are no panels: a panel's button brings them back open.
+    const observing = state.view === 'observe' && Boolean(b.dataset.dock || b.dataset.act === 'console');
+    if (observing) state.view = 'normal';
     if (b.dataset.dock) {
       // The open section again closes the dock (normal view): the map takes it all.
-      if (state.view === 'normal' && state.dockOpen && state.section === b.dataset.dock) state.dockOpen = false;
+      if (!observing && state.view === 'normal' && state.dockOpen && state.section === b.dataset.dock) state.dockOpen = false;
       else { state.section = b.dataset.dock; state.dockOpen = true; }
       save();
       sync();
       return;
     }
     const act = b.dataset.act;
-    if (act === 'console') document.getElementById('btn-toggle-console')?.click();
-    else if (act === 'settings') hooks.onSettings?.();
+    const consoleBody = document.getElementById('console-body');
+    if (act === 'console' && !(observing && !consoleBody?.classList.contains('collapsed'))) document.getElementById('btn-toggle-console')?.click();
     else if (act === 'smaller' || act === 'bigger') {
       state.zoom = Math.round(Math.min(1.4, Math.max(0.75, state.zoom + (act === 'bigger' ? 0.05 : -0.05))) * 100) / 100;
     } else if (act === 'compact') state.compact = !state.compact;
@@ -187,6 +193,21 @@ export function initLayout(world, hooks = {}) {
   return {
     sync,
     get view() { return state.view; },
+    // A session starts with the map alone: the dock opens when something is
+    // selected (reveal) or chosen on the rail, the console from the rail.
+    closePanels() {
+      state.dockOpen = false;
+      save();
+      sync();
+      if (!document.getElementById('console-body')?.classList.contains('collapsed')) document.getElementById('btn-toggle-console')?.click();
+    },
+    // The selection was cleared: the inspector it filled closes with it.
+    conceal() {
+      if (state.view !== 'normal' || state.section !== 'inspect' || !state.dockOpen) return;
+      state.dockOpen = false;
+      save();
+      sync();
+    },
     // Something was selected: bring the inspector into view (normal view).
     reveal() {
       if (!body.classList.contains('layout-dock') && !body.classList.contains('layout-mobile')) return;

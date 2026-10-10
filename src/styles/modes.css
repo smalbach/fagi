@@ -24,8 +24,7 @@ body.mode-setup.immersive #stage { flex: 1 1 420px; min-width: 300px; padding: 1
 body.mode-setup.immersive #canvas { max-width: 100%; max-height: calc(100vh - 32px); border-radius: 8px; }
 body.mode-setup #hud { width: 280px; }
 
-body.mode-play #btn-end, body.mode-play #btn-god { display: inline-block; }
-#btn-god { border-color: #ffb70388; color: #ffd166; }
+body.mode-play #btn-end, body.mode-play #btn-god { display: flex; }
 body.mode-play #btn-reset { display: none; }
 
 /* Replay: the map and Fagi's status, with nothing that edits. */

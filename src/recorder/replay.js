@@ -127,6 +127,9 @@ export function applyEvent(state, ev) {
       else if (!ev.on && lastItem && lastItem[1] == null) lastItem[1] = ev.t;
       break;
     }
+    case 'season':
+      w.season = { on: true, name: ev.name, year: ev.year };
+      break;
     case 'obj_edit': {
       // Only what the replay draws: a tree's pace and age, a fruit's ripeness.
       const list = ev.point ? w.points : w.objects;

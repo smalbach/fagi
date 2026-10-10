@@ -13,10 +13,11 @@ import {
   CAMERA, ATTENTION, SYNAPSE, EXPLAIN, VARY,
 } from './config.js';
 import { ORGANISM } from './organism.js';
-import { startRain } from './rain.js';
+import { startRain, stopRain } from './rain.js';
+import { seasonView, jumpSeason } from './seasons.js';
 import { removeAllTrees } from './trees.js';
 import { wipe } from './learned/store.js';
-import { t, labelOf, getLang, onLangChange } from './i18n.js';
+import { t, labelOf, getLang, onLangChange, formatDuration } from './i18n.js';
 import { makeSlider, makeChoice } from './controls.js';
 import { fieldHelp, groupHelp } from './settings-help.js';
 
@@ -897,6 +898,18 @@ const FACTORY = new Map(ORIGINAL.map(({ c, value }) => [c, value]));
 const changed = (field) => read(field) !== FACTORY.get(field);
 const fold = (text) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
+// The quick weather buttons (Climate tab): a whole climate in one click, set
+// through the same fields as by hand, so it is saved and recorded the same.
+// A preset lists [object, key, value]; null takes the factory value.
+const CLIMATES = [
+  { id: 'desert', icon: '🏜', en: 'Desert', es: 'Desierto', set: [[CYCLE, 'mean', 34], [RAIN, 'every.min', 1500], [RAIN, 'every.max', 2400], [RAIN, 'duration.min', 8], [RAIN, 'duration.max', 15]] },
+  { id: 'temperate', icon: '🌤', en: 'Temperate', es: 'Templado', set: [[CYCLE, 'mean', null], [RAIN, 'every.min', null], [RAIN, 'every.max', null], [RAIN, 'duration.min', null], [RAIN, 'duration.max', null]] },
+  { id: 'rainy', icon: '🌴', en: 'Rainy', es: 'Lluvioso', set: [[CYCLE, 'mean', 26], [RAIN, 'every.min', 90], [RAIN, 'every.max', 180], [RAIN, 'duration.min', 40], [RAIN, 'duration.max', 70]] },
+  { id: 'cold', icon: '❄', en: 'Cold', es: 'Frío', set: [[CYCLE, 'mean', 3], [RAIN, 'every.min', null], [RAIN, 'every.max', null], [RAIN, 'duration.min', null], [RAIN, 'duration.max', null]] },
+];
+const fieldOf = (obj, key) => BY_ID.get(configIdOf(obj, key));
+const presetValue = (obj, key, value) => value ?? FACTORY.get(fieldOf(obj, key));
+
 export function createSettings(world, getFagi) {
   const box = document.getElementById('settings-body');
   const overlay = document.getElementById('settings-overlay');
@@ -1155,7 +1168,113 @@ export function createSettings(world, getFagi) {
       list.append(det);
     });
     if (!shown.length) list.innerHTML = `<p class="set-none">${L('Nothing matches.', 'Nada coincide.')}</p>`;
+    if (!q && !modifiedOnly && cat === 'climate') list.prepend(weatherCard());
     paintExpand();
+  }
+
+  // Rain, a whole climate, the temperature and the cycles, one click each.
+  function weatherCard() {
+    const card = document.createElement('section');
+    card.className = 'weather-now';
+    const button = (label, title, onClick) => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.textContent = label;
+      if (title) el.title = title;
+      el.addEventListener('click', () => { onClick(); paint(); });
+      return el;
+    };
+    const line = (name, ...items) => {
+      const row = document.createElement('div');
+      row.className = 'weather-row';
+      const label = document.createElement('span');
+      label.className = 'weather-label';
+      label.textContent = name;
+      const box = document.createElement('div');
+      box.className = 'weather-buttons';
+      box.append(...items);
+      row.append(label, box);
+      card.append(row);
+      return box;
+    };
+    const head = document.createElement('h3');
+    head.textContent = L('Weather now', 'El tiempo ahora');
+    card.append(head);
+
+    const rainOn = button(L('🌧 Make it rain', '🌧 Hacer llover'), L('A shower starts now, with its puddles', 'Empieza un chaparrón ahora, con sus charcos'), () => startRain(world));
+    const rainOff = button(L('☀ Clear the sky', '☀ Despejar'), L('The shower stops now', 'El chaparrón para ahora'), () => stopRain(world));
+    line(L('Rain', 'Lluvia'), rainOn, rainOff);
+
+    const presets = CLIMATES.map((p) => {
+      const el = button(`${p.icon} ${p[getLang()] ?? p.en}`, null, () => {
+        for (const [obj, key, value] of p.set) setSetting(obj, key, presetValue(obj, key, value));
+      });
+      el.dataset.climate = p.id;
+      return el;
+    });
+    line(L('Climate', 'Clima'), ...presets);
+
+    const temp = document.createElement('span');
+    temp.className = 'weather-value';
+    const warmer = (d) => () => setSetting(CYCLE, 'mean', CYCLE.mean + d);
+    line(L('Temperature', 'Temperatura'),
+      button('−5 °C', L('Colder air', 'Aire más frío'), warmer(-5)), temp,
+      button('+5 °C', L('Warmer air', 'Aire más cálido'), warmer(5)));
+
+    const flip = (obj, key) => () => setSetting(obj, key, obj[key] ? 0 : 1);
+    const cycle = button('', L('Days and nights, with their light and their cold', 'Días y noches, con su luz y su frío'), flip(CYCLE, 'enabled'));
+    const seasons = button('', L('Years with lean, cold winters', 'Años con inviernos escasos y fríos'), flip(SEASONS, 'enabled'));
+    line(L('Cycles', 'Ciclos'), cycle, seasons);
+
+    // Moving the time of year ahead to a season (turning the seasons on first).
+    const SEASON_NAMES = ['spring', 'summer', 'autumn', 'winter'];
+    const seasonButtons = SEASON_NAMES.map((name) => {
+      const el = button(t(`season.${name}`), L('Moves the time of year ahead to this season', 'Adelanta el año hasta esta estación'), () => {
+        if (!SEASONS.enabled) setSetting(SEASONS, 'enabled', 1);
+        jumpSeason(world, name);
+      });
+      el.dataset.season = name;
+      return el;
+    });
+    line(L('Season', 'Estación'), ...seasonButtons);
+    const seasonNow = document.createElement('p');
+    seasonNow.className = 'weather-status';
+    card.append(seasonNow);
+
+    function paint() {
+      const raining = Boolean(world.rain?.on);
+      rainOn.disabled = raining;
+      rainOff.disabled = !raining;
+      for (const el of presets) {
+        const p = CLIMATES.find((x) => x.id === el.dataset.climate);
+        const on = p.set.every(([obj, key, value]) => read(fieldOf(obj, key)) === presetValue(obj, key, value));
+        el.classList.toggle('active', on);
+        el.setAttribute('aria-pressed', String(on));
+      }
+      temp.textContent = `${CYCLE.mean} °C`;
+      const onOff = (v) => (v ? L('on', 'sí') : L('off', 'no'));
+      cycle.textContent = `🌗 ${L('Day and night', 'Día y noche')}: ${onOff(CYCLE.enabled)}`;
+      seasons.textContent = `🍂 ${L('Seasons', 'Estaciones')}: ${onOff(SEASONS.enabled)}`;
+      cycle.classList.toggle('active', Boolean(CYCLE.enabled));
+      seasons.classList.toggle('active', Boolean(SEASONS.enabled));
+      const sv = seasonView(world);
+      for (const el of seasonButtons) {
+        const on = sv?.name === el.dataset.season;
+        el.classList.toggle('active', on);
+        el.setAttribute('aria-pressed', String(on));
+        el.textContent = t(`season.${el.dataset.season}`);
+      }
+      seasonNow.textContent = !sv
+        ? L('Seasons off: every day of the year is the same.', 'Estaciones apagadas: todos los días del año son iguales.')
+        : `${t(`season.${sv.name}`)} · ${t('strip.year', { n: sv.year })} · `
+          + (sv.next
+            ? L(`${t(`season.${sv.next}`)} in ${formatDuration(sv.inSec)}`, `${t(`season.${sv.next}`)} en ${formatDuration(sv.inSec)}`)
+            : L(`the year ends in ${formatDuration(sv.inSec)}`, `el año termina en ${formatDuration(sv.inSec)}`));
+    }
+    paint();
+    // The shower ends on its own: the rain buttons follow it while shown.
+    const timer = setInterval(() => { if (!card.isConnected) clearInterval(timer); else paint(); }, 1000);
+    return card;
   }
 
   function build() {

@@ -166,9 +166,14 @@ export function initHudGroups(hud, btn) {
   if (!hud || !btn) return;
   const groups = () => [...hud.querySelectorAll('.hud-group')];
 
+  // A rail button: an icon, its name in the tooltip and, on phones, beside it.
   function updateButton() {
     const anyOpen = groups().some((g) => g.open);
-    btn.textContent = anyOpen ? t('app.collapseAll') : t('app.expandAll');
+    const name = t(anyOpen ? 'rail.collapseAll' : 'rail.expandAll');
+    btn.firstChild.textContent = anyOpen ? '⊟' : '⊞';
+    btn.querySelector('.rail-label').textContent = name;
+    btn.title = name;
+    btn.setAttribute('aria-label', name);
   }
 
   btn.addEventListener('click', () => {

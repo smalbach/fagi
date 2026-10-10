@@ -208,6 +208,7 @@ export function resetWorld(world) {
   world.rec = null;
   world.wind = createWind();
   world.rain = createRain();
+  world.seasonShift = 0;   // seconds the seasons were moved ahead by hand (seasons.js)
 }
 
 // The map's size (MAPGEN.size × the base patch on each side). WORLD holds it

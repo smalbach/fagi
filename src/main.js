@@ -93,6 +93,7 @@ export function createGame({ onExit } = {}) {
     adopt: (target) => followChosen(target),
     onCenter: (x, y) => { camera.follow = false; centerOn(camera, canvas, shown().w, { x, y }); },
     onAsk: (x, y) => input.onAsk(x, y),
+    onClose: () => layout.conceal(),
     canGod: () => mode === 'play' && !player,
     onGod: (target) => { edit.close(); god.open(target, world); },
     // The map's things by hand (object-edit.js): while setting it up, or live.
@@ -123,7 +124,7 @@ export function createGame({ onExit } = {}) {
   input.onInspect = (x, y) => {
     const { w, f } = shown();
     const hit = pickAt(w, f, x, y, slack());
-    if (hit) { inspector.select(hit); layout.reveal(); if (hit.kind !== 'fagi') editThing(hit); } else inspector.clear();
+    if (hit) { inspector.select(hit); layout.reveal(); if (hit.kind !== 'fagi') editThing(hit); } else { inspector.clear(); layout.conceal(); }
   };
   input.onSelect = (obj) => {
     const sel = { kind: 'object', id: obj.id };
@@ -172,16 +173,17 @@ export function createGame({ onExit } = {}) {
   const layout = initLayout(world, {
     isSession: () => mode === 'play' || mode === 'replay',
     isSetup: () => mode === 'setup',
-    onSettings: () => { document.getElementById('settings-overlay').hidden = false; },
     onRelayout: (dock) => panels.setSideBySide(dock),
   });
 
   function setMode(fresh) {
+    const wasSession = mode === 'play' || mode === 'replay';
     mode = fresh;
     for (const m of ['idle', 'setup', 'play', 'replay']) document.body.classList.toggle(`mode-${m}`, m === fresh);
     input.editable = fresh === 'setup' || fresh === 'play';
     document.getElementById('settings-overlay').hidden = fresh !== 'setup';
     layout.sync();
+    if (!wasSession && (fresh === 'play' || fresh === 'replay')) layout.closePanels();
   }
 
   function newFagi() {

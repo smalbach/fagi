@@ -92,7 +92,7 @@
   #setup-bar .setup-go { width: 100%; justify-content: flex-end; }
   #setup-bar .help { white-space: normal; }
   #rp-track { min-width: 0; flex-basis: 100%; }
-  body.layout-mobile #rail {
+  body.layout-rail #rail {
     display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px;
     border-block: 1px solid var(--line); background: var(--panel);
   }
@@ -141,6 +141,9 @@
 @media (max-width: 860px) {
   #rail .rail-label { display: inline; font-size: 12px; }
   #rail button[data-dock] { flex: 1 1 90px; gap: 5px; }
+  #rail button { gap: 5px; }
+  #rail .view-modes { gap: 6px; flex-wrap: wrap; }
+  #rail .rail-sep { display: none; }
   #fruit-overlay { padding: 8px; }
   #fruit-editor { max-height: calc(100dvh - 16px); }
   #fruit-editor .ns-box, #fruit-editor select { font-size: 16px; }

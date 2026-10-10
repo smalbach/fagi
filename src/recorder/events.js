@@ -29,6 +29,7 @@ export const EVENT_TYPES = {
   phero_drop: ['x', 'y'],
   wind: ['angle', 'target'],
   rain: ['on'],
+  season: ['name', 'year'],   // the time of year turned (seasons.js)
   config: ['id', 'to'],
   fagi_eat: ['what'],
   fagi_pick: ['what'],
