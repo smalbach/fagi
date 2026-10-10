@@ -74,14 +74,14 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
 body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
   font: 400 1rem/1.7 var(--sans);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
   transition: background-color .3s ease, color .3s ease;
 }
 ::selection { background: var(--accent); color: #fff; }
@@ -93,6 +93,8 @@ a:hover { text-decoration-thickness: 2px; }
 .skip-link:focus { top: 1rem; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .topbar { display: flex; align-items: center; gap: 1rem; max-width: 76rem; margin: 0 auto; padding: 1.3rem 0; width: calc(100% - 4rem); border-bottom: 1px solid var(--rule-strong); }
+/* Stays on top while scrolling; its paper spans the whole window, not just the column. */
+.topbar { position: sticky; top: 0; z-index: 50; background: var(--bg); box-shadow: 0 0 0 100vmax var(--bg); clip-path: inset(0 -100vmax); transition: background-color .3s ease, box-shadow .3s ease; }
 .topbar .brand { display: flex; align-items: baseline; gap: .65rem; font: 500 2rem/1 var(--display); color: var(--ink); text-decoration: none; letter-spacing: -.05em; }
 .topbar .brand em { font: .65rem/1.4 var(--mono); letter-spacing: .03em; color: var(--ink-3); }
 .topbar nav { display: flex; gap: 1.2rem; margin-left: auto; font-size: .78rem; }
