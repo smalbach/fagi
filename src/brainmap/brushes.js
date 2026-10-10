@@ -15,9 +15,17 @@ export function createBrushes(canvas) {
     s: 1,   // font scale: the expanded panel is read from afar
   };
 
-  // The panel sets the width; what needs drawing sets the height.
+  // The panel sets the width; what needs drawing sets the height. The width
+  // is kept up to date by a ResizeObserver: measuring it every frame forced
+  // the page to be laid out again in the middle of the frame.
+  let observed = null;
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver((entries) => {
+      for (const e of entries) observed = e.borderBoxSize?.[0]?.inlineSize ?? e.contentRect.width;
+    }).observe(canvas);
+  }
   function adjust(tall) {
-    const width = canvas.getBoundingClientRect().width;
+    const width = observed ?? canvas.getBoundingClientRect().width;
     if (width === p.cssW && tall === p.cssH) return false;
     p.cssW = width;
     p.cssH = tall;

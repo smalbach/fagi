@@ -3,6 +3,7 @@
 
 import { APPEARANCES, appearanceOf } from '../object-appearance.js';
 import { LX, LY } from './common.js';
+import { bakedPhoto, stamp } from '../sprite-kit.js';
 
 // Eight truly different geologies and silhouettes. The object's seed picks a
 // family and then alters proportion, orientation, size and tone, so even two
@@ -56,14 +57,12 @@ export function drawRealisticRock(ctx, o, r, rock, type, seedOf) {
   const saturation = baseSaturation * type.sat;
   const shine = (baseShine + ((seedOf >>> 22) & 15) / 100) * type.light;
 
-  ctx.save();
-  ctx.translate(o.x, o.y);
-  ctx.rotate(turn);
-  ctx.shadowColor = 'rgba(5,7,6,0.72)';
-  ctx.shadowBlur = Math.max(2, r * 0.13);
-  ctx.shadowOffsetX = -LX * r * 0.16;
-  ctx.shadowOffsetY = -LY * r * 0.16;
-  ctx.filter = `hue-rotate(${tone}deg) saturate(${saturation}) brightness(${shine}) contrast(${type.contrast})`;
-  ctx.drawImage(rock, -width / 2, -tall / 2, width, tall);
-  ctx.restore();
+  // Everything above is fixed by the seed: one bake per rock and size.
+  const img = bakedPhoto(baked, `${seedOf}|${type.base}|${type.name}|${r.toFixed(1)}`, {
+    image: rock, width, tall, turn,
+    filter: `hue-rotate(${tone}deg) saturate(${saturation}) brightness(${shine}) contrast(${type.contrast})`,
+    shadow: 'rgba(5,7,6,0.72)', blur: Math.max(2, r * 0.13), offX: -LX * r * 0.16, offY: -LY * r * 0.16,
+  });
+  stamp(ctx, img, o.x, o.y);
 }
+const baked = new Map();

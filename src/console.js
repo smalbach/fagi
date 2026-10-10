@@ -4,6 +4,7 @@
 import { BRAIN, POINT_TYPES, OBJECT_TYPES } from './config.js';
 import { t, tx, labelOf, onLangChange, formatClock } from './i18n.js';
 import { TAG_COLOR, rethinkLine, rethinkWhy } from './narrator.js';
+import { watchShown, every } from './pane-visibility.js';
 
 export function createConsole() {
   const el = {
@@ -13,6 +14,11 @@ export function createConsole() {
     log: document.getElementById('c-log'),
   };
   let lines = [];
+  // The reasoning is rebuilt whole each time: only while its pane can be
+  // seen, and a few times a second (nobody reads 60 a second). The history
+  // below is only appended to, so it keeps up whatever its state.
+  const thoughtShown = watchShown(el.now?.closest('.pane-body'));
+  const thoughtDue = every(100);
 
   // On a language switch the whole history is repainted from its keys.
   onLangChange(() => { el.log.innerHTML = ''; paintLog(el.log, lines, true); });
@@ -20,7 +26,7 @@ export function createConsole() {
   return {
     update(fagi, newOnes) {
       lines = newOnes;
-      paintThought(el, fagi);
+      if (thoughtShown() && thoughtDue()) paintThought(el, fagi);
       paintLog(el.log, lines, false);
     },
     reset() {

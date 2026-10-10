@@ -14,6 +14,7 @@
 // own painter (brainmap/mental-map.js).
 
 import { t, tx } from './i18n.js';
+import { watchShown, every } from './pane-visibility.js';
 import { createBrushes } from './brainmap/brushes.js';
 import { paintMentalMap } from './brainmap/mental-map.js';
 import { readOrgans } from './bodymap/organs.js';
@@ -22,7 +23,7 @@ import { DIM, TEXT, ROW_BG } from './brainmap/palette.js';
 
 // A canvas pane that can be enlarged, painted by `paint(brushes, ...args, y)`.
 function canvasPane(canvas, expandBtn, paint) {
-  if (!canvas) return { update() {} };
+  if (!canvas) return { ready: () => false, paint() {} };
   const brushes = createBrushes(canvas);
   const pane = canvas.closest('.pane');
   function big(isBig) {
@@ -41,9 +42,14 @@ function canvasPane(canvas, expandBtn, paint) {
     brushes.begin();
     return paint(brushes, ...args, 12 * brushes.s);
   }
+  // Painted only while it can be seen (tab shown, pane open, in sight), and
+  // a few times a second.
+  const shown = watchShown(canvas.closest('.pane-body') ?? canvas);
+  const due = every(66);
   return {
-    update(...args) {
-      if (!canvas.getBoundingClientRect().width) return;   // tab hidden or pane collapsed
+    // Whether it will paint this turn: the caller can skip reading what it shows.
+    ready: () => shown() && due(),
+    paint(...args) {
       if (brushes.cssW === 0) brushes.adjust(200);
       const tall = everything(...args);
       if (brushes.adjust(Math.ceil(tall))) everything(...args);
@@ -101,7 +107,7 @@ export function createBodyMap(canvas, statusEl, expandBtn) {
   });
   return {
     update(fagi) {
-      if (!fagi) return;
+      if (!fagi || !pane.ready()) return;
       const organs = readOrgans(fagi);
       if (statusEl) {
         const d = organs.find((o) => o.drives);
@@ -109,11 +115,16 @@ export function createBodyMap(canvas, statusEl, expandBtn) {
           ? t('body.status', { organ: t(`body.organ.${d.id}`), line: d.drives, n: organs.filter((o) => o.level >= 0.5).length })
           : t('body.statusIdle', { n: organs.filter((o) => o.level >= 0.5).length });
       }
-      pane.update(fagi, organs);
+      pane.paint(fagi, organs);
     },
   };
 }
 
 export function createMentalMapPane(canvas, expandBtn) {
-  return canvasPane(canvas, expandBtn, (brushes, fagi, world, y) => paintMentalMap(brushes, fagi, world, y));
+  const pane = canvasPane(canvas, expandBtn, (brushes, fagi, world, y) => paintMentalMap(brushes, fagi, world, y));
+  return {
+    update(fagi, world) {
+      if (pane.ready()) pane.paint(fagi, world);
+    },
+  };
 }

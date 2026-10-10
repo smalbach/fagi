@@ -3,7 +3,7 @@
 // ripples added on top so it doesn't look like a frozen photograph.
 
 import { naturalAppearance } from '../object-appearance.js';
-import { seedFor } from '../sprite-kit.js';
+import { seedFor, bakedPhoto, stamp } from '../sprite-kit.js';
 import { LX, LY } from './shape.js';
 
 const realisticLake = new Image();
@@ -23,23 +23,23 @@ function stampPhoto(ctx, o, r, seedOf) {
   const turn = (((seedOf >>> 7) & 255) / 255 - 0.5) * 0.18;
   const sideOf = r * (2.82 + ((seedOf >>> 16) & 31) / 240);
 
-  ctx.save();
-  ctx.translate(o.x, o.y);
-  ctx.rotate(turn);
-  ctx.shadowColor = 'rgba(9,13,10,0.58)';
-  ctx.shadowBlur = r * 0.15;
-  const filters = {
-    woodland: 'saturate(0.9) brightness(0.9) contrast(1.12)',
-    clear: 'hue-rotate(12deg) saturate(0.72) brightness(1.12) contrast(1.08)',
-    marsh: 'hue-rotate(-18deg) saturate(0.78) brightness(0.84) contrast(1.12)',
-    clay: 'sepia(0.38) saturate(0.82) brightness(0.97) contrast(1.1)',
-  };
-  ctx.filter = filters[naturalAppearance(o, seedOf)];
+  const look = naturalAppearance(o, seedOf);
   // Stamped square on purpose: the wide original becomes a compact, irregular
   // pond and fits better with the real radius where Fagi drinks.
-  ctx.drawImage(realisticLake, -sideOf / 2, -sideOf / 2, sideOf, sideOf);
-  ctx.restore();
+  // Fixed by the seed and the look: baked once, only the reflections move.
+  const img = bakedPhoto(baked, `${seedOf}|${look}|${r.toFixed(1)}`, {
+    image: realisticLake, width: sideOf, tall: sideOf, turn,
+    filter: LAKE_FILTERS[look], shadow: 'rgba(9,13,10,0.58)', blur: r * 0.15,
+  }, 40);
+  stamp(ctx, img, o.x, o.y);
 }
+const baked = new Map();
+const LAKE_FILTERS = {
+  woodland: 'saturate(0.9) brightness(0.9) contrast(1.12)',
+  clear: 'hue-rotate(12deg) saturate(0.72) brightness(1.12) contrast(1.08)',
+  marsh: 'hue-rotate(-18deg) saturate(0.78) brightness(0.84) contrast(1.12)',
+  clay: 'sepia(0.38) saturate(0.82) brightness(0.97) contrast(1.1)',
+};
 
 // Moving reflections confined to the central area of the water. They don't
 // repaint the shore or produce the old blue disc: they only alter the surface.

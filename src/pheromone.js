@@ -25,7 +25,10 @@ export function updatePheromone(world, dt) {
   const now = world.time ?? 0;
   // Rain washes the trail away: it fades RAIN.washPhero times faster.
   const raining = Boolean(world.rain?.on);
-  for (let i = marksOf.length - 1; i >= 0; i--) {
+  // The ones still alive are moved down in place, in order: splicing each dead
+  // mark out moved the whole rest of the trail every time.
+  let kept = 0;
+  for (let i = 0; i < marksOf.length; i++) {
     const m = marksOf[i];
     if (m.born === undefined) {
       // A mark from an older save: it keeps counting down frame by frame.
@@ -34,8 +37,9 @@ export function updatePheromone(world, dt) {
       if (raining) m.wet += dt;
       m.life = PHERO.life - (now - m.born) - (RAIN.washPhero - 1) * m.wet;
     }
-    if (m.life <= 0) marksOf.splice(i, 1);
+    if (m.life > 0) marksOf[kept++] = m;
   }
+  marksOf.length = kept;
 }
 
 // The mark to follow from where Fagi is.

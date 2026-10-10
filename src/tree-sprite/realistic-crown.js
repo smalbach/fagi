@@ -2,7 +2,7 @@
 // fallback while loading and also keeps the tree working without network.
 
 import { LX, LY } from './common.js';
-import { canvasOf, seededRng } from '../sprite-kit.js';
+import { canvasOf, seededRng, bakedPhoto, stamp } from '../sprite-kit.js';
 import { blossom } from './forms.js';
 
 const SOURCES = {
@@ -72,19 +72,21 @@ export function stampRealisticCrown(ctx, o, r, v, dry, seedOf, color = null, for
   const width = r * (form === 'broadleaf' ? 2.85 : form === 'palm' ? 2.8 : 2.55) * variation;
   const tall = width * (realisticCrown.naturalHeight / realisticCrown.naturalWidth);
 
-  ctx.save();
-  ctx.translate(o.x + v.x, o.y + v.y - r * 0.12);
-  ctx.rotate(turn);
-  ctx.globalAlpha = (1 - dry * 0.28) * (1 - Math.max(0, shed - 0.4) * 0.8);
-  ctx.shadowColor = 'rgba(4,8,5,0.72)';
-  ctx.shadowBlur = r * 0.18;
-  ctx.shadowOffsetX = -LX * r * 0.08;
-  ctx.shadowOffsetY = -LY * r * 0.08;
   // Turning peaks halfway (orange, red); what's left at the end is dull.
   const turning = shed * (1 - shed) * 4;
   const bare = Math.max(0, shed - 0.6) / 0.4;
-  ctx.filter = `saturate(${(0.88 - dry * 0.5 + turning * 0.6 - bare * 0.45).toFixed(3)}) sepia(${Math.min(1, dry * 0.48 + shed * 0.75).toFixed(3)}) `
+  const filter = `saturate(${(0.88 - dry * 0.5 + turning * 0.6 - bare * 0.45).toFixed(3)}) sepia(${Math.min(1, dry * 0.48 + shed * 0.75).toFixed(3)}) `
     + `hue-rotate(${(-turning * 16).toFixed(1)}deg) brightness(${(1.06 - dry * 0.12 - bare * 0.18).toFixed(3)})`;
-  ctx.drawImage(color ? tintedCrown(color, form) : realisticCrown, -width / 2, -tall / 2, width, tall);
-  ctx.restore();
+  // dry and shed arrive in steps (tree-sprite.js), so each crown is baked a
+  // handful of times a season; the sway only moves the stamp.
+  const img = bakedPhoto(baked, `${seedOf}|${form}|${color}|${width.toFixed(1)}|${filter}`, {
+    image: color ? tintedCrown(color, form) : realisticCrown,
+    width, tall, turn, filter,
+    shadow: 'rgba(4,8,5,0.72)', blur: r * 0.18, offX: -LX * r * 0.08, offY: -LY * r * 0.08,
+  });
+  const alpha = ctx.globalAlpha;
+  ctx.globalAlpha = alpha * (1 - dry * 0.28) * (1 - Math.max(0, shed - 0.4) * 0.8);
+  stamp(ctx, img, o.x + v.x, o.y + v.y - r * 0.12);
+  ctx.globalAlpha = alpha;
 }
+const baked = new Map();

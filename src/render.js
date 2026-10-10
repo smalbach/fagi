@@ -24,7 +24,7 @@ import { drawFruit } from './fruit-sprite.js';
 import { drawTerrain, drawShore, drawZoomGrain, drawNearDetail } from './terrain.js';
 import { drawLake } from './water-sprite.js';
 import { drawPuddle, drawRipples, drawWetGround, drawOvercast, drawSplashes, drawRainDrops, rainLook, rainFalling } from './rain-sprite.js';
-import { setDetail } from './sprite-kit.js';
+import { setDetail, cacheSprite, canvasOf } from './sprite-kit.js';
 import { climateLook, drawSeasonGround, drawFrostSnow, drawIce } from './climate-sprite.js';
 import { drawMud } from './mud-sprite.js';
 import { applySets, noCamera, detailOf } from './camera.js';
@@ -326,37 +326,73 @@ function drawVisionCone(ctx, fagi) {
 // and the rock—. As it evaporates it loses its shine before its stain, which is
 // the order in which a real droplet dries.
 function drawPheromone(ctx, world) {
+  if (!world.pheromone.length) return;
+  // Only the marks inside the view: a long-used trail leaves hundreds of them.
+  const { x0, y0, x1, y1 } = viewBounds(ctx, PHERO_REACH);
   for (const m of world.pheromone) {
+    if (m.x < x0 || m.x > x1 || m.y < y0 || m.y > y1) continue;
     const a = Math.max(0, Math.min(1, m.life / 45));
+    const level = Math.round(a * PHERO_LEVELS);
+    if (level === 0) continue;
+    ctx.drawImage(dropletSprite(level), m.x - PHERO_REACH, m.y - PHERO_REACH, PHERO_REACH * 2, PHERO_REACH * 2);
+  }
+}
+
+// The droplet is the same everywhere but for how dry it is, so it is painted
+// once per step of dryness and then only stamped: building three gradients
+// per mark per frame was the slowest thing on a well-used trail.
+const PHERO_REACH = 7.2;     // world radius of the wet stain, the widest part
+const PHERO_LEVELS = 32;     // steps of dryness; finer can't be told apart
+const PHERO_RES = 4;         // sprite pixels per world pixel: crisp up to zoom 4
+const dropletSprites = new Map();
+
+function dropletSprite(level) {
+  return cacheSprite(dropletSprites, level, () => {
+    const a = level / PHERO_LEVELS;
+    const size = Math.ceil(PHERO_REACH * 2 * PHERO_RES);
+    const img = canvasOf(size, size);
+    const c = img.getContext('2d');
+    c.scale(size / (PHERO_REACH * 2), size / (PHERO_REACH * 2));
+    c.translate(PHERO_REACH, PHERO_REACH);
 
     // The wet earth around it: wider than the droplet and fainter.
-    const wetness = ctx.createRadialGradient(m.x, m.y, 0.8, m.x, m.y, 7.2);
+    const wetness = c.createRadialGradient(0, 0, 0.8, 0, 0, PHERO_REACH);
     wetness.addColorStop(0, `rgba(46,33,10,${a * 0.48})`);
     wetness.addColorStop(1, 'rgba(46,33,10,0)');
-    ctx.fillStyle = wetness;
-    ctx.beginPath();
-    ctx.arc(m.x, m.y, 7.2, 0, Math.PI * 2);
-    ctx.fill();
+    c.fillStyle = wetness;
+    c.beginPath();
+    c.arc(0, 0, PHERO_REACH, 0, Math.PI * 2);
+    c.fill();
 
     // The droplet's body.
-    const drop = ctx.createRadialGradient(
-      m.x + LX * 1.2, m.y + LY * 1.2, 0.25, m.x, m.y, 4.1
-    );
+    const drop = c.createRadialGradient(LX * 1.2, LY * 1.2, 0.25, 0, 0, 4.1);
     drop.addColorStop(0, `rgba(226,192,84,${a * 0.55})`);
     drop.addColorStop(0.6, `rgba(201,162,39,${a * 0.42})`);
     drop.addColorStop(1, `rgba(150,116,26,${a * 0.18})`);
-    ctx.fillStyle = drop;
-    ctx.beginPath();
-    ctx.ellipse(m.x, m.y, 3.9, 3.2, 0, 0, Math.PI * 2);
-    ctx.fill();
+    c.fillStyle = drop;
+    c.beginPath();
+    c.ellipse(0, 0, 3.9, 3.2, 0, 0, Math.PI * 2);
+    c.fill();
 
     // The speck of sky on its back: it goes before the stain, just as when a
     // droplet dries the first thing lost is the shine.
-    ctx.fillStyle = `rgba(255,246,214,${a * a * 0.45})`;
-    ctx.beginPath();
-    ctx.ellipse(m.x + LX * 1.25, m.y + LY * 1.1, 1.2, 0.82, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
+    c.fillStyle = `rgba(255,246,214,${a * a * 0.45})`;
+    c.beginPath();
+    c.ellipse(LX * 1.25, LY * 1.1, 1.2, 0.82, 0, 0, Math.PI * 2);
+    c.fill();
+    return img;
+  });
+}
+
+// The piece of the world on screen under the current transform, widened by
+// `pad` so something half in view is still drawn.
+function viewBounds(ctx, pad = 0) {
+  const t = ctx.getTransform();
+  const x0 = -t.e / t.a, y0 = -t.f / t.d;
+  return {
+    x0: x0 - pad, y0: y0 - pad,
+    x1: x0 + ctx.canvas.width / t.a + pad, y1: y0 + ctx.canvas.height / t.d + pad,
+  };
 }
 
 // Each thing on the map is painted by its own module: the lake, the rock, the nest and the tree.
