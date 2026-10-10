@@ -1,0 +1,28 @@
+{
+  "status": "draft",
+  "damages": ["dusk", "intact", "shelter"],
+  "arms": ["born", "learn", "inherit", "inheritStrip", "inheritGated", "oracle"],
+  "repairPrefix": { "dusk": "dusk-before-", "shelter": "shelter-before-", "intact": "" },
+  "ceiling": { "damage": "intact", "arm": "born" },
+  "late": [3, 4, 5],
+  "alpha": 0.05,
+  "permutations": 20000,
+  "permutationSeed": 2028,
+  "bootstrap": 10000,
+  "bootstrapSeed": 2028,
+  "recovery": {
+    "dusk": ["learn", "inherit", "inheritStrip", "inheritGated", "oracle"],
+    "shelter": ["inherit", "inheritStrip", "oracle"]
+  },
+  "hypotheses": [
+    { "id": "C1", "family": "primary", "kind": "superiority", "a": ["dusk", "inherit"], "b": ["dusk", "inheritStrip"], "gens": [3, 4, 5] },
+    { "id": "F1", "family": "primary", "kind": "intersection", "needs": "inheritGated", "parts": [
+      { "id": "F1a", "kind": "superiority", "a": ["intact", "inheritGated"], "b": ["intact", "inherit"], "gens": [3, 4, 5] },
+      { "id": "F1b", "kind": "noninferiority", "margin": 0.03, "a": ["dusk", "inheritGated"], "b": ["dusk", "inherit"], "gens": [3, 4, 5] }
+    ] },
+    { "id": "C2", "family": "secondary", "kind": "superiority", "a": ["shelter", "inherit"], "b": ["shelter", "inheritStrip"], "gens": [3, 4, 5] },
+    { "id": "C3", "family": "secondary", "kind": "noninferiority", "margin": 0.05, "a": ["dusk", "oracle"], "b": ["intact", "born"], "gens": [3, 4, 5] },
+    { "id": "F2", "family": "secondary", "kind": "noninferiority", "margin": 0.025, "needs": "inheritGated", "a": ["intact", "inheritGated"], "b": ["intact", "learn"], "gens": [3, 4, 5] }
+  ],
+  "gatePilot": { "maxIntactPass": 0.2, "minRepairPass": 0.8, "damage": "dusk", "control": "intact" }
+}

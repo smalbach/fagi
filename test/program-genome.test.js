@@ -198,3 +198,15 @@ test('an egg snapshots accepted changes and hatches with them even after the mot
     assert.deepEqual(captureProgramGenome(child), expected);
   } finally { blocks.forEach((b, i) => Object.assign(b, saved[i])); }
 });
+
+test('a filtered genome passes on only the kept revisions and still validates', async () => {
+  const { filterProgramGenome, validateProgramGenome } = await import('../src/program/genome.js');
+  const g = captureProgramGenome(founder());
+  assert.equal(filterProgramGenome(g, () => true).changes.length, 1);
+  const none = filterProgramGenome(g, () => false);
+  assert.equal(none.changes.length, 0);
+  assert.deepEqual(none.base, g.base);
+  validateProgramGenome(none);
+  const retire = { ...g, changes: [...g.changes, { operation: 'retire', rule: { ...g.changes[0].rule, retired: true }, evidence: g.changes[0].evidence }] };
+  assert.equal(filterProgramGenome(retire, (c) => c.operation === 'retire').changes.length, 0);
+});

@@ -79,6 +79,20 @@ export function validateProgramGenome(value) {
   return { genome, lines };
 }
 
+// The same genome passing on only the revisions `keep` accepts. A revision that
+// no longer applies once others are left out (a retirement of a dropped line, an
+// insertion anchored on one) is left out too, so the result always validates.
+export function filterProgramGenome(value, keep) {
+  const genome = validateProgramGenome(value).genome;
+  const changes = [];
+  for (const change of genome.changes) {
+    if (!keep(change)) continue;
+    try { validateProgramGenome({ ...genome, changes: [...changes, change] }); } catch { continue; }
+    changes.push(change);
+  }
+  return { ...genome, changes };
+}
+
 function baseOf(fagi) {
   return { format: FORMAT, version: VERSION,
     base: copy(programOf(fagi).lines.filter((l) => l.source === 'born')), changes: [] };
