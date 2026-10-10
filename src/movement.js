@@ -2,7 +2,7 @@
 // None of this decides WHERE to go; it only carries out the movement.
 
 import { loadSpeed } from './load.js';
-import { FAGI, ENERGY, EXPLORE, WORLD, WATER, INSTINCT, MOVEMENT } from './config.js';
+import { FAGI, ENERGY, EXPLORE, WORLD, WATER, INSTINCT, MOVEMENT, PLUME } from './config.js';
 import { angleTo, normalizeAngle } from './vision.js';
 import { statMult } from './effects.js';
 import { pushOutOfBlocks, avoidanceTurn, segmentBlocked, deepBlocked, waterZone, shorePoint, poolOf, radiusOf } from './obstacles.js';
@@ -230,8 +230,13 @@ export function trackScent(fagi, world, key, dt) {
   const frontRight = scentAt(fagi, world, key,
     fagi.x + Math.cos(fagi.angle + 0.7) * d, fagi.y + Math.sin(fagi.angle + 0.7) * d);
 
+  // She is at the source (PLUME.arrive): the trail has led her where it leads.
+  // If there were something to take she would see it; she stops tracking.
+  if (PLUME.arrive && here >= 1) fagi.trailMemory = 0;
+
   let goal;
-  if (here > 0 || left > 0 || right > 0 || front > 0 || frontLeft > 0 || frontRight > 0) {
+  if (PLUME.arrive && here >= 1) goal = fagi.angle;
+  else if (here > 0 || left > 0 || right > 0 || front > 0 || frontLeft > 0 || frontRight > 0) {
     // Inside the trail: towards where the smell gets stronger. On a tie, against the wind,
     // which is where what she smells comes from.
     const options = [

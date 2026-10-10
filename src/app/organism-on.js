@@ -3,7 +3,7 @@
 // "factory" in the game means organism on.
 
 import { enableOrganism } from '../organism.js';
-import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE, DRIVE, MOVEMENT, VARY, HABITATS, TREE, PROGRAM, MAPGEN } from '../config.js';
+import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE, DRIVE, MOVEMENT, VARY, HABITATS, TREE, PROGRAM, MAPGEN, SOURCES, PLUME } from '../config.js';
 import { CAUTION_LINES } from '../learned/conduct.js';
 
 enableOrganism();
@@ -22,6 +22,21 @@ ENERGY.drain = 0.6;
 SLEEP.nightly = 1;
 CONCEPT.enabled = 0;
 PHERO.life = 60;
+
+// Walking in circles (2026-10-09): over 10 min on four maps, a moving Fagi
+// spent 22-35 % of her time in loops (scripts measuring it: any 8 s in which
+// she turned a full circle and ended under a quarter of the way she walked
+// from where she began). Three causes, each off in research to keep its worlds:
+//   - a bare tree stayed a food source: up at the crown she lost it, turned
+//     back for it and circled, until something more pressing called her;
+//   - a scent kept her tracking it at its very source: every breath renewed
+//     the trail, so she knotted around a tree she had already reached;
+//   - she followed pheromone marks behind her, closer than her turning radius,
+//     or round a ring of them, and orbited her own trail.
+// With the three fixes, 3-8 %, much of it plain trips out and back.
+SOURCES.bare = 1;
+PLUME.arrive = 1;
+PHERO.ahead = 1;
 
 // Colonies that can grow (research keeps one nest of 16).
 // With that many in a nest, two sisters exchange what they know only when
