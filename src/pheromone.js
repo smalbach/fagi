@@ -52,6 +52,8 @@ export function followPheromone(world, fagi, dNestNow, movingAway) {
   for (const m of world.pheromone) {
     const d = Math.hypot(m.x - fagi.x, m.y - fagi.y);
     if (d > PHERO.sense || d < 4) continue;
+    // Her antennae reach forward: a mark behind her she doesn't touch.
+    if (PHERO.ahead && (m.x - fagi.x) * Math.cos(fagi.angle) + (m.y - fagi.y) * Math.sin(fagi.angle) <= 0) continue;
     if (movingAway ? m.dNest > bestD : m.dNest < bestD) {
       // The antennae touch the ground: a mark on the other side of a rock is out of reach.
       if (segmentBlocked(world, fagi.x, fagi.y, m.x, m.y)) continue;

@@ -2,6 +2,7 @@
 
 import { labelOf } from '../i18n.js';
 import { reasonOf, pantryDone, stillInWorld } from './common.js';
+import { bareTree } from '../perception.js';
 
 // She lost the scent she was following: she doesn't drop it at once, she searches for it by sweeping.
 export function persistOnScent(fagi, world, ctx, dt) {
@@ -23,7 +24,8 @@ export function persistOnScent(fagi, world, ctx, dt) {
 
 // She had it spotted and lost sight of it (walked past it, it ended up behind a rock).
 export function persistFromMemory(fagi, world, ctx, dt) {
-  const stillThere = fagi.target && stillInWorld(world, fagi.target);
+  // A tree she has just found bare is nothing to keep going to.
+  const stillThere = fagi.target && stillInWorld(world, fagi.target) && !bareTree(fagi, fagi.target);
   if (!stillThere || fagi.memory <= 0) return null;
   fagi.memory -= dt;
   return {
