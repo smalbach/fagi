@@ -92,7 +92,7 @@
       <h2><span class="num">01</span>Abstract</h2>
       <p>Fagi is an artificial organism that learns from its body. Its knowledge can be inspected —every belief and every rule records where it came from— and its world is deterministic, so we can repeat a life changing a single thing. The question running through the project: when one generation passes on what it learned to the next, <strong>does it pass on knowledge, or its mistakes too?</strong></p>
       <p><strong>Main result</strong> (two preregistered studies, 6 and 9 October 2026). With her program broken on purpose, daughters born with their surviving mother's revisions —each backed by evidence— survive <strong>60%</strong> of the time, against <strong>49%</strong> for daughters that learn the same way from scratch (+11 points). It replicated on new seeds in 48 populations (43 ahead) and with a second, different damage (+10 points, 30 of 32). What one life finds too late to save itself saves its daughters.</p>
-      <p><strong>The other side.</strong> With the intact program —nothing to repair— learning costs 5 points and inheriting 9: she writes rules she did not need and her daughters are born with them. Inheritance amplifies what the mother learned, whether a repair or a mistake. Drawing only surviving mothers adds little (+2–3 points). The hypothesis that learning costs nothing (H4) was not supported.</p>
+      <p><strong>The other side.</strong> With the intact program —nothing to repair— learning costs 5 points and inheriting 9: she writes rules she did not need and her daughters are born with them. Inheritance amplifies what the mother learned, whether a repair or a mistake. Drawing only surviving mothers adds little (+2–3 points). The hypothesis that learning costs nothing (H4) was not supported. A third study (H5) found where the cost comes from —the trials, not the rules— and a filter that halves it without losing the repair, but does not remove it.</p>
       <p><strong>Earlier study.</strong> Passing on <em>reasons</em> ("the sour one made me sick") instead of <em>conclusions</em> ("don't eat the red drop") teaches better while the world stays the same, but when it inverts leaves 22–27 points fewer survivors than verdicts; matching the transmitted coverage shrinks that gap by 80%, and reasons still carry more myths (section 09). In the game, three colonies in different habitats over 20 years evolve towards the world they share —more muscle, less brain— but we found no colony adapting to its own habitat.</p>
     </section>
 
@@ -367,7 +367,43 @@
         <li><strong>With nothing to repair, learning and inheriting cost.</strong> Learning, −5.3 points (28 of 32 populations worse); inheriting, −9.0 (29 of 32). H4 is no longer open: the cost exists and exceeds the margin. Deaths by cold rise from 252 (born) to 325 (learns) and 365 (inherits).</li>
         <li><strong>Inheritance amplifies what the mother learned:</strong> the repair when the program is broken, the mistakes when it is not. Intact daughters mostly inherit “go to the remembered place before following a scent or a fruit” (<code>memory-before-scent</code>, <code>memory-before-pursue</code>), and a few lethal lines (<code>pursue-before-dusk</code>: 31% alive). Part of the cost is the trials themselves: daughters that inherited no line also live less than their born twin (0.65 versus 0.73). This split is descriptive.</li>
       </ul>
-      <div class="note warn"><b>What changes for the game</b>The game has this inheritable learning switched on. As the preregistration set out, with N1 and N2 not supported it should not stay on by default without fixing what is learned: for instance, keeping a revision only if it beats the born order in her own life, or inheriting only revisions with evidence that they repair something.</div>
+      <div class="note warn"><b>What changes for the game</b>The game has this inheritable learning switched on. As the preregistration set out, with N1 and N2 not supported it should not stay on by default without fixing what is learned. The third study, below, tested a fix.</div>
+      <h3 id="herencia-3">Third study: learning that leaves alone what works (H5) <span class="tag conf">confirmatory</span></h3>
+      <p>Preregistered on 9 October 2026 (commit <code>21ad7ec</code>), 352 runs, new seeds 300000–331095. A pilot showed where the cost comes from: not the rules but the <strong>trials</strong> (letting another behavior take the turn to try it); trying without writing anything already took survival from 0.73 to 0.56, and with learning on but no trials the 96 lives were identical to born ones. The filter tested: <strong>try only after a bad moment</strong> (distress ≥ 0.8 of the top), a memory that halves every 300 s. A life that goes well has no reason to experiment.</p>
+      <figure class="wide">
+        <div class="panel">
+          <div class="legend">
+            <span><i style="background:var(--s-none)"></i>learns</span>
+            <span><i style="background:var(--s-rule)"></i>inherits</span>
+            <span><i style="background:var(--s-verdict)"></i>learns, with filter</span>
+            <span><i style="background:var(--s-evidence)"></i>inherits, with filter</span>
+          </div>
+          <div class="chart"><h5 id="inherit3-title"></h5><div id="inherit3-chart"></div></div>
+        </div>
+        <figcaption><b>Figure 4.</b> Alive at 2 hours in generations 3–5, 32 populations per bar. With the intact program the born program lives 75.8%; the filter takes inheriting daughters from 67.1% to 71.2%. <code>shelter</code> was run only with the filter (<code>docs/research/prereg-inheritance-3-results.md</code>).</figcaption>
+      </figure>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Hypothesis</th><th class="n">populations (better / worse)</th><th class="n">difference</th><th class="n">p / bound</th><th>Verdict</th></tr></thead>
+          <tbody>
+            <tr><td><strong>H5a (primary)</strong> · intact: inheriting with the filter costs no more than 5 pts</td><td class="n">4 / 24</td><td class="n">−4.6 pts</td><td class="n">bound −0.065</td><td><span class="tag neg">not supported</span></td></tr>
+            <tr><td><strong>H5b (primary)</strong> · <code>dusk</code>, with filter: inherit &gt; learn</td><td class="n">28 / 1</td><td class="n">+13.7 pts</td><td class="n">&lt; 0.0001</td><td><span class="tag conf">supported</span></td></tr>
+            <tr><td><strong>H5</strong> · both at once</td><td class="n"></td><td class="n"></td><td class="n"></td><td><span class="tag neg">not supported</span></td></tr>
+            <tr><td>H5c · intact: the filter lowers the cost of inheriting</td><td class="n">22 / 9</td><td class="n">+4.2 pts</td><td class="n">0.0012</td><td><span class="tag conf">supported</span></td></tr>
+            <tr><td>H5d · intact: learning with the filter costs no more than 5 pts</td><td class="n">3 / 28</td><td class="n">−4.8 pts</td><td class="n">bound −0.059</td><td><span class="tag neg">not supported</span></td></tr>
+            <tr><td>H5e · <code>shelter</code>, with filter: inherit &gt; learn</td><td class="n">30 / 0</td><td class="n">+10.9 pts</td><td class="n">&lt; 0.0001</td><td><span class="tag conf">supported</span></td></tr>
+            <tr><td>H5f · <code>dusk</code>: the filter keeps the repair</td><td class="n">24 / 5</td><td class="n">+6.4 pts</td><td class="n">bound +0.035</td><td><span class="tag conf">supported</span></td></tr>
+            <tr><td>R4 · intact: inheriting costs (replication of N2)</td><td class="n">28 / 3</td><td class="n">−8.7 pts</td><td class="n">&lt; 0.0001</td><td><span class="tag conf">supported</span></td></tr>
+          </tbody>
+          <caption>H5 required both of its parts (an intersection-union test, each at α 0.05). Deviation in execution: 40 interrupted runs were relaunched unchanged; every life is seeded, and a control run came out byte-identical.</caption>
+        </table>
+      </div>
+      <ul>
+        <li><strong>The filter halves the cost but does not remove it.</strong> With the intact program, inheriting goes from costing 8.7 points to 4.6. The estimate falls within the 5-point margin, but the bound does not (−6.5): H5 is not supported.</li>
+        <li><strong>When something is broken, the filter helps.</strong> Inheriting still beats learning (+13.7 with <code>dusk</code>, +10.9 with <code>shelter</code>) and inheriting with the filter beats inheriting without it by 6.4 points: fewer wasted trials, the same repair (99% of daughters carry it).</li>
+        <li><strong>What remains is the trials after bad moments:</strong> in a scarce world, hunger and cold bring near-lethal moments even with the intact program, and each one opens trials that cost food.</li>
+      </ul>
+
           <h3>How we got here (exploratory)</h3>
       <ul>
         <li><strong>Judging by 15 s of distress hurt:</strong> learning lowered survival from 0.75 to 0.58. The whole cost was the trials (leaving a fruit in sight for a remembered place), not the lines. Trying less the worse she is stopped the harm, but did not turn it into help.</li>
@@ -387,7 +423,7 @@
           </div>
           <div class="chart"><h5 id="calib-title"></h5><div id="calib-chart"></div></div>
         </div>
-        <figcaption><b>Figure 4.</b> Survival at 2 hours by how often a tree bears fruit (24 lives per point; 48 at 550, 575 and 590), varied maps, paired by seed. What she does decides only near the edge of the cliff; at 575 s breaking one part of the program costs 27–37 points (<code>docs/research/world-calibration.md</code>).</figcaption>
+        <figcaption><b>Figure 5.</b> Survival at 2 hours by how often a tree bears fruit (24 lives per point; 48 at 550, 575 and 590), varied maps, paired by seed. What she does decides only near the edge of the cliff; at 575 s breaking one part of the program costs 27–37 points (<code>docs/research/world-calibration.md</code>).</figcaption>
       </figure>
       <p>In that world we moved <code>dusk</code> (going home as the light goes) to the end of her program: in the pilot, survival drops to 44%, and cold becomes the leading cause of death.</p>
 
@@ -410,7 +446,7 @@
           <div class="legend explorer-legend"><span><i class="dot on"></i>filled: alive at 2 hours (arm color)</span><span><i class="dot off"></i>died</span><span><i class="dot ring"></i>carries the repairing line (intact: any rule of her own or inherited)</span><span>grey band: generations 3–5, the ones the tests count</span></div>
           <div id="explorer" class="explorer-grid"></div>
         </div>
-        <figcaption><b>Figure 5.</b> <span id="explorer-note"></span> Data: <code>research/prereg-inheritance-2</code> → <code>node scripts/site-inheritance-data.js</code>.</figcaption>
+        <figcaption><b>Figure 6.</b> <span id="explorer-note"></span> Data: <code>research/prereg-inheritance-2</code> → <code>node scripts/site-inheritance-data.js</code>.</figcaption>
       </figure>
     </section>
 
@@ -435,7 +471,7 @@
           </div>
           <div class="chart"><h5 id="curves-title"></h5><div id="curves-chart"></div></div>
         </div>
-        <figcaption><b>Figure 6.</b> The main cell generation by generation: one-trait chemistry, lifespans of 1800 s, inversion at generation 6, means of 200 lineages per format (seeds 1001–1200). Generated with <code>node scripts/site-data.js</code> from the same study code; generation 6 exactly reproduces the preregistered table. Everything runs level until the change: reasons show the largest survival drop, followed by recovery in later generations.</figcaption>
+        <figcaption><b>Figure 7.</b> The main cell generation by generation: one-trait chemistry, lifespans of 1800 s, inversion at generation 6, means of 200 lineages per format (seeds 1001–1200). Generated with <code>node scripts/site-data.js</code> from the same study code; generation 6 exactly reproduces the preregistered table. Everything runs level until the change: reasons show the largest survival drop, followed by recovery in later generations.</figcaption>
       </figure>
       <details class="more">
         <summary>See the design, the eleven hypotheses, the confirmation in the game and the coverage replication</summary>
@@ -464,7 +500,7 @@
           </div>
           <div id="result-charts" class="chart-row"></div>
         </div>
-        <figcaption><b>Figure 7.</b> Means per lineage. <span id="result-source"></span>. Reasons teach better while the world stays the same (left) but leave fewer survivors when it inverts (center), and carry more myths —false rules without personal experience— (right). These contrasts alone do not isolate causal mediation by myths.</figcaption>
+        <figcaption><b>Figure 8.</b> Means per lineage. <span id="result-source"></span>. Reasons teach better while the world stays the same (left) but leave fewer survivors when it inverts (center), and carry more myths —false rules without personal experience— (right). These contrasts alone do not isolate causal mediation by myths.</figcaption>
       </figure>
 
 
@@ -535,7 +571,7 @@
           </div>
           <div id="coverage-charts" class="chart-row"></div>
         </div>
-        <figcaption><b>Figure 8.</b> Each bar is a difference between formats, in paired lineages. Counting items: the replication's H2a (C0) and the main study's H1, H3 and H4a; matching coverage: the preregistered descriptive and C5, C2 and C3. The survival gap and teaching edge shrink; differences in myths remain similar in size.</figcaption>
+        <figcaption><b>Figure 9.</b> Each bar is a difference between formats, in paired lineages. Counting items: the replication's H2a (C0) and the main study's H1, H3 and H4a; matching coverage: the preregistered descriptive and C5, C2 and C3. The survival gap and teaching edge shrink; differences in myths remain similar in size.</figcaption>
       </figure>
 
       <p><strong>Reading.</strong> With the budget matched by species coverage, reasons' survival trap shrinks by 80% (from 0.232 to 0.046 [0.017, 0.078]; the preregistration predicted an interval including zero; that did not hold: a small gap remains) and their teaching edge nearly vanishes (0.224 → 0.029). What does not change are the myths: reasons still carry more false beliefs, and evidence still cuts them. The comparison indicates that <em>coverage</em> accounts for much of the survival gap in this design. Differences in myths persist, without establishing a universal property of the format.</p>
@@ -582,7 +618,7 @@
           </div>
         </div>
       </form>
-      <p class="muted">The default seed (1033) is a clear case, chosen on purpose from the study's seeds. A single lineage is noisy: with other seeds, such as 1001, reasons lose no one. The study's effect is a mean of 200 lineages per cell (Figure 6). The genealogy on the right is the "phylogeny" of the culture: each row is one specific belief, born in one ant and passed mouth to mouth and mother to daughter; after the inversion, reasons that were true become false without changing a letter.</p>
+      <p class="muted">The default seed (1033) is a clear case, chosen on purpose from the study's seeds. A single lineage is noisy: with other seeds, such as 1001, reasons lose no one. The study's effect is a mean of 200 lineages per cell (Figure 7). The genealogy on the right is the "phylogeny" of the culture: each row is one specific belief, born in one ant and passed mouth to mouth and mother to daughter; after the inversion, reasons that were true become false without changing a letter.</p>
     <p class="source-note"><b>Result sources</b><code>docs/research/results.md · docs/research/preregistration-coverage.md</code></p>
     </section>
 
@@ -728,7 +764,7 @@
           </div>
           <div class="chart"><h5 id="evo-title"></h5><div id="evo-chart"></div></div>
         </div>
-        <figcaption id="evo-caption"><b>Figure 9.</b> Mean genes of the living ants of each habitat over 8 maps, at the end of each year; 1 is the founders' value. All three habitats raise muscle and lower brain almost in step: they do not pull apart. Data: <code>node scripts/game-world.js --interval 30 --seeds 8 --seed 7500 --years 20 --json …</code> and <code>scripts/site-game-data.js</code>.</figcaption>
+        <figcaption id="evo-caption"><b>Figure 10.</b> Mean genes of the living ants of each habitat over 8 maps, at the end of each year; 1 is the founders' value. All three habitats raise muscle and lower brain almost in step: they do not pull apart. Data: <code>node scripts/game-world.js --interval 30 --seeds 8 --seed 7500 --years 20 --json …</code> and <code>scripts/site-game-data.js</code>.</figcaption>
       </figure>
 
       <p><strong>Evolution happens, the same way everywhere.</strong> It is adaptation to the world all colonies share. Conduct also passes from mother to daughter: by year 20 each ant carries 0.9–1.0 lines of her own, about 0.75 inherited, and they are the same in every habitat ("memory before pursue", "memory before scent"). In today's game the habitat that suffers is the <em>hot</em> one: 7 alive on average (23% of the ceiling) and empty in 36 of 160 nest-years, against 16.5 in the cold and toxic ones; 91 refoundings on 8 maps.</p>
@@ -741,7 +777,7 @@
           </div>
           <div class="chart"><h5 id="tp-title"></h5><div id="tp-chart"></div></div>
         </div>
-        <figcaption><b>Figure 10.</b> Reciprocal transplant with today's game: every newborn is raised in her own nest or another at random and followed until death. Means per map (11 maps per habitat). In the toxic habitat those from elsewhere leave more offspring (2.67 vs 1.82); in the cold and hot ones locals are slightly ahead (2.41 vs 2.32; 2.65 vs 2.35). No consistent pattern of "those from here do better here".</figcaption>
+        <figcaption><b>Figure 11.</b> Reciprocal transplant with today's game: every newborn is raised in her own nest or another at random and followed until death. Means per map (11 maps per habitat). In the toxic habitat those from elsewhere leave more offspring (2.67 vs 1.82); in the cold and hot ones locals are slightly ahead (2.41 vs 2.32; 2.65 vs 2.35). No consistent pattern of "those from here do better here".</figcaption>
       </figure>
 
       <p><strong>Why, as far as we measured:</strong> colonies of 12–19 adults dwindle to a handful and are replaced by their neighbours (≈7% of nest-years empty and 115 refoundings on 16 maps in the 24-map run; 91 on 8 maps today, mostly in the hot habitat), erasing what had built up. Bigger colonies (a ceiling of 60) remain the untried remedy. The game's <em>Evolution</em> panel draws these curves live, colony by colony.</p>
@@ -792,7 +828,7 @@
       <h2><span class="num">15</span>Roadmap</h2>
       <p><strong>Done since the previous version:</strong> Tyrrell's realism metrics as a baseline; scientific night, learned drives and free-flow selector tested (the first two switched on in the game); budgets matched by species coverage; a body that evolves under real pressures; inheriting what was learned, preregistered; a second study that replicates it, extends it to another damage and measures its cost with the intact program.</p>
       <ol>
-        <li><strong>Learning without breaking what works</strong> (next, because of H4): with the intact program learning costs 5 points and inheriting 9. Try keeping or inheriting only revisions that beat the born order.</li>
+        <li><strong>Learning without breaking what works</strong> (still open after H5): trying only after a bad moment lowers the cost of inheriting from 9 to 5 points, but does not remove it. Next: a bad moment opens trials only if it repeats, or trials depend on how long the nest has gone without food.</li>
         <li><strong>A world where the innate order is not optimal without sabotage</strong> (seasons or maps where the right priority changes): the next step the inheritance preregistration set.</li>
         <li><strong>A richer grammar</strong>, so entities can build more than an order of lines: the underlying aim is that they rewrite their own behavior.</li>
         <li><strong>Bigger colonies</strong> (a ceiling of 60) to take up local adaptation again.</li>
@@ -823,6 +859,8 @@ node scripts/lineage-analysis.js research/prereg-lineage   <span class="c"># + H
 node scripts/lineage-by-population.js research/prereg-lineage   <span class="c"># the population as the unit</span>
 <span class="c"># second study: commands in docs/research/prereg-inheritance-2.md (416 runs)</span>
 node scripts/lineage-analysis2.js research/prereg-inheritance-2
+<span class="c"># third study (H5): commands in docs/research/prereg-inheritance-3.md (352 runs)</span>
+node scripts/lineage-analysis3.js research/prereg-inheritance-3
 
 <span class="c"># the game's world: colonies, habitats, years</span>
 node scripts/game-world.js --interval 30 --seeds 8 --seed 7500 --years 20 --jobs 16   <span class="c"># with the game's current settings</span>
@@ -928,7 +966,7 @@ npm test</code></pre>
 
 <footer>
   Fagi · first-agi · an artificial life experiment. Code, protocols and regenerable data are in the project repository.<br />
-  Results marked as exploratory were not preregistered and should be read as description. Editorial review and second inheritance study: 9 October 2026. Game data: 8 October 2026.
+  Results marked as exploratory were not preregistered and should be read as description. Editorial review and inheritance studies 2 and 3: 9 October 2026. Game data: 8 October 2026.
 </footer>
 
 <script type="module" src="/investigacion/site.js"></script>

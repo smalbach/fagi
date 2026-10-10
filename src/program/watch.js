@@ -95,9 +95,21 @@ export const trialOf = (fagi) => fagi.brain.watch?.trial ?? null;
 // around. Measured with one fruit every 575 s (docs/research/world-calibration.md):
 // at a fixed chance her trials alone took survival from 75 % to 58 %, most of
 // them leaving a fruit in sight for a remembered place.
-export function exploreNow(d) {
-  if (!PROGRAM.exploreByState) return PROGRAM.explore;
-  return PROGRAM.explore * (1 - d ** (1 / PROGRAM.power)) ** 2;
+export function exploreNow(d, trouble = 1) {
+  const base = PROGRAM.exploreByState ? PROGRAM.explore * (1 - d ** (1 / PROGRAM.power)) ** 2 : PROGRAM.explore;
+  return PROGRAM.troubleTrials ? base * trouble : base;
+}
+
+// How recent her last bad moment was (PROGRAM.troubleTrials): 1 right after
+// distress crossed PROGRAM.troubleAt of the top, halving every
+// PROGRAM.troubleHalf seconds. A life that goes well gives her no reason to
+// try other ways; one that has gone badly does. Measured with the intact
+// program (exploratory pilot, 2026-10-09): trials alone, writing nothing,
+// took survival from 0.73 to 0.56.
+function troubleOf(w, d, span) {
+  w.trouble = (w.trouble ?? 0) * 0.5 ** (span / PROGRAM.troubleHalf);
+  if (d ** (1 / PROGRAM.power) >= PROGRAM.troubleAt) { w.trouble = 1; w.stats.troubled = (w.stats.troubled ?? 0) + span; }
+  return w.trouble;
 }
 
 // Her own stream of draws for trials, so trying never moves the draws that
@@ -172,6 +184,7 @@ export function watch(fagi, ctx, dt, walk, ask) {
   w.tickIn = PROGRAM.tick;
 
   const d = distress(fagi, ctx);
+  const trouble = PROGRAM.troubleTrials ? troubleOf(w, d, span) : 1;
   const byReserves = PROGRAM.judge === 1;
   const r = byReserves ? reserves(fagi, ctx) : null;
   advance(w, d, r, span);
@@ -214,7 +227,7 @@ export function watch(fagi, ctx, dt, walk, ask) {
   const tierOf = (id) => lines.find((l) => l.id === id)?.tier;
   const candidates = fagi.dark ? (PROGRAM.darkTrials ? others.filter((id) => tierOf(id) === 'endure') : []) : others;
   let by = null;
-  if (PROGRAM.learn && candidates.length && lead.line.tier !== 'survive' && !pressing(ctx) && draw(w, fagi) < exploreNow(d)) {
+  if (PROGRAM.learn && candidates.length && lead.line.tier !== 'survive' && !pressing(ctx) && draw(w, fagi) < exploreNow(d, trouble)) {
     by = candidates[Math.floor(draw(w, fagi) * candidates.length)];
     w.trial = { root, by, until: fagi.age + PROGRAM.trialMax, ...(fagi.dark ? { safe: true } : {}) };
     w.stats.trials += 1;

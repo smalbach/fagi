@@ -1125,6 +1125,12 @@ export const PROGRAM = {
   crisisRise: 0.15,    // how much it must have risen over the last 20 s: acute, not a need that crept up
   share: 0,
   shareBudget: 100,
+  // H5 (docs/research/prereg-inheritance-3.md): learning that leaves alone what works.
+  troubleTrials: 0,    // 1 = she tries other lines only after trouble: the chance times how recent her last bad moment was
+  troubleAt: 0.6,      // distress, as a share of the top, that counts as trouble
+  troubleHalf: 900,    // seconds for the memory of trouble to halve
+  confirm: 0,          // 1 = a line she writes is on probation: it reaches the egg only once new moments, lived after it was written, back it
+  confirmFor: 1800,    // seconds of probation; unconfirmed by then, it is retired
 };
 
 // The larder (phase 9 D, spec §12.11, larder.js): a nest that fills up, and

@@ -142,6 +142,25 @@ if (inherit2Host) {
   );
 }
 
+// ---------- third inheritance study, H5 (Figure 5) ----------
+// Survival in generations 3-5 by damage (dusk, shelter, intact), from
+// docs/research/prereg-inheritance-3-results.md (shelter was run only with the filter).
+const INHERIT3 = [
+  ['none', [0.490, null, 0.681]],
+  ['rule', [0.576, null, 0.671]],
+  ['verdict', [0.503, 0.580, 0.714]],
+  ['evidence', [0.639, 0.689, 0.712]],
+];
+const inherit3Host = document.getElementById('inherit3-chart');
+if (inherit3Host) {
+  document.getElementById('inherit3-title').textContent = T.inherit3Title;
+  inherit3Host.innerHTML = groupedBars(
+    T.damages.map((label, i) => ({ label, values: INHERIT3.map(([, v]) => v[i]) })),
+    INHERIT3.map(([key], i) => ({ key, label: T.filterArms[i] })),
+    { yMax: 0.8, yFmt: pct },
+  );
+}
+
 // ---------- information-matched replication (Figure 8) ----------
 // Differences between formats, from docs/research/results.md (main study) and
 // the replication on research/codigo-cultural: [counting items, matching information].

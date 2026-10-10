@@ -86,7 +86,10 @@ function write(fagi, program, { x, y, clause, chain, v }, asked) {
     source: 'self', learnedAt: at(fagi), from: y, over: x, why: why.slice(0, 160),
   });
   const evidence = receipt(fagi, fagi.brain.watch.moments, x, y, clause, asked);
-  recordRevision(fagi, 'upsert', written, evidence, x);
+  // On probation (PROGRAM.confirm) it acts in her life but reaches the egg
+  // only once moments lived after it was written back it (confirm, below).
+  if (PROGRAM.confirm && !chain) (fagi.brain.watch.probation ??= {})[id] = at(fagi);
+  else recordRevision(fagi, 'upsert', written, evidence, x);
   // A line she wrote before and retired, written again: history stays in the genome.
   program.lines = program.lines.filter((l) => l.id !== id);
   program.lines.splice(program.lines.indexOf(over), 0, written);
@@ -119,10 +122,38 @@ function pairsOf(moments) {
 // The moments about the two of them, the only ones weigh() can use.
 export const involving = (moments, x, y) => moments.filter((m) => between(m, x, y));
 
+// Lines on probation (PROGRAM.confirm). The evidence that wrote a line was
+// picked as the best of a few hundred questions, so part of its edge is luck.
+// Judged again only on moments lived after it was written, a line that still
+// clears her doubt goes into her genome, with that new evidence; one that has
+// not by PROGRAM.confirmFor seconds is retired, and her daughters never see it.
+function confirm(fagi, program, moments) {
+  const probation = fagi.brain.watch.probation;
+  const ids = Object.keys(probation ?? {});
+  for (const id of ids) {
+    const own = program.lines.find((l) => l.id === id && !l.retired);
+    if (!own) { delete probation[id]; continue; }
+    const since = probation[id];
+    const fresh = moments.filter((m) => m.at > since);
+    const evidence = receipt(fagi, fresh, own.over, own.from, own.if ?? ALWAYS, ids.length);
+    if (evidence) {
+      delete probation[id];
+      recordRevision(fagi, 'upsert', own, evidence, own.over);
+      changed(fagi, program, { kind: 'confirmed', id, from: own.from, over: own.over, source: 'self' });
+    } else if (fagi.age - since > PROGRAM.confirmFor) {
+      delete probation[id];
+      const why = `not confirmed by what she lived after writing it (${PROGRAM.confirmFor} s)`;
+      program.lines = program.lines.map((l) => l === own ? line(own.id, { ...bodyOf(own), retired: true, retiredAt: at(fagi), why }) : l);
+      changed(fagi, program, { kind: 'retired', id, from: own.from, over: own.over, why });
+    }
+  }
+}
+
 // One look at her record: judge what she wrote, then perhaps write one line.
 export function review(fagi) {
   const moments = fagi.brain.watch?.moments ?? [];
   const program = programOf(fagi);
+  if (PROGRAM.confirm) confirm(fagi, program, moments);
   const learned = (l) => l.source === 'self' || l.source === 'inherited';
   const reviewable = program.lines.filter((l) => !l.retired && learned(l) && l.from && l.over);
   for (const own of reviewable) {

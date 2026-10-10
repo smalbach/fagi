@@ -1,0 +1,23 @@
+survival by generation (and gens 3-5) per cell and arm
+  intact/born          lives 3072  by gen 0.758 0.742 0.738 0.750 0.760 0.764  gens 3-5 0.758  inherited 0.00  own 0.00  carries a repair line 0.000  deaths {"cold":255,"alive":1164,"hunger":110,"thirst":4,"poison":3}
+  intact/learn         lives 3072  by gen 0.701 0.666 0.686 0.676 0.680 0.688  gens 3-5 0.681  inherited 0.00  own 0.40  carries a repair line 0.011  deaths {"cold":327,"alive":1046,"hunger":152,"thirst":3,"poison":6,"heat":2}
+  intact/inherit       lives 3072  by gen 0.701 0.676 0.672 0.656 0.688 0.668  gens 3-5 0.671  inherited 1.11  own 0.28  carries a repair line 0.056  deaths {"alive":1030,"cold":343,"hunger":150,"poison":8,"thirst":4,"heat":1}
+  intact-T/learn       lives 3072  by gen 0.691 0.705 0.688 0.705 0.697 0.738  gens 3-5 0.714  inherited 0.00  own 0.29  carries a repair line 0.009  deaths {"alive":1096,"cold":284,"hunger":146,"poison":7,"thirst":3}
+  intact-T/inherit     lives 3072  by gen 0.691 0.693 0.697 0.701 0.719 0.717  gens 3-5 0.712  inherited 0.97  own 0.26  carries a repair line 0.048  deaths {"alive":1094,"cold":282,"hunger":151,"poison":6,"thirst":3}
+  dusk/learn           lives 3072  by gen 0.529 0.492 0.486 0.479 0.500 0.492  gens 3-5 0.490  inherited 0.00  own 1.18  carries a repair line 0.665  deaths {"cold":491,"alive":753,"hunger":282,"thirst":3,"poison":6,"heat":1}
+  dusk/inherit         lives 3072  by gen 0.529 0.549 0.555 0.559 0.578 0.590  gens 3-5 0.576  inherited 2.52  own 0.34  carries a repair line 0.997  deaths {"cold":412,"alive":884,"hunger":225,"poison":9,"thirst":5,"heat":1}
+  dusk-T/learn         lives 3072  by gen 0.525 0.504 0.469 0.479 0.506 0.523  gens 3-5 0.503  inherited 0.00  own 1.09  carries a repair line 0.635  deaths {"cold":487,"alive":772,"hunger":265,"thirst":3,"poison":6,"heat":3}
+  dusk-T/inherit       lives 3072  by gen 0.525 0.545 0.590 0.592 0.666 0.660  gens 3-5 0.639  inherited 2.58  own 0.28  carries a repair line 0.992  deaths {"cold":355,"alive":982,"hunger":185,"poison":9,"heat":1,"thirst":4}
+  shelter-T/learn      lives 3072  by gen 0.551 0.547 0.551 0.559 0.584 0.598  gens 3-5 0.580  inherited 0.00  own 0.68  carries a repair line 0.347  deaths {"hunger":199,"cold":438,"alive":891,"poison":5,"thirst":3}
+  shelter-T/inherit    lives 3072  by gen 0.551 0.629 0.658 0.680 0.709 0.680  gens 3-5 0.689  inherited 2.12  own 0.31  carries a repair line 0.965  deaths {"hunger":145,"alive":1059,"cold":321,"heat":1,"poison":6,"thirst":4}
+
+hypotheses (unit: population; one-sided sign-flip permutation, 20000 draws; non-inferiority by the one-sided 95 % t lower bound)
+  H5a  primary   intact-T/inherit not worse than intact/born, gens 3,4,5: diff -0.046, 4/24 of 32 populations ahead/behind, t -3.99, lower bound -0.065 vs margin -0.05 -> NOT SUPPORTED
+  H5b  primary   dusk-T/inherit > dusk-T/learn, gens 3,4,5: diff  0.137, 28/1 of 32 populations ahead/behind, t 9.10, p 0.0000 -> SUPPORTED
+  H5c  secondary intact-T/inherit > intact/inherit, gens 3,4,5: diff  0.042, 22/9 of 32 populations ahead/behind, t 3.38, p 0.0012 -> SUPPORTED
+  H5d  secondary intact-T/learn not worse than intact/born, gens 0,1,2,3,4,5: diff -0.048, 3/28 of 32 populations ahead/behind, t -7.10, lower bound -0.059 vs margin -0.05 -> NOT SUPPORTED
+  H5e  secondary shelter-T/inherit > shelter-T/learn, gens 3,4,5: diff  0.109, 30/0 of 32 populations ahead/behind, t 8.89, p 0.0000 -> SUPPORTED
+  H5f  secondary dusk-T/inherit not worse than dusk/inherit, gens 3,4,5: diff  0.064, 24/5 of 32 populations ahead/behind, t 3.72, lower bound  0.035 vs margin -0.05 -> SUPPORTED
+  R4   secondary intact/born > intact/inherit, gens 3,4,5: diff  0.087, 28/3 of 32 populations ahead/behind, t 7.19, p 0.0000 -> SUPPORTED
+
+H5 (all primary parts: H5a, H5b) -> NOT SUPPORTED

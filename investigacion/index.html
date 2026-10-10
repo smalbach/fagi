@@ -92,7 +92,7 @@
       <h2><span class="num">01</span>Resumen</h2>
       <p>Fagi es un organismo artificial que aprende de su cuerpo. Su conocimiento es inspeccionable —cada creencia y cada regla guarda de dónde vino— y su mundo es determinista, así que podemos repetir una vida cambiando una sola cosa. La pregunta que atraviesa el proyecto: cuando una generación pasa a la siguiente lo que aprendió, <strong>¿transmite conocimiento o también sus errores?</strong></p>
       <p><strong>Resultado principal</strong> (dos estudios preregistrados, 6 y 9 de octubre de 2026). Con su programa dañado a propósito, las hijas que nacen con las revisiones de su madre superviviente —cada una respaldada por evidencia— sobreviven el <strong>60 %</strong> de las veces, frente al <strong>49 %</strong> de las que aprenden igual desde cero (+11 puntos). Se repitió con semillas nuevas en 48 poblaciones (43 a favor) y con un segundo daño distinto (+10 puntos, 30 de 32). Lo que una vida descubre demasiado tarde para salvarse salva a sus hijas.</p>
-      <p><strong>La otra cara.</strong> Con el programa intacto —nada que reparar— aprender cuesta 5 puntos y heredar 9: escribe reglas que no necesitaba y sus hijas nacen con ellas. La herencia amplifica lo que la madre aprendió, sea una reparación o un error. Elegir solo madres supervivientes suma poco (+2–3 puntos). La hipótesis de que aprender no costaba (H4) no se apoyó.</p>
+      <p><strong>La otra cara.</strong> Con el programa intacto —nada que reparar— aprender cuesta 5 puntos y heredar 9: escribe reglas que no necesitaba y sus hijas nacen con ellas. La herencia amplifica lo que la madre aprendió, sea una reparación o un error. Elegir solo madres supervivientes suma poco (+2–3 puntos). La hipótesis de que aprender no costaba (H4) no se apoyó. Un tercer estudio (H5) encontró de dónde viene el coste —los ensayos, no las reglas— y un filtro que lo reduce a la mitad sin perder la reparación, pero no lo elimina.</p>
       <p><strong>Estudio anterior.</strong> Transmitir <em>razones</em> («lo agrio me enfermó») en vez de <em>conclusiones</em> («no comas la gota roja») enseña mejor mientras el mundo se mantiene, pero cuando se invierte deja 22–27 puntos menos de supervivientes que los veredictos; igualando la cobertura transmitida, esa brecha se encoge un 80 %, y las razones siguen cargando más mitos (sección 09). En el juego, tres colonias en hábitats distintos durante 20 años evolucionan hacia el mundo que comparten —más músculo, menos cerebro—, pero no encontramos que cada una se adapte a su hábitat.</p>
     </section>
 
@@ -367,7 +367,43 @@
         <li><strong>Con nada que reparar, aprender y heredar cuestan.</strong> Aprender, −5,3 puntos (28 de 32 poblaciones peor); heredar, −9,0 (29 de 32). H4 ya no queda abierta: el coste existe y supera el margen. Las muertes por frío suben de 252 (innato) a 325 (aprende) y 365 (hereda).</li>
         <li><strong>La herencia amplifica lo que la madre aprendió:</strong> la reparación cuando el programa está roto, los errores cuando no lo está. Las hijas intactas heredan sobre todo «ir al sitio recordado antes que seguir un olor o un fruto» (<code>memory-before-scent</code>, <code>memory-before-pursue</code>), y unas pocas líneas letales (<code>pursue-before-dusk</code>: 31 % vivas). Parte del coste son los propios ensayos: las hijas que no heredaron ninguna línea también viven menos que su gemela innata (0,65 frente a 0,73). Esta descomposición es descriptiva.</li>
       </ul>
-      <div class="note warn"><b>Qué cambia para el juego</b>El juego tiene encendido este aprendizaje heredable. Como fijó el preregistro, con N1 y N2 no apoyadas no debería seguir encendido por defecto sin arreglar qué se aprende: por ejemplo, conservar una revisión solo si supera al orden innato en su propia vida, o heredar solo revisiones con evidencia de reparar algo.</div>
+      <div class="note warn"><b>Qué cambia para el juego</b>El juego tiene encendido este aprendizaje heredable. Como fijó el preregistro, con N1 y N2 no apoyadas no debería seguir encendido por defecto sin arreglar qué se aprende. El tercer estudio, abajo, probó un arreglo.</div>
+      <h3 id="herencia-3">Tercer estudio: aprender sin estropear lo que funciona (H5) <span class="tag conf">confirmatorio</span></h3>
+      <p>Preregistrado el 9 de octubre de 2026 (commit <code>21ad7ec</code>), 352 corridas, semillas nuevas 300000–331095. Un piloto mostró de dónde viene el coste: no de las reglas sino de los <strong>ensayos</strong> (dejar que otra conducta tome el turno para probar); ensayando sin escribir nada ya bajaba de 0,73 a 0,56, y con el aprendizaje encendido sin ensayos las 96 vidas fueron idénticas a las innatas. El filtro probado: <strong>ensayar solo después de un mal momento</strong> (malestar ≥ 0,8 del máximo), un recuerdo que se reduce a la mitad cada 300 s. Una vida que va bien no tiene motivo para experimentar.</p>
+      <figure class="wide">
+        <div class="panel">
+          <div class="legend">
+            <span><i style="background:var(--s-none)"></i>aprende</span>
+            <span><i style="background:var(--s-rule)"></i>hereda</span>
+            <span><i style="background:var(--s-verdict)"></i>aprende, con filtro</span>
+            <span><i style="background:var(--s-evidence)"></i>hereda, con filtro</span>
+          </div>
+          <div class="chart"><h5 id="inherit3-title"></h5><div id="inherit3-chart"></div></div>
+        </div>
+        <figcaption><b>Figura 4.</b> Supervivencia a las 2 horas en las generaciones 3–5, 32 poblaciones por barra. Con el programa intacto el innato vive el 75,8 %; el filtro sube a quien hereda de 67,1 % a 71,2 %. Con <code>shelter</code> solo se corrió con filtro (<code>docs/research/prereg-inheritance-3-results.md</code>).</figcaption>
+      </figure>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Hipótesis</th><th class="n">poblaciones (mejor / peor)</th><th class="n">diferencia</th><th class="n">p / cota</th><th>Veredicto</th></tr></thead>
+          <tbody>
+            <tr><td><strong>H5a (primaria)</strong> · intacto: heredar con filtro no cuesta más de 5 pts</td><td class="n">4 / 24</td><td class="n">−4,6 pts</td><td class="n">cota −0,065</td><td><span class="tag neg">no apoyada</span></td></tr>
+            <tr><td><strong>H5b (primaria)</strong> · <code>dusk</code>, con filtro: heredar &gt; aprender</td><td class="n">28 / 1</td><td class="n">+13,7 pts</td><td class="n">&lt; 0,0001</td><td><span class="tag conf">apoyada</span></td></tr>
+            <tr><td><strong>H5</strong> · las dos a la vez</td><td class="n"></td><td class="n"></td><td class="n"></td><td><span class="tag neg">no apoyada</span></td></tr>
+            <tr><td>H5c · intacto: el filtro baja el coste de heredar</td><td class="n">22 / 9</td><td class="n">+4,2 pts</td><td class="n">0,0012</td><td><span class="tag conf">apoyada</span></td></tr>
+            <tr><td>H5d · intacto: aprender con filtro no cuesta más de 5 pts</td><td class="n">3 / 28</td><td class="n">−4,8 pts</td><td class="n">cota −0,059</td><td><span class="tag neg">no apoyada</span></td></tr>
+            <tr><td>H5e · <code>shelter</code>, con filtro: heredar &gt; aprender</td><td class="n">30 / 0</td><td class="n">+10,9 pts</td><td class="n">&lt; 0,0001</td><td><span class="tag conf">apoyada</span></td></tr>
+            <tr><td>H5f · <code>dusk</code>: el filtro no pierde la reparación</td><td class="n">24 / 5</td><td class="n">+6,4 pts</td><td class="n">cota +0,035</td><td><span class="tag conf">apoyada</span></td></tr>
+            <tr><td>R4 · intacto: heredar cuesta (réplica de N2)</td><td class="n">28 / 3</td><td class="n">−8,7 pts</td><td class="n">&lt; 0,0001</td><td><span class="tag conf">apoyada</span></td></tr>
+          </tbody>
+          <caption>H5 exigía sus dos partes (prueba de intersección-unión, cada una a α 0,05). Desviación de ejecución: 40 corridas interrumpidas se relanzaron sin cambios; cada vida tiene su semilla, y una corrida de control salió idéntica byte a byte.</caption>
+        </table>
+      </div>
+      <ul>
+        <li><strong>El filtro reduce el coste a la mitad, pero no lo elimina.</strong> Con el programa intacto, heredar pasa de costar 8,7 puntos a 4,6. La estimación queda dentro del margen de 5, pero la cota no (−6,5): H5 no se apoya.</li>
+        <li><strong>Cuando hay algo roto, el filtro ayuda.</strong> Heredar sigue superando a aprender (+13,7 con <code>dusk</code>, +10,9 con <code>shelter</code>) y heredar con filtro supera a heredar sin él por 6,4 puntos: menos ensayos inútiles, la misma reparación (99 % de las hijas la llevan).</li>
+        <li><strong>Lo que queda son los ensayos tras malos momentos:</strong> en un mundo escaso, el hambre y el frío traen momentos casi letales también con el programa intacto, y cada uno abre ensayos que cuestan comida.</li>
+      </ul>
+
           <h3>Cómo llegamos aquí (exploratorio)</h3>
       <ul>
         <li><strong>Juzgar por malestar a 15 s hacía daño:</strong> aprender bajaba la supervivencia de 0,75 a 0,58. Todo el coste eran los ensayos (dejar un fruto a la vista por un sitio recordado), no las líneas. Probar menos cuanto peor está paró el daño, pero no lo volvió ayuda.</li>
@@ -387,7 +423,7 @@
           </div>
           <div class="chart"><h5 id="calib-title"></h5><div id="calib-chart"></div></div>
         </div>
-        <figcaption><b>Figura 4.</b> Supervivencia a las 2 horas según cada cuánto da fruto un árbol (24 vidas por punto; 48 en 550, 575 y 590), mapas variados, pareadas por semilla. Lo que hace solo decide cerca del borde del acantilado; a 575 s romper una parte del programa cuesta 27–37 puntos (<code>docs/research/world-calibration.md</code>).</figcaption>
+        <figcaption><b>Figura 5.</b> Supervivencia a las 2 horas según cada cuánto da fruto un árbol (24 vidas por punto; 48 en 550, 575 y 590), mapas variados, pareadas por semilla. Lo que hace solo decide cerca del borde del acantilado; a 575 s romper una parte del programa cuesta 27–37 puntos (<code>docs/research/world-calibration.md</code>).</figcaption>
       </figure>
       <p>En ese mundo movimos <code>dusk</code> (volver al nido cuando se va la luz) al final de su programa: en el piloto la supervivencia baja al 44 %, y el frío pasa a ser la primera causa de muerte.</p>
 
@@ -410,7 +446,7 @@
           <div class="legend explorer-legend"><span><i class="dot on"></i>relleno: viva a las 2 horas (color del brazo)</span><span><i class="dot off"></i>murió</span><span><i class="dot ring"></i>lleva la línea que repara (intacto: alguna regla propia o heredada)</span><span>banda gris: generaciones 3–5, las que cuentan en las pruebas</span></div>
           <div id="explorer" class="explorer-grid"></div>
         </div>
-        <figcaption><b>Figura 5.</b> <span id="explorer-note"></span> Datos: <code>research/prereg-inheritance-2</code> → <code>node scripts/site-inheritance-data.js</code>.</figcaption>
+        <figcaption><b>Figura 6.</b> <span id="explorer-note"></span> Datos: <code>research/prereg-inheritance-2</code> → <code>node scripts/site-inheritance-data.js</code>.</figcaption>
       </figure>
     </section>
 
@@ -435,7 +471,7 @@
           </div>
           <div class="chart"><h5 id="curves-title"></h5><div id="curves-chart"></div></div>
         </div>
-        <figcaption><b>Figura 6.</b> La celda principal generación a generación: química de un rasgo, vidas de 1800 s, inversión en la generación 6, medias de 200 linajes por formato (semillas 1001–1200). Generada con <code>node scripts/site-data.js</code> desde el mismo código del estudio; la generación 6 reproduce exactamente la tabla preregistrada. Todo va parejo hasta el cambio: las razones muestran la mayor caída de supervivencia, seguida de una recuperación en las generaciones posteriores.</figcaption>
+        <figcaption><b>Figura 7.</b> La celda principal generación a generación: química de un rasgo, vidas de 1800 s, inversión en la generación 6, medias de 200 linajes por formato (semillas 1001–1200). Generada con <code>node scripts/site-data.js</code> desde el mismo código del estudio; la generación 6 reproduce exactamente la tabla preregistrada. Todo va parejo hasta el cambio: las razones muestran la mayor caída de supervivencia, seguida de una recuperación en las generaciones posteriores.</figcaption>
       </figure>
       <details class="more">
         <summary>Ver el diseño, las once hipótesis, la confirmación en el juego y la réplica por cobertura</summary>
@@ -464,7 +500,7 @@
           </div>
           <div id="result-charts" class="chart-row"></div>
         </div>
-        <figcaption><b>Figura 7.</b> Medias por linaje. <span id="result-source"></span>. Las razones enseñan mejor mientras el mundo se mantiene (izquierda) pero dejan menos supervivientes cuando se invierte (centro), y se observa una mayor carga de mitos —reglas falsas sin experiencia propia— (derecha). Estos contrastes no aíslan por sí solos la mediación causal de los mitos.</figcaption>
+        <figcaption><b>Figura 8.</b> Medias por linaje. <span id="result-source"></span>. Las razones enseñan mejor mientras el mundo se mantiene (izquierda) pero dejan menos supervivientes cuando se invierte (centro), y se observa una mayor carga de mitos —reglas falsas sin experiencia propia— (derecha). Estos contrastes no aíslan por sí solos la mediación causal de los mitos.</figcaption>
       </figure>
 
 
@@ -535,7 +571,7 @@
           </div>
           <div id="coverage-charts" class="chart-row"></div>
         </div>
-        <figcaption><b>Figura 8.</b> Cada barra es una diferencia entre formatos, en linajes pareados. Contando elementos: H2a de la réplica (C0) y H1, H3 y H4a del estudio principal; igualando cobertura: el descriptivo preregistrado y C5, C2 y C3. La brecha de supervivencia y la ventaja para enseñar se reducen; las diferencias en mitos son de tamaño parecido.</figcaption>
+        <figcaption><b>Figura 9.</b> Cada barra es una diferencia entre formatos, en linajes pareados. Contando elementos: H2a de la réplica (C0) y H1, H3 y H4a del estudio principal; igualando cobertura: el descriptivo preregistrado y C5, C2 y C3. La brecha de supervivencia y la ventaja para enseñar se reducen; las diferencias en mitos son de tamaño parecido.</figcaption>
       </figure>
 
       <p><strong>Lectura.</strong> Con el presupuesto igualado por cobertura de especies, la trampa de supervivencia de las razones se encoge un 80 % (de 0,232 a 0,046 [0,017; 0,078]; el preregistro predecía un IC que incluyera cero; no se cumplió: queda una brecha pequeña) y su ventaja para enseñar casi desaparece (0,224 → 0,029). Lo que no cambia son los mitos: las razones siguen cargando más creencias falsas, y la evidencia las sigue cortando. La comparación indica que la <em>cobertura</em> explica gran parte de la brecha de supervivencia en este diseño. Las diferencias en mitos persisten, sin que esto establezca una propiedad universal del formato.</p>
@@ -582,7 +618,7 @@
           </div>
         </div>
       </form>
-      <p class="muted">La semilla inicial (1033) es un caso claro, elegido a propósito entre las del estudio. Un solo linaje es ruidoso: con otras semillas, como la 1001, las razones no pierden a nadie. El efecto del estudio es una media de 200 linajes por celda (Figura 6). La genealogía de la derecha es la «filogenia» de la cultura: cada fila es una creencia concreta, nacida en una hormiga y pasada de boca en boca y de madre a hija; tras la inversión, las razones que eran verdad se vuelven falsas sin cambiar una letra.</p>
+      <p class="muted">La semilla inicial (1033) es un caso claro, elegido a propósito entre las del estudio. Un solo linaje es ruidoso: con otras semillas, como la 1001, las razones no pierden a nadie. El efecto del estudio es una media de 200 linajes por celda (Figura 7). La genealogía de la derecha es la «filogenia» de la cultura: cada fila es una creencia concreta, nacida en una hormiga y pasada de boca en boca y de madre a hija; tras la inversión, las razones que eran verdad se vuelven falsas sin cambiar una letra.</p>
     <p class="source-note"><b>Fuentes del resultado</b><code>docs/research/results.md · docs/research/preregistration-coverage.md</code></p>
     </section>
 
@@ -728,7 +764,7 @@
           </div>
           <div class="chart"><h5 id="evo-title"></h5><div id="evo-chart"></div></div>
         </div>
-        <figcaption id="evo-caption"><b>Figura 9.</b> Media de los genes de las hormigas vivas de cada hábitat en 8 mapas, al final de cada año; 1 es el valor de las fundadoras. Los tres hábitats suben músculo y bajan cerebro casi a la par: no se separan. Datos: <code>node scripts/game-world.js --interval 30 --seeds 8 --seed 7500 --years 20 --json …</code> y <code>scripts/site-game-data.js</code>.</figcaption>
+        <figcaption id="evo-caption"><b>Figura 10.</b> Media de los genes de las hormigas vivas de cada hábitat en 8 mapas, al final de cada año; 1 es el valor de las fundadoras. Los tres hábitats suben músculo y bajan cerebro casi a la par: no se separan. Datos: <code>node scripts/game-world.js --interval 30 --seeds 8 --seed 7500 --years 20 --json …</code> y <code>scripts/site-game-data.js</code>.</figcaption>
       </figure>
 
       <p><strong>La evolución ocurre, y en todas partes igual.</strong> Es adaptación al mundo que todas las colonias comparten. La conducta también pasa de madre a hija: al año 20 cada hormiga lleva 0,9–1,0 líneas propias, unas 0,75 heredadas, y son las mismas en todos los hábitats («memoria antes que perseguir», «memoria antes que olor»). Con el juego actual el hábitat que sufre es el <em>cálido</em>: 7 vivas de media (23 % del techo) y vacío en 36 de 160 años-nido, frente a 16,5 en el frío y el venenoso; 91 refundaciones en 8 mapas.</p>
@@ -741,7 +777,7 @@
           </div>
           <div class="chart"><h5 id="tp-title"></h5><div id="tp-chart"></div></div>
         </div>
-        <figcaption><b>Figura 10.</b> Trasplante recíproco con el juego actual: cada recién nacida se cría en su nido o en otro al azar y se sigue hasta su muerte. Medias por mapa (11 mapas por hábitat). En el venenoso las de fuera dejan más crías (2,67 frente a 1,82); en el frío y el cálido las locales van algo por delante (2,41 frente a 2,32; 2,65 frente a 2,35). Ningún patrón consistente de «las de aquí rinden más aquí».</figcaption>
+        <figcaption><b>Figura 11.</b> Trasplante recíproco con el juego actual: cada recién nacida se cría en su nido o en otro al azar y se sigue hasta su muerte. Medias por mapa (11 mapas por hábitat). En el venenoso las de fuera dejan más crías (2,67 frente a 1,82); en el frío y el cálido las locales van algo por delante (2,41 frente a 2,32; 2,65 frente a 2,35). Ningún patrón consistente de «las de aquí rinden más aquí».</figcaption>
       </figure>
 
       <p><strong>Por qué, hasta donde lo medimos:</strong> colonias de 12–19 adultas menguan hasta un puñado y las reemplazan las vecinas (≈7 % de los años-nido vacíos y 115 refundaciones en 16 mapas en la corrida de 24 mapas; 91 en 8 mapas hoy, sobre todo en el hábitat cálido), borrando lo que se había acumulado. Colonias más grandes (techo de 60) quedan como remedio sin probar. El panel <em>Evolución</em> del juego dibuja estas curvas en vivo, colonia por colonia.</p>
@@ -792,7 +828,7 @@
       <h2><span class="num">15</span>Hoja de ruta</h2>
       <p><strong>Hecho desde la versión anterior:</strong> métricas de realismo de Tyrrell como línea base; noche científica, impulsos aprendidos y selector de flujo libre probados (los dos primeros encendidos en el juego); igualar presupuestos por cobertura de especies; un cuerpo que evoluciona con presiones reales; heredar lo aprendido, preregistrado; un segundo estudio que lo replica, lo extiende a otro daño y mide su coste con el programa intacto.</p>
       <ol>
-        <li><strong>Aprender sin estropear lo que funciona</strong> (lo siguiente, por H4): con el programa intacto aprender cuesta 5 puntos y heredar 9. Probar a conservar o heredar solo revisiones que superen al orden innato.</li>
+        <li><strong>Aprender sin estropear lo que funciona</strong> (sigue abierto tras H5): ensayar solo tras un mal momento reduce el coste de heredar de 9 a 5 puntos, pero no lo elimina. Lo siguiente: que un mal momento abra ensayos solo si se repite, o que los ensayos dependan de cuánto lleva sin comer el nido.</li>
         <li><strong>Un mundo donde el orden innato no sea óptimo sin sabotaje</strong> (estaciones o mapas donde la prioridad correcta cambia): el paso siguiente que fijó el preregistro de la herencia.</li>
         <li><strong>Una gramática más rica</strong>, para que las entidades construyan más que un orden de líneas: el objetivo de fondo es que reescriban su propia conducta.</li>
         <li><strong>Colonias más grandes</strong> (techo de 60) para retomar la adaptación local.</li>
@@ -823,6 +859,8 @@ node scripts/lineage-analysis.js research/prereg-lineage   <span class="c"># + H
 node scripts/lineage-by-population.js research/prereg-lineage   <span class="c"># la población como unidad</span>
 <span class="c"># segundo estudio: comandos en docs/research/prereg-inheritance-2.md (416 corridas)</span>
 node scripts/lineage-analysis2.js research/prereg-inheritance-2
+<span class="c"># tercer estudio (H5): comandos en docs/research/prereg-inheritance-3.md (352 corridas)</span>
+node scripts/lineage-analysis3.js research/prereg-inheritance-3
 
 <span class="c"># el mundo del juego: colonias, hábitats, años</span>
 node scripts/game-world.js --interval 30 --seeds 8 --seed 7500 --years 20 --jobs 16   <span class="c"># con los ajustes actuales del juego</span>
@@ -928,7 +966,7 @@ npm test</code></pre>
 
 <footer>
   Fagi · first-agi · un experimento de vida artificial. Código, protocolos y datos regenerables en el repositorio del proyecto.<br />
-  Los resultados marcados como exploratorios no fueron preregistrados y deben leerse como descripción. Revisión editorial y segundo estudio de herencia: 9 de octubre de 2026. Datos del juego: 8 de octubre de 2026.
+  Los resultados marcados como exploratorios no fueron preregistrados y deben leerse como descripción. Revisión editorial y estudios de herencia 2 y 3: 9 de octubre de 2026. Datos del juego: 8 de octubre de 2026.
 </footer>
 
 <script type="module" src="/investigacion/site.js"></script>
