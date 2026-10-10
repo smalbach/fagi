@@ -128,6 +128,12 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .about { max-width: 76rem; width: calc(100% - 4rem); margin: 0 auto; padding: 3rem 0; border-top: 1px solid var(--ink); display: grid; grid-template-columns: 1.2fr 1fr; gap: 3rem; align-items: center; }
 .about h2 { font: 400 clamp(1.8rem, 3vw, 2.6rem)/1.2 var(--display); letter-spacing: -.035em; margin: 1rem 0 1.2rem; text-wrap: balance; }
 .about-text p:not(.eyebrow) { font-size: .95rem; line-height: 1.75; max-width: 34rem; }
+.acronym { display: grid; grid-template-columns: repeat(4, auto); justify-content: start; gap: 0 2rem; margin: 0 0 .9rem; padding: .9rem 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.acronym div { display: flex; flex-direction: column; gap: .35rem; }
+.acronym dt { font: 400 2.4rem/1 var(--display); color: var(--accent); }
+.acronym dd { margin: 0; font: .62rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+@media (max-width: 480px) { .acronym { gap: 0 1rem; } .acronym dd { font-size: .55rem; letter-spacing: .04em; } }
+.about-text p.acronym-why { font-size: .85rem; line-height: 1.6; color: var(--ink-3); margin: 0 0 1.4rem; }
 .about-meter { font: .7rem/1.5 var(--mono); color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: .7rem; min-height: 1.5em; }
 .about-art { margin: 0; min-width: 0; order: -1; }
 .about-art canvas { display: block; width: 100%; aspect-ratio: 520 / 440; background: radial-gradient(circle at 1px 1px, var(--rule) .7px, transparent .9px) 0 0 / 22px 22px; }
