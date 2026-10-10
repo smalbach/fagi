@@ -72,7 +72,7 @@ function help() {
 
 // Parameters are changed on the config.js objects, which are what the whole
 // simulation reads: that way a profile is tried without touching the file.
-function profile(file) {
+export function profile(file) {
   const data = JSON.parse(readFileSync(file, 'utf8'));
   const out = [];
   const lower = (routeOf, v) => {

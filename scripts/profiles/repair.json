@@ -1,0 +1,26 @@
+{
+  "_note": "Repair world, calibrated 2026-10-10 (pilots, docs/research/world-calibration-2.md): the scarce world without walking in circles. Organism, lives of 7200 s. The fixes on (a hungry Fagi waits at a tree that bears, rounding it in bouts; dizziness breaks leftover loops; a scent ends at its source; marks are followed only forward), no nightly sleep (with it the dusk line stops mattering), one fruit every 550 s. Born 0.93-0.98; dusk moved last 0.44-0.48; loops 1.5% of moving time (18% before). Where damage and its repair show; born is near its ceiling, so costs cannot. The PROGRAM keys set the learner the studies use; the arm turns learning on.",
+  "TREE": {
+    "interval": 550
+  },
+  "SOURCES": {
+    "wait": 1
+  },
+  "DIZZY": {
+    "enabled": 1
+  },
+  "PLUME": {
+    "arrive": 1
+  },
+  "PHERO": {
+    "ahead": 1
+  },
+  "SLEEP": {
+    "nightly": 0
+  },
+  "PROGRAM": {
+    "judge": 1,
+    "darkTrials": 1,
+    "exploreByState": 1
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "_note": "Intact world, calibrated 2026-10-10 (pilots, docs/research/world-calibration-2.md): as repair.json, one fruit every 570 s. Born 0.70-0.75, off its ceiling: where a cost of learning or inheriting with the intact program can show (lineage pilot: learn and inherit -6 pts vs born, 7 of 8 populations). Repair barely shows here; use repair.json for it.",
+  "TREE": {
+    "interval": 570
+  },
+  "SOURCES": {
+    "wait": 1
+  },
+  "DIZZY": {
+    "enabled": 1
+  },
+  "PLUME": {
+    "arrive": 1
+  },
+  "PHERO": {
+    "ahead": 1
+  },
+  "SLEEP": {
+    "nightly": 0
+  },
+  "PROGRAM": {
+    "judge": 1,
+    "darkTrials": 1,
+    "exploreByState": 1
+  }
+}

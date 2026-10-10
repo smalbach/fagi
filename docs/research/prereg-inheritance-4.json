@@ -1,9 +1,10 @@
 {
-  "status": "draft",
-  "damages": ["dusk", "intact", "shelter"],
-  "arms": ["born", "learn", "inherit", "inheritStrip", "inheritGated", "oracle"],
-  "repairPrefix": { "dusk": "dusk-before-", "shelter": "shelter-before-", "intact": "" },
-  "ceiling": { "damage": "intact", "arm": "born" },
+  "status": "frozen",
+  "worlds": { "dusk": "scripts/profiles/repair.json", "ceiling": "scripts/profiles/repair.json", "intact": "scripts/profiles/intact.json" },
+  "damages": ["dusk", "ceiling", "intact"],
+  "arms": ["born", "learn", "inherit", "inheritStrip", "oracle"],
+  "repairPrefix": { "dusk": "dusk-before-", "ceiling": "", "intact": "" },
+  "ceiling": { "damage": "ceiling", "arm": "born" },
   "late": [3, 4, 5],
   "alpha": 0.05,
   "permutations": 20000,
@@ -11,18 +12,19 @@
   "bootstrap": 10000,
   "bootstrapSeed": 2028,
   "recovery": {
-    "dusk": ["learn", "inherit", "inheritStrip", "inheritGated", "oracle"],
-    "shelter": ["inherit", "inheritStrip", "oracle"]
+    "dusk": ["learn", "inherit", "inheritStrip", "oracle"]
   },
   "hypotheses": [
+    { "id": "R1", "family": "primary", "kind": "superiority", "a": ["dusk", "inherit"], "b": ["dusk", "learn"], "gens": [3, 4, 5] },
     { "id": "C1", "family": "primary", "kind": "superiority", "a": ["dusk", "inherit"], "b": ["dusk", "inheritStrip"], "gens": [3, 4, 5] },
-    { "id": "F1", "family": "primary", "kind": "intersection", "needs": "inheritGated", "parts": [
-      { "id": "F1a", "kind": "superiority", "a": ["intact", "inheritGated"], "b": ["intact", "inherit"], "gens": [3, 4, 5] },
-      { "id": "F1b", "kind": "noninferiority", "margin": 0.03, "a": ["dusk", "inheritGated"], "b": ["dusk", "inherit"], "gens": [3, 4, 5] }
-    ] },
-    { "id": "C2", "family": "secondary", "kind": "superiority", "a": ["shelter", "inherit"], "b": ["shelter", "inheritStrip"], "gens": [3, 4, 5] },
-    { "id": "C3", "family": "secondary", "kind": "noninferiority", "margin": 0.05, "a": ["dusk", "oracle"], "b": ["intact", "born"], "gens": [3, 4, 5] },
-    { "id": "F2", "family": "secondary", "kind": "noninferiority", "margin": 0.025, "needs": "inheritGated", "a": ["intact", "inheritGated"], "b": ["intact", "learn"], "gens": [3, 4, 5] }
+    { "id": "C3", "family": "secondary", "kind": "noninferiority", "margin": 0.05, "a": ["dusk", "oracle"], "b": ["ceiling", "born"], "gens": [3, 4, 5] },
+    { "id": "N1", "family": "secondary", "kind": "superiority", "a": ["intact", "born"], "b": ["intact", "learn"], "gens": [3, 4, 5] },
+    { "id": "N2", "family": "secondary", "kind": "superiority", "a": ["intact", "born"], "b": ["intact", "inherit"], "gens": [3, 4, 5] },
+    { "id": "N3", "family": "secondary", "kind": "noninferiority", "margin": 0.03, "a": ["intact", "inherit"], "b": ["intact", "learn"], "gens": [3, 4, 5] }
   ],
+  "dropped": {
+    "inheritGated": "gate pilot 2026-10-10 (seeds 500000, 8 populations per world): no z passes at most 20 % of intact revisions and at least 80 % of dusk-before-* repairs (at z 3.5: 68 % and 74 %; at z 5: 23 % and 10 %). Evidence strength does not tell repairs from errors; F1 and F2 dropped as the draft allowed.",
+    "shelter": "shelter moved last costs nothing in the repair world (pilot, 8 populations: born 0.91 vs ceiling 0.93-0.98; inherit 0.94, learn 0.93); C2 cannot be tested and is dropped."
+  },
   "gatePilot": { "maxIntactPass": 0.2, "minRepairPass": 0.8, "damage": "dusk", "control": "intact" }
 }

@@ -22,7 +22,9 @@
 //
 //   node scripts/lineage-selection.js --arm inherit --pop 0 [--n 16] [--g 6]
 //     [--secs 7200] [--interval 575] [--seed0 5000] [--sabotage dusk,...]
-//     [--set PROGRAM.judge=1]... [--gate 4] [--oracle dusk-before-pursue] [--evidence]
+//     [--profile scripts/profiles/repair.json] [--set PROGRAM.judge=1]... [--gate 4]
+//     [--oracle dusk-before-pursue] [--evidence]
+// A profile sets the world (and the learner); --interval and --set go over it.
 // Prints one JSON array: a row per life.
 
 import * as CONFIG from '../src/config.js';
@@ -35,6 +37,7 @@ import { programOf, line } from '../src/program.js';
 import { applyGenome } from '../src/generations.js';
 import { captureProgramGenome, filterProgramGenome } from '../src/program/genome.js';
 import { rng, withRng } from './batch/random.js';
+import { profile, applySets } from './batch/args.js';
 
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : d; };
@@ -53,7 +56,9 @@ const ARMS = ['born', 'learn', 'inherit', 'inheritAny', 'inheritStrip', 'inherit
 if (!ARMS.includes(ARM)) throw new Error(`unknown arm ${ARM}`);
 
 enableOrganism();
-CONFIG.TREE.interval = Number(arg('interval', 575));
+CONFIG.TREE.interval = 575;
+if (arg('profile')) applySets(profile(arg('profile')));
+if (arg('interval')) CONFIG.TREE.interval = Number(arg('interval'));
 for (let i = 0; i < argv.length; i++) {
   if (argv[i] !== '--set') continue;
   const [path, v] = argv[i + 1].split('=');
