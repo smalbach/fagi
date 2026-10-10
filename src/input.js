@@ -63,6 +63,7 @@ export function createInput(canvas, world, camera) {
   // onAsk(x, y) = what to do when asking at a world point (main.js sets it).
   // onInspect(x, y) = show what is there; pickFagi(x, y) = select a Fagi if
   // one is there (true), so a click on her never drops food on her.
+  // onSelect(obj) = a map object was chosen by a click.
   // editing = the map object selected for editing (moved, resized, removed).
   const state = { selectedType: null, editable: true, editing: null, appearances: {} };
   const pressed = new Set();
@@ -148,8 +149,16 @@ export function createInput(canvas, world, camera) {
     grip = null;
   });
 
+  // A map object chosen by a click (picked or just placed) is shown in the
+  // inspector too, with its numbers to set (onSelect, main.js).
   canvas.addEventListener('click', (e) => {
     if (justDragged) { justDragged = false; return; }
+    const before = state.editing;
+    click(e);
+    if (state.editing && (state.editing !== before || !state.selectedType)) state.onSelect?.(state.editing);
+  });
+
+  function click(e) {
     // Asking and inspecting change nothing in the world: they work while replaying too.
     if (state.selectedType === ASK) { const p = worldPoint(e); state.onAsk?.(p.x, p.y); return; }
     if (state.selectedType === INSPECT || !state.editable) { const p = worldPoint(e); state.onInspect?.(p.x, p.y); return; }
@@ -187,7 +196,7 @@ export function createInput(canvas, world, camera) {
       state.editing = obj;
     } else if (OBJECT_TYPES[sel]) state.editing = placeObject(x, y, sel);
     else addPoint(world, x, y, sel, 'user');
-  });
+  }
 
   // Right click: remove the map object underneath.
   canvas.addEventListener('contextmenu', (e) => {

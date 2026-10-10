@@ -106,14 +106,16 @@ export const FAGI = {
 //     need, she sprints, and pays for it in energy.
 export const MOVEMENT = {
   enabled: 0,             // 0 = one pace everywhere, as before
-  crawlSpeed: 0.5,        // fraction of speed while cautious
+  crawlSpeed: 0.5,        // fraction of speed on wholly new ground, for an average temperament
   sprintMult: 1.35,       // speed (and energy per second) while sprinting
   zigzagFreq: 2.2,        // sweep oscillation frequency (rad/s) when searching for trails
   zigzagAmp: 0.35,        // sweep angle amplitude (radians)
   terrainAdapt: 1,        // slopes slow her uphill and speed her downhill
   slope: 1,               // how much a slope weighs (0 = flat world)
-  cautiousThreshold: 0.6, // how unknown the ground must be (0-1) for her to crawl
+  cautiousThreshold: 0.6, // around how unknown the ground is (0-1) when she starts slowing (from 0.3 below it)
   sprintEnergy: 0.15,     // energy fraction under which she no longer sprints
+  ease: 0.5,              // seconds her pace takes to follow a change (slope, caution, sprint)
+  feel: 3,                // seconds over which she feels how new the ground is
 };
 
 export const HUNGER = {
@@ -833,6 +835,30 @@ export const TREE = {
   dropRadius: 1.9,    // where it falls: tree radius × this
   maxNear: 5,         // if this much of its fruit is already lying uncollected, it stops dropping
   life: 0,            // seconds a tree lives (0 = forever)
+  // Trees that come and go (trees.js, seeds). Off, the map's trees are all
+  // there are, as in every preregistered world.
+  //   seed    : 1 = a fruit that rots away uncollected leaves a seed. It lands
+  //             within `spread` px of where it lay (rolled, washed, carried);
+  //             it takes root only `clear` px clear of every tree's crown
+  //             (under one it is shaded out), off water, rocks and nests
+  //   sprout  : chance a seed with room takes root at once
+  //   room    : most trees there can be: as many as the map began with, plus
+  //             this many. Past it a seed lies dormant in the soil
+  //   bank    : dormant seeds the soil keeps (the oldest gives way), each for
+  //             `dormant` s. A tree that dies is replaced by the oldest one;
+  //             with none, by a seed of its own dropped near it
+  //   mature  : s a young tree grows before it bears, its crown growing from
+  //             a third of its size; trees live `life` × 0.7–1.3 each, and the
+  //             map's own begin at ages spread over their life, so they do
+  //             not all die at once
+  seed: 0,
+  spread: 180,
+  clear: 60,
+  sprout: 0.25,
+  room: 1,
+  bank: 6,
+  dormant: 1800,
+  mature: 300,
 };
 
 // More than one colony (reproduction.js, mapgen.js): nests that each raise
@@ -1543,9 +1569,40 @@ export const TASTE = {
 //          fruit could have fallen again (TREE.interval s), or until she sees
 //          fruit there. Off, a bare tree pulls her in forever: she walks up to
 //          the crown, loses it, turns back for it and circles (2026-10-09).
+//   wait : 1 = a tree's trunk is solid: going for its centre she slid round it
+//          in fast circles. Now, up at a tree she was going to, she rounds it
+//          in bouts she decides herself (a stretch of walking, then a pause to
+//          look, longer tired and shorter hungry; movement.js roundTree) so her eyes
+//          sweep every side; and hungry there with nothing under it, in
+//          daylight, for a fruit she eats, she waits so, rounding it, until she
+//          sees fruit or gives up after `patience` s (null: TREE.interval, the
+//          time a fruit takes); then the tree is bare to her as with `bare`.
+//          Any line above exploring (thirst, cold, dark...) takes her away.
+//          Measured in the research world (575 s, 96 born lives, diurnal body
+//          SLEEP.nightly 1): survival 0.948 -> 0.958, time spent looping 18 %
+//          -> 7 %. Without it, `bare` (leave a bare tree) dropped survival
+//          0.79 -> 0.15: the circles were her waiting for the fruit; standing
+//          still to wait missed the fruit behind the trunk (2026-10-10).
+// Dizziness, turn alternation (dizzy.js): a full circle one way within `window`
+// s, getting nowhere, and for `lasts` s she can't turn further that way; what she
+// was going for is out of reach to her for `shun` s. Her own ×0.7–1.3 on `turn`
+// and `lasts`. Off in research (its worlds stay as preregistered); on in the game.
+export const DIZZY = {
+  enabled: 0,
+  window: 8,
+  turn: 2 * Math.PI,
+  lasts: 4,
+  shun: 20,
+};
+
 export const SOURCES = {
   enabled: 0,
   near: 2.1,
   bare: 0,
+  wait: 0,
+  patience: null,
+  stretch: 0.8,       // rounding a tree: the arc (rad) of one bout of walking, ×0.5–1.5 each time
+  look: 3,            // and the pause after it to look (s), ×0.5–1.5, longer tired, shorter hungry
+  turnBack: 0.25,     // chance that, setting off again, she goes back the other way
 };
 

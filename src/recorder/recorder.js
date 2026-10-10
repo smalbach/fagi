@@ -83,9 +83,16 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     emit('wind', { angle: world.wind.angle, target: world.wind.target });
     prev.windTarget = world.wind.target;
     for (const o of world.objects) {
-      emit('obj_add', { id: o.id, what: o.type, x: o.x, y: o.y, r: o.r, source: 'setup', seed: o.seed ?? null, ...(o.fruit ? { fruit: o.fruit } : {}), ...(o.appearance ? { appearance: o.appearance } : {}) });
+      emit('obj_add', { id: o.id, what: o.type, x: o.x, y: o.y, r: o.r, source: 'setup', seed: o.seed ?? null, ...(o.fruit ? { fruit: o.fruit } : {}), ...(o.appearance ? { appearance: o.appearance } : {}), ...ownNumbers(o) });
     }
     for (const p of world.points) emit('point_add', { id: p.id, what: p.type, x: p.x, y: p.y, from: 'setup' });
+  }
+
+  // A tree's own numbers, set by hand while setting up the map (object-edit.js).
+  function ownNumbers(o) {
+    const own = {};
+    for (const k of ['interval', 'maxNear', 'life', 'age']) if (o[k] != null) own[k] = round(o[k], 1);
+    return own;
   }
 
   function rowEl(fagi) {

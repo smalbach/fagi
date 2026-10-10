@@ -213,6 +213,7 @@ export default {
   'water.unknown': 'no sabe dónde',
 
   'action.explore': 'Explorando',
+  'action.wait': 'Esperando fruta',
   'action.seekFood': 'Va a por comida',
   'action.seekWater': 'Va a por agua',
   'action.drink': 'Bebiendo',
@@ -277,6 +278,7 @@ export default {
   'reason.detourWater': 'sed {thirst}, agua a la vista · bebe de paso antes de llevar {what} al nido',
   'reason.memory': 'lo perdió de vista, insiste {sec} más',
   'reason.explore': 'sin necesidad y sin nada a la vista · conoce mapa para después',
+  'reason.waitTree': 'con hambre, bajo un árbol que da fruta, sin nada debajo aún · espera el siguiente',
   'reason.exploreFull': 'despensa hecha · lo único que queda por hacer es aprenderse el mapa',
   'reason.nothing': 'no percibe nada',
   'reason.belowMin': '{n} candidato(s), ninguno supera el mínimo',

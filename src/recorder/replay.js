@@ -69,6 +69,7 @@ export function applyEvent(state, ev) {
       const obj = { id: ev.id, x: ev.x, y: ev.y, type: ev.what, r: ev.r ?? OBJECT_TYPES[ev.what]?.radius, born: ev.t };
       if (ev.seed != null) obj.seed = ev.seed;
       if (ev.fruit) obj.fruit = ev.fruit;
+      for (const k of ['interval', 'maxNear', 'life', 'age']) if (ev[k] != null) obj[k] = ev[k];
       if (validAppearance(obj.type, ev.appearance)) obj.appearance = ev.appearance;
       const kind = OBJECT_TYPES[ev.what]?.kind;
       if (kind === 'nest') { obj.stock = {}; obj.ages = {}; }
@@ -124,6 +125,15 @@ export function applyEvent(state, ev) {
       const lastItem = state.rainSpans.at(-1);
       if (ev.on && !(lastItem && lastItem[1] == null)) state.rainSpans.push([ev.t, null]);
       else if (!ev.on && lastItem && lastItem[1] == null) lastItem[1] = ev.t;
+      break;
+    }
+    case 'obj_edit': {
+      // Only what the replay draws: a tree's pace and age, a fruit's ripeness.
+      const list = ev.point ? w.points : w.objects;
+      const o = list[byId(list, ev.id)];
+      if (!o) break;
+      if (ev.point && ev.param === 'age') o.born = ev.t - ev.to;
+      else if (!ev.point) o[ev.param] = ev.to;
       break;
     }
     case 'obj_resize': {

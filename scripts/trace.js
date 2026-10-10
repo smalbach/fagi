@@ -72,9 +72,14 @@ async function game() {
   // it holds her decisions, not the map, so it keeps those maps.
   CONFIG.MAPGEN.inside = 0;
   // And so did the fixes for walking in circles (2026-10-09): a bare tree
-  // that stops pulling her, a trail followed only forward and onward, a
-  // scent that ends at its source. They change what she goes for.
+  // that stops pulling her (since 2026-10-10, rounding a tree slowly while
+  // she waits at it), a trail followed only forward and onward, a scent that
+  // ends at its source. They change what she goes for.
   CONFIG.SOURCES.bare = 0;
+  CONFIG.SOURCES.wait = 0;
+  CONFIG.DIZZY.enabled = 0;
+  CONFIG.TREE.seed = 0;
+  CONFIG.TREE.life = 0;
   CONFIG.PHERO.ahead = 0;
   CONFIG.PLUME.arrive = 0;
 }

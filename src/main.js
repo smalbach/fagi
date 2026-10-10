@@ -19,6 +19,7 @@ import { render } from './render.js';
 import { createInput, INSPECT } from './input.js';
 import { createInspector, pickAt, pickFagiAt, markOf, resolve } from './inspect.js';
 import { createGodPanel } from './godmode-panel.js';
+import { createEditPanel } from './object-edit-panel.js';
 import { createAskCard } from './ask.js';
 import { createColony, successorOf, swapInto } from './colony.js';
 import { createCamera, centerOn, fit } from './camera.js';
@@ -93,23 +94,42 @@ export function createGame({ onExit } = {}) {
     onCenter: (x, y) => { camera.follow = false; centerOn(camera, canvas, shown().w, { x, y }); },
     onAsk: (x, y) => input.onAsk(x, y),
     canGod: () => mode === 'play' && !player,
-    onGod: (target) => god.open(target, world),
+    onGod: (target) => { edit.close(); god.open(target, world); },
+    // The map's things by hand (object-edit.js): while setting it up, or live.
+    canEdit: () => !player,
+    onEdit: (target) => { god.close(); edit.open(target, world, { live: mode === 'play' }); },
   });
   // God mode (godmode.js): her numbers by hand, under her card, live sessions only.
   const god = createGodPanel(inspector.extra);
+  const edit = createEditPanel(inspector.extra);
   // From the top bar: the followed Fagi, selected and with her panel open.
   document.getElementById('btn-god')?.addEventListener('click', () => {
     if (mode !== 'play' || player || !fagi.alive) return;
     inspector.select({ kind: 'fagi', main: true, id: fagi.id });
     layout.reveal();
+    edit.close();
     god.open(fagi, world);
   });
   // Small targets get some slack, less the closer the camera is.
   const slack = () => 2 + 8 / camera.zoom;
+  // Something on the map chosen, outside a replay: its card and, under it,
+  // its numbers to set (object-edit.js), while setting up and while playing.
+  const editThing = (sel) => {
+    const it = resolve(sel, world, mode === 'setup' ? null : fagi);
+    if (!it || player) return;
+    god.close();
+    edit.open(it, world, { live: mode === 'play' });
+  };
   input.onInspect = (x, y) => {
     const { w, f } = shown();
     const hit = pickAt(w, f, x, y, slack());
-    if (hit) { inspector.select(hit); layout.reveal(); } else inspector.clear();
+    if (hit) { inspector.select(hit); layout.reveal(); if (hit.kind !== 'fagi') editThing(hit); } else inspector.clear();
+  };
+  input.onSelect = (obj) => {
+    const sel = { kind: 'object', id: obj.id };
+    inspector.select(sel);
+    layout.reveal();
+    editThing(sel);
   };
   input.pickFagi = (x, y) => {
     if (mode !== 'play') return false;
@@ -341,6 +361,7 @@ export function createGame({ onExit } = {}) {
     render(ctx, world, null, camera, markOf(inspector.selection, world, null), input.editing);
     inspector.update(null, world, { live: false });
     god.update(null, world, false);
+    edit.update(resolve(inspector.selection, world, null), world, true, false);
     ui.paintMap(world);
   }
 
@@ -376,6 +397,7 @@ export function createGame({ onExit } = {}) {
     ui.paintMap(world);
     inspector.update(fagi, world);
     god.update(resolve(inspector.selection, world, fagi), world, mode === 'play' && !player);
+    edit.update(resolve(inspector.selection, world, fagi), world, !player, mode === 'play');
     console.update(fagi, lines);
     learnedPanel.update();
     brainMap.update(fagi, world);
@@ -402,6 +424,7 @@ export function createGame({ onExit } = {}) {
     ui.update(player.fagi, player.world);
     inspector.update(player.fagi, player.world, { live: false });
     god.update(null, player.world, false);
+    edit.update(null, player.world, false);
     // Going back leaves lines from the future in the console: repaint it whole.
     if (player.logEpoch !== replaying.logEpoch) {
       console.reset();

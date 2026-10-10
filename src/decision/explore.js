@@ -8,6 +8,17 @@ import { pantryEstimate } from '../larder.js';
 // So the useful thing is getting to know the map, which is what makes everything else possible
 // next time. She forgets whatever she had spotted: there's nothing spotted anymore.
 export function exploreRule(fagi, world, ctx) {
+  // Unless she is up at a tree she knows drops fruit, hungry (SOURCES.wait):
+  // then she waits for the next one there, standing, as a forager does.
+  if (ctx.waitAt) {
+    return {
+      action: 'wait',
+      reason: reasonOf('reason.waitTree'),
+      target: ctx.waitAt,
+      targetKind: 'wait',
+      trailKey: null,
+    };
+  }
   const full = ctx.nest && pantryEstimate(fagi) >= habit(fagi, 'reserve');
   return {
     action: 'explore',

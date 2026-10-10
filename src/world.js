@@ -225,6 +225,8 @@ export function clearWorld(world) {
   world.objects.length = 0;
   world.pheromone.length = 0;
   world.mud = [];   // the mud belongs to the map that made it (mapgen.js)
+  world.seeds = [];        // the seeds in its soil (trees.js, TREE.seed)
+  world.treeRoom = null;   // and how many trees it holds, set when it starts
   // New world, new terrain: the seed is the only thing that decides it.
   world.seed = null;
 }

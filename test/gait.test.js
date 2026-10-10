@@ -65,9 +65,18 @@ test('a map with no seed yet is flat for her', () => withGait(() => {
 test('on ground she barely knows she crawls, unless a need is critical', () => withGait(() => {
   const { world, fagi } = setup();
   fagi.explored.fill(0);
+  fagi.shyness = 1;
   updateGait(fagi, world);
   assert.equal(fagi.cautious, true);
   assert.ok(Math.abs(fagi.gaitSpeed - MOVEMENT.crawlSpeed) < 1e-9);
+  fagi.shyness = 0.6;
+  updateGait(fagi, world);
+  assert.ok(fagi.gaitSpeed > MOVEMENT.crawlSpeed, 'a bolder one slows less');
+  fagi.explored.fill(3);
+  updateGait(fagi, world);
+  assert.equal(fagi.gaitSpeed, 1, 'on ground she knows, no caution');
+  fagi.explored.fill(0);
+  fagi.shyness = 1;
   fagi.hunger = NEEDS.critical * HUNGER.max;
   updateGait(fagi, world);
   assert.equal(fagi.cautious, false, 'hungry enough, caution goes');
@@ -93,4 +102,27 @@ test('she sprints home in the rain, pays for it, and stops when nearly spent', (
   fagi.energy = 0.05 * fagi.energy;
   updateGait(fagi, world);
   assert.equal(fagi.sprinting, false, 'too spent to sprint');
+}, { terrainAdapt: 0 }));
+
+test('her pace eases into a change instead of jumping', () => withGait(() => {
+  const { world, fagi } = setup();
+  fagi.shyness = 1;
+  fagi.gaitSpeed = 1;
+  fagi.explored.fill(0);
+  updateGait(fagi, world, 0.05);
+  assert.ok(fagi.gaitSpeed < 1 && fagi.gaitSpeed > MOVEMENT.crawlSpeed, 'part of the way');
+  for (let i = 0; i < 100; i++) updateGait(fagi, world, 0.05);
+  assert.ok(Math.abs(fagi.gaitSpeed - MOVEMENT.crawlSpeed) < 1e-3, 'there in time');
+}, { terrainAdapt: 0 }));
+
+test('going home she is not cautious, however new the ground', () => withGait(() => {
+  const { world, fagi } = setup();
+  const nest = addObject(world, fagi.x + 300, fagi.y, 'nest');
+  fagi.home = nest.id;
+  fagi.shyness = 1;
+  fagi.explored.fill(0);
+  fagi.targetKind = 'nest';
+  updateGait(fagi, world);
+  assert.equal(fagi.cautious, false);
+  assert.equal(fagi.gaitSpeed, 1);
 }, { terrainAdapt: 0 }));

@@ -5,8 +5,9 @@
 // Rot has its own clock too: when the toxic's life runs out it
 // falls apart and leaves the map, plume and all.
 
-import { POINT_TYPES, FRUIT } from './config.js';
+import { POINT_TYPES, FRUIT, TREE } from './config.js';
 import { removePoint, record } from './world.js';
+import { sowFrom } from './trees.js';
 
 export function updateFood(world, dt) {
   // Back to front: some get removed along the way.
@@ -20,9 +21,11 @@ export function updateFood(world, dt) {
     // Rot doesn't rot again: it disappears.
     if (p.type === FRUIT.rot) {
       removePoint(world, p, 'rotted');
+      sowFrom(world, p);   // its seed, if trees come and go (TREE.seed)
       continue;
     }
 
+    if (TREE.seed) p.was = p.type;   // what its seed will grow
     p.type = FRUIT.rot;
     p.age = 0;
     p.rotten = true;

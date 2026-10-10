@@ -507,7 +507,10 @@ const GROUPS = [
   ]},
   { title: { en: 'Trees', es: 'Árboles' }, cat: 'world', fieldsOf: [
     n(TREE, 'interval', 'Fruit every (seconds)', 'Fruta cada (segundos)', 1, 120, 1),
-    n(TREE, 'life', 'Tree lifespan (0 = forever)', 'Vida del árbol (0 = para siempre)', 0, 600, 10),
+    n(TREE, 'life', 'Tree lifespan (0 = forever)', 'Vida del árbol (0 = para siempre)', 0, 14400, 60),
+    b(TREE, 'seed', 'Uncollected fruit leaves seeds; new trees replace old ones', 'La fruta no recogida deja semillas; árboles nuevos reemplazan a los viejos'),
+    n(TREE, 'room', 'Trees beyond the map\'s first ones', 'Árboles de más sobre los del mapa', 0, 10, 1),
+    n(TREE, 'mature', 'Seconds a young tree grows before bearing', 'Segundos que crece un árbol joven antes de dar fruto', 0, 1800, 30),
     n(TREE, 'maxNear', 'Uncollected fruit before it stops', 'Fruta suya sin recoger antes de parar', 1, 30, 1),
     n(TREE, 'dropRadius', 'Where fruit falls (× its radius)', 'Dónde cae la fruta (× su radio)', 1, 5, 0.1),
     n(FRUIT, 'warnFrom', 'When it starts looking overripe', 'Desde cuándo se le nota que se pasa', 0, 1, 0.05),

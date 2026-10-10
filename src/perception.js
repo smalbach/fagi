@@ -24,6 +24,7 @@ import { noteSites, bestSite, worthVisiting } from './sites.js';
 import { updateChoice } from './choice.js';
 import { pantryEstimate } from './larder.js';
 import { verdict } from './learned/rules.js';
+import { shunned } from './dizzy.js';
 
 // The nearest visible pool. Water isn't learned: it's instinct.
 function nearestWater(fagi, world) {
@@ -115,19 +116,49 @@ function learnSources(fagi, world) {
 // it stops being a candidate (buildCandidates), she sees nothing under it she
 // would eat. For TREE.interval s, the time a fruit takes to fall again, it is
 // no source to her; seeing fruit under it ends that sooner.
-export const bareTree = (fagi, o) => Boolean(SOURCES.bare) && fagi.bare?.[o?.id] != null
+// With SOURCES.wait she waits there instead, and the tree becomes bare to her
+// only when she gives up waiting (waitSpot).
+export const bareTree = (fagi, o) => Boolean(SOURCES.bare || SOURCES.wait) && fagi.bare?.[o?.id] != null
   && fagi.age - fagi.bare[o.id] < TREE.interval;
 
+const underCrown = (fagi, o) => distanceTo(fagi, o) - radiusOf(o) <= FAGI.eatRadius * 2;
+
 function noteBare(fagi, world) {
-  if (!SOURCES.bare) return;
+  if (!SOURCES.bare && !SOURCES.wait) return;
   const bare = (fagi.bare ??= {});
   const seen = seenPoints(fagi, world.points, world).filter(({ point }) => verdict(fagi, 'eat', point.type) !== 'avoid');
   for (const o of world.objects) {
     if (!isTree(o)) continue;
     const fruit = seen.some(({ point }) => Math.hypot(point.x - o.x, point.y - o.y) <= radiusOf(o) * SOURCES.near);
-    if (fruit) delete bare[o.id];
-    else if (distanceTo(fagi, o) - radiusOf(o) <= FAGI.eatRadius * 2) bare[o.id] = fagi.age;
+    if (fruit) {
+      delete bare[o.id];
+      // Fruit there: whatever she was waiting for under it has come.
+      if (fagi.waiting?.id === o.id) fagi.waiting = null;
+    }
+    else if (SOURCES.bare && underCrown(fagi, o)) bare[o.id] = fagi.age;
   }
+}
+
+// Up at a tree she knows drops fruit, hungry, nothing under it (SOURCES.wait):
+// the tree she would wait under, or null. Her wait at a tree counts from the
+// first moment she is there until she sees fruit under it, short trips away (a
+// drink) included; she gives up after `patience` s. (Giving up sooner the
+// hungrier she was cost a third of the born program's survival in the research
+// world, 0.96 -> 0.65: the fruit fell after she left and rotted.)
+function waitSpot(fagi, visibleSource, source, hungerU) {
+  if (!SOURCES.wait) return null;
+  const tree = [visibleSource, source?.ref, source].find((o) => o && isTree(o));
+  if (!tree || bareTree(fagi, tree) || shunned(fagi, tree) || !underCrown(fagi, tree) || forageNeed(fagi, hungerU) <= 0.15) return null;
+  // A forager of the day: in the dark there is nothing she would see fall.
+  // And not for a fruit she has learned to leave.
+  if (fagi.dark || verdict(fagi, 'eat', fruitOf(tree, fagi)) === 'avoid') { fagi.waiting = null; return null; }
+  if (fagi.waiting?.id !== tree.id) fagi.waiting = { id: tree.id, since: fagi.age };
+  if (fagi.age - fagi.waiting.since >= (SOURCES.patience ?? TREE.interval)) {
+    (fagi.bare ??= {})[tree.id] = fagi.age;
+    fagi.waiting = null;
+    return null;
+  }
+  return tree;
 }
 
 function rememberFoodSource(fagi, world) {
@@ -187,6 +218,8 @@ function buildCandidates(fagi, world, {
   const fears = fearsDeep(fagi);
   const add = (c) => {
     if (fears && c.kind === 'food' && waterZone(world, c.ref.x, c.ref.y)?.deep) return;
+    // What she got dizzy going for is out of reach from here for a while (DIZZY).
+    if (shunned(fagi, c.ref) || shunned(fagi, c.ref?.ref)) return;
     const already = byRef.get(c.ref);
     if (!already || (already.via === 'smell' && c.via === 'sight')) byRef.set(c.ref, c);
   };
@@ -324,11 +357,12 @@ export function perceive(fagi, world) {
       hungerU, thirstU, range, visible, pool, place: placeOf, visibleSource, source, smelledSource, sourceStrength,
     });
   const { best, ranked } = choose(fagi.brain, candidates);
+  const waitAt = waitSpot(fagi, visibleSource, source, hungerU);
 
   return {
     thirstU, hungerU, range, visible, pool, candidates, seen, smelledOnes, best, ranked,
     energyU: fagi.energy / energyMax(fagi),
-    nest: nestOf(world, fagi), source, visibleSource,
+    nest: nestOf(world, fagi), source, visibleSource, waitAt,
     inNest: Boolean(nestUnder(fagi, world)),
     waterPlace: placeOf,
     smellsWater: Boolean(pool) && smellsObject(fagi, visible ?? pool.ref, world),

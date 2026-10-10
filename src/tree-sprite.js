@@ -58,7 +58,8 @@ export function drawTree(ctx, o, spec, r, wind, now) {
   const z = detail();
   const seedOf = seedFor(o);
   const R = Math.round(r * z);
-  const step = Math.round(treeAge(o) * STEPS);
+  // It dries in the last third of its life; until then it is in leaf.
+  const step = Math.round((Math.max(0, treeAge(o) - 0.7) / 0.3) * STEPS);
   const dry = step / STEPS;
 
   // What it bears decides what it is. The editor may change the fruit's

@@ -29,7 +29,8 @@ import { perceive } from './perception.js';
 import { decide } from './decision.js';
 import { createAttention, notice } from './attention.js';
 import { updateCortex, resetCortex } from './cortex.js';
-import { moveToward, explore, trackScent } from './movement.js';
+import { moveToward, explore, trackScent, roundTree } from './movement.js';
+import { senseTurning } from './dizzy.js';
 import { createExploreMap, markVisited } from './explore.js';
 import { updateGait } from './gait.js';
 import { founderVary } from './variation.js';
@@ -165,6 +166,7 @@ function markTrail(fagi, world, dt) {
 // Carries out the intention that came out of decide().
 function act(fagi, world, dt) {
   if (fagi.thought.action === 'eatCarried') eatCarried(fagi);
+  else if (fagi.thought.action === 'wait' && fagi.target) roundTree(fagi, world, fagi.target, dt);
   else if (fagi.targetKind === 'scent' && fagi.trailKey) trackScent(fagi, world, fagi.trailKey, dt);
   else if (fagi.target) moveToward(fagi, world, fagi.target, dt);
   else explore(fagi, world, dt);
@@ -209,11 +211,14 @@ export function updateFagi(fagi, world, dt) {
   // She stays still drinking, resting or pressed against a thing; the rest of the time, on the move.
   const stop = !fagi.swimming
     && ((fagi.drinking && fagi.thirst > 0) || fagi.thought.action === 'rest' || fagi.thought.action === 'huddle');
-  updateGait(fagi, world);       // slope, caution or a sprint (gait.js; MOVEMENT only)
+  updateGait(fagi, world, dt);   // slope, caution or a sprint (gait.js; MOVEMENT only)
+  fagi.looking = false;           // set by roundTree while she stops to look
   if (!stop) act(fagi, world, dt);
-  fagi.moving = !stop;           // walking warms her a little (thermal.js)
+  const walking = !stop && !fagi.looking;
+  fagi.moving = walking;         // walking warms her a little (thermal.js)
 
-  spendEnergy(fagi, world, dt, !stop);
+  spendEnergy(fagi, world, dt, walking);
+  senseTurning(fagi, dt);        // round and round, getting nowhere? (dizzy.js)
   markTrail(fagi, world, dt);
   tryPickOrEat(fagi, world);
   useThing(fagi, world);         // a touch or a nibble, once she reaches it (CONCEPT)

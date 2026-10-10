@@ -3,7 +3,7 @@
 // "factory" in the game means organism on.
 
 import { enableOrganism } from '../organism.js';
-import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE, DRIVE, MOVEMENT, VARY, HABITATS, TREE, PROGRAM, MAPGEN, SOURCES, PLUME } from '../config.js';
+import { ENERGY, SLEEP, CONCEPT, PHERO, DECIDE, CONDUCT, LIFE, SOCIAL, MORPH, SEASONS, LOAD, COLONIES, SCIENCE, DRIVE, MOVEMENT, VARY, HABITATS, TREE, PROGRAM, MAPGEN, SOURCES, PLUME, DIZZY } from '../config.js';
 import { CAUTION_LINES } from '../learned/conduct.js';
 
 enableOrganism();
@@ -34,7 +34,13 @@ PHERO.life = 60;
 //   - she followed pheromone marks behind her, closer than her turning radius,
 //     or round a ring of them, and orbited her own trail.
 // With the three fixes, 3-8 %, much of it plain trips out and back.
-SOURCES.bare = 1;
+// 2026-10-10: the bare-tree fix is replaced by SOURCES.wait. Leaving a bare tree
+// cost most of the research world's survival (fruit fell after she left and
+// rotted); now she rounds the tree slowly while she waits for it (config.js).
+SOURCES.wait = 1;
+// And whatever loop is left, she breaks herself: dizzy after a full circle
+// getting nowhere, she goes straight (turn alternation, dizzy.js).
+DIZZY.enabled = 1;
 PLUME.arrive = 1;
 PHERO.ahead = 1;
 
@@ -118,6 +124,12 @@ HABITATS.enabled = 1;
 // die of cold, caught out foraging hungry in winter, than of age; now and
 // then a nest empties and another colony refounds it; no map dies out.
 TREE.interval = 30;
+// Trees come and go (trees.js, TREE.seed): each lives about a year and a half
+// of game (×0.7–1.3; the map's own start at spread ages); fruit left to rot
+// leaves a seed, which takes root clear of every crown, and a dead tree is
+// replaced by a seed of the soil. Never more than the map began with plus one.
+TREE.life = 5400;
+TREE.seed = 1;
 
 // What a daughter inherits of what her mothers lived (scripts/game-world.js,
 // 2026-10-07, 8 maps × 4 years, paired against the game without it):

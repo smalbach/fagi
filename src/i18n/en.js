@@ -214,6 +214,7 @@ export default {
   'water.unknown': "doesn't know where",
 
   'action.explore': 'Exploring',
+  'action.wait': 'Waiting for fruit',
   'action.seekFood': 'Going for food',
   'action.seekWater': 'Going for water',
   'action.drink': 'Drinking',
@@ -278,6 +279,7 @@ export default {
   'reason.detourWater': 'thirst {thirst}, water in sight · drinks on the way before taking {what} home',
   'reason.memory': 'lost sight of it, insists {sec} more',
   'reason.explore': 'no needs and nothing in sight · maps the unknown for later',
+  'reason.waitTree': 'hungry, under a tree that drops fruit, nothing under it yet · waits for the next one',
   'reason.exploreFull': 'pantry done · nothing left to do but learn the map',
   'reason.nothing': 'perceives nothing',
   'reason.belowMin': '{n} candidate(s), none above the minimum',

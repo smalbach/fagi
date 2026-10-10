@@ -2,15 +2,16 @@
 // None of this decides WHERE to go; it only carries out the movement.
 
 import { loadSpeed } from './load.js';
-import { FAGI, ENERGY, EXPLORE, WORLD, WATER, INSTINCT, MOVEMENT, PLUME } from './config.js';
+import { FAGI, ENERGY, EXPLORE, WORLD, WATER, INSTINCT, MOVEMENT, PLUME, SOURCES } from './config.js';
 import { angleTo, normalizeAngle } from './vision.js';
 import { statMult } from './effects.js';
-import { pushOutOfBlocks, avoidanceTurn, segmentBlocked, deepBlocked, waterZone, shorePoint, poolOf, radiusOf } from './obstacles.js';
+import { pushOutOfBlocks, avoidanceTurn, segmentBlocked, deepBlocked, waterZone, shorePoint, poolOf, radiusOf, isTree } from './obstacles.js';
 import { scentAt } from './smell.js';
 import { waypointInView } from './explore.js';
 import { nestOf } from './world.js';
 import { fearsDeep } from './swim.js';
 import { bodyOf } from './biology.js';
+import { turnBlocked } from './dizzy.js';
 import { thermalFactors } from './thermal.js';
 import { lifeSpeed } from './lifecycle.js';
 import { healthSpeed } from './health.js';
@@ -28,6 +29,8 @@ export function turnTowards(fagi, targetAngle, dt) {
   // Turning keeps pace with speed: that way the turning radius doesn't grow with buffs.
   const turnSpeed = FAGI.turnSpeed * statMult(fagi, 'speed');
   const step = Math.min(Math.abs(diff), turnSpeed * dt);
+  // Dizzy (DIZZY), she won't turn further the way she was going round.
+  if (turnBlocked(fagi, diff)) return;
   fagi.angle = normalizeAngle(fagi.angle + Math.sign(diff) * step);
 }
 
@@ -161,6 +164,14 @@ function headingOf(fagi, world, target) {
 }
 
 export function moveToward(fagi, world, target, dt) {
+  // Up at a tree she was going to (SOURCES.wait; a remembered place carries
+  // the tree as `ref`): its trunk is solid, so steering on for its centre she
+  // slid round it in fast circles. There she rounds it slowly instead.
+  const tree = SOURCES.wait && [target, target.ref].find((o) => o && world.objects.includes(o) && isTree(o));
+  if (tree && Math.hypot(tree.x - fagi.x, tree.y - fagi.y) - radiusOf(tree) <= FAGI.eatRadius * 2) {
+    roundTree(fagi, world, tree, dt);
+    return;
+  }
   // Going around the rock wins over going straight. If there's still no gap, the
   // usual dodge, which at least gets her out of there.
   const goal = headingOf(fagi, world, target);
@@ -174,6 +185,54 @@ export function moveToward(fagi, world, target, dt) {
     && Math.hypot(target.x - fagi.x, target.y - fagi.y) <= FAGI.eatRadius;
   if (dodge === 0 && above) return;
   advance(fagi, world, dt);
+}
+
+// At a tree, looking for what falls from it (SOURCES.wait): she goes round its
+// trunk, just outside it, so that in time her eyes sweep every side (the trunk
+// hides the far one, and she is blind behind). She goes in bouts, as a
+// searching ant does, and each bout is hers to decide: she walks until a new
+// stretch of ground has come into view (a stretch she draws each time), then
+// stops to look, longer the more tired she is, shorter the hungrier (restless),
+// and now and then she turns back. The pauses are what make it a wait and not
+// the fast orbit she used to fall into. While she looks she spends nothing on
+// walking (fagi.looking).
+export function roundTree(fagi, world, tree, dt) {
+  const ring = radiusOf(tree) + FAGI.eatRadius;
+  const around = Math.atan2(fagi.y - tree.y, fagi.x - tree.x);
+  let r = fagi.round;
+  if (!r || r.tree !== tree.id || fagi.age - r.seen > 5) {
+    r = fagi.round = { tree: tree.id, walking: true, from: around, arc: newStretch(), dir: Math.random() < 0.5 ? 1 : -1, until: 0, seen: fagi.age };
+  }
+  r.seen = fagi.age;
+  if (!r.walking) {
+    fagi.looking = true;
+    if (fagi.age < r.until) return;
+    fagi.looking = false;
+    r.walking = true;
+    r.from = around;
+    r.arc = newStretch();
+    if (Math.random() < SOURCES.turnBack) r.dir = -r.dir;
+  }
+  const ahead = around + r.dir * 0.5;
+  turnTowards(fagi, angleTo(fagi, { x: tree.x + Math.cos(ahead) * ring, y: tree.y + Math.sin(ahead) * ring }), dt);
+  advance(fagi, world, dt);
+  if (Math.abs(normalizeAngle(around - r.from)) >= r.arc) {
+    r.walking = false;
+    r.until = fagi.age + lookFor(fagi);
+  }
+}
+
+// How far round the trunk a bout takes her before she stops: between a fifth
+// and two thirds of a right angle and more, drawn each time.
+const newStretch = () => SOURCES.stretch * (0.5 + Math.random());
+
+// How long she stops to look: `look` s, longer when tired, shorter when
+// hungry, and never twice the same.
+function lookFor(fagi) {
+  const ctx = fagi.perceived;
+  const tired = 1 + (1 - (ctx?.energyU ?? 1));
+  const restless = 1 - 0.5 * (ctx?.hungerU ?? 0);
+  return SOURCES.look * tired * restless * (0.5 + Math.random());
 }
 
 // Exploring in legs: she goes to a point she sees (explore.js/waypointInView) and, on

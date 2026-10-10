@@ -120,6 +120,18 @@ export default {
       'Seconds a tree lives before drying up and falling (0 = forever). Higher → trees last longer; lower → food sources vanish and she must find new ones.',
       'Segundos que vive un árbol antes de secarse y caer (0 = para siempre). Más alto → los árboles duran más; más bajo → las fuentes desaparecen y debe buscar otras.',
     ],
+    'Trees.seed': [
+      'On: a fruit that rots away uncollected leaves a seed, which takes root away from every crown; a tree that dies is replaced by a seed from the soil or one of its own. Off: the map’s trees are all there are.',
+      'Encendido: una fruta que se pudre sin recoger deja una semilla, que echa raíz lejos de toda copa; un árbol que muere lo reemplaza una semilla del suelo o una suya. Apagado: los árboles del mapa son todos los que hay.',
+    ],
+    'Trees.room': [
+      'How many trees seeds may add over the ones the map began with. Higher → the wood can grow; 0 → new trees only replace dead ones.',
+      'Cuántos árboles pueden sumar las semillas sobre los que tenía el mapa al empezar. Más alto → el bosque puede crecer; 0 → los nuevos solo reemplazan a los muertos.',
+    ],
+    'Trees.mature': [
+      'Seconds a young tree grows before it bears fruit. Higher → a new tree takes long to feed anyone; lower → it bears soon.',
+      'Segundos que crece un árbol joven antes de dar fruto. Más alto → un árbol nuevo tarda en alimentar; más bajo → da fruto pronto.',
+    ],
     'Trees.maxNear': [
       'If this much of its fruit lies uncollected, the tree stops dropping more. Higher → fruit piles up around trees; lower → little fruit waits on the ground.',
       'Si tiene esta cantidad de fruta suya sin recoger, el árbol deja de soltar más. Más alto → la fruta se acumula alrededor; más bajo → poca fruta espera en el suelo.',

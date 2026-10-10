@@ -60,3 +60,34 @@ test('with SOURCES.bare seeing fruit under a bare tree makes it a source again',
   assert.equal(perceive(fagi, world).visibleSource, tree);
   SOURCES.bare = 0;
 });
+
+// Waiting under a tree (2026-10-09): leaving a bare tree (SOURCES.bare) cost the
+// born program most of its survival in the research world; she waits instead.
+test('with SOURCES.wait, hungry under a bare tree she knows, she waits there standing', async () => {
+  const { exploreRule } = await import('../src/decision/explore.js');
+  SOURCES.wait = 1;
+  const { world, fagi, tree } = scene();
+  perceive(fagi, world);
+  fagi.x = tree.x - 50;
+  const ctx = perceive(fagi, world);
+  assert.equal(ctx.waitAt, tree);
+  assert.equal(exploreRule(fagi, world, ctx).action, 'wait');
+  SOURCES.wait = 0;
+});
+
+test('with SOURCES.wait she gives up after patience, and the tree is bare to her', () => {
+  SOURCES.wait = 1;
+  SOURCES.patience = 30;
+  const { world, fagi, tree } = scene();
+  perceive(fagi, world);
+  fagi.x = tree.x - 50;
+  assert.equal(perceive(fagi, world).waitAt, tree);
+  fagi.age += 29;
+  assert.equal(perceive(fagi, world).waitAt, tree, 'still waiting');
+  fagi.age += 2;
+  assert.equal(perceive(fagi, world).waitAt, null, 'gave up');
+  fagi.x = tree.x - 150;
+  assert.equal(perceive(fagi, world).visibleSource, null, 'bare to her now');
+  SOURCES.wait = 0;
+  SOURCES.patience = null;
+});

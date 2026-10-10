@@ -35,7 +35,7 @@ import { ripeness } from './food.js';
 import { specOfFruit } from './chemistry.js';
 import { affordanceOf, isThing } from './things.js';
 import { nestTemperature, eggPace } from './reproduction.js';
-import { treeAge, intervalOf, maxNearOf } from './trees.js';
+import { treeAge, intervalOf, maxNearOf, lifeOf } from './trees.js';
 import { programOf } from './program.js';
 import { summarizePhylogeny, renderPhylogenyMermaid, exportPhylogenyJson } from './phylogeny.js';
 import { casteOf } from './castes.js';
@@ -161,7 +161,8 @@ export function markOf(sel, world, fagi) {
 
 // `hooks`: onFollow(target), onCenter(x, y), onAsk(x, y), canFollow() -> bool,
 // adopt(target) -> bool (follow her on selecting; true if it happened),
-// canGod() -> bool, onGod(target) (god mode on her).
+// canGod() -> bool, onGod(target) (god mode on her),
+// canEdit() -> bool, onEdit(target) (a thing on the map set by hand).
 // The card is repainted into its own child: `extra` is a spot under it that
 // the repaint leaves alone (the god-mode panel lives there).
 export function createInspector(el, hooks = {}) {
@@ -200,6 +201,7 @@ export function createInspector(el, hooks = {}) {
       frozenUntil = 0;
     } else if (b.dataset.act === 'ask' && it) hooks.onAsk?.(it.x, it.y);
     else if (b.dataset.act === 'god' && it && sel.kind === 'fagi') hooks.onGod?.(it);
+    else if (b.dataset.act === 'edit' && it && sel.kind !== 'fagi') hooks.onEdit?.(it);
     else if (b.dataset.act === 'copy-phylogeny-mermaid' && lastWorld) {
       const mmd = renderPhylogenyMermaid(lastWorld);
       if (navigator.clipboard) {
@@ -257,8 +259,9 @@ export function createInspector(el, hooks = {}) {
 
   function paint(s, it, world, fagi, live) {
     if (s.kind === 'fagi') return paintFagi(it, world, fagi, s.main, live && hooks.canFollow?.(), live && hooks.canGod?.());
-    if (s.kind === 'point') return paintPoint(it, world, fagi);
-    return paintObject(it, world, fagi);
+    const edit = hooks.canEdit?.() ? `<button type="button" data-act="edit" class="ins-god-btn">✎ ${L('Edit', 'Editar')}</button>` : '';
+    if (s.kind === 'point') return paintPoint(it, world, fagi, edit);
+    return paintObject(it, world, fagi, edit);
   }
 
   return { select, update, clear, get selection() { return sel; }, extra };
@@ -484,7 +487,7 @@ function whoIsAfter(world, main, target) {
   return list.length ? list.map((f) => esc(fullName(f))).join(', ') : null;
 }
 
-function paintPoint(p, world, main) {
+function paintPoint(p, world, main, edit = '') {
   const spec = specOfFruit(p.type, p.variant) ?? POINT_TYPES[p.type] ?? {};
   const life = spec.life ?? 0;
   const age = p.age ?? 0;
@@ -493,7 +496,8 @@ function paintPoint(p, world, main) {
     spec.custom ? L('made by you', 'creado por ti') : null,
     p.variant === 'twin' ? L('look-alike', 'doble') : null].filter(Boolean).join(' · ');
   const actions = `<button type="button" data-act="center">⦿ ${L('Center', 'Centrar')}</button>`
-    + (main ? `<button type="button" data-act="ask">? ${L(`What does ${esc(fullName(main))} think?`, `¿Qué piensa ${esc(fullName(main))}?`)}</button>` : '');
+    + (main ? `<button type="button" data-act="ask">? ${L(`What does ${esc(fullName(main))} think?`, `¿Qué piensa ${esc(fullName(main))}?`)}</button>` : '')
+    + edit;
 
   const hunger = spec.hunger ?? 0;
   const what = [
@@ -539,11 +543,11 @@ function fagisIn(world, main, test) {
   return list.length ? chips(list.map((f) => ({ id: f.id ?? 1, label: fullName(f), sex: f.sex, alive: true }))) : null;
 }
 
-function paintObject(o, world, main) {
+function paintObject(o, world, main, edit = '') {
   const type = OBJECT_TYPES[o.type] ?? {};
   const kind = type.kind;
   const r = radiusOf(o);
-  const actions = `<button type="button" data-act="center">⦿ ${L('Center', 'Centrar')}</button>`;
+  const actions = `<button type="button" data-act="center">⦿ ${L('Center', 'Centrar')}</button>${edit}`;
   const common = row(L('Where', 'Dónde'), `x ${Math.round(o.x)}, y ${Math.round(o.y)}`) + row(L('Radius', 'Radio'), `${Math.round(r)} px`);
   let sub = '';
   let body = '';
@@ -565,7 +569,8 @@ function paintObject(o, world, main) {
     ].join(''))
       + section('time', L('Time', 'Tiempo'), [
         row(L('Age', 'Edad'), o.age != null ? dur(o.age) : null),
-        row(L('Lifetime', 'Vida total'), TREE.life > 0 ? dur(TREE.life) : L('forever', 'para siempre')),
+        row(L('Lifetime', 'Vida total'), TREE.life > 0 ? dur(lifeOf(o)) : L('forever', 'para siempre')),
+        row(L('Bears from', 'Da fruto en'), o.full != null ? dur(Math.max(0, TREE.mature - (o.age ?? 0))) : null),
         TREE.life > 0 ? bar(L('Life used', 'Vida gastada'), treeAge(o), pct(treeAge(o)), '#4f9552') : '',
         row(L('Shade', 'Sombra'), THERMAL.enabled ? `−${THERMAL.shade} °C ${L('at full daylight', 'a pleno día')}` : null),
       ].join(''))
