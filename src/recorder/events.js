@@ -29,7 +29,13 @@ export const EVENT_TYPES = {
   phero_drop: ['x', 'y'],
   wind: ['angle', 'target'],
   rain: ['on'],
-  season: ['name', 'year'],   // the time of year turned (seasons.js)
+  // The time of year (seasons.js): when it turns, and as winter deepens or
+  // eases; name 'none' when the seasons are switched off.
+  season: ['name', 'year'],
+  // A tree's own lifespan and age (trees.js, TREE.seed), when it gets them.
+  tree_time: ['id', 'life', 'age'],
+  // Mud worn into a trail (movement.js): which patch, and how worn.
+  mud_tread: ['i', 'tread'],
   config: ['id', 'to'],
   fagi_eat: ['what'],
   fagi_pick: ['what'],
@@ -57,6 +63,7 @@ export const EVENT_TYPES = {
   egg: ['id', 'mother', 'father'],
   hatch: ['id', 'egg'],
   egg_lost: ['id', 'reason'],
+  colony_found: ['from', 'to'],   // a party left its nest to found another (reproduction.js)
   extinct: ['at'],
   // Who is who (names.js): id -> { name, mother, father, generation, sex, bornAt },
   // sent once per individual, the first time the recording sees her.
@@ -78,7 +85,9 @@ export const EVENT_TYPES = {
 export const TRACK_FIELDS = ['t', 'x', 'y', 'angle', 'action', 'targetId', 'carrying', 'hunger', 'thirst', 'energy',
   'targetKind', 'drinking', 'castSide', 'scentX', 'scentY', 'legX', 'legY', 'leg',
   'wet', 'swimming', 'probing', 'pressure', 'pressureFalling',
-  'temperature', 'thermalStress', 'sleepPressure', 'sex'];
+  'temperature', 'thermalStress', 'sleepPressure', 'sex',
+  // How she looks: life stage, too cold or hot, what she hauls home, a code just learned.
+  'lifeStage', 'thermalFeel', 'hauling', 'learned'];
 
 // Events that deserve a mark on the player's timeline.
 export const MARKER_TYPES = new Set(['fagi_eat', 'fagi_pick', 'fagi_deposit', 'fagi_pantry', 'fagi_rule', 'fagi_death', 'config', 'night_report', 'god', 'obj_edit']);

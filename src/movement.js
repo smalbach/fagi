@@ -8,7 +8,7 @@ import { statMult } from './effects.js';
 import { pushOutOfBlocks, avoidanceTurn, segmentBlocked, deepBlocked, waterZone, shorePoint, poolOf, radiusOf, isTree } from './obstacles.js';
 import { scentAt } from './smell.js';
 import { waypointInView } from './explore.js';
-import { nestOf } from './world.js';
+import { nestOf, record } from './world.js';
 import { fearsDeep } from './swim.js';
 import { bodyOf } from './biology.js';
 import { turnBlocked } from './dizzy.js';
@@ -52,10 +52,13 @@ function drag(world, fagi) {
   // for a sim-side ground state that batch runs can switch off.
   // Heavy ground (world.mud, research worlds only): it slows whoever crosses it,
   // but repeated passage compacts and paves trails over time (niche construction).
-  for (const m of world.mud ?? []) {
+  for (const [i, m] of (world.mud ?? []).entries()) {
     const d = Math.hypot(fagi.x - m.x, fagi.y - m.y);
     if (d <= m.r) {
-      m.tread = (m.tread ?? 0) + 0.05;
+      const before = m.tread ?? 0;
+      m.tread = before + 0.05;
+      // Recorded each whole step it wears: the drawing moves in fortieths.
+      if (Math.floor(m.tread) > Math.floor(before) && before < 40) record(world, 'mud_tread', { i, tread: Math.floor(m.tread) });
       const paved = Math.min(0.45, (m.tread / 40) * (1 - m.speed));
       f *= (m.speed + paved);
     }

@@ -130,7 +130,7 @@ export function noteGod(world, f, param, from, to) {
   if (!world) return;
   world.god = (world.god ?? 0) + 1;
   f.god = (f.god ?? 0) + 1;
-  record(world, 'god', { id: f.id ?? null, param, from: round(from), to: round(to) });
+  record(world, 'god', { id: f.id ?? null, param, from: round(from) ?? null, to: round(to) ?? null });
 }
 
 const round = (v) => (Number.isFinite(v) ? Math.round(v * 1000) / 1000 : v);

@@ -47,7 +47,7 @@ function hidden(fagi, world) {
 export function render(ctx, world, fagi, camera, mark = null, editing = null) {
   setDetail(detailOf(camera));
   applySets(ctx, camera, ctx.canvas);
-  const rain = rainLook(world, performance.now());
+  const rain = rainLook(world, (world.time ?? 0) * 1000);
   climateLook(world);
   scene(ctx, world, fagi, camera, rain);
   if (mark) drawMark(ctx, mark, camera.zoom);

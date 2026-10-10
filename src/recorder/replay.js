@@ -9,7 +9,8 @@
 // to disk: the saved session is just its events.
 
 import { validAppearance } from '../object-appearance.js';
-import { OBJECT_TYPES, TREE, PHERO, WIND, RAIN } from '../config.js';
+import { OBJECT_TYPES, TREE, PHERO, WIND, RAIN, LIFE } from '../config.js';
+import { setSeasonNow } from '../seasons.js';
 import { createWorld } from '../world.js';
 import { createFagi } from '../fagi.js';
 import { nameForId } from '../names.js';
@@ -38,6 +39,9 @@ export function createReplayState() {
     mindSeq: 0,        // goes up with each rule change: the code panel repaints
     log: [],           // the console's latest lines
     people: {},        // id -> { name, mother, father, generation, sex, bornAt } (names.js)
+    // The colony's book (reproduction.js census): eggs laid, hatched, lost.
+    life: { matings: 0, laid: 0, hatched: 0, eggsLost: {}, deaths: {}, generations: 0, peak: 0, extinctAt: null, founded: 0 },
+    homes: {},         // id -> the nest a member moved to (colony_found)
   };
 }
 
@@ -69,14 +73,62 @@ export function applyEvent(state, ev) {
       const obj = { id: ev.id, x: ev.x, y: ev.y, type: ev.what, r: ev.r ?? OBJECT_TYPES[ev.what]?.radius, born: ev.t };
       if (ev.seed != null) obj.seed = ev.seed;
       if (ev.fruit) obj.fruit = ev.fruit;
-      for (const k of ['interval', 'maxNear', 'life', 'age']) if (ev[k] != null) obj[k] = ev[k];
+      for (const k of ['interval', 'maxNear', 'life']) if (ev[k] != null) obj[k] = ev[k];
+      // Its age goes with the clock (view): it was this old at ev.t.
+      if (ev.age != null) obj.born = ev.t - ev.age;
       if (validAppearance(obj.type, ev.appearance)) obj.appearance = ev.appearance;
+      // What it already was at the start (recorder.js setupState).
+      if (ev.look) obj.look = ev.look;
+      if (ev.habitat) obj.habitat = ev.habitat;
+      if (ev.seasonal != null) obj.seasonal = ev.seasonal;
+      if (ev.bare) obj.bare = 1;
       const kind = OBJECT_TYPES[ev.what]?.kind;
-      if (kind === 'nest') { obj.stock = {}; obj.ages = {}; }
+      if (kind === 'nest') {
+        obj.stock = { ...(ev.stock ?? {}) };
+        obj.ages = Object.fromEntries(Object.entries(obj.stock).map(([k, n]) => [k, Array(n).fill(0)]));
+        if (ev.lining) obj.lining = ev.lining.map((l) => ({ ...l }));
+      }
       if (kind === 'spawner') obj.timer = TREE.interval;
       w.objects.push(obj);
       break;
     }
+    case 'tree_time': {
+      const o = w.objects.find((x) => x.id === ev.id);
+      if (o) { o.life = ev.life; o.born = ev.t - ev.age; }
+      break;
+    }
+    case 'mud_tread': {
+      const m = w.mud?.[ev.i];
+      if (m) m.tread = ev.tread;
+      break;
+    }
+    case 'egg': {
+      const n = nestObj(w, ev.nest);
+      if (n) (n.eggs ??= []).push({ id: ev.id, mother: ev.mother, father: ev.father, sex: ev.sex ?? null, generation: ev.generation ?? 0, inbreeding: ev.inbreeding ?? 0, laidAt: ev.t, progress: 0 });
+      state.life.matings += 1;
+      state.life.laid += 1;
+      break;
+    }
+    case 'hatch':
+    case 'egg_lost': {
+      const id = ev.type === 'hatch' ? ev.egg : ev.id;
+      for (const n of w.objects) {
+        const i = n.eggs?.findIndex((e) => e.id === id) ?? -1;
+        if (i !== -1) n.eggs.splice(i, 1);
+      }
+      if (ev.type === 'hatch') {
+        state.life.hatched += 1;
+        state.life.generations = Math.max(state.life.generations, ev.generation ?? 0);
+      } else state.life.eggsLost[ev.reason] = (state.life.eggsLost[ev.reason] ?? 0) + 1;
+      break;
+    }
+    case 'extinct':
+      state.life.extinctAt = ev.at;
+      break;
+    case 'colony_found':
+      state.life.founded += 1;
+      for (const id of [ev.female, ev.male]) if (id != null) state.homes[id] = ev.to;
+      break;
     case 'tree_bare':
     case 'tree_bears': {
       const o = w.objects.find((x) => x.id === ev.id);
@@ -101,7 +153,7 @@ export function applyEvent(state, ev) {
       break;
     }
     case 'nest_line': {
-      const n = w.objects.find((o) => OBJECT_TYPES[o.type]?.kind === 'nest');
+      const n = nestObj(w, ev.nest);
       if (n) (n.lining ??= []).push({ id: ev.id, look: ev.look });
       break;
     }
@@ -128,14 +180,18 @@ export function applyEvent(state, ev) {
       break;
     }
     case 'season':
-      w.season = { on: true, name: ev.name, year: ev.year };
+      // Older recordings carry only the name and the year.
+      w.season = ev.name === 'none' ? null : {
+        on: true, name: ev.name, year: ev.year, depth: ev.depth ?? (ev.name === 'winter' ? 1 : ev.name === 'autumn' ? 0.3 : 0),
+        cold: ev.cold ?? 0, hot: Boolean(ev.hot), shown: ev.shown ?? ev.name,
+      };
       break;
     case 'obj_edit': {
       // Only what the replay draws: a tree's pace and age, a fruit's ripeness.
       const list = ev.point ? w.points : w.objects;
       const o = list[byId(list, ev.id)];
       if (!o) break;
-      if (ev.point && ev.param === 'age') o.born = ev.t - ev.to;
+      if (ev.param === 'age') o.born = ev.t - ev.to;
       else if (!ev.point) o[ev.param] = ev.to;
       break;
     }
@@ -159,7 +215,7 @@ export function applyEvent(state, ev) {
       break;
     }
     case 'nest_store': {
-      const n = nestObj(w);
+      const n = nestObj(w, ev.nest);
       if (n) {
         n.stock[ev.what] = (n.stock[ev.what] ?? 0) + 1;
         (n.ages[ev.what] ??= []).push(ev.age ?? 0);
@@ -167,7 +223,7 @@ export function applyEvent(state, ev) {
       break;
     }
     case 'nest_take': {
-      const n = nestObj(w);
+      const n = nestObj(w, ev.nest);
       if (n) {
         n.stock[ev.what] = Math.max(0, (n.stock[ev.what] ?? 0) - 1);
         const list = n.ages[ev.what] ?? [];
@@ -176,7 +232,7 @@ export function applyEvent(state, ev) {
       break;
     }
     case 'nest_spoil': {
-      const n = nestObj(w);
+      const n = nestObj(w, ev.nest);
       if (n && ev.what) {
         n.stock[ev.what] = Math.max(0, (n.stock[ev.what] ?? 0) - ev.count);
         const list = n.ages[ev.what] ?? [];
@@ -225,8 +281,10 @@ export function applyEvent(state, ev) {
   return state;
 }
 
-function nestObj(w) {
-  return w.objects.find((o) => OBJECT_TYPES[o.type]?.kind === 'nest') ?? null;
+// The nest an event names; older recordings name none: the first one.
+function nestObj(w, id) {
+  const nests = w.objects.filter((o) => OBJECT_TYPES[o.type]?.kind === 'nest');
+  return (id != null ? nests.find((o) => o.id === id) : null) ?? nests[0] ?? null;
 }
 
 // --- the player ---
@@ -303,12 +361,21 @@ export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
     const nights = state.nights ?? [];
     fagi.lastNightReport = nights.at(-1)?.report ?? null;
     fagi.consolidations = nights.length;
-    w.colony = sisterTrack.length ? { ants: putSisters(sisters, sisterTrack, time, state.people) } : null;
+    // The season as recorded: the sky, the ground and the leaves draw it.
+    setSeasonNow(w.season);
+    // An egg's progress, at the usual pace (the nest's warmth isn't kept).
+    for (const n of w.objects) for (const egg of n.eggs ?? []) egg.progress = Math.min(1, (time - egg.laidAt) / Math.max(1, LIFE.incubation));
+    fagi.id = state.followed?.id ?? (sisterTrack.length ? 1 : undefined);
+    // The colony: the one followed and her sisters, and its book (census).
+    w.colony = sisterTrack.length
+      ? { ants: [fagi, ...putSisters(sisters, sisterTrack, time, state.people, state.homes)], life: { ...state.life, peak: Math.max(state.life.peak, sisters.size + 1) } }
+      : null;
     // Who is who: the family tree is the lineage the game kept.
     w.lineage = state.people;
-    fagi.id = state.followed?.id ?? (sisterTrack.length ? 1 : undefined);
     const me = state.people[fagi.id ?? 1];
     if (me) Object.assign(fagi, { name: me.name ?? fagi.name, sex: me.sex ?? fagi.sex, generation: me.generation });
+    bodyOf(fagi, me);
+    if (state.homes[fagi.id] != null) fagi.home = state.homes[fagi.id];
     // An old recording names no one: the same made-up name on every seek.
     if (!me?.name) fagi.name = nameForId(fagi.id ?? 1, fagi.sex);
     putMind(fagi, state, time);
@@ -329,8 +396,16 @@ export function createPlayer(eventList, { checkpointEvery = 60 } = {}) {
   };
 }
 
-// Her sisters at moment t, between the two samples around it.
-function putSisters(sisters, samples, t, people = {}) {
+// Her organs and her caste as recorded with who she is (people).
+function bodyOf(f, who) {
+  if (who?.morph) f.morph = who.morph;
+  if (who?.caste) f.casteProfile = { dominant: who.caste, affinities: { [who.caste]: 1 } };
+}
+
+// Her sisters at moment t, between the two samples around it. A row:
+// [id, x, y, angle, alive, carrying, stage, action, home, hunger, feel, hauling]
+// (recorder.js observeSisters); older ones end after the load or the stage.
+function putSisters(sisters, samples, t, people = {}, homes = {}) {
   let lo = 0;
   let hi = samples.length - 1;
   while (hi - lo > 1) {
@@ -343,15 +418,22 @@ function putSisters(sisters, samples, t, people = {}) {
   if (t < a.t) return [];
   const k = b.t > a.t ? Math.min(1, Math.max(0, (t - a.t) / (b.t - a.t))) : 0;
   const next = new Map(b.ants.map((s) => [s[0], s]));
-  return a.ants.map(([id, x, y, angle, alive, carrying, stage]) => {
+  return a.ants.map(([id, x, y, angle, alive, carrying, stage, action, home, hunger, feel, hauling]) => {
     const n = next.get(id) ?? [id, x, y, angle, alive, carrying];
-    const f = sisters.get(id) ?? { id, sister: true, stride: 0, castSide: 1 };
+    const f = sisters.get(id) ?? { id, sister: true, stride: 0, castSide: 1, effects: {} };
     const nx = x + (n[1] - x) * k;
     const ny = y + (n[2] - y) * k;
     f.stride += Math.hypot(nx - (f.x ?? nx), ny - (f.y ?? ny));
     Object.assign(f, { x: nx, y: ny, angle: angle + normalizeAngle(n[3] - angle) * k, alive: Boolean(alive), carrying: carrying ? { type: carrying } : null, lifeStage: stage ?? 'adult' });
+    f.thought = action ? { action } : null;
+    f.hunger = hunger ?? 0;
+    f.thermalFeel = feel ?? null;
+    f.hauling = hauling ?? null;
+    if (home != null) f.home = home;
+    else if (homes[id] != null) f.home = homes[id];
     const who = people[id];
     if (who) Object.assign(f, { name: who.name ?? f.name, sex: who.sex, generation: who.generation });
+    bodyOf(f, who);
     f.name ??= nameForId(id, f.sex);
     sisters.set(id, f);
     return f;
@@ -399,6 +481,11 @@ function putFagi(fagi, track, route, t, dead, w) {
   fagi.thermalStress = a[24] ?? 0;
   fagi.sleepPressure = a[25] ?? 0;
   fagi.sex = a[26] ?? null;
+  // How she looks; older sessions without these columns: an adult at ease.
+  fagi.lifeStage = a[27] ?? 'adult';
+  fagi.thermalFeel = a[28] ?? null;
+  fagi.hauling = a[29] ?? null;
+  fagi.justLearnedCode = a[30] ?? 0;
   fagi.carrying = a[6] ? { type: a[6], age: 0 } : null;
   fagi.hunger = a[7];
   fagi.thirst = a[8];

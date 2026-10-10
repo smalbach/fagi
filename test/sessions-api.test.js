@@ -26,13 +26,15 @@ test('events are stored once per seq and read back in order', { skip: SKIP }, as
     { seq: 1, t: 0, type: 'obj_add', id: 1, what: 'nest', x: 10, y: 20, r: 30 },
     { seq: 2, t: 4.5, type: 'point_add', id: 7, x: 1, y: 2 },
   ];
-  // An event missing its required fields knocks out the whole batch.
+  // An event missing its required fields is skipped alone: the rest of its
+  // batch is kept.
   const r = await ana.post(`/api/sessions/${id}/events`, { events: batch });
-  assert.equal(r.status, 400);
-  assert.match(r.body.error, /point_add\.what/);
+  assert.equal(r.status, 200);
+  assert.equal(r.body.inserted, 2);
+  assert.deepEqual(r.body.skipped, ['point_add.what']);
 
   batch[2] = { seq: 2, t: 4.5, type: 'point_add', id: 7, what: 'nectar', x: 1, y: 2, from: 3 };
-  assert.equal((await ana.post(`/api/sessions/${id}/events`, { events: batch })).body.inserted, 3);
+  assert.equal((await ana.post(`/api/sessions/${id}/events`, { events: batch })).body.inserted, 1);
   // Retrying the same batch: no duplicates.
   assert.equal((await ana.post(`/api/sessions/${id}/events`, { events: batch })).body.inserted, 0);
 

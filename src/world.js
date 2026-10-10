@@ -184,7 +184,7 @@ function spoilIn(world, nestObj, dt) {
     nestObj.stock[type] = Math.max(0, (nestObj.stock[type] ?? 0) - losses);
     nestObj.spoiled = (nestObj.spoiled ?? 0) + losses;
     nestObj.lastSpoiled = { type, n: losses, total: nestObj.spoiled };
-    record(world, 'nest_spoil', { what: type, count: losses });
+    record(world, 'nest_spoil', { what: type, count: losses, nest: nestObj.id });
   }
 }
 
@@ -209,6 +209,7 @@ export function resetWorld(world) {
   world.wind = createWind();
   world.rain = createRain();
   world.seasonShift = 0;   // seconds the seasons were moved ahead by hand (seasons.js)
+  world.seasonNoted = null;
 }
 
 // The map's size (MAPGEN.size × the base patch on each side). WORLD holds it

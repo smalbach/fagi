@@ -453,7 +453,7 @@ function paintStrip(el, fagi, world) {
   // The time of year: worked out live (autumn and spring told apart), or as
   // the replay recorded it.
   const season = world.season?.on ? (world.years ? seasonView(world) : world.season) : null;
-  if (season) parts.push(`<span class="sb-t">${t(`season.${season.name}`)} · ${t('strip.year', { n: season.year })}</span>`);
+  if (season) parts.push(`<span class="sb-t">${t(`season.${season.shown ?? season.name}`)} · ${t('strip.year', { n: season.year })}</span>`);
   const c = LIFE.enabled && world.colony?.life ? census(world, world.colony) : null;
   if (c) parts.push(`<span class="sb-t">${t('strip.pop', { n: c.alive })}${c.eggs ? ` · 🥚${c.eggs}` : ''}</span>`);
   const doing = fagi.alive

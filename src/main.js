@@ -8,6 +8,7 @@
 // Which screen shows before and after (login, home, admin) is not handled
 // here: app/boot.js decides that, since it's the one that creates the game.
 
+import { setSeasonNow } from './seasons.js';
 import { WORLD, SOCIAL, LIFE, MAPGEN, TASTE } from './config.js';
 import { createWorld, resetWorld, record } from './world.js';
 import { generateMap } from './mapgen.js';
@@ -348,6 +349,7 @@ export function createGame({ onExit } = {}) {
     applyConfig(replaying.configBefore);
     ui.sync();
     player = null;
+    setSeasonNow(null);   // the replay's season; the next step sets ours
   }
 
   function leave() {

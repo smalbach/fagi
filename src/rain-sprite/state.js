@@ -16,10 +16,19 @@ const WETS = 14;       // s until the ground is soaked
 const DRY = 60;       // s until the ground is dry
 
 // Once per frame, before painting any rain.
+// `now` in ms of the world's clock: a replay seeking jumps it, and then the
+// sky is set as it would be by then instead of easing from where it was.
 export function rainLook(world, now) {
-  const dt = sky.before == null ? 0 : Math.min(0.1, Math.max(0, (now - sky.before) / 1000));
+  const raw = sky.before == null ? 0 : (now - sky.before) / 1000;
   sky.before = now;
   const on = !!world.rain?.on;
+  if (raw < 0 || raw > 2) {
+    sky.level = on ? 1 : 0;
+    sky.drops = sky.level;
+    sky.wetness = on ? 1 : 0;
+    return sky.level;
+  }
+  const dt = Math.min(0.1, raw);
   sky.level = on ? Math.min(1, sky.level + dt / RISE) : Math.max(0, sky.level - dt / LOW);
   sky.drops = on ? sky.level : Math.max(0, sky.drops - dt / STOP_SECS);
   sky.wetness = on ? Math.min(1, sky.wetness + dt / WETS) : Math.max(0, sky.wetness - dt / DRY);

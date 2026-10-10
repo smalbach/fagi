@@ -39,6 +39,12 @@ let current = NONE;
 // The season of the world being stepped (one world at a time).
 export const seasonNow = () => current;
 
+// A replay sets the season it rebuilt from its events (recorder/replay.js),
+// so the sky, the ground and the trees draw it; null puts them back to none.
+export function setSeasonNow(season) {
+  current = season?.on ? { ...NONE, ...season } : NONE;
+}
+
 // A year's winter: where its centre falls, how wide and how hard.
 function yearOf(world, n) {
   world.years ??= {};
@@ -142,8 +148,23 @@ export function jumpSeason(world, season) {
   updateSeasons(world);
 }
 
+// What a recording keeps of the season: enough to draw it (the ground, the
+// leaves, the cold) and to name it.
+const DEPTH_STEP = 0.02;
+function note(world, s) {
+  const last = world.seasonNoted;
+  if (last && last.name === s.name && last.year === s.year && last.shown === s.shown && Math.abs(last.depth - s.depth) < DEPTH_STEP) return;
+  world.seasonNoted = s;
+  record(world, 'season', s);
+}
+
 export function updateSeasons(world) {
-  if (!SEASONS.enabled) { current = NONE; world.season = null; return; }
+  if (!SEASONS.enabled) {
+    if (world.season) note(world, { name: 'none', year: 0, depth: 0, cold: 0, hot: false, shown: 'none' });
+    current = NONE;
+    world.season = null;
+    return;
+  }
   const t = clockOf(world);
   const n = Math.floor(t / SEASONS.year) + 1;
   const w = yearOf(world, n);
@@ -159,6 +180,7 @@ export function updateSeasons(world) {
     far: w.far ?? null,
     name,
   };
-  if (world.season?.name !== name) record(world, 'season', { name, year: n });
+  const r2 = (v) => Math.round(v * 100) / 100;
+  note(world, { name, year: n, depth: r2(depth), cold: r2(current.cold), hot: Boolean(w.hot), shown: shownAt(w, (t % SEASONS.year) / SEASONS.year) });
   world.season = current;
 }

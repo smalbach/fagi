@@ -237,7 +237,7 @@ function mate(world, colony, nest, mother, father) {
   colony.life.matings += 1;
   colony.life.laid += 1;
   for (const f of [mother, father]) f.lastMate = { n: (f.lastMate?.n ?? 0) + 1, with: f === mother ? father.id : mother.id, egg: egg.id };
-  record(world, 'egg', { id: egg.id, mother: mother.id, father: father.id, inbreeding: egg.inbreeding });
+  record(world, 'egg', { id: egg.id, mother: mother.id, father: father.id, inbreeding: egg.inbreeding, nest: nest.id, sex: egg.sex ?? null, generation: egg.generation });
 }
 
 function matings(world, colony, nest) {
@@ -306,7 +306,7 @@ function incubate(world, colony, nest, dt) {
     // Ready: it hatches on a ration from the pantry, whatever is stored.
     const type = Object.keys(nest.stock ?? {}).filter((k) => nest.stock[k] > 0).sort((a, b) => nest.stock[b] - nest.stock[a])[0];
     if (type && takeFromNest(nest, type)) {
-      record(world, 'nest_take', { what: type });
+      record(world, 'nest_take', { what: type, nest: nest.id });
       nest.eggs.splice(nest.eggs.indexOf(egg), 1);
       hatch(world, colony, nest, egg);
     } else if (world.time - egg.readyAt >= LIFE.eggStarve) {

@@ -88,11 +88,12 @@ function atTheDoor(fagi, world, nestObj, type, age, variant = null) {
 }
 
 // Something in the pantry she avoids, to carry out: the oldest of its kind.
-function refuse(fagi, nestObj) {
+function refuse(fagi, world, nestObj) {
   const type = Object.keys(nestObj.stock).find((k) => nestObj.stock[k] > 0 && verdict(fagi, 'eat', k) === 'avoid');
   if (!type) return null;
   const age = Math.max(0, ...(nestObj.ages[type] ?? [0]));
   takeFromNest(nestObj, type);
+  record(world, 'nest_take', { what: type, nest: nestObj.id, out: 1 });
   return { type, age };
 }
 
@@ -101,7 +102,7 @@ function refuse(fagi, nestObj) {
 export function nestFull(fagi, world, nestObj) {
   const l = larderOf(fagi);
   l.full += 1;
-  const out = refuse(fagi, nestObj);
+  const out = refuse(fagi, world, nestObj);
   if (out) {
     // Refuse smells of the refuse heap: nobody carries it home again (feeding.js).
     atTheDoor(fagi, world, nestObj, out.type, out.age).refuse = true;

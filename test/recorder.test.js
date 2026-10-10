@@ -208,3 +208,19 @@ test('nothing is recorded after the session ends', () => {
   rec.flush();
   assert.equal(eventList.length, n);
 });
+
+// Every event the game records must be in the catalog: the server skips an
+// event of a type it doesn't know, and with it whatever it carried.
+test('every event type the game records is in the catalog', async () => {
+  const { readdir, readFile } = await import('node:fs/promises');
+  const { EVENT_TYPES } = await import('../src/recorder/events.js');
+  const files = (await readdir(new URL('../src/', import.meta.url), { recursive: true })).filter((f) => f.endsWith('.js'));
+  const found = new Set();
+  for (const f of files) {
+    const text = await readFile(new URL(`../src/${f}`, import.meta.url), 'utf8');
+    for (const m of text.matchAll(/\brecord\(\s*world\s*,\s*'([a-z_]+)'/g)) found.add(m[1]);
+    for (const m of text.matchAll(/\bemit\('([a-z_]+)'/g)) found.add(m[1]);
+  }
+  assert.ok(found.size > 30);
+  assert.deepEqual([...found].filter((type) => !EVENT_TYPES[type]), []);
+});

@@ -52,7 +52,7 @@ export function updateTrees(world, dt) {
   const bears = dt * season.fruit;
   if (TREE.seed) world.treeRoom ??= treesOf(world).length + TREE.room;
   for (const tree of treesOf(world)) {
-    if (TREE.seed) ownTime(tree);
+    if (TREE.seed) ownTime(world, tree);
     // Trees have their time too: if TREE.life > 0, they dry up and fall.
     tree.age = (tree.age ?? 0) + dt;
     if (TREE.life > 0 && tree.age >= lifeOf(tree)) {
@@ -139,11 +139,14 @@ export const lifeOf = (tree) => tree.life ?? TREE.life;
 // Trees that come and go (TREE.seed). A tree of the map, the first time it is
 // updated, gets a lifespan of its own and an age somewhere along it, so the
 // map's trees do not all grow old together; a young one already has both.
-function ownTime(tree) {
+function ownTime(world, tree) {
   if (TREE.life <= 0 || tree.life != null) return;
   tree.life = TREE.life * (0.7 + 0.6 * Math.random());
   tree.age ??= Math.random() * tree.life * 0.9;
+  record(world, 'tree_time', { id: tree.id, life: round1(tree.life), age: round1(tree.age) });
 }
+
+const round1 = (v) => Math.round(v * 10) / 10;
 
 // A young tree's crown grows from a third of its size; true while it is too
 // young to bear.
@@ -178,6 +181,7 @@ function sprout(world, x, y, fruit) {
   tree.full = full;
   tree.age = 0;
   tree.life = TREE.life > 0 ? TREE.life * (0.7 + 0.6 * Math.random()) : 0;
+  record(world, 'tree_time', { id: tree.id, life: round1(tree.life), age: 0 });
   if (fruit !== TREE.fruit) {
     tree.fruit = fruit;
     record(world, 'obj_fruit', { id: tree.id, what: fruit });
