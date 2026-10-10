@@ -20,6 +20,10 @@
 // (de Bruin et al. 2026: what a parent lived helps a daughter only when the
 // change can be foreseen).
 //
+// The time of year can be moved ahead by hand (the settings' buttons):
+// world.seasonShift seconds are added to the world clock for the seasons
+// alone; the day, ages and everything else keep the real clock.
+//
 // The world's turn (simulation.js) works out the season once per step and
 // keeps it in world.season; the sky (cycle.js) and the trees read it from
 // there through `seasonNow`. A year's draws happen when it starts, from the
@@ -34,6 +38,12 @@ let current = NONE;
 
 // The season of the world being stepped (one world at a time).
 export const seasonNow = () => current;
+
+// A replay sets the season it rebuilt from its events (recorder/replay.js),
+// so the sky, the ground and the trees draw it; null puts them back to none.
+export function setSeasonNow(season) {
+  current = season?.on ? { ...NONE, ...season } : NONE;
+}
 
 // A year's winter: where its centre falls, how wide and how hard.
 function yearOf(world, n) {
@@ -87,9 +97,75 @@ function summerAt(w, t) {
   return 0.5 * (1 - Math.cos(2 * Math.PI * (y - w.at)));
 }
 
+// The seasons' clock: the world's, plus what was jumped by hand.
+const clockOf = (world) => (world.time ?? 0) + (world.seasonShift ?? 0);
+
+// Where the year is: its number, its winter and how far into it (0-1).
+function placeOf(world) {
+  const t = clockOf(world);
+  const n = Math.floor(t / SEASONS.year) + 1;
+  return { n, w: yearOf(world, n), y: (t % SEASONS.year) / SEASONS.year };
+}
+
+// The season as shown to the person: the lean time going into winter is
+// autumn, coming out of it spring (the simulation only tells the depth).
+function shownAt(w, y) {
+  const depth = Math.min(1, depthAt(w, y) * w.hard);
+  if (depth > 0.5) return 'winter';
+  if (depth <= 0) return 'summer';
+  const past = ((y - w.at + 1.5) % 1) - 0.5;   // signed, the year wrapping around
+  return past < 0 ? 'autumn' : 'spring';
+}
+
+// The season now, its year and what comes next and in how many seconds
+// (looked for within this year only: a later year isn't drawn before its
+// time). null with the seasons off.
+export function seasonView(world) {
+  if (!SEASONS.enabled) return null;
+  const { n, w, y } = placeOf(world);
+  const name = shownAt(w, y);
+  const step = 1 / 720;
+  for (let k = y + step; k < 1; k += step) {
+    const next = shownAt(w, k);
+    if (next !== name) return { name, year: n, next, inSec: (k - y) * SEASONS.year };
+  }
+  return { name, year: n, next: null, inSec: (1 - y) * SEASONS.year };
+}
+
+// Moves the time of year ahead to the heart of a season ('spring', 'summer',
+// 'autumn', 'winter'), turning the seasons on if they were off.
+export function jumpSeason(world, season) {
+  const { w, y } = placeOf(world);
+  const target = {
+    autumn: w.at - w.width * 0.3,
+    winter: w.at,
+    spring: w.at + w.width * 0.3,
+    summer: w.at + 0.5,
+  }[season];
+  if (target == null) return;
+  const ahead = (((target - y) % 1) + 1) % 1;
+  world.seasonShift = (world.seasonShift ?? 0) + ahead * SEASONS.year;
+  updateSeasons(world);
+}
+
+// What a recording keeps of the season: enough to draw it (the ground, the
+// leaves, the cold) and to name it.
+const DEPTH_STEP = 0.02;
+function note(world, s) {
+  const last = world.seasonNoted;
+  if (last && last.name === s.name && last.year === s.year && last.shown === s.shown && Math.abs(last.depth - s.depth) < DEPTH_STEP) return;
+  world.seasonNoted = s;
+  record(world, 'season', s);
+}
+
 export function updateSeasons(world) {
-  if (!SEASONS.enabled) { current = NONE; world.season = null; return; }
-  const t = world.time ?? 0;
+  if (!SEASONS.enabled) {
+    if (world.season) note(world, { name: 'none', year: 0, depth: 0, cold: 0, hot: false, shown: 'none' });
+    current = NONE;
+    world.season = null;
+    return;
+  }
+  const t = clockOf(world);
   const n = Math.floor(t / SEASONS.year) + 1;
   const w = yearOf(world, n);
   const depth = Math.min(1, depthAt(w, (t % SEASONS.year) / SEASONS.year) * w.hard);
@@ -104,6 +180,7 @@ export function updateSeasons(world) {
     far: w.far ?? null,
     name,
   };
-  if (world.season?.name !== name) record(world, 'season', { name, year: n });
+  const r2 = (v) => Math.round(v * 100) / 100;
+  note(world, { name, year: n, depth: r2(depth), cold: r2(current.cold), hot: Boolean(w.hot), shown: shownAt(w, (t % SEASONS.year) / SEASONS.year) });
   world.season = current;
 }

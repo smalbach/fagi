@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fagi</title>
+  <link rel="icon" href="/favicon.png" type="image/png" sizes="64x64" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="stylesheet" href="/src/styles/index.css" />
 </head>
 <body class="mode-idle">
@@ -16,22 +18,14 @@
       </div>
       <div id="topbar">
         <button id="btn-end" data-i18n-tip="tip.end" data-i18n="app.endSession">■ End session</button>
-        <button id="btn-settings" data-i18n-tip="tip.settings" data-i18n="app.settings">⚙ Settings</button>
-        <button id="btn-phylogeny" data-i18n-tip="tip.phylogeny">🧬 Filogenia</button>
-        <button id="btn-evolution" data-i18n-tip="tip.evolution" data-i18n="app.evolution">📈 Evolution</button>
-        <button id="btn-god" data-i18n-tip="tip.god" data-i18n="app.god">⚡ God mode</button>
-        <div id="view-modes" class="view-modes" role="radiogroup">
-          <button type="button" data-view="observe" data-i18n-tip="tip.viewObserve" data-i18n="view.observe">Observe</button>
-          <button type="button" data-view="normal" data-i18n-tip="tip.viewNormal" data-i18n="view.normal">Normal</button>
-          <button type="button" data-view="deep" data-i18n-tip="tip.viewDeep" data-i18n="view.deep">Deep</button>
-        </div>
-        <select id="lang" title="Idioma / Language">
+        <select id="lang" data-i18n-tip="tip.lang" title="Idioma / Language">
           <option value="en">EN</option>
           <option value="es">ES</option>
         </select>
       </div>
     </header>
     <canvas id="canvas"></canvas>
+    <span id="app-version" class="app-version stage-version"></span>
     <aside id="ask-card" hidden aria-live="polite"></aside>
     <aside id="inspect-card" hidden aria-live="polite"></aside>
     <div id="setup-bar" class="stage-bar">
@@ -67,9 +61,7 @@
   <aside id="hud">
     <div class="hud-header">
       <h1 data-i18n="app.title">FAGI</h1>
-      <span id="app-version" class="app-version"></span>
       <div class="hud-header-actions">
-        <button id="btn-toggle-groups" data-i18n-tip="tip.hudGroups" type="button" data-i18n="app.collapseAll">▾ Hide all</button>
         <button id="btn-toggle-hud" data-i18n-tip="tip.hudToggle" class="panel-toggle" type="button" aria-expanded="true" aria-controls="hud-body">▾</button>
       </div>
     </div>
@@ -331,12 +323,23 @@
     <button type="button" data-dock="fagi" data-i18n-title="rail.fagi" title="Fagi">🐜<span class="rail-label" data-i18n="rail.fagi">Fagi</span></button>
     <button type="button" data-dock="map" data-i18n-title="rail.map" title="Map">🗺<span class="rail-label" data-i18n="rail.map">Mapa</span></button>
     <button type="button" data-dock="inspect" data-i18n-title="rail.inspect" title="Inspector">🔍<span class="rail-label" data-i18n="rail.inspect">Inspector</span></button>
-    <button type="button" data-act="console" data-i18n-title="rail.console" title="Console">▤</button>
-    <button type="button" data-act="settings" class="edit-only" data-i18n-title="rail.settings" title="Settings">⚙</button>
+    <button type="button" data-act="console" data-i18n-title="rail.console" title="Console">▤<span class="rail-label" data-i18n="rail.console">Console</span></button>
+    <span class="rail-sep"></span>
+    <button type="button" id="btn-phylogeny" data-i18n-title="rail.phylogeny" title="Phylogeny">🧬<span class="rail-label" data-i18n="rail.phylogeny">Phylogeny</span></button>
+    <button type="button" id="btn-evolution" data-i18n-title="rail.evolution" title="Evolution">📈<span class="rail-label" data-i18n="rail.evolution">Evolution</span></button>
+    <button type="button" id="btn-god" data-i18n-title="rail.god" title="God mode">⚡<span class="rail-label" data-i18n="rail.god">God mode</span></button>
+    <span class="rail-sep"></span>
+    <div id="view-modes" class="view-modes" role="radiogroup">
+      <button type="button" data-view="observe" data-i18n-title="tip.viewObserve" title="Observe">🌿<span class="rail-label" data-i18n="rail.observe">Observe</span></button>
+      <button type="button" data-view="normal" data-i18n-title="tip.viewNormal" title="Normal">▦<span class="rail-label" data-i18n="rail.normal">Normal</span></button>
+      <button type="button" data-view="deep" data-i18n-title="tip.viewDeep" title="Deep">🔬<span class="rail-label" data-i18n="rail.deep">Deep</span></button>
+    </div>
+    <button type="button" id="btn-settings" data-i18n-title="rail.settings" title="Settings">⚙<span class="rail-label" data-i18n="rail.settings">Settings</span></button>
     <span class="rail-gap"></span>
     <button type="button" data-act="smaller" data-i18n-title="rail.smaller" title="Smaller text">A−</button>
     <button type="button" data-act="bigger" data-i18n-title="rail.bigger" title="Bigger text">A+</button>
     <button type="button" data-act="compact" data-i18n-title="rail.compact" title="Compact">◫</button>
+    <button type="button" id="btn-toggle-groups" data-i18n-title="tip.hudGroups" title="Fold all">⊟<span class="rail-label"></span></button>
   </nav>
   <div id="setup-tabs" role="tablist">
     <button type="button" role="tab" data-setup="map" data-i18n-tip="tip.setupMap" data-i18n="setup.tabMap">🗺 Map</button>

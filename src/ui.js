@@ -5,6 +5,7 @@
 import { createAppearanceEditor } from './appearance-editor.js';
 import { HUNGER, THIRST, POINT_TYPES, TYPE_KEYS, OBJECT_TYPES, OBJECT_KEYS, TREE, THERMAL, CYCLE, LIFE, specOf } from './config.js';
 import { cycleAt } from './cycle.js';
+import { seasonView } from './seasons.js';
 import { census } from './reproduction.js';
 import { organismOn } from './organism.js';
 import { energyMax } from './biology.js';
@@ -449,6 +450,10 @@ function paintStrip(el, fagi, world) {
   ];
   const sky = cycleAt(world.time);
   if (sky.on) parts.push(`<span class="sb-t">${t('strip.day', { d: sky.day })} · ${t(phaseName(sky))}</span>`);
+  // The time of year: worked out live (autumn and spring told apart), or as
+  // the replay recorded it.
+  const season = world.season?.on ? (world.years ? seasonView(world) : world.season) : null;
+  if (season) parts.push(`<span class="sb-t">${t(`season.${season.shown ?? season.name}`)} · ${t('strip.year', { n: season.year })}</span>`);
   const c = LIFE.enabled && world.colony?.life ? census(world, world.colony) : null;
   if (c) parts.push(`<span class="sb-t">${t('strip.pop', { n: c.alive })}${c.eggs ? ` · 🥚${c.eggs}` : ''}</span>`);
   const doing = fagi.alive

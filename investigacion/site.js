@@ -1,4 +1,6 @@
 import { startHero } from './hero.js';
+import { startBrainSim } from './brain-sim.js';
+import { startCodeSim } from './code-sim.js';
 import { T, pct, num } from './strings.js';
 import { lineChart, groupedBars } from './charts.js';
 import './lab.js';
@@ -34,6 +36,9 @@ document.querySelectorAll('.seg').forEach((group) => {
 // ---------- hero ----------
 const heroCanvas = document.getElementById('hero-canvas');
 if (heroCanvas) startHero(heroCanvas);
+const brainCanvas = document.getElementById('brain-sim');
+if (brainCanvas) startBrainSim(brainCanvas, document.getElementById('brain-sim-caption'), document.getElementById('brain-sim-meter'));
+startCodeSim(document.getElementById('code-sim'), document.getElementById('code-sim-caption'), document.getElementById('code-sim-meter'));
 
 // ---------- contents rail: mark the section being read ----------
 const links = [...document.querySelectorAll('.toc a')];

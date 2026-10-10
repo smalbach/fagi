@@ -44,11 +44,22 @@ async function insertEvents(db, sessionId, eventList) {
 function validateBatch(eventList) {
   if (!Array.isArray(eventList)) return 'events_not_array';
   if (eventList.length > MAX_BATCH) return 'too_many_events';
+  return null;
+}
+
+// Splits a batch into the events that can be stored and why the others
+// can't. One bad event (a type the catalog doesn't know yet, a missing
+// field) used to knock out its whole batch, and the client drops a rejected
+// batch: everything recorded with it was lost. Now only that event is.
+function sortOut(eventList) {
+  const good = [];
+  const skipped = [];
   for (const ev of eventList) {
     const motive = invalidEvent(ev);
-    if (motive) return `invalid_event:${motive}`;
+    if (motive) skipped.push(motive);
+    else good.push(ev);
   }
-  return null;
+  return { good, skipped };
 }
 
 export default async function sessionRoutes(app) {
@@ -99,8 +110,10 @@ export default async function sessionRoutes(app) {
     const eventList = req.body?.events;
     const motive = validateBatch(eventList);
     if (motive) return reply.code(400).send({ error: motive });
-    const freshOnes = await insertEvents(app.db, s.id, eventList);
-    return { inserted: freshOnes };
+    const { good, skipped } = sortOut(eventList);
+    if (skipped.length) app.log.warn({ session: s.id, skipped }, 'events skipped');
+    const freshOnes = await insertEvents(app.db, s.id, good);
+    return { inserted: freshOnes, skipped };
   });
 
   app.post('/:id/end', async (req, reply) => {
@@ -133,12 +146,9 @@ export default async function sessionRoutes(app) {
 
   // An exported session (.json) comes in as a new session owned by the importer.
   app.post('/import', { bodyLimit: 30 * 1024 * 1024 }, async (req, reply) => {
-    const eventList = req.body?.events;
-    if (!Array.isArray(eventList) || !eventList.length) return reply.code(400).send({ error: 'no_events' });
-    for (const ev of eventList) {
-      const motive = invalidEvent(ev);
-      if (motive) return reply.code(400).send({ error: `invalid_event:${motive}` });
-    }
+    if (!Array.isArray(req.body?.events) || !req.body.events.length) return reply.code(400).send({ error: 'no_events' });
+    const { good: eventList, skipped } = sortOut(req.body.events);
+    if (!eventList.length) return reply.code(400).send({ error: `invalid_event:${skipped[0]}` });
     const origin = req.body?.session ?? {};
     const client = await app.db.connect();
     try {
@@ -154,7 +164,7 @@ export default async function sessionRoutes(app) {
         await insertEvents(client, rows[0].id, eventList.slice(i, i + MAX_BATCH));
       }
       await client.query('COMMIT');
-      return reply.code(201).send({ session: row(rows[0]) });
+      return reply.code(201).send({ session: row(rows[0]), skipped });
     } catch (err) {
       await client.query('ROLLBACK');
       throw err;

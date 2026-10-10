@@ -43,7 +43,7 @@ export function useNest(fagi, world) {
   if (fagi.carrying) {
     const t = fagi.carrying.type;
     const total = storeInNest(nestObj, t, fagi.carrying.age ?? 0);
-    record(world, 'nest_store', { what: t, age: fagi.carrying.age ?? 0 });
+    record(world, 'nest_store', { what: t, age: fagi.carrying.age ?? 0, nest: nestObj.id });
     fagi.stored = (fagi.stored ?? 0) + 1;
     // What she brought home herself, in typical fruits (LIFE.provision).
     fagi.provided = (fagi.provided ?? 0) + (fagi.carrying.weight ?? 1);
@@ -60,7 +60,7 @@ export function useNest(fagi, world) {
     const best = j ? (chewing(fagi) ? null : j.pantry(fagi, stocked)) : pickRation(fagi, stocked);
     if (best) {
       takeFromNest(nestObj, best);
-      record(world, 'nest_take', { what: best });
+      record(world, 'nest_take', { what: best, nest: nestObj.id });
       const firstBite = !(fagi.brain.facts[best]?.tries > 0);
       eat(fagi, best, { variant: drawVariant(best) });   // a stored look-alike (TASTE) is as likely as on the tree
       // She had stored it without ever tasting it, and it harms her.

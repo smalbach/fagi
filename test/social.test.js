@@ -155,7 +155,9 @@ test('a colony session replays with her sisters where they were', async () => {
 
     const player = createPlayer(events);
     player.seek(90);
-    const ants = player.world.colony.ants;
+    // As live: the one followed first, then her sisters.
+    assert.equal(player.world.colony.ants[0], player.fagi);
+    const ants = player.world.colony.ants.slice(1);
     assert.equal(ants.length, 2);
     ants.forEach((s, i) => {
       assert.ok(Math.hypot(s.x - seen.at90[i][0], s.y - seen.at90[i][1]) < 20, `sister ${s.id} is where she was`);

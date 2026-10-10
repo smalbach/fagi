@@ -16,10 +16,6 @@
 // Like the rain's look (rain-sprite/state.js) this is only the picture: it is
 // kept here, never in the world, and moves with the world's clock, so a paused
 // game doesn't keep snowing and a fast one settles snow faster.
-//
-// TODO(climate): replays don't carry world.season, so a replay shows neither
-// autumn, dormant winter nor shed leaves. Record the season (it is already an
-// event, seasons.js) and rebuild it in replay.js.
 
 import { airTemp, leafFallOf } from './climate.js';
 import { canvasOf, seededRng, seedFor, cacheSprite } from './sprite-kit.js';

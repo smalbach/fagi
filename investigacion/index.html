@@ -5,12 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fagi · Heredar supera a aprender</title>
   <meta name="description" content="Fagi: un organismo artificial que aprende de su cuerpo y pasa lo aprendido a sus hijas. Resultado preregistrado: heredar supera a aprender, y con nada que reparar también se heredan los errores." />
+  <link rel="icon" href="/favicon.png" type="image/png" sizes="64x64" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script>
     // Theme before first paint, so a saved choice never flashes the other one.
     try { const t = localStorage.getItem('fagi-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
+    // Language: the one chosen with ES/EN (saved as 'fagi.lang', shared with the
+    // game); on a first visit, the browser's (English if neither), as the game does.
+    (() => {
+      const here = document.documentElement.lang;
+      const home = { es: '/', en: '/en/' };
+      let want = null;
+      try { want = localStorage.getItem('fagi.lang'); } catch {}
+      if (!home[want]) {
+        want = 'en';
+        for (const p of navigator.languages?.length ? navigator.languages : [navigator.language]) {
+          const base = String(p ?? '').toLowerCase().split('-')[0];
+          if (home[base]) { want = base; break; }
+        }
+      }
+      if (want !== here) location.replace(home[want] + location.search + location.hash);
+      document.addEventListener('click', (e) => {
+        const a = e.target.closest?.('a[hreflang]');
+        if (a && home[a.hreflang]) try { localStorage.setItem('fagi.lang', a.hreflang); } catch {}
+      }, true);
+    })();
   </script>
   <link rel="stylesheet" href="/investigacion/site.css" />
 </head>
@@ -53,7 +75,40 @@
     <figcaption><span>Lámina I / El organismo</span><span>Ilustración del juego · no es un experimento</span></figcaption>
   </figure>
 </div>
-<div class="atlas-question"><p class="eyebrow">La pregunta central</p><div><h2>¿Transmitimos conocimiento<br>o también nuestros errores?</h2><p>En Fagi podemos inspeccionar cada creencia, cambiar el mundo y repetir las condiciones de un experimento.</p></div></div>
+<section class="about" id="que-es" aria-labelledby="about-title">
+  <div class="about-text">
+    <p class="eyebrow">Qué es Fagi</p>
+    <h2 id="about-title">Un organismo artificial que aprende con su cuerpo.</h2>
+    <dl class="acronym" aria-label="Qué significa Fagi">
+      <div><dt>F</dt><dd>First</dd></div><div><dt>A</dt><dd>Artificial</dd></div><div><dt>G</dt><dd>Generational</dd></div><div><dt>I</dt><dd>Intelligence</dd></div>
+    </dl>
+    <p class="acronym-why">Primera inteligencia artificial <em>generacional</em>. El nombre viene del proyecto, <span class="mono">first-agi</span>, pero la G no es la de <em>general</em>: no buscamos una mente que lo resuelva todo, sino una inteligencia que no cabe en una sola vida y se mide en lo que pasa de madre a hija, aciertos y errores. Es una aspiración, no una afirmación.</p>
+    <p>Fagi vive en un mundo simulado con comida, veneno, agua, lluvia y noche. No trae nada escrito sobre qué es bueno o malo: lo descubre probando, y lo que siente su cuerpo se convierte en sinapsis, lugares recordados y reglas.</p>
+    <p>Todo su conocimiento es inspeccionable —cada creencia guarda de dónde vino— y el mundo es determinista, así que podemos repetir una vida cambiando una sola cosa. La pregunta del proyecto: cuando una madre pasa a su hija lo que aprendió, ¿le pasa conocimiento o también sus errores?</p>
+    <p class="about-meter mono" id="brain-sim-meter" aria-hidden="true"></p>
+  </div>
+  <figure class="about-art">
+    <canvas id="brain-sim" role="img" aria-label="Animación del panel de red neuronal: Fagi aprende sinapsis y reglas en vida, y su hija nace con las reglas."></canvas>
+    <p class="about-caption" id="brain-sim-caption"></p>
+    <figcaption><span>Lámina II / La red neuronal</span><span>Recreación del panel del juego · guion fijo, no es un experimento</span></figcaption>
+  </figure>
+</section>
+<section class="atlas-question" aria-labelledby="question-title">
+  <header class="question-head">
+    <p class="eyebrow">La pregunta central</p>
+    <h2 id="question-title">¿Transmitimos conocimiento<br>o también nuestros errores?</h2>
+  </header>
+  <div class="question-text">
+    <p>Cada Fagi escribe lo que aprende como código: reglas con un peso, cuántas veces las probó y de dónde vienen —de su propia experiencia, de lo que le contó una hermana o de su madre—. Al morir, su código activo pasa a su hija.</p>
+    <p>Heredar le ahorra pruebas peligrosas. Pero una regla equivocada que nadie vuelve a probar nunca se corrige, y pasa intacta de generación en generación. En Fagi podemos inspeccionar cada creencia, cambiar el mundo y repetir las condiciones de un experimento para medir cuál de las dos cosas pesa más.</p>
+    <p class="about-meter mono" id="code-sim-meter" aria-hidden="true"></p>
+  </div>
+  <figure class="question-art">
+    <div class="code-sim" id="code-sim" role="img" aria-label="Animación del panel Código aprendido: Fagi escribe reglas en vida, su hija las hereda y una regla equivocada pasa a la nieta sin corregirse."></div>
+    <p class="about-caption" id="code-sim-caption"></p>
+    <figcaption><span>Lámina III / El código aprendido</span><span>Recreación del panel del juego · guion fijo, no es un experimento</span></figcaption>
+  </figure>
+</section>
 <nav class="chapter-nav" aria-label="Recorridos del atlas"><a href="#herencia"><span>01 / La herencia</span>Heredar supera a aprender ↗</a><a href="#explorar"><span>02 / Las poblaciones</span>Cada vida, madre a hija ↗</a><a href="#organismo"><span>03 / El organismo</span>Del cuerpo a la memoria ↗</a><a href="#metodo"><span>04 / La evidencia</span>Cómo lo sabemos ↗</a></nav>
 <div class="findings" id="hallazgos" aria-labelledby="findings-title"><div class="findings-heading"><p class="eyebrow">Notas de campo / Resultados</p><h2 id="findings-title">Lo que sabemos hasta ahora.</h2><p>Resultados de simulación. Cada conclusión tiene un alcance.</p></div><div class="findings-grid">
 <a href="#herencia"><span class="tag conf">Herencia del aprendizaje</span><h3>Heredar supera a aprender.</h3><p>Con un programa dañado, las hijas que heredan las revisiones de su madre viven el 60 % de las veces; las que aprenden desde cero, el 49 %. Replicado en 48 poblaciones nuevas (+11) y con un segundo daño (+10).</p><span class="finding-link">Ver los dos estudios ↗</span></a>

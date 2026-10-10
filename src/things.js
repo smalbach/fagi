@@ -196,7 +196,7 @@ export function haul(fagi, world, obj) {
 export function lineNest(fagi, world, nest) {
   const item = fagi.hauling;
   (nest.lining ??= []).push(item);
-  record(world, 'nest_line', { id: item.id, look: item.look });
+  record(world, 'nest_line', { id: item.id, look: item.look, nest: nest.id });
   fagi.hauling = null;
   fagi.lastLining = { n: (fagi.lastLining?.n ?? 0) + 1, key: item.key, count: nest.lining.length };
 }

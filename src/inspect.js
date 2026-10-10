@@ -162,7 +162,8 @@ export function markOf(sel, world, fagi) {
 // `hooks`: onFollow(target), onCenter(x, y), onAsk(x, y), canFollow() -> bool,
 // adopt(target) -> bool (follow her on selecting; true if it happened),
 // canGod() -> bool, onGod(target) (god mode on her),
-// canEdit() -> bool, onEdit(target) (a thing on the map set by hand).
+// canEdit() -> bool, onEdit(target) (a thing on the map set by hand),
+// onClose() (the card closed with its ✕).
 // The card is repainted into its own child: `extra` is a spot under it that
 // the repaint leaves alone (the god-mode panel lives there).
 export function createInspector(el, hooks = {}) {
@@ -193,7 +194,7 @@ export function createInspector(el, hooks = {}) {
     if (b.dataset.fagi) { select({ kind: 'fagi', id: Number(b.dataset.fagi) }); return; }
     if (b.dataset.obj) { select({ kind: 'object', id: Number(b.dataset.obj) }); return; }
     const it = resolve(sel, lastWorld, lastFagi);
-    if (b.dataset.act === 'close') clear();
+    if (b.dataset.act === 'close') { clear(); hooks.onClose?.(); }
     else if (b.dataset.act === 'center' && it) hooks.onCenter?.(it.x, it.y);
     else if (b.dataset.act === 'follow' && it && sel.kind === 'fagi' && !sel.main) {
       hooks.onFollow?.(it);

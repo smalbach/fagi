@@ -83,9 +83,30 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
     emit('wind', { angle: world.wind.angle, target: world.wind.target });
     prev.windTarget = world.wind.target;
     for (const o of world.objects) {
-      emit('obj_add', { id: o.id, what: o.type, x: o.x, y: o.y, r: o.r, source: 'setup', seed: o.seed ?? null, ...(o.fruit ? { fruit: o.fruit } : {}), ...(o.appearance ? { appearance: o.appearance } : {}), ...ownNumbers(o) });
+      emit('obj_add', {
+        id: o.id, what: o.type, x: o.x, y: o.y, r: o.r, source: 'setup', seed: o.seed ?? null,
+        ...(o.fruit ? { fruit: o.fruit } : {}), ...(o.appearance ? { appearance: o.appearance } : {}), ...ownNumbers(o),
+        ...setupState(o),
+      });
     }
     for (const p of world.points) emit('point_add', { id: p.id, what: p.type, x: p.x, y: p.y, from: 'setup' });
+    // Already raining, and the season: noted again from the first step.
+    if (world.rain?.on) emit('rain', { on: true });
+    world.seasonNoted = null;
+  }
+
+  // What a thing of the map already is when the session starts, set before
+  // recording began: a thing's look, a nest's habitat, pantry and lining, a
+  // tree's season of rest.
+  function setupState(o) {
+    const out = {};
+    if (o.look) out.look = o.look;
+    if (o.habitat) out.habitat = o.habitat;
+    if (o.stock && Object.values(o.stock).some((n) => n > 0)) out.stock = { ...o.stock };
+    if (o.lining?.length) out.lining = o.lining.map(({ id, look }) => ({ id, look }));
+    if (o.seasonal != null) out.seasonal = o.seasonal;
+    if (o.bare > 0) out.bare = 1;
+    return out;
   }
 
   // A tree's own numbers, set by hand while setting up the map (object-edit.js).
@@ -110,6 +131,9 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
       round(fagi.pressure ?? 0, 1), !!fagi.pressureFalling,
       // Her temperature, thermal stress and sleep pressure, and her sex (organism).
       round(fagi.temperature ?? 0, 1), round(fagi.thermalStress ?? 0, 1), round(fagi.sleepPressure ?? 0, 2), fagi.sex ?? null,
+      // How she looks (fagi-sprite.js, render.js).
+      fagi.lifeStage ?? null, fagi.thermalFeel ?? null, fagi.hauling ? { id: fagi.hauling.id, look: fagi.hauling.look } : null,
+      fagi.justLearnedCode > 0 ? round(fagi.justLearnedCode, 1) : 0,
     ];
   }
 
@@ -235,10 +259,15 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
   function observeSisters(colony) {
     if (!colony || world.time < nextSisters) return;
     nextSisters = world.time + SISTERS_EVERY;
+    // Older recordings stop after the load (and a stage when not adult).
     const ants = colony.ants.filter((f) => f.sister).map((f) => [
       f.id, round(f.x, 1), round(f.y, 1), round(f.angle, 2), f.alive ? 1 : 0, f.carrying?.type ?? null,
-      // Her life stage when it is not 'adult' (LIFE, lifecycle.js): the replay draws the young small.
-      ...(f.lifeStage && f.lifeStage !== 'adult' ? [f.lifeStage] : []),
+      // Her life stage (LIFE, lifecycle.js): the replay draws the young small.
+      f.lifeStage && f.lifeStage !== 'adult' ? f.lifeStage : null,
+      // What she does (resting in the nest hides her; asleep, folded), her
+      // colony's nest, how hungry (her belly), too cold or hot, what she hauls.
+      f.thought?.action ?? null, f.home ?? null, Math.round(f.hunger ?? 0), f.thermalFeel ?? null,
+      f.hauling ? { id: f.hauling.id, look: f.hauling.look } : null,
     ]);
     if (ants.length) emit('sisters', { ants });
   }
@@ -256,6 +285,9 @@ export function createRecorder(world, { send, flushEvery = 5, trackEvery = 0.5, 
       fresh[id] = {
         name: f.name ?? l?.name ?? null, sex: f.sex ?? l?.sex ?? null,
         mother: l?.mother ?? null, father: l?.father ?? null, generation: l?.generation ?? f.generation ?? 0, bornAt: l?.bornAt ?? 0,
+        // Her body's organs and her caste, as drawn (fagi-sprite.js).
+        ...(f.morph ? { morph: Object.fromEntries(Object.entries(f.morph).map(([k, v]) => [k, round(v, 2)])) } : {}),
+        ...(f.casteProfile?.dominant ? { caste: f.casteProfile.dominant } : {}),
       };
     }
     if (Object.keys(fresh).length) emit('people', { people: fresh });

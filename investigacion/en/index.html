@@ -5,12 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fagi · Inheriting beats learning</title>
   <meta name="description" content="Fagi: an artificial organism that learns from its body and passes what it learned to its daughters. Preregistered result: inheriting beats learning, and with nothing to repair, mistakes are inherited too." />
+  <link rel="icon" href="/favicon.png" type="image/png" sizes="64x64" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script>
     // Theme before first paint, so a saved choice never flashes the other one.
     try { const t = localStorage.getItem('fagi-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
+    // Language: the one chosen with ES/EN (saved as 'fagi.lang', shared with the
+    // game); on a first visit, the browser's (English if neither), as the game does.
+    (() => {
+      const here = document.documentElement.lang;
+      const home = { es: '/', en: '/en/' };
+      let want = null;
+      try { want = localStorage.getItem('fagi.lang'); } catch {}
+      if (!home[want]) {
+        want = 'en';
+        for (const p of navigator.languages?.length ? navigator.languages : [navigator.language]) {
+          const base = String(p ?? '').toLowerCase().split('-')[0];
+          if (home[base]) { want = base; break; }
+        }
+      }
+      if (want !== here) location.replace(home[want] + location.search + location.hash);
+      document.addEventListener('click', (e) => {
+        const a = e.target.closest?.('a[hreflang]');
+        if (a && home[a.hreflang]) try { localStorage.setItem('fagi.lang', a.hreflang); } catch {}
+      }, true);
+    })();
   </script>
   <link rel="stylesheet" href="/investigacion/site.css" />
 </head>
@@ -53,7 +75,40 @@
     <figcaption><span>Plate I / The organism</span><span>Game illustration · not an experiment</span></figcaption>
   </figure>
 </div>
-<div class="atlas-question"><p class="eyebrow">The central question</p><div><h2>Do we pass on knowledge,<br>or our mistakes too?</h2><p>In Fagi we can inspect each belief, change the world and repeat the conditions of an experiment.</p></div></div>
+<section class="about" id="what-is" aria-labelledby="about-title">
+  <div class="about-text">
+    <p class="eyebrow">What Fagi is</p>
+    <h2 id="about-title">An artificial organism that learns through its body.</h2>
+    <dl class="acronym" aria-label="What Fagi stands for">
+      <div><dt>F</dt><dd>First</dd></div><div><dt>A</dt><dd>Artificial</dd></div><div><dt>G</dt><dd>Generational</dd></div><div><dt>I</dt><dd>Intelligence</dd></div>
+    </dl>
+    <p class="acronym-why">The name comes from the project, <span class="mono">first-agi</span>, but the G is not for <em>general</em>: we are not after one mind that can do everything, but an intelligence that does not fit in a single life and is measured in what passes from mother to daughter, insights and mistakes alike. It is an aim, not a claim.</p>
+    <p>Fagi lives in a simulated world with food, poison, water, rain and night. Nothing tells her what is good or bad: she finds out by trying, and what her body feels becomes synapses, remembered places and rules.</p>
+    <p>All her knowledge can be inspected —each belief keeps where it came from— and the world is deterministic, so we can replay a life changing a single thing. The project's question: when a mother passes what she learned to her daughter, does she pass on knowledge, or her mistakes too?</p>
+    <p class="about-meter mono" id="brain-sim-meter" aria-hidden="true"></p>
+  </div>
+  <figure class="about-art">
+    <canvas id="brain-sim" role="img" aria-label="Animation of the neural-network panel: Fagi learns synapses and rules in life, and her daughter is born with the rules."></canvas>
+    <p class="about-caption" id="brain-sim-caption"></p>
+    <figcaption><span>Plate II / The neural network</span><span>Re-enactment of the game's panel · fixed script, not an experiment</span></figcaption>
+  </figure>
+</section>
+<section class="atlas-question" aria-labelledby="question-title">
+  <header class="question-head">
+    <p class="eyebrow">The central question</p>
+    <h2 id="question-title">Do we pass on knowledge,<br>or our mistakes too?</h2>
+  </header>
+  <div class="question-text">
+    <p>Each Fagi writes what she learns as code: rules with a weight, how many times she tried them and where they came from — her own experience, what a sister told her, or her mother. When she dies, her active code passes to her daughter.</p>
+    <p>Inheriting spares her dangerous tries. But a wrong rule that nobody tries again never gets corrected, and it passes on intact from generation to generation. In Fagi we can inspect each belief, change the world and repeat the conditions of an experiment to measure which of the two weighs more.</p>
+    <p class="about-meter mono" id="code-sim-meter" aria-hidden="true"></p>
+  </div>
+  <figure class="question-art">
+    <div class="code-sim" id="code-sim" role="img" aria-label="Animation of the Learned code panel: Fagi writes rules in life, her daughter inherits them and a wrong rule passes to the granddaughter uncorrected."></div>
+    <p class="about-caption" id="code-sim-caption"></p>
+    <figcaption><span>Plate III / The learned code</span><span>Re-enactment of the game panel · fixed script, not an experiment</span></figcaption>
+  </figure>
+</section>
 <nav class="chapter-nav" aria-label="Routes through the atlas"><a href="#herencia"><span>01 / Inheritance</span>Inheriting beats learning ↗</a><a href="#explorar"><span>02 / The populations</span>Every life, mother to daughter ↗</a><a href="#organismo"><span>03 / The organism</span>From body to memory ↗</a><a href="#metodo"><span>04 / Evidence</span>How we know ↗</a></nav>
 <div class="findings" id="hallazgos" aria-labelledby="findings-title"><div class="findings-heading"><p class="eyebrow">Field notes / Results</p><h2 id="findings-title">What we know so far.</h2><p>Simulation results. Every conclusion has a scope.</p></div><div class="findings-grid">
 <a href="#herencia"><span class="tag conf">Inherited learning</span><h3>Inheriting beats learning.</h3><p>With a damaged program, daughters that inherit their mother's revisions live 60% of the time; those that learn from scratch, 49%. Replicated in 48 new populations (+11) and with a second damage (+10).</p><span class="finding-link">See both studies ↗</span></a>

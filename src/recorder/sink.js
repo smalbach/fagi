@@ -22,7 +22,9 @@ export function createSink(sessionId) {
     try {
       while (tail.length) {
         try {
-          await post(`/sessions/${sessionId}/events`, { events: tail[0] });
+          const { skipped } = (await post(`/sessions/${sessionId}/events`, { events: tail[0] })) ?? {};
+          // Events the server couldn't store (the rest of the batch it kept).
+          if (skipped?.length) console.warn('Events skipped by the server:', skipped);
           tail.shift();
         } catch (err) {
           // A 4xx isn't fixed by retrying: drop it and move on.
