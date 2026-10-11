@@ -1,0 +1,54 @@
+lives per damage and arm
+  dusk     born 4608  learn 4608  inherit 4608  inheritStrip 4608  oracle 4608
+  ceiling  born 4608
+  intact   born 4608  learn 4608  inherit 4608
+
+survival by generation, dusk
+  gen 0  born 0.487  learn 0.633  inherit 0.633  inheritStrip 0.633  oracle 0.919
+  gen 1  born 0.483  learn 0.676  inherit 0.806  inheritStrip 0.682  oracle 0.932
+  gen 2  born 0.473  learn 0.656  inherit 0.850  inheritStrip 0.646  oracle 0.917
+  gen 3  born 0.499  learn 0.659  inherit 0.889  inheritStrip 0.682  oracle 0.944
+  gen 4  born 0.516  learn 0.660  inherit 0.885  inheritStrip 0.689  oracle 0.934
+  gen 5  born 0.488  learn 0.668  inherit 0.874  inheritStrip 0.650  oracle 0.927
+  gens 3-5
+    born         alive 0.501  lived 6305  eaten 10.10  inherited lines 0.00  own 0.00  carries dusk-before-* 0.000  deaths {"hunger":372,"alive":1154,"cold":770,"poison":6,"thirst":2}
+    learn        alive 0.662  lived 6605  eaten 10.70  inherited lines 0.00  own 1.20  carries dusk-before-* 0.539  deaths {"cold":553,"alive":1526,"hunger":218,"poison":6,"thirst":1}
+    inherit      alive 0.883  lived 6804  eaten 11.00  inherited lines 2.64  own 0.36  carries dusk-before-* 0.997  deaths {"alive":2034,"hunger":96,"cold":163,"poison":8,"thirst":3}
+    inheritStrip alive 0.674  lived 6547  eaten 10.61  inherited lines 1.35  own 0.89  carries dusk-before-* 0.526  deaths {"hunger":212,"alive":1552,"cold":531,"poison":5,"thirst":4}
+    oracle       alive 0.935  lived 6867  eaten 10.82  inherited lines 0.00  own 0.00  carries dusk-before-* 0.000  deaths {"hunger":80,"alive":2154,"cold":62,"poison":6,"thirst":2}
+
+survival by generation, ceiling
+  gen 0  born 0.919
+  gen 1  born 0.932
+  gen 2  born 0.917
+  gen 3  born 0.944
+  gen 4  born 0.934
+  gen 5  born 0.927
+  gens 3-5
+    born         alive 0.935  lived 6867  eaten 10.82  inherited lines 0.00  own 0.00  deaths {"hunger":80,"alive":2154,"cold":62,"poison":6,"thirst":2}
+
+survival by generation, intact
+  gen 0  born 0.719  learn 0.654  inherit 0.654
+  gen 1  born 0.719  learn 0.665  inherit 0.686
+  gen 2  born 0.714  learn 0.678  inherit 0.678
+  gen 3  born 0.728  learn 0.664  inherit 0.658
+  gen 4  born 0.742  learn 0.685  inherit 0.693
+  gen 5  born 0.712  learn 0.697  inherit 0.677
+  gens 3-5
+    born         alive 0.727  lived 6463  eaten 10.04  inherited lines 0.00  own 0.00  deaths {"hunger":188,"cold":429,"alive":1676,"poison":9,"thirst":2}
+    learn        alive 0.682  lived 6398  eaten 9.98  inherited lines 0.00  own 0.58  deaths {"cold":509,"alive":1571,"hunger":212,"poison":11,"thirst":1}
+    inherit      alive 0.676  lived 6408  eaten 10.00  inherited lines 1.32  own 0.26  deaths {"cold":504,"hunger":232,"alive":1557,"poison":9,"thirst":2}
+
+recovery, gens 3-5: (arm - born) / (ceiling born - born), 95 % bootstrap over populations (10000 resamples)
+  dusk     learn        0.37 [0.34, 0.41] over 48 populations
+  dusk     inherit      0.88 [0.84, 0.92] over 48 populations
+  dusk     inheritStrip 0.40 [0.36, 0.44] over 48 populations
+  dusk     oracle       1.00 [1.00, 1.00] over 48 populations
+
+hypotheses (unit: population; one-sided sign-flip permutation, 20000 draws; non-inferiority tested on difference + margin)
+  R1   primary   dusk inherit > dusk learn, gens 3,4,5: diff  0.220, 48/0 of 48 populations ahead/behind, t 21.32, lower bound  0.203, p 0.0000 (Holm alpha 0.025) -> SUPPORTED
+  C1   primary   dusk inherit > dusk inheritStrip, gens 3,4,5: diff  0.209, 48/0 of 48 populations ahead/behind, t 19.25, lower bound  0.191, p 0.0000 (Holm alpha 0.050) -> SUPPORTED
+  C3   secondary dusk oracle not worse than ceiling born by 0.05, gens 3,4,5: diff  0.000, 0/0 of 48 populations ahead/behind, t NaN, lower bound  0.000, p 0.0000 -> SUPPORTED
+  N1   secondary intact born > intact learn, gens 3,4,5: diff  0.046, 33/12 of 48 populations ahead/behind, t 4.35, lower bound  0.028, p 0.0000 -> SUPPORTED
+  N2   secondary intact born > intact inherit, gens 3,4,5: diff  0.052, 33/10 of 48 populations ahead/behind, t 4.65, lower bound  0.033, p 0.0001 -> SUPPORTED
+  N3   secondary intact inherit not worse than intact learn by 0.03, gens 3,4,5: diff -0.006, 16/22 of 48 populations ahead/behind, t -0.64, lower bound -0.022, p 0.0071 -> SUPPORTED
