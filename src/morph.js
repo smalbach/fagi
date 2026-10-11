@@ -144,6 +144,29 @@ export function morphBody(m) {
   };
 }
 
+// A rare leap (MORPH.jump): with its chance, 1–3 of a newborn's organs move
+// ×1.5–2 (or as much down) from what she inherited, within MORPH.range. Changes
+// `m` in place and returns what leapt ({ organ: factor applied }), or null.
+// With MORPH.jump.sham it returns what would have leapt and changes nothing.
+// With the chance at 0 it draws nothing.
+export function jumpMorph(m, rnd = Math.random) {
+  const J = MORPH.jump;
+  if (!m || !(J?.chance > 0) || rnd() >= J.chance) return null;
+  const [lo, hi] = J.genes;
+  const n = Math.min(MORPH_TRAITS.length, lo + Math.floor(rnd() * (hi - lo + 1)));
+  const pool = [...MORPH_TRAITS];
+  const leapt = {};
+  for (let i = 0; i < n; i++) {
+    const k = pool.splice(Math.floor(rnd() * pool.length), 1)[0];
+    const f = Math.exp(Math.log(J.factor[0]) + rnd() * (Math.log(J.factor[1]) - Math.log(J.factor[0])));
+    const was = m[k] ?? 1;
+    const to = round(clampGene(was * (rnd() < J.up ? f : 1 / f)));
+    leapt[k] = round(to / was);
+    if (!J.sham) m[k] = to;   // the control draws the same and changes nothing
+  }
+  return leapt;
+}
+
 // --- plasticity: what she lives moves the organs she carries ----------------
 //
 // Each organ follows its own use, averaged over MORPH.plastic.window seconds:

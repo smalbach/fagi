@@ -509,6 +509,19 @@ export const MORPH = {
   inherit: 0,
   baldwin: { mutation: 0.08, founders: 0.15, range: [0, 2.5], cost: 0.05 },
   epigenetic: { share: 0.5, keep: 0.7 },
+  // Rare big jumps (morph.js jumpMorph): now and then a newborn's organs are
+  // not a small step from her parents' but a leap, as a mutation in a
+  // developmental gene does (a "hopeful monster", Goldschmidt 1940). Each
+  // organ she leaps in costs and gives as any other (MORPH.tissue, gain), so
+  // most leaps are a burden; whether one pays is for the world to say.
+  //   chance : per birth (0 = never; nothing is drawn then)
+  //   genes  : how many organs leap, at least and at most
+  //   factor : how far, × drawn between these (log-uniform), within MORPH.range
+  //   up     : share of leaps that grow the organ (the rest shrink it)
+  //   sham   : 1 = the control: the same births are marked as leaping, with the
+  //            same draws, but nothing in them changes; how far a mark spreads
+  //            by chance alone (drift, a nest refounded by her kin)
+  jump: { chance: 0, genes: [1, 3], factor: [1.5, 2], up: 0.5, sham: 0 },
 };
 
 // Explanations (learned/explain.js): why she thinks what she thinks of a fruit.
@@ -847,6 +860,13 @@ export const TREE = {
   //   bank    : dormant seeds the soil keeps (the oldest gives way), each for
   //             `dormant` s. A tree that dies is replaced by the oldest one;
   //             with none, by a seed of its own dropped near it
+  //   heirAt  : share of its life at which an old tree leaves a seedling of its
+  //             own beside it (advance regeneration: the young tree waiting in
+  //             its shade takes the gap when it falls); 0 = never
+  //   carried : 1 = a tree's fruit stored in a nest leaves its seed near the
+  //             nest, as ants do with the seeds they carry home (myrmecochory):
+  //             without it, the trees whose fruit they eat never seed, and the
+  //             wood drifts away from the nests
   //   mature  : s a young tree grows before it bears, its crown growing from
   //             a third of its size; trees live `life` × 0.7–1.3 each, and the
   //             map's own begin at ages spread over their life, so they do
@@ -855,9 +875,11 @@ export const TREE = {
   spread: 180,
   clear: 60,
   sprout: 0.25,
-  room: 1,
+  room: 0,
   bank: 6,
   dormant: 1800,
+  heirAt: 0.8,
+  carried: 1,
   mature: 300,
 };
 

@@ -23,12 +23,12 @@
 // Nothing here runs in a normal game: batch --generations uses it
 // (scripts/batch/generations.js).
 
-import { GEN, CHOICE, SITES } from './config.js';
+import { GEN, CHOICE, SITES, MORPH } from './config.js';
 import { TRAITS } from './chemistry.js';
 import { pass } from './social.js';
 import { restoreHabits, habitsSnapshot } from './habits.js';
 import { BODY_TRAITS, bodyFor, energyMax } from './biology.js';
-import { morphOn, inheritMorph, baldwinOn, inheritPlastic } from './morph.js';
+import { morphOn, inheritMorph, jumpMorph, baldwinOn, inheritPlastic } from './morph.js';
 import { programOf, line } from './program.js';
 import { programFromGenome } from './program/genome.js';
 import { childVary } from './variation.js';
@@ -87,10 +87,25 @@ export function mutate(genome, rnd = Math.random) {
   }
   // Her organs (MORPH), from her one parent's.
   if (morphOn()) out.morph = inheritMorph(genome.morph, null, rnd);
+  if (morphOn()) leap(out, genome, null, rnd);
   if (baldwinOn()) out.plastic = inheritPlastic(genome.plastic, genome.plastic, rnd);
   const vary = childVary(genome.vary, null, rnd);
   if (vary) out.vary = vary;
   return out;
+}
+
+// A rare leap in her organs (MORPH.jump). Whoever leaps starts a line of her
+// own (`jumpLine`, her leap's own mark); her young carry it on, from either
+// parent, so how far each leap spreads can be followed.
+function leap(out, mother, father, rnd) {
+  const leapt = jumpMorph(out.morph, rnd);
+  if (leapt) {
+    out.jump = leapt;
+    out.jumpLine = (MORPH.jump.sham ? 'sham:' : '') + Object.entries(leapt).map(([k, f]) => `${k}${f > 1 ? '+' : '-'}${f}`).join(',') + `#${Math.floor(rnd() * 1e6)}`;
+    return;
+  }
+  const line = mother?.jumpLine ?? father?.jumpLine;
+  if (line) out.jumpLine = line;
 }
 
 // A child's genome from two parents: recombined first, mutated after, and
@@ -122,6 +137,7 @@ export function recombine(mother, father, rnd = Math.random, parents = null) {
   }
   // Her organs (MORPH): between her parents', then a step.
   if (morphOn()) out.morph = inheritMorph(mother.morph, father.morph, rnd);
+  if (morphOn()) leap(out, mother, father, rnd);
   if (baldwinOn()) out.plastic = inheritPlastic(mother.plastic, father.plastic, rnd);
   // Her individual draw (VARY): from her parents', and a fresh part.
   const vary = childVary(mother.vary, father.vary, rnd);

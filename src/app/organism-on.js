@@ -127,7 +127,11 @@ TREE.interval = 30;
 // Trees come and go (trees.js, TREE.seed): each lives about a year and a half
 // of game (×0.7–1.3; the map's own start at spread ages); fruit left to rot
 // leaves a seed, which takes root clear of every crown, and a dead tree is
-// replaced by a seed of the soil. Never more than the map began with plus one.
+// replaced by a seed of the soil. Never more than the map began with
+// (TREE.room 0: with one more, the colonies farm trees by their nests and the
+// world stops pressing). A tree's fruit stored at home seeds near the nest,
+// and an old tree leaves a seedling beside it: without them the wood drifted
+// away from the nests and 5 maps in 16 died out in four years (2026-10-10).
 TREE.life = 5400;
 TREE.seed = 1;
 

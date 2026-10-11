@@ -57,9 +57,11 @@ export function updateTrees(world, dt) {
     tree.age = (tree.age ?? 0) + dt;
     if (TREE.life > 0 && tree.age >= lifeOf(tree)) {
       removeObject(world, tree, 'died');
-      if (TREE.seed) replace(world, tree);
+      // Its own seedling, if it left one, takes its place; else the soil's.
+      if (TREE.seed && !world.objects.some((o) => o.id === tree.heir)) replace(world, tree);
       continue;
     }
+    if (TREE.seed) leaveHeir(world, tree);
     // A young tree grows; it bears once grown (TREE.seed).
     if (tree.full != null && grow(world, tree)) continue;
 
@@ -201,8 +203,34 @@ function scatter(x, y) {
 // otherwise it lies dormant in the soil, waiting for a tree to die.
 export function sowFrom(world, p) {
   if (!TREE.seed || typeof p.from !== 'number') return;
-  const fruit = p.was ?? p.type;
   const { x, y } = scatter(p.x, p.y);
+  plant(world, x, y, p.was ?? p.type);
+}
+
+// An old tree (past TREE.heirAt of its life) leaves a seedling of its own
+// beside it, once; tried again a minute later if there was no room.
+function leaveHeir(world, tree) {
+  if (!(TREE.heirAt > 0) || TREE.life <= 0 || tree.heir != null || tree.full != null) return;
+  if (tree.age < TREE.heirAt * lifeOf(tree) || (tree.heirTried ?? -Infinity) > tree.age - 60) return;
+  tree.heirTried = tree.age;
+  for (let i = 0; i < 16; i++) {
+    const { x, y } = scatter(tree.x, tree.y);
+    if (roomAt(world, x, y)) { tree.heir = sprout(world, x, y, tree.fruit ?? TREE.fruit).id; return; }
+  }
+}
+
+// A tree's fruit stored in a nest (nest.js): its seed ends up near the nest,
+// where what they drop and discard lies (TREE.carried). Then as any seed.
+export function sowNearNest(world, nest, fruit) {
+  if (!TREE.seed || !TREE.carried || !treesOf(world).some((t) => (t.fruit ?? TREE.fruit) === fruit)) return;
+  const a = Math.random() * Math.PI * 2;
+  const d = radiusOf(nest) + OBJECT_TYPES.tree.radius + TREE.clear + Math.random() * TREE.spread;
+  plant(world, nest.x + Math.cos(a) * d, nest.y + Math.sin(a) * d, fruit);
+}
+
+// A seed where it lies: with room for it and for one more tree, it may take
+// root at once; otherwise it lies dormant in the soil, waiting for a gap.
+function plant(world, x, y, fruit) {
   if (!roomAt(world, x, y)) return;
   if (treesOf(world).length < (world.treeRoom ?? Infinity) && Math.random() < TREE.sprout) {
     sprout(world, x, y, fruit);

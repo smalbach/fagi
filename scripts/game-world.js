@@ -48,6 +48,9 @@ async function life({ interval, seed, years, sets }) {
   const rows = [];   // one per nest per year
   let per = Object.fromEntries(nests.map((n) => [n.id, blank()]));
   const seen = new Set();
+  // Leaps (MORPH.jump): every line a leap started, how far it got.
+  const lines = {};   // jumpLine -> { at, leapt, born, peak }
+  const counted = new Set();
   const wasEmpty = {};
   const sampleEvery = Math.round(60 / DT);
   const steps = Math.ceil((years * year) / DT);
@@ -61,6 +64,17 @@ async function life({ interval, seed, years, sets }) {
       if (d) d[f.cause || 'unknown'] = (d[f.cause || 'unknown'] ?? 0) + 1;
     }
     if (s % sampleEvery === 0) {
+      for (const f of colony.ants) {
+        const g = f.genome;
+        if (!g?.jumpLine || counted.has(f)) continue;
+        counted.add(f);
+        const l = (lines[g.jumpLine] ??= { at: Math.round(world.time), leapt: null, born: 0, peak: 0 });
+        l.born += 1;
+        if (g.jump) l.leapt = g.jump;
+      }
+      const now = {};
+      for (const f of colony.ants) if (f.alive && f.genome?.jumpLine) now[f.genome.jumpLine] = (now[f.genome.jumpLine] ?? 0) + 1;
+      for (const [k, v] of Object.entries(now)) lines[k].peak = Math.max(lines[k].peak, v);
       for (const n of nests) {
         const k = colony.ants.filter((f) => f.alive && homeOf(f) === n.id).length;
         per[n.id].alive.push(k);
@@ -77,6 +91,7 @@ async function life({ interval, seed, years, sets }) {
         const here = colony.ants.filter((f) => f.alive && homeOf(f) === n.id);
         rows.push({
           traits: traitsOf(here, programOf),
+          leaps: leapsOf(here),
           seed, interval, year: y, nest: n.id, habitat: habitatOfNest(world, n)?.name ?? null,
           mean: +(a.reduce((x, v) => x + v, 0) / a.length).toFixed(1),
           min: Math.min(...a), end: a.at(-1), deaths: p.deaths, emptied: p.emptied,
@@ -85,7 +100,17 @@ async function life({ interval, seed, years, sets }) {
       per = Object.fromEntries(nests.map((n) => [n.id, blank()]));
     }
   }
-  return { seed, interval, rows, founded: colony.life?.founded ?? 0, eggsLost: colony.life?.eggsLost ?? {} };
+  const alive = colony.ants.filter((f) => f.alive).length;
+  return { seed, interval, rows, founded: colony.life?.founded ?? 0, eggsLost: colony.life?.eggsLost ?? {}, alive, lines };
+}
+
+// The living of one nest who descend from a leap (MORPH.jump): how many, and
+// the commonest such line.
+function leapsOf(ants) {
+  const by = {};
+  for (const f of ants) if (f.genome?.jumpLine) by[f.genome.jumpLine] = (by[f.genome.jumpLine] ?? 0) + 1;
+  const top = Object.entries(by).sort((a, b) => b[1] - a[1])[0];
+  return { n: ants.length, carriers: Object.values(by).reduce((a, b) => a + b, 0), lines: Object.keys(by).length, top: top ? `${top[0]}:${top[1]}` : null };
 }
 
 // What the living of one nest carry: organ genes and bodies (MORPH), the
@@ -185,6 +210,16 @@ if (!isMainThread) {
         console.log(`| ${interval} s | ${h} | ${m('gene.size')} / ${m('body.size')} | ${m('gene.muscle')} / ${m('body.muscle')} | ${m('gene.gut')} / ${m('body.gut')} | ${m('epi.size')} | ${m('ownLines')} | ${m('inheritedLines')} | ${commonest} |`);
       }
     }
+  }
+  // Leaps (MORPH.jump): how many, and how far their lines got.
+  const allLines = results.flatMap((r) => Object.entries(r.lines ?? {}).map(([k, l]) => ({ k, ...l, seed: r.seed, interval: r.interval })));
+  if (allLines.length) {
+    const ends = rows.filter((r) => r.year === YEARS);
+    const carriers = sum(ends.map((r) => r.leaps?.carriers ?? 0));
+    const living = sum(ends.map((r) => r.leaps?.n ?? 0));
+    console.log(`\nleaps: ${allLines.length} lines started; ${allLines.filter((l) => l.born > 1).length} left young; at the end of year ${YEARS} ${carriers} of ${living} living descend from one (${living ? Math.round((100 * carriers) / living) : 0} %)`);
+    console.log('biggest lines (peak alive at once, born in all):');
+    for (const l of allLines.sort((a, b) => b.peak - a.peak).slice(0, 8)) console.log(`  seed ${l.seed} ${l.k} born at ${l.at} s: peak ${l.peak}, born ${l.born}`);
   }
   if (OUT) writeFileSync(OUT, JSON.stringify({ intervals, seeds: SEEDS, seed0: SEED0, years: YEARS, sets, results }, null, 1));
 }

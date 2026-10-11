@@ -10,6 +10,7 @@ import { verdict } from './learned/rules.js';
 import { storedHarm, spoiledRations } from './habits.js';
 import { canEat } from './appetite.js';
 import { lineNest } from './things.js';
+import { sowNearNest } from './trees.js';
 import { drawVariant } from './chemistry.js';
 import { lookInLarder, larderFull, nestFull } from './larder.js';
 import { judge, chewing } from './decision/bite.js';
@@ -49,6 +50,7 @@ export function useNest(fagi, world) {
     fagi.provided = (fagi.provided ?? 0) + (fagi.carrying.weight ?? 1);
     fagi.lastDeposit = { n: fagi.stored, type: t, total };
     fagi.carrying = null;
+    sowNearNest(world, nestObj, t);   // its seed, near home (TREE.carried)
   }
 
   // When hungry she draws on the pantry: she picks what she remembers best of what's stored,
