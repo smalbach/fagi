@@ -1,0 +1,15 @@
+maps 96, years 4
+
+arm   lines  take   peak≥5  living from a line at the end  population (years 2+)  gene means at the end (size/muscle/brain/gut/eyes/antennae)
+sham    712  0.618     239                          58.3 %                  54.9  1.003/1.029/0.979/1.000/1.002/1.001
+sym     734  0.466     175                          46.1 %                  54.1  0.985/1.044/0.962/1.014/1.010/1.015
+up      720  0.410     166                          43.9 %                  54.1  1.010/1.080/1.002/1.030/1.035/1.034
+
+hypotheses (one-sided permutations, 20000 draws; Holm over the primary family)
+  L1 secondary sym lines take less often than sham lines (most leaps are a burden): 0.466 (734 lines) vs 0.618 (712), p 0.0000 (alpha 0.050) -> SUPPORTED
+  L2 primary   sym lines leaping in brain, muscle or size take less often than the same marks in sham: 0.400 (527 lines) vs 0.605 (529), p 0.0000 (alpha 0.017) -> SUPPORTED
+  L3 primary   up: the living's mean organ gene at the end is higher than in sham: mean paired difference +0.0321, 88/8 of 96 maps, p 0.0000 (alpha 0.025) -> SUPPORTED
+  L4 secondary up lines take less often than sham lines: 0.410 (720 lines) vs 0.618 (712), p 0.0000 (alpha 0.050) -> SUPPORTED
+  L5 secondary up lines leaping in brain, muscle or size take less often than the same marks in sham: 0.356 (565 lines) vs 0.605 (529), p 0.0000 (alpha 0.050) -> SUPPORTED
+  L6 primary   sym lines leaping only in antennae or eyes take more often than sym lines leaping in brain, muscle or size: 0.695 (118 lines) vs 0.400 (527), p 0.0000 (alpha 0.050) -> SUPPORTED
+  L7 secondary sym: population (years 2+) not lower than sham by more than 3 Fagis per map: mean paired difference -0.8188, 44/52 of 96 maps, p 0.0008 (alpha 0.050) -> SUPPORTED

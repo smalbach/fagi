@@ -1,0 +1,28 @@
+
+years 4, 96 maps each, nest ceiling 30
+
+| fruit every | habitat | mean alive (% ceiling) | lowest | emptied nest-years | deaths: hunger / thirst / cold / heat / age / other |
+|---|---|---|---|---|---|
+| 30 s | hot | 14.0 (47 %) | 0 | 32/384 | 2 / 40 / 722 / 214 / 2386 / 0 |
+| 30 s | cold | 16.9 (56 %) | 0 | 10/384 | 5 / 22 / 871 / 75 / 2892 / 0 |
+| 30 s | toxic | 17.5 (58 %) | 0 | 5/384 | 8 / 43 / 926 / 74 / 3035 / 0 |
+|  | refounded nests: 53 | | | | |
+
+what the living carry at the end of year 4 (mean over nests)
+
+| fruit every | habitat | size gene / body | muscle gene / body | gut gene / body | epi size | own lines | inherited lines | commonest |
+|---|---|---|---|---|---|---|---|---|
+| 30 s | hot | 0.989 / 0.880 | 1.034 / 0.945 | 0.997 / 1.054 | 0.944 | 0.497 | 0.377 | memory>pursue, memory>scent |
+| 30 s | cold | 1.015 / 0.905 | 1.029 / 0.952 | 1.001 / 1.067 | 0.946 | 0.428 | 0.336 | memory>pursue, memory>scent |
+| 30 s | toxic | 1.005 / 0.899 | 1.024 / 0.955 | 1.002 / 1.076 | 0.944 | 0.422 | 0.313 | memory>pursue, memory>scent |
+
+leaps: 712 lines started; 440 left young; at the end of year 4 2670 of 4623 living descend from one (58 %)
+biggest lines (peak alive at once, born in all):
+  seed 60022 sham:brain-0.603,gut+1.808,muscle+1.831#890394 born at 1440 s: peak 32, born 50
+  seed 60000 sham:antennae+1.957,brain+1.757,muscle+1.872#992031 born at 2160 s: peak 31, born 46
+  seed 60035 sham:size+1.897,muscle+1.776,antennae+1.658#116539 born at 4560 s: peak 27, born 36
+  seed 60072 sham:gut+1.798,eyes-0.544,size-0.624#247200 born at 1500 s: peak 24, born 36
+  seed 60027 sham:brain+1.768,muscle+1.815,size-0.539#13986 born at 4560 s: peak 23, born 30
+  seed 60029 sham:gut+1.686,brain+1.849,eyes-0.527#857943 born at 600 s: peak 23, born 44
+  seed 60046 sham:gut+1.68,brain+1.836#956199 born at 4500 s: peak 23, born 30
+  seed 60067 sham:gut-0.538,brain+1.633,size-0.594#495933 born at 720 s: peak 23, born 48
