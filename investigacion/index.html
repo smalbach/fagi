@@ -85,6 +85,7 @@
     <p class="acronym-why">Primera inteligencia artificial <em>generacional</em>. El nombre viene del proyecto, <span class="mono">first-agi</span>, pero la G no es la de <em>general</em>: no buscamos una mente que lo resuelva todo, sino una inteligencia que no cabe en una sola vida y se mide en lo que pasa de madre a hija, aciertos y errores. Es una aspiración, no una afirmación.</p>
     <p>Fagi vive en un mundo simulado con comida, veneno, agua, lluvia y noche. No trae nada escrito sobre qué es bueno o malo: lo descubre probando, y lo que siente su cuerpo se convierte en sinapsis, lugares recordados y reglas.</p>
     <p>Todo su conocimiento es inspeccionable —cada creencia guarda de dónde vino— y el mundo es determinista, así que podemos repetir una vida cambiando una sola cosa. La pregunta del proyecto: cuando una madre pasa a su hija lo que aprendió, ¿le pasa conocimiento o también sus errores?</p>
+    <p>Fagi no es un modelo de lenguaje. Los modelos de lenguaje (LLM) aparecen en el proyecto de dos maneras: como <strong>sujeto de estudio</strong>, poniendo a un LLM a reescribir el código de Fagi, y como <strong>herramienta de construcción</strong>, porque el proyecto entero se ha hecho programando junto a ellos.</p>
     <p class="about-meter mono" id="brain-sim-meter" aria-hidden="true"></p>
   </div>
   <figure class="about-art">
@@ -92,6 +93,32 @@
     <p class="about-caption" id="brain-sim-caption"></p>
     <figcaption><span>Lámina II / La red neuronal</span><span>Recreación del panel del juego · guion fijo, no es un experimento</span></figcaption>
   </figure>
+  <div class="about-llm" aria-labelledby="llm-title">
+    <header class="about-llm-head">
+      <p class="eyebrow">Fagi y los LLM</p>
+      <h3 id="llm-title">Un proyecto de vida artificial hecho con inteligencia artificial.</h3>
+    </header>
+    <div class="llm-grid">
+      <article class="llm-card">
+        <p class="llm-num mono">01 / Sujeto de estudio</p>
+        <h4>Un LLM reescribe su código</h4>
+        <p>El objetivo final de Fagi es que reescriba su propia conducta. Lo probamos con un LLM local (Ollama): en cada generación reescribía, en JavaScript aislado, la regla con la que cada Fagi decide qué comer, y la selección se quedaba con las mejores versiones. El código ganaba en mundos nuevos (+0,056), pero por lo que el modelo ya sabe del lenguaje («dejar lo que dañó»), no por lo vivido: una regla propia de cada linaje no la aprendió ninguno (0 de 10). Lo publicamos como línea cerrada.</p>
+        <p class="llm-where mono">research/code-culture/ · <a href="#negativos">resultados negativos</a></p>
+      </article>
+      <article class="llm-card">
+        <p class="llm-num mono">02 / Mente nocturna</p>
+        <h4>Un modelo pequeño propone hipótesis de noche</h4>
+        <p>Un puente opcional conecta la noche de Fagi con un modelo pequeño local: recibe lo que probó y vio durante el día y propone reglas nuevas, solo dentro de la gramática del juego. Fagi las sigue poniendo a prueba con su cuerpo; el modelo sugiere, no decide. Es un prototipo y viene apagado: ningún resultado de esta página depende de él.</p>
+        <p class="llm-where mono">scripts/night-llm-bridge.js</p>
+      </article>
+      <article class="llm-card llm-built">
+        <p class="llm-num mono">03 / Construcción</p>
+        <h4>Hecho con Claude, Codex y Gemini</h4>
+        <p>El simulador, los estudios preregistrados, los análisis y este sitio se han escrito programando en pareja con asistentes de IA: <strong>Claude</strong> (Anthropic), <strong>Codex</strong> (OpenAI) y <strong>Gemini</strong> (Google). Las preguntas, el diseño y las decisiones son del autor; los modelos escriben código, corren baterías y revisan. Por eso cada estudio se congela antes de correr y cada cifra se puede regenerar desde el repositorio.</p>
+        <ul class="llm-tools" aria-label="Asistentes usados"><li>Claude</li><li>Codex</li><li>Gemini</li></ul>
+      </article>
+    </div>
+  </div>
 </section>
 <section class="atlas-question" aria-labelledby="question-title">
   <header class="question-head">
