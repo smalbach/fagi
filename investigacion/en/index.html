@@ -111,11 +111,11 @@
 </section>
 <nav class="chapter-nav" aria-label="Routes through the atlas"><a href="#herencia"><span>01 / Inheritance</span>Inheriting beats learning ↗</a><a href="#explorar"><span>02 / The populations</span>Every life, mother to daughter ↗</a><a href="#organismo"><span>03 / The organism</span>From body to memory ↗</a><a href="#metodo"><span>04 / Evidence</span>How we know ↗</a></nav>
 <div class="findings" id="hallazgos" aria-labelledby="findings-title"><div class="findings-heading"><p class="eyebrow">Field notes / Results</p><h2 id="findings-title">What we know so far.</h2><p>Simulation results. Every conclusion has a scope.</p></div><div class="findings-grid">
-<a href="#herencia"><span class="tag conf">Inherited learning</span><h3>Inheriting beats learning.</h3><p>With a damaged program, daughters that inherit their mother's revisions live 60% of the time; those that learn from scratch, 49%. Replicated in 48 new populations (+11) and with a second damage (+10).</p><span class="finding-link">See both studies ↗</span></a>
-<a href="#herencia-2"><span class="tag neg">The other side</span><h3>Mistakes are inherited too.</h3><p>With the intact program, nothing to repair, learning costs 5 points and inheriting 9: she writes rules she did not need and her daughters are born with them.</p><span class="finding-link">See the measured cost ↗</span></a>
+<a href="#herencia"><span class="tag conf">Inherited learning</span><h3>Inheriting beats learning.</h3><p>With a damaged program, daughters that inherit their mother's revisions live 88% of the time; those that learn from scratch, 66% (+22, 48 of 48 populations). What passes on is the repair itself: without it, inheriting does not help. Four preregistered studies.</p><span class="finding-link">See the studies ↗</span></a>
+<a href="#herencia-2"><span class="tag neg">The other side</span><h3>Mistakes are inherited too.</h3><p>With the intact program, nothing to repair, learning and inheriting cost about 5 points: learning's trials cost food, and rules that were not needed are inherited.</p><span class="finding-link">See the measured cost ↗</span></a>
 <a href="#resultado"><span class="tag conf">Earlier study</span><h3>Passing on reasons is not always adapting better.</h3><p>Reasons teach better in a steady world, but at an inversion they leave fewer survivors than conclusions; matching coverage shrinks that gap.</p><span class="finding-link">Read the cultural transmission study ↗</span></a>
 </div></div>
-<div class="stats"><div class="stat"><b>+11 pts</b><span>inheriting versus learning; replicated in 48 new populations, 43 ahead</span></div><div class="stat"><b>2 damages</b><span>the gain holds with a second, different damage (+10 pts, 30 of 32 populations)</span></div><div class="stat"><b>−9 pts</b><span>inheriting with the intact program: with nothing to repair, mistakes are inherited</span></div></div>
+<div class="stats"><div class="stat"><b>+22 pts</b><span>inheriting versus learning, in the world without the movement bug; 48 of 48 populations</span></div><div class="stat"><b>88%</b><span>of what the damage cost is won back by inheriting; by learning in each life, 37%</span></div><div class="stat"><b>−5 pts</b><span>learning or inheriting with the intact program: with nothing to repair, it costs</span></div></div>
 
 <div class="layout">
   <aside class="toc" aria-label="Contents">
@@ -146,8 +146,8 @@
     <section id="resumen">
       <h2><span class="num">01</span>Abstract</h2>
       <p>Fagi is an artificial organism that learns from its body. Its knowledge can be inspected —every belief and every rule records where it came from— and its world is deterministic, so we can repeat a life changing a single thing. The question running through the project: when one generation passes on what it learned to the next, <strong>does it pass on knowledge, or its mistakes too?</strong></p>
-      <p><strong>Main result</strong> (two preregistered studies, 6 and 9 October 2026). With her program broken on purpose, daughters born with their surviving mother's revisions —each backed by evidence— survive <strong>60%</strong> of the time, against <strong>49%</strong> for daughters that learn the same way from scratch (+11 points). It replicated on new seeds in 48 populations (43 ahead) and with a second, different damage (+10 points, 30 of 32). What one life finds too late to save itself saves its daughters.</p>
-      <p><strong>The other side.</strong> With the intact program —nothing to repair— learning costs 5 points and inheriting 9: she writes rules she did not need and her daughters are born with them. Inheritance amplifies what the mother learned, whether a repair or a mistake. Drawing only surviving mothers adds little (+2–3 points). The hypothesis that learning costs nothing (H4) was not supported. A third study (H5) found where the cost comes from —the trials, not the rules— and a filter that halves it without losing the repair, but does not remove it.</p>
+      <p><strong>Main result</strong> (four preregistered studies, 6–10 October 2026). With her program broken on purpose, daughters born with their surviving mother's revisions —each backed by evidence— survive <strong>88%</strong> of the time, against <strong>66%</strong> for daughters that learn the same way from scratch (+22 points, 48 of 48 populations; fourth study). The first three studies ran with a movement bug (the Fagis walked in circles 18% of the time) and gave +11; without it the gain doubles. What passes to the daughters is the repair itself: take it out of the inheritance and inheriting is worth what learning is. What one life finds too late to save itself saves its daughters.</p>
+      <p><strong>The other side.</strong> With the intact program —nothing to repair— learning costs about 5 points and inheriting as much (fourth study; with the movement bug, inheriting cost 9): she writes rules she did not need and her daughters are born with them. Inheritance amplifies what the mother learned, whether a repair or a mistake. Drawing only surviving mothers adds little (+2–3 points). The hypothesis that learning costs nothing (H4) was not supported. A third study (H5) found where the cost comes from —the trials, not the rules— and a filter that halves it without losing the repair, but does not remove it.</p>
       <p><strong>Earlier study.</strong> Passing on <em>reasons</em> ("the sour one made me sick") instead of <em>conclusions</em> ("don't eat the red drop") teaches better while the world stays the same, but when it inverts leaves 22–27 points fewer survivors than verdicts; matching the transmitted coverage shrinks that gap by 80%, and reasons still carry more myths (section 09). In the game, three colonies in different habitats over 20 years evolve towards the world they share —more muscle, less brain— but we found no colony adapting to its own habitat.</p>
     </section>
 
@@ -343,7 +343,7 @@
       <h2><span class="num">07</span>Main result: inheriting beats learning</h2>
       <p><span class="tag conf">Confirmatory</span> &nbsp;Two protocols frozen before running: <code>2459b1c</code> (6 October 2026) and <code>e6563e3</code> (9 October); both were run without changing a line or deviating.</p>
       <blockquote>Does a daughter born with her surviving mother's program revisions live longer than one that learns the same way, but from scratch?</blockquote>
-            <p><strong>The short answer.</strong> Yes, when there is something to repair: with part of her program broken on purpose, daughters that inherit their mother's revisions live <strong>11 points more</strong> than those learning the same way from scratch, in two studies and with two different damages. With the intact program, though, inheriting <strong>costs 9 points</strong>: the rules that were not needed are inherited too.</p>
+            <p><strong>The short answer.</strong> Yes, when there is something to repair: with part of her program broken on purpose, daughters that inherit their mother's revisions live <strong>22 points more</strong> than those learning the same way from scratch in the world without the movement bug (fourth study; +11 in the first three, with two different damages). With the intact program, though, learning and inheriting <strong>cost about 5 points</strong>.</p>
       <p><strong>The damage.</strong> In a world of scarce food (one fruit every 575 s, where what she does decides whether she lives; see “The test world” at the end of this section) we move one line of her program to the end: <code>dusk</code> (going home as the light goes; survival drops from 75% to 44%) or, in the second study, <code>shelter</code> (take shelter).</p>
 
       <h3>First study (6 Oct): four hypotheses</h3>
@@ -459,6 +459,42 @@
         <li><strong>What remains is the trials after bad moments:</strong> in a scarce world, hunger and cold bring near-lethal moments even with the intact program, and each one opens trials that cost food.</li>
       </ul>
 
+      <h3 id="herencia-4">Fourth study: without the movement bug, and what is inherited <span class="tag conf">confirmatory</span></h3>
+      <p>The first three studies ran with a bug: on reaching a tree, a puddle or the end of a scent, a Fagi walked in circles, 18% of her moving time. We fixed it (waiting at a tree that bears, a "dizziness" that breaks the turning, a scent that ends at its source) and it fell to 1.5%. Without the loops the world is harsher and its cliff steeper, so we recalibrated it with pilots and used <strong>two worlds</strong>: one for the damage and its repair (one fruit every 550 s) and one for the cost with the intact program (570 s). Preregistered on 10 October 2026 (commit <code>7fd04e4</code>, published before running), 432 runs, 48 populations per cell, new seeds 400000+; no deviations.</p>
+      <p>Two new controls. <em>Inheriting without the repair</em>: inheritance passes everything except the lines that repair the damage (<code>dusk-before-*</code>). <em>Oracle</em>: the damaged program with the designer's repair put in at birth, to know how much can be won back.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>World</th><th class="n">born</th><th class="n">learns</th><th class="n">inherits</th><th class="n">inherits without the repair</th><th class="n">oracle</th></tr></thead>
+          <tbody>
+            <tr><td>repair (550 s), <code>dusk</code> moved last</td><td class="n">0.50</td><td class="n">0.66</td><td class="n"><strong>0.88</strong></td><td class="n">0.67</td><td class="n">0.94</td></tr>
+            <tr><td>repair (550 s), intact</td><td class="n">0.94</td><td class="n"></td><td class="n"></td><td class="n"></td><td class="n"></td></tr>
+            <tr><td>intact (570 s)</td><td class="n">0.73</td><td class="n">0.68</td><td class="n">0.68</td><td class="n"></td><td class="n"></td></tr>
+          </tbody>
+          <caption>Survival at 2 hours in generations 3–5, 48 populations of 16 lives per cell.</caption>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Hypothesis</th><th class="n">populations (better / worse)</th><th class="n">difference</th><th class="n">p</th><th>Verdict</th></tr></thead>
+          <tbody>
+            <tr><td><strong>R1 (primary)</strong> · inheriting &gt; learning</td><td class="n">48 / 0</td><td class="n">+22.0 pts</td><td class="n">&lt; 0.0001</td><td><span class="tag conf">supported</span></td></tr>
+            <tr><td><strong>C1 (primary)</strong> · inheriting &gt; inheriting without the repair</td><td class="n">48 / 0</td><td class="n">+20.9 pts</td><td class="n">&lt; 0.0001</td><td><span class="tag conf">supported</span></td></tr>
+            <tr><td>C3 · the oracle reaches the ceiling</td><td class="n"></td><td class="n">0</td><td class="n">&lt; 0.0001</td><td><span class="tag conf">supported</span> (trivially)</td></tr>
+            <tr><td>N1 · intact: learning costs</td><td class="n">33 / 12</td><td class="n">−4.6 pts</td><td class="n">&lt; 0.0001</td><td><span class="tag conf">supported</span></td></tr>
+            <tr><td>N2 · intact: inheriting costs</td><td class="n">33 / 10</td><td class="n">−5.2 pts</td><td class="n">0.0001</td><td><span class="tag conf">supported</span></td></tr>
+            <tr><td>N3 · intact: inheriting costs no more than learning (margin 3 pts)</td><td class="n">16 / 22</td><td class="n">−0.6 pts</td><td class="n">0.007</td><td><span class="tag conf">supported</span></td></tr>
+          </tbody>
+          <caption>One-sided sign-flip permutation on per-population differences (20,000), Holm over the two primaries. Evidence-gated inheritance and the <code>shelter</code> damage were dropped in the pilots, as the preregistration allowed: evidence strength does not tell repairs from errors, and in the new world moving <code>shelter</code> does no harm.</caption>
+        </table>
+      </div>
+      <ul>
+        <li><strong>Without the loops, the gain doubles:</strong> +22 points, in all 48 populations. The bug hid the effect; it did not produce it.</li>
+        <li><strong>What is inherited is the repair.</strong> Taken out of the inheritance, inheriting (0.67) is worth what learning is (0.66). 99.7% of inheriting daughters carry it.</li>
+        <li><strong>Inheriting wins back 88%</strong> [84–92%] of what the damage cost; learning in each life, 37%.</li>
+        <li><strong>With nothing to repair, learning and inheriting cost about 5 points</strong>, and inheriting no longer costs more than learning (with the bug, it did). The cost is the trials.</li>
+        <li><strong>The oracle tells us nothing:</strong> its lives are byte-identical to the intact program's. Putting the repair in front restores exactly the original order, so C3 holds by construction.</li>
+      </ul>
+
           <h3>How we got here (exploratory)</h3>
       <ul>
         <li><strong>Judging by 15 s of distress hurt:</strong> learning lowered survival from 0.75 to 0.58. The whole cost was the trials (leaving a fruit in sight for a remembered place), not the lines. Trying less the worse she is stopped the harm, but did not turn it into help.</li>
@@ -482,7 +518,7 @@
       </figure>
       <p>In that world we moved <code>dusk</code> (going home as the light goes) to the end of her program: in the pilot, survival drops to 44%, and cold becomes the leading cause of death.</p>
 
-    <p class="source-note"><b>Result sources</b><code>docs/research/prereg-lineage-results.md · docs/research/prereg-lineage-inheritance.md · docs/research/prereg-inheritance-2.md · docs/research/prereg-inheritance-2-results.md</code></p>
+    <p class="source-note"><b>Result sources</b><code>docs/research/prereg-lineage-results.md · docs/research/prereg-lineage-inheritance.md · docs/research/prereg-inheritance-2.md · docs/research/prereg-inheritance-2-results.md · docs/research/prereg-inheritance-4.md · docs/research/prereg-inheritance-4-results.md · docs/research/world-calibration-2.md</code></p>
     </section>
 
     <section id="explorar">
@@ -777,7 +813,7 @@
           </tbody>
         </table>
       </div>
-      <div class="note"><b>Where we stand on self-rewriting</b>Today the organism writes <em>rules</em> about what to eat, with confirmed success, and reorders lines of its program with a fixed grammar. With evidence, it repairs a broken program within a life and its daughters inherit the repair (+11 points, preregistered). Without sabotage, no improvement was found among the 171 reorderings and six worlds examined. This does not prove that no better behavior exists. That it can invent new behavior structure that beats the human design is not yet shown; for that the world must demand a priority nobody programmed, or the grammar must let it build more than an order.</div>
+      <div class="note"><b>Where we stand on self-rewriting</b>Today the organism writes <em>rules</em> about what to eat, with confirmed success, and reorders lines of its program with a fixed grammar. With evidence, it repairs a broken program within a life and its daughters inherit the repair (+22 points, preregistered). Without sabotage, no improvement was found among the 171 reorderings and six worlds examined. This does not prove that no better behavior exists. That it can invent new behavior structure that beats the human design is not yet shown; for that the world must demand a priority nobody programmed, or the grammar must let it build more than an order.</div>
     </section>
 
 
