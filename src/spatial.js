@@ -56,10 +56,12 @@ function gridOf(world) {
 export function objectsIn(world, x0, y0, x1, y1) {
   const g = gridOf(world);
   const objects = g.objects;
-  if (++g.mark === 0xffffffff) { g.stamp.fill(0); g.mark = 1; }
-  const found = [];
   const cx0 = Math.floor(Math.min(x0, x1) / CELL), cx1 = Math.floor(Math.max(x0, x1) / CELL);
   const cy0 = Math.floor(Math.min(y0, y1) / CELL), cy1 = Math.floor(Math.max(y0, y1) / CELL);
+  // One cell: its list is already in world.objects order.
+  if (cx0 === cx1 && cy0 === cy1) return (g.cells.get(cx0 * 100003 + cy0) ?? []).map((i) => objects[i]);
+  if (++g.mark === 0xffffffff) { g.stamp.fill(0); g.mark = 1; }
+  const found = [];
   for (let cx = cx0; cx <= cx1; cx++) {
     for (let cy = cy0; cy <= cy1; cy++) {
       const list = g.cells.get(cx * 100003 + cy);

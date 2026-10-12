@@ -45,11 +45,42 @@ export function updatePheromone(world, dt) {
 // The mark to follow from where Fagi is.
 //   movingAway = true  -> towards the food (marks farther from the nest)
 //   movingAway = false -> towards the nest (closer marks)
+// The marks by area, so each Fagi looks only at those she could touch: rebuilt
+// each step (marks fade only in updatePheromone, before the Fagis move) and
+// grown as marks are dropped in the meantime. In the trail's order, so the
+// first best mark is the same one as walking the whole trail.
+const CELL = 64;
+const markGrids = new WeakMap();
+function marksNear(world, x, y, reach) {
+  const marks = world.pheromone;
+  let g = markGrids.get(world);
+  if (!g || g.marks !== marks || g.time !== world.time || marks.length < g.len) {
+    g = { marks, time: world.time, len: 0, cells: new Map() };
+    markGrids.set(world, g);
+  }
+  for (; g.len < marks.length; g.len++) {
+    const m = marks[g.len];
+    const k = Math.floor(m.x / CELL) * 100003 + Math.floor(m.y / CELL);
+    let list = g.cells.get(k);
+    if (!list) g.cells.set(k, list = []);
+    list.push(g.len);
+  }
+  const found = [];
+  for (let cx = Math.floor((x - reach) / CELL); cx <= Math.floor((x + reach) / CELL); cx++) {
+    for (let cy = Math.floor((y - reach) / CELL); cy <= Math.floor((y + reach) / CELL); cy++) {
+      const list = g.cells.get(cx * 100003 + cy);
+      if (list) for (const i of list) found.push(i);
+    }
+  }
+  found.sort((a, b) => a - b);
+  return found.map((i) => marks[i]);
+}
+
 export function followPheromone(world, fagi, dNestNow, movingAway) {
   let best = null;
   let bestD = movingAway ? dNestNow : Infinity;
 
-  for (const m of world.pheromone) {
+  for (const m of marksNear(world, fagi.x, fagi.y, PHERO.sense)) {
     const d = Math.hypot(m.x - fagi.x, m.y - fagi.y);
     if (d > PHERO.sense || d < 4) continue;
     // Her antennae reach forward: a mark behind her she doesn't touch.
