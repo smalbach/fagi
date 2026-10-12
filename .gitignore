@@ -64,4 +64,4 @@ research/results/code-culture/archive.jsonl
 research/results/code-culture/*/*/texts.json
 
 # The century run (scripts/century.js): hundreds of MB, regenerated from its seed.
-research/century/
+research/century
