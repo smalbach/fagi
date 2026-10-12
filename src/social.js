@@ -179,6 +179,29 @@ export function tell(giver, receiver, now) {
   return adopted;
 }
 
+const range = (a, b) => Array.from({ length: Math.max(0, b - a) }, (_, k) => a + k);
+
+// For each i, the j > i (in order) of those within `touch` of home[i] or
+// nearly: a grid of touch-sized cells, so the colonies' many nests do not make
+// every pair be tried. The caller still measures each pair, as before.
+function closePairs(home, touch) {
+  const cells = new Map();
+  home.forEach((f, i) => {
+    const k = `${Math.floor(f.x / touch)},${Math.floor(f.y / touch)}`;
+    let list = cells.get(k);
+    if (!list) cells.set(k, list = []);
+    list.push(i);
+  });
+  return home.map((f, i) => {
+    const cx = Math.floor(f.x / touch), cy = Math.floor(f.y / touch);
+    const out = [];
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+      for (const j of cells.get(`${cx + dx},${cy + dy}`) ?? []) if (j > i) out.push(j);
+    }
+    return out.sort((a, b) => a - b);
+  });
+}
+
 // Sisters in the nest at the same time, each pair at most every SOCIAL.every s:
 // their rules (SOCIAL.share) and what their lines cost them (PROGRAM.share,
 // program/share.js). With SOCIAL.touch, only two close enough to touch
@@ -188,8 +211,9 @@ function trophallaxis(colony, world, now) {
   if (!SOCIAL.share && !PROGRAM.share) return;
   const home = colony.ants.filter((f) => f.alive && nestUnder(f, world));
   const touch = SOCIAL.touch;
+  const near = touch > 0 ? closePairs(home, touch) : null;
   for (let i = 0; i < home.length; i++) {
-    for (let j = i + 1; j < home.length; j++) {
+    for (const j of near ? near[i] : range(i + 1, home.length)) {
       const [a, b] = [home[i], home[j]];
       if (touch > 0 && Math.hypot(a.x - b.x, a.y - b.y) > touch) continue;
       const pair = `${Math.min(a.id, b.id)}-${Math.max(a.id, b.id)}`;

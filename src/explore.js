@@ -56,13 +56,28 @@ export function familiarity(map, x, y) {
   return map ? Math.min(1, map[cellOf(x, y)] / EXPLORE.visitMax) : 1;
 }
 
-// Being in a place marks it; everything else slowly fades.
+// Being in a place marks it; everything else slowly fades. Only the cells she
+// knows at all (map.active) are walked: a cell at 0 stays at 0, and on a big
+// map nearly all of them are. Whoever writes cells by hand drops map.active.
 export function markVisited(map, x, y, dt) {
-  for (let k = 0; k < map.length; k++) {
+  const active = map.active ?? (map.active = activeCells(map));
+  let n = 0;
+  for (let j = 0; j < active.length; j++) {
+    const k = active[j];
     map[k] = Math.max(0, map[k] - EXPLORE.fade * dt);
+    if (map[k] > 0) active[n++] = k;
   }
+  active.length = n;
   const i = cellOf(x, y);
+  const was = map[i];
   map[i] = Math.min(EXPLORE.visitMax, map[i] + EXPLORE.visitGain * dt);
+  if (!(was > 0) && map[i] > 0) active.push(i);
+}
+
+function activeCells(map) {
+  const out = [];
+  for (let k = 0; k < map.length; k++) if (map[k] > 0) out.push(k);
+  return out;
 }
 
 // The cell worth going to: the one she knows least, minus what it

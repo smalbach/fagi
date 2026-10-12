@@ -524,6 +524,7 @@ function putMind(fagi, state, t) {
   fagi.brain.bites = m.bites ?? [];
   if (typeof m.explored === 'string' && fagi.explored?.length === m.explored.length) {
     for (let i = 0; i < m.explored.length; i++) fagi.explored[i] = Number(m.explored[i]);
+    delete fagi.explored.active;   // explore.js works out again which cells she knows
   }
   fagi.effects = {};
   for (const e of m.effects ?? []) {

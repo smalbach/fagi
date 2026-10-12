@@ -70,12 +70,19 @@ export function airAt(world, x, y) {
   for (const n of nestsOf(world)) {
     if (!n.habitat) continue;
     const d2 = (n.x - x) ** 2 + (n.y - y) ** 2;
-    if (d2 < 1) return habitatSpec(n.habitat).air;
+    if (d2 < 1) return airOf(n.habitat);
     const k = 1 / d2;
     w += k;
-    a += k * habitatSpec(n.habitat).air;
+    a += k * airOf(n.habitat);
   }
   return w ? a / w : 0;
+}
+
+// habitatSpec(name).air without building the spec (asked for every nest, by
+// every Fagi, every step).
+function airOf(name) {
+  const h = HABITATS[name];
+  return h != null && Object.hasOwn(Object(h), 'air') ? h.air : NONE.air;
 }
 
 // What a tree bears, × its rate, in the habitat of its nearest nest. Worked

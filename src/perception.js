@@ -6,7 +6,7 @@
 import { feltHungerU } from './stomach.js';
 import { FAGI, BRAIN, THIRST, HUNGER, ENERGY, MEMORY, TREE, NEST, RAIN, CONCEPT, SOURCES, SITES, PHERO } from './config.js';
 import { seenPoints, seesObject, viewRangeOf, distanceTo } from './vision.js';
-import { smelledPoints, smellsObject, aromaOf, scentStrengthOfObject } from './smell.js';
+import { smelledPoints, smellsObject, aromaOf, scentOfPresent, objectsSmelledNear } from './smell.js';
 import { isWater, isTree, radiusOf, waterZone } from './obstacles.js';
 import { fearsDeep } from './swim.js';
 import { choose, learn } from './brain.js';
@@ -25,12 +25,13 @@ import { updateChoice } from './choice.js';
 import { pantryEstimate } from './larder.js';
 import { verdict } from './learned/rules.js';
 import { shunned } from './dizzy.js';
+import { objectsNear, largestRadius } from './spatial.js';
 
 // The nearest visible pool. Water isn't learned: it's instinct.
 function nearestWater(fagi, world) {
   let best = null;
   let bestDist = Infinity;
-  for (const o of world.objects) {
+  for (const o of objectsNear(world, fagi.x, fagi.y, viewRangeOf(fagi))) {
     if (!isWater(o)) continue;
     if (!seesObject(fagi, o, radiusOf(o), world)) continue;
     const d = distanceTo(fagi, o);
@@ -42,7 +43,7 @@ function nearestWater(fagi, world) {
 function nearestVisible(fagi, world, predicate) {
   let best = null;
   let bestDist = Infinity;
-  for (const object of world.objects) {
+  for (const object of objectsNear(world, fagi.x, fagi.y, viewRangeOf(fagi))) {
     if (!predicate(object) || !seesObject(fagi, object, radiusOf(object), world)) continue;
     const dist = distanceTo(fagi, object);
     if (dist < bestDist) { bestDist = dist; best = object; }
@@ -103,7 +104,7 @@ function rememberWater(fagi, world, visible, range) {
 function learnSources(fagi, world) {
   const known = (fagi.brain.sources ??= {});
   for (const { point } of seenPoints(fagi, world.points, world)) {
-    for (const o of world.objects) {
+    for (const o of objectsNear(world, point.x, point.y, SOURCES.near * largestRadius(world))) {
       if (!isTree(o) || Math.hypot(o.x - point.x, o.y - point.y) > radiusOf(o) * SOURCES.near) continue;
       if (!known[o.id]) fagi.brain.lastSource = { n: (fagi.brain.lastSource?.n ?? 0) + 1, id: o.id, fruit: point.type };
       known[o.id] = { fruit: point.type, x: o.x, y: o.y, at: fagi.age };
@@ -127,7 +128,9 @@ function noteBare(fagi, world) {
   if (!SOURCES.bare && !SOURCES.wait) return;
   const bare = (fagi.bare ??= {});
   const seen = seenPoints(fagi, world.points, world).filter(({ point }) => verdict(fagi, 'eat', point.type) !== 'avoid');
-  for (const o of world.objects) {
+  // Only a tree near a fruit she sees, or one she is under, changes anything.
+  const reach = Math.max(viewRangeOf(fagi) + SOURCES.near * largestRadius(world), FAGI.eatRadius * 2);
+  for (const o of objectsNear(world, fagi.x, fagi.y, reach)) {
     if (!isTree(o)) continue;
     const fruit = seen.some(({ point }) => Math.hypot(point.x - o.x, point.y - o.y) <= radiusOf(o) * SOURCES.near);
     if (fruit) {
@@ -172,9 +175,9 @@ function rememberFoodSource(fagi, world) {
   const visible = nearestVisible(fagi, world, isSource);
   let smelled = null;
   let strength = 0;
-  for (const object of world.objects) {
+  for (const object of objectsSmelledNear(fagi, world)) {
     if (!isTree(object) || bareTree(fagi, object)) continue;
-    const current = scentStrengthOfObject(fagi, object, world);
+    const current = scentOfPresent(fagi, object);
     if (current > strength) { smelled = object; strength = current; }
   }
   if (visible) rememberPlace(fagi.brain, 'foodSource', visible, fagi.age);

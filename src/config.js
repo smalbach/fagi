@@ -925,6 +925,7 @@ export const COLONIES = {
 //   density : living per base map (1280 × 860) above which the map grows
 //   step    : each growth adds this to the map's side, × the base map's
 //   max     : the map's side never past this, × the base map's
+//   prune   : 1 = the dead leave the colony's list once counted (world.lineage keeps them)
 //   disperse: 1 = a nest whose fertile females have no unrelated male gets one
 //             from the nearest nest with a male to spare (males disperse to breed)
 export const GROWTH = {
@@ -939,6 +940,7 @@ export const GROWTH = {
   step: 0.5,
   max: 10,
   disperse: 1,
+  prune: 1,
 };
 
 // The weight and hardness of fruit (load.js): what carrying and eating ask of

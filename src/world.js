@@ -5,6 +5,7 @@ import { WORLD, FAGI, NEST, OBJECT_TYPES, POINT_TYPES, TREE, MAPGEN } from './co
 import { createWind } from './wind.js';
 import { createPheromone } from './pheromone.js';
 import { createRain } from './rain.js';
+import { objectById, nestsIn } from './spatial.js';
 
 export function createWorld() {
   return {
@@ -38,6 +39,7 @@ export function addPoint(world, x, y, type, from = null) {
   const p = { id: newId(world), x, y, type };
   if (from != null) p.from = from;   // the tree it fell from, or 'user' (the inspector shows it)
   world.points.push(p);
+  world.pointsVersion = (world.pointsVersion ?? 0) + 1;   // smell.js
   record(world, 'point_add', { id: p.id, what: type, x, y, from });
   return p;
 }
@@ -47,6 +49,7 @@ export function removePoint(world, point, reason = 'removed') {
   const i = world.points.indexOf(point);
   if (i === -1) return;
   world.points.splice(i, 1);
+  world.pointsVersion = (world.pointsVersion ?? 0) + 1;
   record(world, 'point_remove', { id: point.id, reason });
 }
 
@@ -61,6 +64,7 @@ export function addObject(world, x, y, type, r = OBJECT_TYPES[type].radius, sour
   }
   if (OBJECT_TYPES[type].kind === 'spawner') obj.timer = TREE.interval; // fruit countdown
   world.objects.push(obj);
+  world.objectsVersion = (world.objectsVersion ?? 0) + 1;   // spatial.js
   record(world, 'obj_add', { id: obj.id, what: type, x, y, r, source, ...(obj.seed != null ? { seed: obj.seed } : {}) });
   return obj;
 }
@@ -84,14 +88,14 @@ export function waterSource(world) {
 // or with a single nest, the first on the map.
 export function nestOf(world, fagi = null) {
   if (fagi?.home != null) {
-    const home = world.objects.find((o) => o.id === fagi.home);
+    const home = objectById(world, fagi.home);
     if (home) return home;
   }
   return world.objects.find((o) => OBJECT_TYPES[o.type].kind === 'nest') ?? null;
 }
 
 // Every nest on the map.
-export const nestsOf = (world) => world.objects.filter((o) => OBJECT_TYPES[o.type].kind === 'nest');
+export const nestsOf = (world) => nestsIn(world);
 
 // The two counts below work for ANY pantry: the nest's real one and
 // the one Fagi remembers (fagi.pantry). That's why they work on a bare stock and
@@ -192,6 +196,7 @@ export function removeObject(world, obj, source = 'sim') {
   const i = world.objects.indexOf(obj);
   if (i === -1) return;
   world.objects.splice(i, 1);
+  world.objectsVersion = (world.objectsVersion ?? 0) + 1;
   record(world, 'obj_remove', { id: obj.id, source });
 }
 
@@ -224,7 +229,9 @@ export function sizeWorld(world, size = MAPGEN.size) {
 
 export function clearWorld(world) {
   world.points.length = 0;
+  world.pointsVersion = (world.pointsVersion ?? 0) + 1;
   world.objects.length = 0;
+  world.objectsVersion = (world.objectsVersion ?? 0) + 1;
   world.pheromone.length = 0;
   world.mud = [];   // the mud belongs to the map that made it (mapgen.js)
   world.seeds = [];        // the seeds in its soil (trees.js, TREE.seed)

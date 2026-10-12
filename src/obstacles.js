@@ -2,6 +2,7 @@
 // Pure geometry, with no state of its own.
 
 import { OBJECT_TYPES, FAGI, WATER } from './config.js';
+import { objectsIn, objectsNear, largestRadius } from './spatial.js';
 
 export function isWater(obj) {
   return OBJECT_TYPES[obj.type].kind === 'water';
@@ -36,7 +37,7 @@ export function deepRadius(o) {
 
 // What's under (x, y): { pool, deep } if it's water (deep = she can't stand), or null.
 export function waterZone(world, x, y) {
-  for (const o of world.objects) {
+  for (const o of objectsNear(world, x, y, 0)) {
     if (!isWater(o)) continue;
     const d = Math.hypot(o.x - x, o.y - y);
     if (d <= radiusOf(o)) return { pool: o, deep: d < deepRadius(o) };
@@ -67,7 +68,7 @@ export function shorePoint(center, r, from, inset) {
 // count: if she's inside, what she has to do is get out, not be left with no heading. And if
 // A is already on the margin, the margin is ignored: otherwise, every heading would come out blocked.
 export function deepBlocked(world, ax, ay, bx, by, margin = 0) {
-  for (const o of world.objects) {
+  for (const o of objectsIn(world, Math.min(ax, bx) - margin, Math.min(ay, by) - margin, Math.max(ax, bx) + margin, Math.max(ay, by) + margin)) {
     if (!isWater(o)) continue;
     const deep = deepRadius(o);
     if (deep <= 0) continue;
@@ -95,7 +96,7 @@ function segmentEntersCircle(ax, ay, bx, by, cx, cy, r) {
 // Does segment A-B cross any rock? Used to block vision.
 // `margin` fattens each rock: to know whether Fagi's body fits, not just a ray.
 export function segmentBlocked(world, ax, ay, bx, by, margin = 0) {
-  for (const o of world.objects) {
+  for (const o of objectsIn(world, Math.min(ax, bx) - margin, Math.min(ay, by) - margin, Math.max(ax, bx) + margin, Math.max(ay, by) + margin)) {
     if (!isBlock(o)) continue;
     if (segmentHitsCircle(ax, ay, bx, by, o.x, o.y, radiusOf(o) + margin)) return true;
   }
@@ -118,7 +119,9 @@ function segmentHitsCircle(ax, ay, bx, by, cx, cy, r) {
 // Returns true if there was a collision, so she can change heading.
 export function pushOutOfBlocks(fagi, world) {
   let hit = false;
-  for (const o of world.objects) {
+  // A push off one rock moves her at most twice (its radius + hers): every
+  // rock she can touch afterwards is within three times that of where she was.
+  for (const o of objectsNear(world, fagi.x, fagi.y, 3 * (largestRadius(world) + FAGI.radius))) {
     if (!isBlock(o)) continue;
     const min = radiusOf(o) + FAGI.radius;
     let dx = fagi.x - o.x;
@@ -142,7 +145,7 @@ export function avoidanceTurn(fagi, world, fearDeep = false) {
     x: fagi.x + Math.cos(fagi.angle) * look,
     y: fagi.y + Math.sin(fagi.angle) * look,
   };
-  for (const o of world.objects) {
+  for (const o of objectsNear(world, ahead.x, ahead.y, FAGI.radius)) {
     const r = isBlock(o) ? radiusOf(o) + FAGI.radius
       : fearDeep && isWater(o) && deepRadius(o) > 0 && !waterZone(world, fagi.x, fagi.y)?.deep ? deepRadius(o) + WATER.shallows / 2
       : null;

@@ -171,10 +171,82 @@ export function scentAt(fagi, world, key, x, y) {
   return max;
 }
 
+// How far from a source or its thread she can smell it.
+const smellReach = (fagi) => PLUME.radius * FAGI.smell * statMult(fagi, 'smell') * bodyMult(fagi, 'smell');
+
+// Where every smell is, by area: each food point, pool and tree sits in every
+// cell of a grid (CELL px) its thread's box, or its own circle, touches. Threads
+// only change in stepWorld (updateTrails), before the Fagis move, and a point
+// added since has no thread yet (it smells of nothing until the next step), so
+// rebuilt each step, and when a point or object is added or removed, it is
+// exact: a query returns every source that could reach her, in scentSources
+// order, and the caller works each one out as it always did.
+const CELL = 128;
+const scentGrids = new WeakMap();
+function scentGridOf(world) {
+  let g = scentGrids.get(world);
+  if (g && g.time === world.time && g.points === world.points && g.pv === (world.pointsVersion ?? 0) && g.ov === (world.objectsVersion ?? 0)
+    && g.np === world.points.length && g.no === world.objects.length) return g;
+  const all = [...world.points, ...world.objects.filter((o) => isWater(o) || isTree(o))];
+  const cells = new Map();
+  all.forEach((src, i) => {
+    const extra = i < world.points.length ? 0 : radiusOf(src);
+    let minX = src.x - extra, maxX = src.x + extra, minY = src.y - extra, maxY = src.y + extra;
+    if (src.trail?.nodes?.length) {
+      const b = boxOf(src.trail);
+      minX = Math.min(minX, b.minX); maxX = Math.max(maxX, b.maxX); minY = Math.min(minY, b.minY); maxY = Math.max(maxY, b.maxY);
+    }
+    for (let cx = Math.floor(minX / CELL); cx <= Math.floor(maxX / CELL); cx++) {
+      for (let cy = Math.floor(minY / CELL); cy <= Math.floor(maxY / CELL); cy++) {
+        const k = cx * 100003 + cy;
+        let list = cells.get(k);
+        if (!list) cells.set(k, list = []);
+        list.push(i);
+      }
+    }
+  });
+  g = { time: world.time, points: world.points, pv: world.pointsVersion ?? 0, ov: world.objectsVersion ?? 0, np: world.points.length, no: world.objects.length, all, cells, npts: world.points.length, stamp: new Uint32Array(all.length), mark: 0 };
+  scentGrids.set(world, g);
+  return g;
+}
+
+// The sources that may reach anywhere in [x0, x1] × [y0, y1] widened by
+// `reach`: food points first, then pools and trees, each in its list's order.
+function sourcesNear(world, x0, y0, x1, y1, reach) {
+  const g = scentGridOf(world);
+  if (++g.mark === 0xffffffff) { g.stamp.fill(0); g.mark = 1; }
+  const found = [];
+  for (let cx = Math.floor((x0 - reach) / CELL); cx <= Math.floor((x1 + reach) / CELL); cx++) {
+    for (let cy = Math.floor((y0 - reach) / CELL); cy <= Math.floor((y1 + reach) / CELL); cy++) {
+      const list = g.cells.get(cx * 100003 + cy);
+      if (!list) continue;
+      for (const i of list) if (g.stamp[i] !== g.mark) { g.stamp[i] = g.mark; found.push(i); }
+    }
+  }
+  found.sort((a, b) => a - b);
+  return { points: found.filter((i) => i < g.npts).map((i) => g.all[i]), objects: found.filter((i) => i >= g.npts).map((i) => g.all[i]) };
+}
+
+// scentAt for several spots at once (tracking samples six around her, within
+// FAGI.probe): only the sources of that smell that may reach those spots are
+// gathered, once. Same numbers.
+export function scentField(fagi, world, key) {
+  const near = sourcesNear(world, fagi.x - FAGI.probe, fagi.y - FAGI.probe, fagi.x + FAGI.probe, fagi.y + FAGI.probe, smellReach(fagi) + 1);
+  const sources = [
+    ...near.points.map((p) => ({ src: p, key: p.type, extra: 0 })),
+    ...near.objects.map((o) => (isWater(o) ? { src: o, key: o.type, extra: radiusOf(o) } : { src: o, key: o.fruit ?? TREE.fruit, extra: radiusOf(o) })),
+  ].filter(({ key: k }) => (specOf(k)?.aroma ?? 0) > 0 && sameScent(k, key));
+  return (x, y) => {
+    let max = 0;
+    for (const source of sources) max = Math.max(max, scentFromSourceAt(fagi, source, x, y));
+    return max;
+  };
+}
+
 // Which food points reach her through smell right now.
 export function smelledPoints(fagi, world) {
   const out = [];
-  for (const p of world.points) {
+  for (const p of sourcesNear(world, fagi.x, fagi.y, fagi.x, fagi.y, smellReach(fagi) + 1).points) {
     const force = scentFromSourceAt(fagi, { src: p, extra: 0 }, fagi.x, fagi.y);
     if (force > 0) out.push({ point: p, dist: distanceTo(fagi, p), force });
   }
@@ -187,19 +259,28 @@ export function smellsObject(fagi, obj, world) {
 }
 
 export function scentStrengthOfObject(fagi, obj, world) {
-  const source = sourceOfObject(obj, world);
+  const source = obj && world.objects.includes(obj) ? sourceOfObject(obj) : scentSources(world).find(({ src }) => src === obj);
   return source ? scentFromSourceAt(fagi, source, fagi.x, fagi.y) : 0;
 }
 
-// The entry scentSources(world) would have for `obj`, without building the
-// whole list (it is asked for every tree, by every Fagi, every step).
-function sourceOfObject(obj, world) {
+// The pools and trees whose smell may reach her where she is, in
+// world.objects order (perception.js walks the trees).
+export const objectsSmelledNear = (fagi, world) => sourcesNear(world, fagi.x, fagi.y, fagi.x, fagi.y, smellReach(fagi) + 1).objects;
+
+// The same for an object known to be on the map (`world.objects` is being
+// walked): no need to look for it there.
+export function scentOfPresent(fagi, obj) {
+  const source = sourceOfObject(obj);
+  return source ? scentFromSourceAt(fagi, source, fagi.x, fagi.y) : 0;
+}
+
+// The entry scentSources(world) would have for a pool or tree on the map,
+// without building the whole list (it is asked for every tree, by every Fagi,
+// every step); null for anything else.
+function sourceOfObject(obj) {
   let source;
-  if (obj && world.objects.includes(obj)) {
-    if (isWater(obj)) source = { src: obj, key: obj.type, extra: radiusOf(obj) };
-    else if (isTree(obj)) source = { src: obj, key: obj.fruit ?? TREE.fruit, extra: radiusOf(obj) };
-    else return null;
-    return (specOf(source.key)?.aroma ?? 0) > 0 ? source : null;
-  }
-  return scentSources(world).find(({ src }) => src === obj) ?? null;
+  if (isWater(obj)) source = { src: obj, key: obj.type, extra: radiusOf(obj) };
+  else if (isTree(obj)) source = { src: obj, key: obj.fruit ?? TREE.fruit, extra: radiusOf(obj) };
+  else return null;
+  return (specOf(source.key)?.aroma ?? 0) > 0 ? source : null;
 }

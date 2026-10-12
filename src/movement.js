@@ -6,7 +6,7 @@ import { FAGI, ENERGY, EXPLORE, WORLD, WATER, INSTINCT, MOVEMENT, PLUME, SOURCES
 import { angleTo, normalizeAngle } from './vision.js';
 import { statMult } from './effects.js';
 import { pushOutOfBlocks, avoidanceTurn, segmentBlocked, deepBlocked, waterZone, shorePoint, poolOf, radiusOf, isTree } from './obstacles.js';
-import { scentAt } from './smell.js';
+import { scentField } from './smell.js';
 import { waypointInView } from './explore.js';
 import { nestOf, record } from './world.js';
 import { fearsDeep } from './swim.js';
@@ -280,17 +280,15 @@ export function trackScent(fagi, world, key, dt) {
   const ny = Math.cos(wind.angle);
   const d = FAGI.probe;
 
-  const here = scentAt(fagi, world, key, fagi.x, fagi.y);
-  const left = scentAt(fagi, world, key, fagi.x + nx * d, fagi.y + ny * d);
-  const right = scentAt(fagi, world, key, fagi.x - nx * d, fagi.y - ny * d);
+  const at = scentField(fagi, world, key);
+  const here = at(fagi.x, fagi.y);
+  const left = at(fagi.x + nx * d, fagi.y + ny * d);
+  const right = at(fagi.x - nx * d, fagi.y - ny * d);
 
   // She also looks ahead: the thread meanders, so the wind isn't enough.
-  const front = scentAt(fagi, world, key,
-    fagi.x + Math.cos(fagi.angle) * d, fagi.y + Math.sin(fagi.angle) * d);
-  const frontLeft = scentAt(fagi, world, key,
-    fagi.x + Math.cos(fagi.angle - 0.7) * d, fagi.y + Math.sin(fagi.angle - 0.7) * d);
-  const frontRight = scentAt(fagi, world, key,
-    fagi.x + Math.cos(fagi.angle + 0.7) * d, fagi.y + Math.sin(fagi.angle + 0.7) * d);
+  const front = at(fagi.x + Math.cos(fagi.angle) * d, fagi.y + Math.sin(fagi.angle) * d);
+  const frontLeft = at(fagi.x + Math.cos(fagi.angle - 0.7) * d, fagi.y + Math.sin(fagi.angle - 0.7) * d);
+  const frontRight = at(fagi.x + Math.cos(fagi.angle + 0.7) * d, fagi.y + Math.sin(fagi.angle + 0.7) * d);
 
   // She is at the source (PLUME.arrive): the trail has led her where it leads.
   // If there were something to take she would see it; she stops tracking.

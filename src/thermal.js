@@ -27,6 +27,7 @@ import { isTree, radiusOf } from './obstacles.js';
 import { bodyOf } from './biology.js';
 import { thermalOfContact, nestWarmth } from './things.js';
 import { airAt } from './habitats.js';
+import { objectsNear, largestRadius } from './spatial.js';
 
 export const COLD_KEY = 'cold';
 export const HEAT_KEY = 'heat';
@@ -37,7 +38,7 @@ const round1 = (v) => Math.round(v * 10) / 10;
 
 // Under a tree crown: shade, while the sun is up.
 function inShade(fagi, world) {
-  return world.objects.some((o) => isTree(o) && Math.hypot(o.x - fagi.x, o.y - fagi.y) <= radiusOf(o) * 1.4);
+  return objectsNear(world, fagi.x, fagi.y, 0.4 * largestRadius(world)).some((o) => isTree(o) && Math.hypot(o.x - fagi.x, o.y - fagi.y) <= radiusOf(o) * 1.4);
 }
 
 const isWet = (fagi, inNest) => (fagi.wet ?? 0) > 0 || fagi.swimming || (fagi.raining && !inNest);

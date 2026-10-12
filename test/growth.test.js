@@ -104,3 +104,12 @@ test('a nest left with only kin gets an unrelated male from its neighbour', () =
   assert.equal(ants.filter((f) => f.home === a.id && f.sex === 'male').length, 2);
   assert.equal(w.growth.moved, 1);
 }));
+
+test('the dead leave the colony once counted', () => withGrowth(() => {
+  const w = baseMap();
+  const nest = nestsOf(w)[0];
+  const ants = [adult(1, 'female', nest.id), { ...adult(2, 'male', nest.id), alive: false, counted: true }, { ...adult(3, 'male', nest.id), alive: false }];
+  const colony = { ants, life: {} };
+  updateGrowth(w, colony);
+  assert.deepEqual(colony.ants.map((f) => f.id), [1, 3]);
+}));

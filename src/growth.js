@@ -23,7 +23,7 @@
 // Everything is recorded (colony_found with bud, disperse, map_grow, obj_add), so a
 // replay rebuilds the world as it grew.
 
-import { GROWTH, COLONIES, LIFE, MAPGEN, OBJECT_TYPES, HABITATS, WORLD, EXPLORE } from './config.js';
+import { GROWTH, COLONIES, LIFE, MAPGEN, OBJECT_TYPES, HABITATS, WORLD, EXPLORE, SOCIAL } from './config.js';
 import { addObject, nestsOf, record, sizeWorld } from './world.js';
 import { areaOf, fits, furnishHabitat } from './mapgen.js';
 import { relatedness } from './reproduction.js';
@@ -133,6 +133,18 @@ function bud(world, colony, source, site, party) {
   return nest;
 }
 
+// The dead leave the colony's list once counted (reproduction.js): over a
+// century they would outnumber the living a hundred to one, and every step
+// walks the list. Who they were stays in world.lineage.
+// So do pairs that last exchanged long enough ago that it no longer counts
+// (social.js treats them as never).
+function prune(colony, now) {
+  let n = 0;
+  for (const f of colony.ants) if (f.alive || !f.counted) colony.ants[n++] = f;
+  colony.ants.length = n;
+  for (const [pair, at] of Object.entries(colony.lastExchange ?? {})) if (now - at >= SOCIAL.every) delete colony.lastExchange[pair];
+}
+
 // Places `count` things of `type` on the new land (outside the old w × h).
 function placeOnNew(world, type, count, oldW, oldH, scale = null) {
   const base = OBJECT_TYPES[type].radius;
@@ -179,6 +191,7 @@ export function updateGrowth(world, colony) {
   const g = startOf(world);
   if (world.time < g.nextAt) return;
   g.nextAt = world.time + GROWTH.every;
+  if (GROWTH.prune) prune(colony, world.time ?? 0);
   if (GROWTH.disperse) disperse(world, colony);
   const living = colony.ants.filter((f) => f.alive);
   if (living.length / areaOf(world) > GROWTH.density) growMap(world);
