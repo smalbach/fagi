@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LinkedIn Post</title>
+<style>
+:root{--bg:#f3f2ef;--card:#fff;--fg:#1d1c1a;--muted:#666;--line:#e0dfdc;--blue:#0a66c2;--ink:#14231c;--paper:#f4efe3;--accent:#c8553d;--leaf:#3f7d58}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111;--card:#1b1f23;--fg:#e9e9e9;--muted:#a0a0a0;--line:#33383d;--blue:#70b5f9}}
+:root[data-theme="dark"]{--bg:#111;--card:#1b1f23;--fg:#e9e9e9;--muted:#a0a0a0;--line:#33383d;--blue:#70b5f9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 -apple-system,system-ui,"Segoe UI",sans-serif}
+main{max-width:600px;margin:0 auto;padding:24px 16px 64px}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.bar button{font:600 14px system-ui;border:1px solid var(--blue);color:#fff;background:var(--blue);border-radius:16px;padding:6px 14px;cursor:pointer}
+.bar a{font:600 14px system-ui;color:var(--blue);border:1px solid var(--blue);border-radius:16px;padding:6px 14px;text-decoration:none}
+.bar .count{margin-left:auto;color:var(--muted);font-size:13px}
+.post{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.head{display:flex;gap:10px;padding:12px 16px}
+.avatar{width:48px;height:48px;border-radius:50%;background:var(--leaf);color:#fff;display:grid;place-items:center;font:700 18px system-ui;flex:none}
+.head b{display:block}
+.head span{color:var(--muted);font-size:12px;display:block}
+.text{padding:0 16px 12px;white-space:pre-wrap;word-wrap:break-word}
+.text .tag{color:var(--blue);font-weight:600}
+.actions{display:flex;justify-content:space-around;border-top:1px solid var(--line);padding:8px;color:var(--muted);font-weight:600;font-size:14px}
+h2{font:600 13px system-ui;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:32px 0 8px}
+.note{color:var(--muted);font-size:13px}
+.frame{width:100%;aspect-ratio:1200/627;position:relative;overflow:hidden;border-top:1px solid var(--line)}
+#card{position:absolute;top:0;left:0;width:1200px;height:627px;transform-origin:0 0;background:var(--paper);color:var(--ink);font-family:Georgia,"Iowan Old Style",serif;padding:56px 64px;display:grid;grid-template-columns:1.25fr 1fr;gap:48px}
+#card .kicker{font:600 18px/1 system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+#card h1{font-size:76px;line-height:1.02;margin:22px 0;font-weight:700;letter-spacing:-.01em}
+#card p{font-size:25px;line-height:1.35;margin:0;color:#3b4740}
+#card .brand{position:absolute;left:64px;bottom:48px;display:flex;align-items:center;gap:16px;font:600 19px system-ui,sans-serif}
+#card .brand img{width:52px;height:52px;image-rendering:pixelated}
+#card .brand small{display:block;font-weight:400;color:#5d6a62;font-size:16px;margin-top:2px}
+#card .right{display:flex;flex-direction:column;justify-content:center;gap:30px;padding-bottom:40px}
+#card .row{font:600 20px system-ui,sans-serif}
+#card .row .lbl{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px}
+#card .row .num{font:700 44px/1 Georgia,serif}
+#card .track{height:26px;background:#e2dccd;border-radius:4px;overflow:hidden}
+#card .fill{height:100%}
+#card .src{font:16px/1.4 system-ui,sans-serif;color:#5d6a62}
+</style>
+</head>
+<body>
+<main>
+  <div class="bar">
+    <button id="copy">Copy text</button>
+    <a href="linkedin-card-en.png" download="fagi-linkedin.png">Download image</a>
+    <span class="count" id="count"></span>
+  </div>
+  <article class="post">
+    <div class="head">
+      <div class="avatar">SS</div>
+      <div><b>Snheidert Smalbach</b><span>Artificial life · learning · cultural transmission</span><span>Now · 🌐</span></div>
+    </div>
+    <div class="text" id="text"></div>
+    <div class="frame" id="frame">
+      <div id="card">
+        <div>
+          <div class="kicker">Preregistered result</div>
+          <h1>Inheriting beats learning.</h1>
+          <p>What one life finds too late to save itself saves its daughters.</p>
+        </div>
+        <div class="right">
+          <div class="row">
+            <div class="lbl"><span>Daughters who inherit<br>what their mother learned</span><span class="num">88%</span></div>
+            <div class="track"><div class="fill" style="width:88%;background:var(--leaf)"></div></div>
+          </div>
+          <div class="row">
+            <div class="lbl"><span>Daughters who learn<br>from scratch</span><span class="num">66%</span></div>
+            <div class="track"><div class="fill" style="width:66%;background:#9aa79f"></div></div>
+          </div>
+          <div class="src">Survival with a damaged program · +22 points · ahead in 48 of 48 populations</div>
+        </div>
+        <div class="brand"><img alt="" src="data:image/png;base64,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"><div>FAGI<small>Filial Artificial Generational Intelligence</small></div></div>
+      </div>
+    </div>
+    <div class="actions"><span>👍 Like</span><span>💬 Comment</span><span>🔁 Repost</span><span>➤ Send</span></div>
+  </article>
+  <h2>Before posting</h2>
+  <p class="note">Replace <b>[link]</b> with the site's public address. LinkedIn shows posts with links in the body to fewer people: you can put the link in the first comment instead. Upload the image (1200×627) with the text.</p>
+</main>
+<script>
+const POST = `Do we pass on knowledge… or our mistakes too?
+
+I'm building Fagi (Filial Artificial Generational Intelligence): artificial organisms born with nothing written about what is good or bad. They find out by trying things with their bodies, and what they learn becomes synapses, remembered places and rules they can read, rewrite and pass on to their daughters.
+
+The question: when a mother passes on what she learned, does her daughter get knowledge, or her mistakes as well?
+
+Five preregistered studies so far (hypotheses and analysis frozen before running anything):
+
+🧬 Inheriting beats learning. With a deliberately damaged program, daughters born with their mother's revisions survive 88% of the time; daughters learning the same from scratch, 66%. +22 points, ahead in 48 of 48 populations.
+
+🔍 What passes on is the repair itself. Take it out of the inheritance and inheriting is worth no more than learning.
+
+🐛 Fixing a bug doubled the effect. The first three studies ran while the Fagis walked in circles 18% of the time and showed +11. Without the bug: +22.
+
+⚠️ Mistakes are inherited too. With nothing to repair, learning and inheriting both cost about 5 points: daughters are born with rules nobody needed. A filter halved that cost but didn't remove it. Hypothesis not supported, published anyway.
+
+🦋 Rare leaps in the body, as in nature. Most are a burden (47% leave offspring vs 62% unchanged), and the world sorts them by cost: costly organs take hold 40% of the time, cheap ones 70%.
+
+What one life finds too late to save itself saves its daughters. And sometimes hands them the trap.
+
+Everything is deterministic and inspectable: every belief keeps where it came from, and I can replay a life changing one thing. Negative results stay on the page. Built pair-programming with Claude, Codex and Gemini; the questions and decisions are mine.
+
+📄 Full research and in-browser simulator: [link]
+
+#ArtificialLife #AI #MachineLearning #Evolution #Research #ComplexSystems`;
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+$("text").innerHTML = esc(POST).replace(/#\w+|\[link\]/g, m => `<span class="tag">${m}</span>`);
+$("count").textContent = `${POST.length} of 3000 characters`;
+$("copy").onclick = async () => {
+  try { await navigator.clipboard.writeText(POST); $("copy").textContent = "Copied!"; setTimeout(() => $("copy").textContent = "Copy text", 1500); } catch { alert(POST); }
+};
+const fit = () => $("card").style.transform = `scale(${$("frame").clientWidth / 1200})`;
+if (location.hash === "#card") { document.body.replaceChildren($("card")); } else { addEventListener("resize", fit); fit(); }
+</script>
+</body>
+</html>
