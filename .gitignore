@@ -62,3 +62,6 @@ research/results/code-culture/lineages/*/current-n*.json
 # Code culture: the model call archive and the texts per lineage (~39 MB); kept on branch research/codigo-cultural.
 research/results/code-culture/archive.jsonl
 research/results/code-culture/*/*/texts.json
+
+# The century run (scripts/century.js): hundreds of MB, regenerated from its seed.
+research/century/
