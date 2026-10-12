@@ -63,7 +63,9 @@ export const EVENT_TYPES = {
   egg: ['id', 'mother', 'father'],
   hatch: ['id', 'egg'],
   egg_lost: ['id', 'reason'],
-  colony_found: ['from', 'to'],   // a party left its nest to found another (reproduction.js)
+  colony_found: ['from', 'to'],   // a party left its nest to found another (reproduction.js, growth.js)
+  map_grow: ['width', 'height'],   // the map grew to this size (growth.js)
+  disperse: ['id', 'from', 'to'],  // a male moved to breed in another nest (growth.js)
   extinct: ['at'],
   // Who is who (names.js): id -> { name, mother, father, generation, sex, bornAt },
   // sent once per individual, the first time the recording sees her.

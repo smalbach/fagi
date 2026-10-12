@@ -187,6 +187,19 @@ export function smellsObject(fagi, obj, world) {
 }
 
 export function scentStrengthOfObject(fagi, obj, world) {
-  const source = scentSources(world).find(({ src }) => src === obj);
+  const source = sourceOfObject(obj, world);
   return source ? scentFromSourceAt(fagi, source, fagi.x, fagi.y) : 0;
+}
+
+// The entry scentSources(world) would have for `obj`, without building the
+// whole list (it is asked for every tree, by every Fagi, every step).
+function sourceOfObject(obj, world) {
+  let source;
+  if (obj && world.objects.includes(obj)) {
+    if (isWater(obj)) source = { src: obj, key: obj.type, extra: radiusOf(obj) };
+    else if (isTree(obj)) source = { src: obj, key: obj.fruit ?? TREE.fruit, extra: radiusOf(obj) };
+    else return null;
+    return (specOf(source.key)?.aroma ?? 0) > 0 ? source : null;
+  }
+  return scentSources(world).find(({ src }) => src === obj) ?? null;
 }

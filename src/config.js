@@ -909,6 +909,38 @@ export const COLONIES = {
   from: 'fullest',
 };
 
+// A world that grows with its people (growth.js). Off, nothing changes. On, a
+// nest never caps the population: a full nest sends a party out to found a new
+// one on free ground with water and trees of its own, and when there is no such
+// ground left on land as full of nests as the map began, or the living are too
+// many for the land, the map grows on its
+// right and bottom edges, the new land with as many trees, ponds and rocks per
+// square pixel as the map began with. Each nest still holds LIFE.maxPopulation.
+//   budAt   : a nest this full (share of LIFE.maxPopulation) sends a party out
+//   party   : adults that leave: a fertile unrelated pair and the rest
+//   every   : seconds between looks
+//   reach   : the new nest within reach × COLONIES.spacing of the one it left
+//   water   : px: the new nest needs water this near
+//   food    : and this many trees nearer to it than to any other nest
+//   density : living per base map (1280 × 860) above which the map grows
+//   step    : each growth adds this to the map's side, × the base map's
+//   max     : the map's side never past this, × the base map's
+//   disperse: 1 = a nest whose fertile females have no unrelated male gets one
+//             from the nearest nest with a male to spare (males disperse to breed)
+export const GROWTH = {
+  enabled: 0,
+  budAt: 0.3,
+  party: 4,
+  every: 120,
+  reach: 2,
+  water: 240,
+  food: 2,
+  density: 30,
+  step: 0.5,
+  max: 10,
+  disperse: 1,
+};
+
 // The weight and hardness of fruit (load.js): what carrying and eating ask of
 // her body. Off, every fruit weighs and gives the same.
 //   range     : a fruit's weight, × a typical one, drawn when it falls (log-uniform)

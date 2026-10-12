@@ -11,7 +11,7 @@ import { assignHabitats, habitatOfNest } from './habitats.js';
 // How many base maps fit in this one (MAPGEN.size² on a scaled map).
 export const areaOf = (world) => Math.max(1, (world.width * world.height) / (WORLD.baseWidth * WORLD.baseHeight));
 
-function fits(world, x, y, r) {
+export function fits(world, x, y, r) {
   for (const o of world.objects) {
     // The REAL radius of the one already placed: some rocks are fatter than their type.
     const or = radiusOf(o);
@@ -177,16 +177,20 @@ function placeColonies(world, first) {
 function placeHabitats(world) {
   if (!HABITATS.enabled) return;
   assignHabitats(world);
-  for (const nest of world.objects.filter((o) => o.type === 'nest')) {
-    const h = habitatOfNest(world, nest);
-    if (!h?.trees) continue;
-    const [near, far] = h.near ?? [150, 260];
-    for (let i = 0; i < h.trees; i++) {
-      if (!placeFarFrom(world, 'tree', 1, nest, near, far, Math.random() * Math.PI * 2, Math.PI * 2, true)) break;
-      const tree = world.objects.at(-1);
-      tree.fruit = 'toxic';
-      record(world, 'obj_fruit', { id: tree.id, what: 'toxic' });
-    }
+  for (const nest of world.objects.filter((o) => o.type === 'nest')) furnishHabitat(world, nest);
+}
+
+// A 'toxic' nest's poisonous trees, close by (also for a nest founded later,
+// growth.js).
+export function furnishHabitat(world, nest) {
+  const h = habitatOfNest(world, nest);
+  if (!h?.trees) return;
+  const [near, far] = h.near ?? [150, 260];
+  for (let i = 0; i < h.trees; i++) {
+    if (!placeFarFrom(world, 'tree', 1, nest, near, far, Math.random() * Math.PI * 2, Math.PI * 2, true)) break;
+    const tree = world.objects.at(-1);
+    tree.fruit = 'toxic';
+    record(world, 'obj_fruit', { id: tree.id, what: 'toxic' });
   }
 }
 

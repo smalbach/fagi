@@ -129,6 +129,13 @@ export function applyEvent(state, ev) {
       state.life.founded += 1;
       for (const id of [ev.female, ev.male]) if (id != null) state.homes[id] = ev.to;
       break;
+    case 'disperse':
+      state.homes[ev.id] = ev.to;
+      break;
+    case 'map_grow':   // the map grew (growth.js); what is on it keeps its place
+      w.width = ev.width;
+      w.height = ev.height;
+      break;
     case 'tree_bare':
     case 'tree_bears': {
       const o = w.objects.find((x) => x.id === ev.id);

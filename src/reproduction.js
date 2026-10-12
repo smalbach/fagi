@@ -41,6 +41,7 @@ import { healthU } from './health.js';
 import { HEALTH } from './config.js';
 import { edibleCount } from './learned/rules.js';
 import { childName } from './names.js';
+import { updateGrowth } from './growth.js';
 
 const r2 = (v) => Math.round(v * 100) / 100;
 
@@ -332,6 +333,7 @@ export function updateLife(world, colony, dt) {
     matings(world, colony, nest);
   }
   if (nests.length > 1) refound(world, colony, nests);
+  updateGrowth(world, colony);   // GROWTH: new nests, a bigger map
   if (!colony.life.extinctAt && !living(colony) && !nests.some((n) => n.eggs?.length)) {
     colony.life.extinctAt = world.time;
     record(world, 'extinct', { at: world.time });

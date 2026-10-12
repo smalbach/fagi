@@ -25,10 +25,24 @@ import { fovOf, viewRangeOf, normalizeAngle } from './vision.js';
 
 const cols = () => Math.ceil(WORLD.width / EXPLORE.cell);
 const rows = () => Math.ceil(WORLD.height / EXPLORE.cell);
-const diagonal = () => Math.hypot(WORLD.width, WORLD.height);
+// The base map's diagonal, not this map's: going far costs her the same on a
+// bigger map (MAPGEN.size, GROWTH), it doesn't get cheaper as the land grows.
+// On the base map the two are the same number.
+const diagonal = () => Math.hypot(WORLD.baseWidth, WORLD.baseHeight);
 
 export function createExploreMap() {
   return new Float32Array(cols() * rows());
+}
+
+// The same map on a bigger world (growth.js): every cell keeps where it was;
+// the new ground is unknown. `oldCols`: the columns it had.
+export function widenExploreMap(map, oldCols) {
+  if (!map) return map;
+  const out = createExploreMap();
+  const nc = cols();
+  const oldRows = map.length / oldCols;
+  for (let r = 0; r < oldRows; r++) for (let c = 0; c < oldCols; c++) out[r * nc + c] = map[r * oldCols + c];
+  return out;
 }
 
 function cellOf(x, y) {
