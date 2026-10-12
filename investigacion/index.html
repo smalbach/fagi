@@ -216,6 +216,15 @@
     <section id="organismo">
       <h2><span class="num">04</span>El organismo</h2>
       <p>Cada archivo tiene una sola responsabilidad: <code>movement.js</code> mueve pero no decide, <code>decision.js</code> decide pero no dibuja, <code>render.js</code> dibuja pero no toca el estado. El circuito completo, de lo que percibe a lo que transmite:</p>
+      <details class="more how-read" open>
+        <summary>Cómo leer este diagrama</summary>
+        <ul>
+          <li><strong>Se lee como un circuito</strong>, siguiendo las flechas: lo que percibe (vista, olor, gusto) entra en su <em>programa</em>, una lista de conductas en orden; la primera que encaja decide la <em>acción</em>.</li>
+          <li><strong>El cuerpo hace de juez</strong>: al comer o beber se compara cómo estaba antes y después. Esa diferencia real —menos hambre, más veneno— es la recompensa, entre −1 y +1. Nadie le dice qué es bueno.</li>
+          <li><strong>De la experiencia a una regla</strong>: la <em>memoria</em> guarda cuánto vale cada cosa y con cuánta confianza. Cuando está lo bastante segura, escribe una <em>regla legible</em> que dice de dónde vino: de nacimiento (<code>born</code>), de su experiencia (<code>self</code>), de la noche (<code>night</code>), contada (<code>told</code>), vista en otra (<code>saw</code>) o heredada (<code>inherited</code>).</li>
+          <li><strong>Las cajas discontinuas</strong> (la noche en el nido y la colonia) son procesos que se pueden apagar para aislar un efecto en los experimentos.</li>
+        </ul>
+      </details>
       <figure class="wide">
         <div class="panel">
           <svg viewBox="0 0 900 380" role="img" aria-label="Diagrama del ciclo percepción, programa, acción, cuerpo, episodio, memoria, reglas, con la noche y la colonia" style="width:100%;height:auto">
@@ -378,6 +387,16 @@
             <p><strong>La respuesta corta.</strong> Sí, cuando hay algo que reparar: con una parte de su programa rota a propósito, las hijas que heredan las revisiones de su madre viven <strong>22 puntos más</strong> que las que aprenden igual desde cero en el mundo sin el fallo de movimiento (cuarto estudio; +11 en los tres primeros, con dos daños distintos). Con el programa intacto, en cambio, aprender y heredar <strong>cuestan unos 5 puntos</strong>.</p>
       <p><strong>El daño.</strong> En un mundo de comida escasa (un fruto cada 575 s, donde lo que hace decide si vive; ver «El mundo de prueba» al final de esta sección) movemos una línea de su programa al final: <code>dusk</code> (volver al nido cuando se va la luz; la supervivencia baja del 75 % al 44 %) o, en el segundo estudio, <code>shelter</code> (refugiarse).</p>
 
+      <details class="more how-read" open>
+        <summary>Cómo leer esta sección</summary>
+        <ul>
+          <li><strong>El experimento</strong>: rompemos a propósito una parte de su programa —por ejemplo, ponemos «volver al nido al anochecer» al final de la lista, así que llega tarde y pasa frío— y medimos si aprender o heredar lo arregla.</li>
+          <li><strong>Los brazos</strong> son versiones del mismo experimento que solo cambian en una regla: <em>innato</em> (ni aprende ni hereda: el control), <em>aprende</em> (cada hija desde cero), <em>hereda de cualquiera</em> (nace con lo que aprendió su madre) y <em>hereda de supervivientes</em> (igual, pero solo son madres las que sobrevivieron).</li>
+          <li><strong>La medida</strong> es casi siempre el porcentaje de vidas <em>vivas a las 2 horas</em> de juego. Solo cuentan las generaciones 3–5, cuando la herencia ya ha tenido tiempo de acumularse.</li>
+          <li><strong>Una población</strong> son 16 vidas por generación durante 6 generaciones. Cada población se corre en el mismo mundo en todos los brazos, así que las diferencias no son suerte del mapa.</li>
+          <li><strong>Las tablas de hipótesis</strong>: <em>mejor / peor</em> cuenta en cuántas poblaciones ganó o perdió el primer brazo; <em>diferencia</em> va en puntos de supervivencia (+11 pts = 11 de cada 100 vidas más); <em>p</em> es la probabilidad de ver esa diferencia por puro azar, y por debajo de 0,05 se considera real; <em>cota</em> es el peor valor plausible, que en las hipótesis de «no cuesta más de 5 puntos» tiene que quedar por encima de −5. <em>Primaria</em> es la pregunta principal, fijada antes de correr.</li>
+        </ul>
+      </details>
       <h3>Primer estudio (6 oct): cuatro hipótesis</h3>
       <h4>Diseño</h4>
       <ul>
@@ -387,6 +406,14 @@
         <li><strong>Análisis:</strong> supervivencia a 7200 s en las generaciones 3–5 (1536 vidas pareadas por contraste), prueba de signo exacta unilateral sobre pares discordantes, α = 0,05. Solo H1 es primaria.</li>
       </ul>
 
+      <details class="more how-read" open>
+        <summary>Cómo leer esta figura</summary>
+        <ul>
+          <li>Eje horizontal: generaciones, de 0 a 5. Eje vertical: porcentaje de vidas vivas a las 2 horas. Una línea por brazo.</li>
+          <li>En la generación 0 todas parten casi igual. Desde la 1, las dos líneas que heredan se separan hacia arriba y no vuelven: cada hija nace con la reparación que su madre encontró.</li>
+          <li>Aprender sin heredar (azul) apenas se despega del innato: cada vida tiene que redescubrir el arreglo y a menudo llega tarde.</li>
+        </ul>
+      </details>
       <figure class="wide">
         <div class="panel">
           <div class="legend">
@@ -420,6 +447,14 @@
 
       <h3 id="herencia-2">Segundo estudio: réplica, otro daño y el coste de heredar <span class="tag conf">confirmatorio</span></h3>
       <p>Preregistrado el 9 de octubre de 2026 (commit <code>e6563e3</code>) y corrido ese día sin cambios: 416 corridas, ninguna falló. Tres preguntas que el primer estudio dejó abiertas. ¿Se repite con semillas nuevas cuando la unidad es la <em>población</em> (las hijas de una población comparten madres)? ¿Vale para otro daño, <code>shelter</code> (refugiarse) al final? Y con el programa intacto, sin nada que reparar, ¿cuesta aprender o heredar?</p>
+      <details class="more how-read" open>
+        <summary>Cómo leer esta figura</summary>
+        <ul>
+          <li>Tres grupos de barras, uno por situación: dos daños distintos («volver al anochecer» al final, «refugiarse» al final) y el programa intacto, sin nada roto. Cada barra es un brazo; su altura, el porcentaje de vivas en las generaciones 3–5.</li>
+          <li>Con un daño, las barras que heredan son las más altas: la herencia repara, y con dos daños distintos.</li>
+          <li>Con el programa intacto se invierte: el innato es la más alta. Si no hay nada que arreglar, aprender y heredar solo añaden reglas innecesarias, y eso cuesta vidas. El grupo intacto no tiene barra «de cualquiera» porque no se corrió.</li>
+        </ul>
+      </details>
       <figure class="wide">
         <div class="panel">
           <div class="legend">
@@ -457,6 +492,14 @@
       <div class="note warn"><b>Qué cambia para el juego</b>El juego tiene encendido este aprendizaje heredable. Como fijó el preregistro, con N1 y N2 no apoyadas no debería seguir encendido por defecto sin arreglar qué se aprende. El tercer estudio, abajo, probó un arreglo.</div>
       <h3 id="herencia-3">Tercer estudio: aprender sin estropear lo que funciona (H5) <span class="tag conf">confirmatorio</span></h3>
       <p>Preregistrado el 9 de octubre de 2026 (commit <code>21ad7ec</code>), 352 corridas, semillas nuevas 300000–331095. Un piloto mostró de dónde viene el coste: no de las reglas sino de los <strong>ensayos</strong> (dejar que otra conducta tome el turno para probar); ensayando sin escribir nada ya bajaba de 0,73 a 0,56, y con el aprendizaje encendido sin ensayos las 96 vidas fueron idénticas a las innatas. El filtro probado: <strong>ensayar solo después de un mal momento</strong> (malestar ≥ 0,8 del máximo), un recuerdo que se reduce a la mitad cada 300 s. Una vida que va bien no tiene motivo para experimentar.</p>
+      <details class="more how-read" open>
+        <summary>Cómo leer esta figura</summary>
+        <ul>
+          <li>El <strong>filtro</strong> solo deja experimentar a una Fagi después de pasarlo muy mal; si su vida va bien, no prueba cosas nuevas.</li>
+          <li>Mismos tres grupos que la figura anterior. Compara cada barra con su versión «con filtro»: con el daño, heredar con filtro es la más alta; con el programa intacto, el filtro recupera parte de lo perdido, pero no llega al 75,8 % del innato (que no se dibuja).</li>
+          <li>En «refugiarse» solo se corrieron los brazos con filtro, por eso faltan dos barras.</li>
+        </ul>
+      </details>
       <figure class="wide">
         <div class="panel">
           <div class="legend">
@@ -536,6 +579,14 @@
       <div class="note warn"><b>Lo que este resultado no dice</b>La ganancia es la reparación de un programa roto a propósito. Muestra que aprender y heredar recuperan lo perdido; no que encuentren algo que el programa innato no tenga. Un mundo, hijas que viven solas y no en colonia, y reescrituras dentro de la gramática (una conducta delante de otra bajo una condición).</div>
       <h3>El mundo de prueba (exploratorio)</h3>
       <p>Antes hubo que encontrar un mundo donde la conducta decida. En el mundo por defecto todo programa sobrevive, incluso uno roto a propósito: ningún aprendizaje puede notarse. Barriendo cada cuánto dan fruto los árboles, la supervivencia cae como un acantilado (96 % para el programa innato con un fruto cada 450 s, 0 % a 750 s). <strong>A 575 s</strong> el programa innato vive el 75 % de vidas de dos horas y romper su calor, su descanso o su comida cuesta 27–37 puntos: ahí lo que hace decide si vive.</p>
+      <details class="more how-read" open>
+        <summary>Cómo leer esta figura</summary>
+        <ul>
+          <li>Antes de los estudios hubo que elegir un mundo donde lo que hace la Fagi importe. El eje horizontal es cada cuántos segundos da fruto un árbol: a la izquierda sobra comida, a la derecha falta.</li>
+          <li>Cada línea es una versión del programa: el innato completo y tres versiones rotas o que aprenden. Con mucha comida todas viven; con muy poca, todas mueren. En ninguno de los dos extremos se puede medir nada.</li>
+          <li>La línea vertical marca el <strong>mundo de prueba</strong> (575 s): el borde del acantilado, donde el programa innato vive el 75 % y romper una parte cuesta 27–37 puntos. Ahí la conducta decide.</li>
+        </ul>
+      </details>
       <figure class="wide">
         <div class="panel">
           <div class="legend">
@@ -725,6 +776,15 @@
       </details>
       <h3 id="laboratorio">Pruébalo: este estudio en tu navegador</h3>
       <p>Esto no es una animación: es el código del estudio corriendo en tu navegador. Cada botón lanza cuatro linajes de 12 generaciones —uno por formato— en <strong>el mismo mundo</strong> (misma química y mismo catálogo, sin un mapa espacial simulado), con el cerebro, el cuerpo y el código social del juego. La semilla, los parámetros y la versión de código permiten repetir el experimento. La identidad numérica entre navegadores, arquitecturas y versiones de Node no está garantizada.</p>
+      <details class="more how-read" open>
+        <summary>Cómo leer este laboratorio</summary>
+        <ul>
+          <li><strong>Elige y corre</strong>: el desplegable decide cómo cambia el mundo en la generación 6 y la semilla decide el mundo concreto. El botón corre de verdad cuatro linajes —uno por formato— en tu navegador.</li>
+          <li><strong>Panel de arriba</strong>: las mismas curvas que la Figura 7, pero de un solo linaje por formato, así que son mucho más ruidosas. Los botones cambian la medida: supervivientes, mitos o daño.</li>
+          <li><strong>Panel de abajo</strong>: la genealogía de las creencias. Cada fila es una creencia concreta y las columnas son generaciones. La barra es verde mientras es verdad en ese mundo y roja cuando es falsa, y se ensancha cuantas más hormigas la llevan.</li>
+          <li><strong>Qué buscar</strong>: con la inversión, las razones que eran verdad se vuelven rojas en la generación 6 sin cambiar una letra, y siguen pasando de madre a hija. Con veredictos o con evidencia se cortan antes.</li>
+        </ul>
+      </details>
       <form id="lab-form" class="lab wide" autocomplete="off">
         <div class="lab-controls">
           <label>Cambio del mundo en la generación 6
@@ -940,6 +1000,15 @@
       <p><strong>Por qué, hasta donde lo medimos:</strong> colonias de 12–19 adultas menguan hasta un puñado y las reemplazan las vecinas (≈7 % de los años-nido vacíos y 115 refundaciones en 16 mapas en la corrida de 24 mapas; 91 en 8 mapas hoy, sobre todo en el hábitat cálido), borrando lo que se había acumulado. Colonias más grandes (techo de 60) quedan como remedio sin probar. El panel <em>Evolución</em> del juego dibuja estas curvas en vivo, colonia por colonia.</p>
       <h3 id="saltos">Saltos raros en el cuerpo (quinto estudio) <span class="tag conf">confirmatorio</span></h3>
       <p>En la naturaleza casi toda la variación entre madre e hija es pequeña, pero a veces una mutación en un gen del desarrollo da un salto grande en el cuerpo (los «monstruos esperanzados» de Goldschmidt, 1940). Lo probamos en el juego: con probabilidad 5 % por nacimiento, uno a tres órganos de la cría saltan ×1,5–2, hacia arriba o hacia abajo, con su coste y su beneficio normales. Cada salto inicia un linaje marcado. El control, <em>salto falso</em>, marca las mismas crías con el mismo sorteo pero sin cambiarles nada: mide cuánto se extiende un linaje por puro azar. Preregistrado el 10 de octubre de 2026 (commit <code>bb8ca2f</code>, publicado antes de correr), 96 mapas × 4 años por brazo; ningún mapa se extinguió.</p>
+      <details class="more how-read" open>
+        <summary>Cómo leer esta tabla</summary>
+        <ul>
+          <li><strong>Un salto</strong>: de vez en cuando (5 % de los nacimientos) una cría nace con uno a tres órganos muy cambiados (×1,5–2). Cada salto empieza un linaje marcado.</li>
+          <li><strong>Un linaje «prende»</strong> si la cría que saltó deja al menos una hija. El control, el <em>salto falso</em>, marca crías al azar sin cambiarles nada: dice cuánto prende un linaje por pura suerte (unos 60 %).</li>
+          <li><strong>Cómo comparar</strong>: si un tipo de salto prende menos que el falso, es una carga; si prende más, es una ventaja. «40 % frente a 60 %» significa que los saltos caros prendieron 40 de cada 100 veces y el control 60.</li>
+          <li><strong>En una frase</strong>: casi todo salto grande es una carga, y cuanto más caro el órgano, peor le va.</li>
+        </ul>
+      </details>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Hipótesis</th><th class="n">resultado</th><th class="n">p</th><th>Veredicto</th></tr></thead>
@@ -1032,6 +1101,7 @@
       <h2><span class="num">16</span>Hoja de ruta</h2>
       <p><strong>Hecho desde la versión anterior:</strong> métricas de realismo de Tyrrell como línea base; noche científica, impulsos aprendidos y selector de flujo libre probados (los dos primeros encendidos en el juego); igualar presupuestos por cobertura de especies; un cuerpo que evoluciona con presiones reales; heredar lo aprendido, preregistrado; un segundo estudio que lo replica, lo extiende a otro daño y mide su coste con el programa intacto; el fallo de las vueltas corregido y un cuarto estudio que duplica la ventaja (+22) y muestra que lo que se hereda es la reparación; saltos raros en el cuerpo, preregistrados; árboles que nacen y mueren en el juego.</p>
       <ol>
+        <li><strong>Un depredador</strong> (siguiente hito, planteado): cuando un error puede matar, aprender probando es lo más caro. ¿Heredar ayuda más que con la comida? ¿Y cuánto dura el miedo heredado cuando el depredador ya no está? Plan en <code>docs/research/plan-predator.md</code>.</li>
         <li><strong>Aprender sin estropear lo que funciona</strong> (sigue abierto tras H5): ensayar solo tras un mal momento redujo el coste de heredar de 9 a 5 puntos; sin el fallo de movimiento aprender y heredar cuestan unos 5, y ese coste son los ensayos. Lo siguiente: que un mal momento abra ensayos solo si se repite, o que los ensayos dependan de cuánto lleva sin comer el nido.</li>
         <li><strong>Un mundo donde el orden innato no sea óptimo sin sabotaje</strong> (estaciones o mapas donde la prioridad correcta cambia): el paso siguiente que fijó el preregistro de la herencia.</li>
         <li><strong>Una gramática más rica</strong>, para que las entidades construyan más que un orden de líneas: el objetivo de fondo es que reescriban su propia conducta.</li>

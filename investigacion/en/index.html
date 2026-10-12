@@ -216,6 +216,15 @@
     <section id="organismo">
       <h2><span class="num">04</span>The organism</h2>
       <p>Each file has a single responsibility: <code>movement.js</code> moves but does not decide, <code>decision.js</code> decides but does not draw, <code>render.js</code> draws but does not touch state. The full loop, from what it senses to what it passes on:</p>
+      <details class="more how-read" open>
+        <summary>How to read this diagram</summary>
+        <ul>
+          <li><strong>Read it as a circuit</strong>, following the arrows: what she perceives (sight, smell, taste) goes into her <em>program</em>, an ordered list of behaviors; the first one that fits decides the <em>action</em>.</li>
+          <li><strong>The body is the judge</strong>: when she eats or drinks, how she was before is compared with after. That real difference —less hunger, more poison— is the reward, between −1 and +1. Nobody tells her what is good.</li>
+          <li><strong>From experience to a rule</strong>: <em>memory</em> keeps how much each thing is worth and how confident she is. When she is sure enough, she writes a <em>readable rule</em> that says where it came from: from birth (<code>born</code>), her own experience (<code>self</code>), the night (<code>night</code>), being told (<code>told</code>), watching another (<code>saw</code>) or inherited (<code>inherited</code>).</li>
+          <li><strong>The dashed boxes</strong> (the night in the nest and the colony) are processes that can be switched off to isolate an effect in the experiments.</li>
+        </ul>
+      </details>
       <figure class="wide">
         <div class="panel">
           <svg viewBox="0 0 900 380" role="img" aria-label="Diagram of the loop perception, program, action, body, episode, memory, rules, with the night and the colony" style="width:100%;height:auto">
@@ -378,6 +387,16 @@
             <p><strong>The short answer.</strong> Yes, when there is something to repair: with part of her program broken on purpose, daughters that inherit their mother's revisions live <strong>22 points more</strong> than those learning the same way from scratch in the world without the movement bug (fourth study; +11 in the first three, with two different damages). With the intact program, though, learning and inheriting <strong>cost about 5 points</strong>.</p>
       <p><strong>The damage.</strong> In a world of scarce food (one fruit every 575 s, where what she does decides whether she lives; see “The test world” at the end of this section) we move one line of her program to the end: <code>dusk</code> (going home as the light goes; survival drops from 75% to 44%) or, in the second study, <code>shelter</code> (take shelter).</p>
 
+      <details class="more how-read" open>
+        <summary>How to read this section</summary>
+        <ul>
+          <li><strong>The experiment</strong>: we deliberately break part of her program —for example, we move “go home at dusk” to the end of the list, so she gets home late and cold— and measure whether learning or inheriting fixes it.</li>
+          <li><strong>The arms</strong> are versions of the same experiment that differ in one rule only: <em>born</em> (neither learns nor inherits: the control), <em>learns</em> (each daughter from scratch), <em>inherits from any</em> (born with what her mother learned) and <em>inherits from survivors</em> (likewise, but only survivors become mothers).</li>
+          <li><strong>The measure</strong> is almost always the share of lives <em>alive at 2 hours</em> of game time. Only generations 3–5 count, once inheritance has had time to build up.</li>
+          <li><strong>A population</strong> is 16 lives per generation over 6 generations. Each population runs in the same world in every arm, so differences are not the luck of the map.</li>
+          <li><strong>The hypothesis tables</strong>: <em>better / worse</em> counts in how many populations the first arm won or lost; <em>difference</em> is in survival points (+11 pts = 11 more lives in 100); <em>p</em> is the probability of seeing that difference by pure chance, and below 0.05 it is taken as real; <em>bound</em> is the worst plausible value, which in the “costs no more than 5 points” hypotheses must stay above −5. <em>Primary</em> is the main question, fixed before running.</li>
+        </ul>
+      </details>
       <h3>First study (6 Oct): four hypotheses</h3>
       <h4>Design</h4>
       <ul>
@@ -387,6 +406,14 @@
         <li><strong>Analysis:</strong> survival to 7200 s in generations 3–5 (1536 paired lives per contrast), one-sided exact sign test on discordant pairs, α = 0.05. Only H1 is primary.</li>
       </ul>
 
+      <details class="more how-read" open>
+        <summary>How to read this figure</summary>
+        <ul>
+          <li>Horizontal axis: generations, 0 to 5. Vertical axis: share of lives alive at 2 hours. One line per arm.</li>
+          <li>In generation 0 they all start about the same. From generation 1 the two inheriting lines pull upward and never come back: each daughter is born with the repair her mother found.</li>
+          <li>Learning without inheriting (blue) barely leaves the born line: each life has to rediscover the fix and often finds it too late.</li>
+        </ul>
+      </details>
       <figure class="wide">
         <div class="panel">
           <div class="legend">
@@ -420,6 +447,14 @@
 
       <h3 id="herencia-2">Second study: replication, another damage and the cost of inheriting <span class="tag conf">confirmatory</span></h3>
       <p>Preregistered on 9 October 2026 (commit <code>e6563e3</code>) and run that day unchanged: 416 runs, none failed. Three questions the first study left open. Does it replicate on new seeds when the unit is the <em>population</em> (daughters of one population share mothers)? Does it hold for another damage, <code>shelter</code> (take shelter) moved last? And with the intact program, nothing to repair, does learning or inheriting cost?</p>
+      <details class="more how-read" open>
+        <summary>How to read this figure</summary>
+        <ul>
+          <li>Three groups of bars, one per situation: two different damages (“go home at dusk” moved last, “take shelter” moved last) and the intact program, with nothing broken. Each bar is an arm; its height, the share alive in generations 3–5.</li>
+          <li>With a damage, the inheriting bars are the tallest: inheritance repairs, with two different damages.</li>
+          <li>With the intact program it flips: born is the tallest. When there is nothing to fix, learning and inheriting only add unneeded rules, and that costs lives. The intact group has no “from any” bar because it was not run.</li>
+        </ul>
+      </details>
       <figure class="wide">
         <div class="panel">
           <div class="legend">
@@ -457,6 +492,14 @@
       <div class="note warn"><b>What changes for the game</b>The game has this inheritable learning switched on. As the preregistration set out, with N1 and N2 not supported it should not stay on by default without fixing what is learned. The third study, below, tested a fix.</div>
       <h3 id="herencia-3">Third study: learning that leaves alone what works (H5) <span class="tag conf">confirmatory</span></h3>
       <p>Preregistered on 9 October 2026 (commit <code>21ad7ec</code>), 352 runs, new seeds 300000–331095. A pilot showed where the cost comes from: not the rules but the <strong>trials</strong> (letting another behavior take the turn to try it); trying without writing anything already took survival from 0.73 to 0.56, and with learning on but no trials the 96 lives were identical to born ones. The filter tested: <strong>try only after a bad moment</strong> (distress ≥ 0.8 of the top), a memory that halves every 300 s. A life that goes well has no reason to experiment.</p>
+      <details class="more how-read" open>
+        <summary>How to read this figure</summary>
+        <ul>
+          <li>The <strong>filter</strong> only lets a Fagi experiment after a very bad moment; if her life is going well, she does not try new things.</li>
+          <li>Same three groups as the previous figure. Compare each bar with its “with filter” version: with the damage, inheriting with the filter is the tallest; with the intact program, the filter wins back part of the loss but does not reach born’s 75.8% (not drawn).</li>
+          <li>For “take shelter” only the filtered arms were run, so two bars are missing.</li>
+        </ul>
+      </details>
       <figure class="wide">
         <div class="panel">
           <div class="legend">
@@ -536,6 +579,14 @@
       <div class="note warn"><b>What this result does not say</b>The gain is the repair of a program broken on purpose. It shows that learning and inheritance recover what was lost; not that they find something the innate program lacks. One world, daughters living alone rather than in a colony, and rewrites within the grammar (one behavior in front of another under one condition).</div>
       <h3>The test world (exploratory)</h3>
       <p>First we needed a world where behavior decides. In the default world every program survives, even one broken on purpose: no learning can show. Sweeping how often trees bear fruit, survival falls off a cliff (96% for the innate program with one fruit every 450 s, 0% at 750 s). <strong>At 575 s</strong> the innate program lives through 75% of two-hour lives, and breaking its warmth, rest or food lines costs 27–37 points: there, what she does decides whether she lives.</p>
+      <details class="more how-read" open>
+        <summary>How to read this figure</summary>
+        <ul>
+          <li>Before the studies we had to pick a world where what a Fagi does matters. The horizontal axis is how many seconds a tree takes to bear fruit: on the left food is plentiful, on the right it is scarce.</li>
+          <li>Each line is a version of the program: the full innate one and three broken or learning versions. With plenty of food they all live; with very little, they all die. Neither extreme can measure anything.</li>
+          <li>The vertical line marks the <strong>test world</strong> (575 s): the edge of the cliff, where the innate program lives 75% of the time and breaking one part costs 27–37 points. There, behavior decides.</li>
+        </ul>
+      </details>
       <figure class="wide">
         <div class="panel">
           <div class="legend">
@@ -725,6 +776,15 @@
       </details>
       <h3 id="laboratorio">Try it: this study in your browser</h3>
       <p>This is not an animation: it is the study code running in your browser. Each button launches four lineages of 12 generations —one per format— in <strong>the same world</strong> (same chemistry and catalog, without a simulated spatial map), with the game's brain, body and social code. The seed, parameters and code version allow the experiment to be repeated. Numerical identity across browsers, architectures and Node versions is not guaranteed.</p>
+      <details class="more how-read" open>
+        <summary>How to read this lab</summary>
+        <ul>
+          <li><strong>Pick and run</strong>: the dropdown decides how the world changes at generation 6 and the seed decides the specific world. The button really runs four lineages —one per format— in your browser.</li>
+          <li><strong>Top panel</strong>: the same curves as Figure 7, but from a single lineage per format, so they are much noisier. The buttons switch the measure: survivors, myths or harm.</li>
+          <li><strong>Bottom panel</strong>: the genealogy of beliefs. Each row is one specific belief and the columns are generations. The bar is green while it is true in that world and red when it is false, and it grows thicker the more ants carry it.</li>
+          <li><strong>What to look for</strong>: with the inversion, reasons that were true turn red at generation 6 without changing a letter, and keep passing from mother to daughter. With verdicts or with evidence they get cut sooner.</li>
+        </ul>
+      </details>
       <form id="lab-form" class="lab wide" autocomplete="off">
         <div class="lab-controls">
           <label>World change at generation 6
@@ -940,6 +1000,15 @@
       <p><strong>Why, as far as we measured:</strong> colonies of 12–19 adults dwindle to a handful and are replaced by their neighbours (≈7% of nest-years empty and 115 refoundings on 16 maps in the 24-map run; 91 on 8 maps today, mostly in the hot habitat), erasing what had built up. Bigger colonies (a ceiling of 60) remain the untried remedy. The game's <em>Evolution</em> panel draws these curves live, colony by colony.</p>
       <h3 id="saltos">Rare leaps in the body (fifth study) <span class="tag conf">confirmatory</span></h3>
       <p>In nature almost all variation between mother and daughter is small, but now and then a mutation in a developmental gene makes a big leap in the body (Goldschmidt's "hopeful monsters", 1940). We tested it in the game: with a 5% chance per birth, one to three of the young's organs leap ×1.5–2, up or down, with their normal cost and benefit. Each leap starts a marked line. The control, <em>sham leap</em>, marks the same young with the same draws but changes nothing in them: it measures how far a line spreads by chance alone. Preregistered on 10 October 2026 (commit <code>bb8ca2f</code>, published before running), 96 maps × 4 years per arm; no map died out.</p>
+      <details class="more how-read" open>
+        <summary>How to read this table</summary>
+        <ul>
+          <li><strong>A leap</strong>: now and then (5% of births) a pup is born with one to three organs greatly changed (×1.5–2). Each leap starts a marked lineage.</li>
+          <li><strong>A lineage “takes”</strong> if the pup that leapt leaves at least one daughter. The control, the <em>sham leap</em>, marks random pups without changing anything: it tells how often a lineage takes by pure luck (about 60%).</li>
+          <li><strong>How to compare</strong>: if a kind of leap takes less than the sham, it is a burden; if more, an advantage. “40% vs 60%” means costly leaps took 40 times in 100 and the control 60.</li>
+          <li><strong>In one sentence</strong>: almost every big leap is a burden, and the costlier the organ, the worse it does.</li>
+        </ul>
+      </details>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Hypothesis</th><th class="n">result</th><th class="n">p</th><th>Verdict</th></tr></thead>
@@ -1032,6 +1101,7 @@
       <h2><span class="num">16</span>Roadmap</h2>
       <p><strong>Done since the previous version:</strong> Tyrrell's realism metrics as a baseline; scientific night, learned drives and free-flow selector tested (the first two switched on in the game); budgets matched by species coverage; a body that evolves under real pressures; inheriting what was learned, preregistered; a second study that replicates it, extends it to another damage and measures its cost with the intact program; the circling bug fixed and a fourth study that doubles the gain (+22) and shows that what is inherited is the repair; rare leaps in the body, preregistered; trees that are born and die in the game.</p>
       <ol>
+        <li><strong>A predator</strong> (next milestone, planned): when a mistake can kill, learning by trying is the most expensive way to learn. Does inheriting help more than it does with food? And how long does inherited fear last once the predator is gone? Plan in <code>docs/research/plan-predator.md</code>.</li>
         <li><strong>Learning without breaking what works</strong> (still open after H5): trying only after a bad moment lowered the cost of inheriting from 9 to 5 points; without the movement bug learning and inheriting cost about 5, and that cost is the trials. Next: a bad moment opens trials only if it repeats, or trials depend on how long the nest has gone without food.</li>
         <li><strong>A world where the innate order is not optimal without sabotage</strong> (seasons or maps where the right priority changes): the next step the inheritance preregistration set.</li>
         <li><strong>A richer grammar</strong>, so entities can build more than an order of lines: the underlying aim is that they rewrite their own behavior.</li>
