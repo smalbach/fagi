@@ -72,7 +72,7 @@ const header = (title, extra = '') => `
 
 // --- log in and sign up ---
 
-export function showLogin({ onDone }) {
+export function showLogin({ onDone, onLocal }) {
   const el = paint(`
     ${header(t('auth.login'))}
     <form class="screen-form" id="f-login">
@@ -82,7 +82,12 @@ export function showLogin({ onDone }) {
       <button type="submit" class="primary">${t('auth.loginBtn')}</button>
       <p class="screen-alt"><a href="#" id="go-forgot">${t('auth.forgot')}</a></p>
       <p class="screen-alt">${t('auth.noAccount')} <a href="#" id="go-register">${t('auth.register')}</a></p>
-    </form>`, () => showLogin({ onDone }));
+      <div class="screen-local">
+        <button type="button" id="go-local">${t('local.play')}</button>
+        <small>${t('local.help')}</small>
+      </div>
+    </form>`, () => showLogin({ onDone, onLocal }));
+  el.querySelector('#go-local').addEventListener('click', () => { hide(); onLocal(); });
   el.querySelector('#go-register').addEventListener('click', (e) => { e.preventDefault(); showRegister({ onDone }); });
   el.querySelector('#go-forgot').addEventListener('click', (e) => { e.preventDefault(); showForgot({ onDone }); });
   submitForm(el.querySelector('#f-login'), async (data) => {

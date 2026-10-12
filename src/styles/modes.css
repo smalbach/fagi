@@ -1,5 +1,9 @@
 /* --- game modes --- */
-#setup-bar, #replay-bar, #btn-end, #btn-god { display: none; }
+#setup-bar, #replay-bar, #btn-end, #btn-god, #local-badge { display: none; }
+body.local-mode #local-badge {
+  display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px;
+  font-size: 11px; white-space: nowrap; color: #f2c879; border: 1px solid rgba(242, 200, 121, 0.45);
+}
 body.mode-idle #hud, body.mode-idle #console, body.mode-idle #topbar { display: none; }
 
 /* Setup: the map without Fagi, the buttons to place things and the settings

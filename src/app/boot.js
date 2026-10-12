@@ -5,6 +5,8 @@
 //   on the waitlist     → notice, until an admin approves the account
 //   approved            → home: saved sessions and "New session"
 //   new session         → set up the map and the settings, and "Start session"
+//   play locally        → from the login (or with no server): the same game,
+//                         nothing sent to the server or saved in the database
 
 // First of all: the game plays the whole organism (before settings.js reads
 // its factory values).
@@ -13,9 +15,10 @@ import { get, ApiError } from './api.js';
 import { showLogin, showReset, showWaitlist, showHome, showAdmin, hide, esc } from './screens.js';
 import { createGame } from '../main.js';
 import { retryPending } from '../recorder/sink.js';
-import { t, onLangChange, getLang } from '../i18n.js';
+import { t, onLangChange } from '../i18n.js';
 
 let user = null;
+let local = false;   // playing without an account: nothing leaves the browser
 const game = createGame({ onExit: () => goHome() });
 
 async function start() {
@@ -38,13 +41,24 @@ async function start() {
 
 function decide(u) {
   user = u;
-  if (!u) { showLogin({ onDone: decide }); return; }
+  setLocal(false);
+  if (!u) { showLogin({ onDone: decide, onLocal: playLocal }); return; }
   if (u.status !== 'approved') {
     showWaitlist(u, { onRetry: start, onLogout: () => decide(null) });
     return;
   }
   retryPending();
   goHome();
+}
+
+function setLocal(on) {
+  local = on;
+  document.body.classList.toggle('local-mode', on);
+}
+
+function playLocal() {
+  setLocal(true);
+  newSession();
 }
 
 function goHome() {
@@ -65,20 +79,13 @@ function noServer() {
   el.hidden = false;
   el.innerHTML = `<div class="screen-card"><div class="screen-body">
     <p class="screen-big">${t('err.network')}</p>
-    <p style="margin: 0.5rem 0 1.5rem; opacity: 0.8; font-size: 0.95rem; line-height: 1.4;">
-      ${getLang() === 'es'
-        ? 'El servidor de cuentas/Postgres (:8787) no está conectado. Puedes iniciar directamente una sesión local para jugar y probar las entidades adaptativas.'
-        : 'The account/Postgres server (:8787) is not connected. You can start a local session directly to play and test the adaptive entities.'}
-    </p>
+    <p class="screen-muted">${t('local.help')}</p>
     <div class="screen-actions">
-      <button id="btn-local-play" class="primary">${getLang() === 'es' ? '▶ Jugar en modo local' : '▶ Play local mode'}</button>
+      <button id="btn-local-play" class="primary">${t('local.play')}</button>
       <button id="retry">${t('wait.check')}</button>
     </div>
   </div></div>`;
-  el.querySelector('#btn-local-play').addEventListener('click', () => {
-    hide();
-    newSession();
-  });
+  el.querySelector('#btn-local-play').addEventListener('click', playLocal);
   el.querySelector('#retry').addEventListener('click', start);
 }
 
@@ -98,7 +105,7 @@ document.getElementById('btn-start').addEventListener('click', async (e) => {
   error.textContent = '';
   btn.disabled = true;
   try {
-    await game.begin({ recoverLearning: document.getElementById('chk-recover').checked });
+    await game.begin({ recoverLearning: document.getElementById('chk-recover').checked, local });
   } catch (err) {
     error.textContent = err instanceof ApiError && err.status === 401 ? t('err.unauthenticated') : t('err.network');
   } finally {

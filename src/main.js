@@ -42,7 +42,7 @@ import { createBackend } from './backend/index.js';
 import { createCortex, resetCortex } from './cortex.js';
 import { createRecorder } from './recorder/recorder.js';
 import { createPlayer } from './recorder/replay.js';
-import { createSink } from './recorder/sink.js';
+import { createSink, createLocalSink } from './recorder/sink.js';
 import { createPhylogenyModal } from './phylogeny-modal.js';
 import { createEvolutionModal } from './evolution-modal.js';
 import { post } from './app/api.js';
@@ -242,15 +242,10 @@ export function createGame({ onExit } = {}) {
   }
 
   // --- play ---
-  async function begin({ recoverLearning = false } = {}) {
-    let s = null;
-    try {
-      const res = await post('/sessions');
-      s = res?.session;
-    } catch {
-      s = { id: `local-${Date.now()}` };
-    }
-    s ??= { id: `local-${Date.now()}` };
+  // local: played only in this browser. No session on the server, no events
+  // sent or queued; the recorder runs with a sink that drops everything.
+  async function begin({ recoverLearning = false, local = false } = {}) {
+    const s = local ? { id: `local-${Date.now()}` } : (await post('/sessions')).session;
     newFagi();
     let learned = null;
     if (recoverLearning) {
@@ -265,7 +260,7 @@ export function createGame({ onExit } = {}) {
     // setting up doesn't count.
     world.time = 0;
     world.god = 0;   // edits by hand (godmode.js): a fresh session starts clean
-    const sink = createSink(s.id);
+    const sink = local ? createLocalSink() : createSink(s.id);
     const rec = createRecorder(world, { send: (batch) => sink.send(batch) });
     world.rec = rec;
     rec.start({ config: configSnapshot(), learned });

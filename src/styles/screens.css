@@ -57,3 +57,7 @@ button.primary:hover { background: #468a5b; }
 .status-pending { color: #e8c35d; }
 .status-approved { color: #7fd99a; }
 .status-rejected, .status-disabled { color: #e07a8f; }
+
+/* Play locally: under the login, apart from the account links. */
+.screen-local { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--line, rgba(255,255,255,0.1)); text-align: center; }
+.screen-local small { line-height: 1.4; }

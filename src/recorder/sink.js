@@ -73,6 +73,16 @@ export function createSink(sessionId) {
   };
 }
 
+// Local play: the recorder still runs (the game reads its markers), but the
+// batches go nowhere. No server, no IndexedDB copy, nothing to retry later.
+export function createLocalSink() {
+  return {
+    send() {},
+    end() { return Promise.resolve(true); },
+    unload() {},
+  };
+}
+
 // Whatever was left unsent from previous sessions (tab closed, no network).
 export async function retryPending() {
   const pendingList = await readPending();
