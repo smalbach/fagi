@@ -441,3 +441,14 @@ section > .clip-grid { max-width: var(--wide); }
 .clip-dialog video { display: block; max-width: 96vw; max-height: 90vh; width: auto; height: auto; }
 .clip-dialog button { position: absolute; top: .5rem; right: .5rem; width: 2.2rem; height: 2.2rem; font: 1.1rem/1 var(--sans); color: #f3efe6; background: rgba(14,16,22,.7); border: 1px solid rgba(255,255,255,.25); border-radius: 2px; cursor: pointer; }
 @media (max-width: 720px) { .clip-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- glossary ---------- */
+.gloss { text-decoration: underline dotted var(--ink-3); text-decoration-thickness: 1px; text-underline-offset: .2em; cursor: help; }
+.gloss:hover, .gloss:focus-visible { text-decoration-color: var(--accent); outline: none; color: var(--accent); }
+#gloss-tip { position: fixed; z-index: 60; padding: .7rem .85rem; background: var(--surface); color: var(--ink-2); border: 1px solid var(--rule-strong); border-radius: 8px; box-shadow: 0 6px 24px rgba(0, 0, 0, .14); font: .82rem/1.45 var(--sans); pointer-events: none; }
+#gloss-tip b { display: block; margin-bottom: .2rem; color: var(--ink); font-weight: 600; }
+.glossary { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: .9rem 1.6rem; margin: 1.2rem 0 0; }
+.glossary > div { padding-top: .6rem; border-top: 1px solid var(--rule); scroll-margin-top: 90px; }
+.glossary dt { font: 600 .9rem/1.3 var(--sans); color: var(--ink); }
+.glossary dd { margin: .25rem 0 0; font: .84rem/1.5 var(--sans); color: var(--ink-2); }
+.glossary > div:target { background: var(--accent-soft); }
