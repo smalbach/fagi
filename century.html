@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fagi · un siglo</title>
+<style>
+  :root {
+    --bg: #15181e; --panel: #1e222a; --line: #2e333d; --ink: #e6e3da; --ink-2: #a9adb8; --ink-3: #737885;
+    --accent: #f08a4b; --water: #3a78b5; --tree: #3f8f4e; --rock: #6b6f78; --nest: #b07a43; --fruit: #e3c15a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+  body { display: grid; grid-template-rows: auto 1fr auto; }
+  header { display: flex; align-items: center; gap: 16px; padding: 10px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  header h1 { font-size: 15px; margin: 0; font-weight: 600; }
+  header .stats { display: flex; gap: 18px; flex-wrap: wrap; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  header .stats b { color: var(--ink); font-weight: 600; }
+  main { position: relative; min-height: 0; display: grid; grid-template-columns: 1fr 300px; }
+  #view { width: 100%; height: 100%; display: block; cursor: grab; background: #1b1f26; }
+  #view.drag { cursor: grabbing; }
+  aside { border-left: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; min-height: 0; }
+  aside section { padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  aside h2 { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 8px; font-weight: 600; }
+  #chart { width: 100%; height: 110px; display: block; cursor: pointer; }
+  #ticker { list-style: none; margin: 0; padding: 0; overflow: auto; flex: 1; font-size: 12px; }
+  #ticker li { padding: 4px 14px; border-bottom: 1px solid #262a33; color: var(--ink-2); }
+  #ticker li .t { color: var(--ink-3); font-variant-numeric: tabular-nums; margin-right: 6px; }
+  #ticker li.bud { color: #9fd18b; } #ticker li.grow { color: var(--accent); } #ticker li.death { color: #c98b8b; }
+  #who { min-height: 64px; color: var(--ink-2); font-size: 12px; }
+  footer { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+  button, select { background: #2a2f39; color: var(--ink); border: 1px solid #3a404c; border-radius: 6px; padding: 6px 10px; font: inherit; cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  input[type=range] { accent-color: var(--accent); }
+  #year { width: 240px; } #time { flex: 1; min-width: 160px; }
+  .label { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  #msg { position: absolute; inset: 0; display: grid; place-items: center; color: var(--ink-2); pointer-events: none; text-align: center; padding: 16px; }
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; color: var(--ink-3); font-size: 11px; }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
+  @media (max-width: 800px) {
+    html, body { height: auto; }
+    body { min-height: 100%; }
+    main { grid-template-columns: 1fr; grid-template-rows: 62vh auto; }
+    aside { border-left: 0; border-top: 1px solid var(--line); }
+    #ticker { max-height: 260px; }
+    footer { position: sticky; bottom: 0; background: var(--bg); z-index: 1; }
+    #year { width: 120px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Fagi · un siglo</h1>
+  <div class="stats">
+    <span>Año <b id="s-year">–</b></span>
+    <span><b id="s-season">–</b></span>
+    <span>Vivas <b id="s-alive">–</b></span>
+    <span>Nidos <b id="s-nests">–</b></span>
+    <span>Mapa <b id="s-map">–</b></span>
+    <span>Árboles <b id="s-trees">–</b> · Lagos <b id="s-water">–</b></span>
+    <span>Este año: <b id="s-births">0</b> nacimientos · <b id="s-deaths">0</b> muertes</span>
+  </div>
+</header>
+<main>
+  <canvas id="view"></canvas>
+  <div id="msg">Cargando…</div>
+  <aside>
+    <section>
+      <h2>Población por año</h2>
+      <canvas id="chart"></canvas>
+    </section>
+    <section>
+      <h2>Seleccionada</h2>
+      <div id="who">Haz clic en una Fagi.</div>
+    </section>
+    <section class="legend">
+      <span><i style="background:var(--water)"></i>agua</span>
+      <span><i style="background:var(--tree)"></i>árbol</span>
+      <span><i style="background:var(--rock)"></i>roca</span>
+      <span><i style="background:var(--nest)"></i>nido</span>
+      <span><i style="background:var(--fruit)"></i>fruto</span>
+      <span>Fagis: color de su nido</span>
+    </section>
+    <section style="padding-bottom:6px"><h2 style="margin:0">Sucesos</h2></section>
+    <ul id="ticker"></ul>
+  </aside>
+</main>
+<footer>
+  <button id="play">▶ Reproducir</button>
+  <select id="speed" title="Segundos de juego por segundo real">
+    <option value="60">×60</option>
+    <option value="300" selected>×300</option>
+    <option value="1200">×1200</option>
+    <option value="3600">1 año/min</option>
+  </select>
+  <span class="label">Año</span>
+  <input id="year" type="range" min="1" max="1" value="1">
+  <span class="label">Dentro del año</span>
+  <input id="time" type="range" min="0" max="1000" value="0">
+  <button id="fit">Ajustar vista</button>
+</footer>
+<script type="module">
+// The century player: replays what scripts/century.js recorded (the world as
+// each year begins, its events, every Fagi's place every few seconds).
+// ?data=<url of the run's folder>, by default /research/century/.
+
+const q = new URLSearchParams(location.search);
+const BASE = (q.get('data') ?? '/research/century/').replace(/\/?$/, '/');
+const $ = (id) => document.getElementById(id);
+const canvas = $('view'), ctx = canvas.getContext('2d');
+const chart = $('chart'), cctx = chart.getContext('2d');
+const pad = (y) => String(y).padStart(4, '0');
+
+// A .gz file, unzipped here unless the server already did (gzip's magic bytes).
+async function fetchGz(url, as) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${url}: ${res.status}`);
+  let buf = await res.arrayBuffer();
+  const b = new Uint8Array(buf, 0, Math.min(2, buf.byteLength));
+  if (b[0] === 0x1f && b[1] === 0x8b) buf = await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+  return as === 'buffer' ? buf : new TextDecoder().decode(buf);
+}
+
+// What there is: the run's index and every finished year's numbers.
+const index = await fetch(BASE + 'index.json').then((r) => (r.ok ? r.json() : null)).catch(() => null);
+if (!index) { $('msg').textContent = `No encuentro la corrida en ${BASE} (index.json). Lánzala con scripts/century.js.`; throw new Error('no run'); }
+const summaries = [];
+for (let y = 1; y <= index.years; y++) {
+  const s = await fetch(`${BASE}years/${pad(y)}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  if (!s) break;
+  summaries.push(s);
+}
+if (!summaries.length) { $('msg').textContent = 'La corrida aún no ha terminado su primer año. Vuelve en un rato.'; throw new Error('no years'); }
+$('year').max = summaries.length;
+const YEAR = index.year;
+
+// One year loaded: its start, its events in order, its frames.
+let Y = null;
+async function loadYear(y) {
+  $('msg').textContent = `Cargando el año ${y}…`;
+  const [startText, eventsText, frameBuf] = await Promise.all([
+    fetchGz(`${BASE}years/${pad(y)}.start.json.gz`),
+    fetchGz(`${BASE}years/${pad(y)}.events.jsonl.gz`),
+    fetchGz(`${BASE}years/${pad(y)}.frames.bin.gz`, 'buffer'),
+  ]);
+  const start = JSON.parse(startText);
+  const events = eventsText ? eventsText.split('\n').map((l) => JSON.parse(l)) : [];
+  const view = new DataView(frameBuf);
+  const frames = [];
+  for (let off = 0; off < frameBuf.byteLength;) {
+    const t = view.getFloat64(off, true), n = view.getUint32(off + 8, true);
+    frames.push({ t, n, off: off + 12 });
+    off += 12 + n * 12;
+  }
+  const people = new Map(start.living.map((p) => [p.id, p]));
+  for (const e of events) if (e.type === 'born') people.set(e.id, e);
+  Y = { y, start, events, frames, view, people, summary: summaries[y - 1], t0: start.t, t1: start.t + YEAR };
+  reset();
+  $('msg').textContent = '';
+}
+
+// The world at the player's clock: rebuilt from the year's start, events applied up to now.
+const W = { objects: new Map(), points: new Map(), width: 0, height: 0, cursor: 0, births: 0, deaths: 0, season: '', rain: false };
+function reset() {
+  W.objects = new Map(Y.start.objects.map((o) => [o.id, { ...o }]));
+  W.points = new Map(Y.start.points.map((p) => [p.id, { ...p }]));
+  W.width = Y.start.width; W.height = Y.start.height;
+  W.cursor = 0; W.births = 0; W.deaths = 0; W.rain = false;
+  ticker.length = 0;
+  now = Y.t0;
+}
+const ticker = [];
+function note(e, cls, text) { ticker.push({ t: e.t, cls, text }); if (ticker.length > 60) ticker.shift(); }
+// A name as names.js keeps it: { given, first, second } (or a plain string).
+const nameOf = (p, id) => { const n = p?.name; if (!n) return `#${id}`; return typeof n === 'string' ? n : [n.given, n.first].filter(Boolean).join(' '); };
+const fullNameOf = (p, id) => { const n = p?.name; if (!n) return `#${id}`; return typeof n === 'string' ? n : [n.given, n.first, n.second].filter(Boolean).join(' '); };
+const HABITAT_ES = { cold: 'frío', hot: 'cálido', toxic: 'tóxico', lean: 'pobre' };
+const CAUSE = { age: 'vejez', heat: 'calor', cold: 'frío', thirst: 'sed', hunger: 'hambre', poison: 'veneno', unknown: '¿?' };
+const SEASON = { winter: 'invierno', spring: 'primavera', summer: 'verano', autumn: 'otoño', none: '' };
+function apply(e) {
+  switch (e.type) {
+    case 'obj_add': W.objects.set(e.id, { id: e.id, what: e.what, x: e.x, y: e.y, r: e.r }); break;
+    case 'obj_remove': W.objects.delete(e.id); break;
+    case 'obj_resize': { const o = W.objects.get(e.id); if (o) o.r = e.r; break; }
+    case 'obj_fruit': { const o = W.objects.get(e.id); if (o) o.fruit = e.what; break; }
+    case 'point_add': W.points.set(e.id, { id: e.id, what: e.what, x: e.x, y: e.y }); break;
+    case 'point_remove': W.points.delete(e.id); break;
+    case 'point_rot': { const p = W.points.get(e.id); if (p) p.what = e.what; break; }
+    case 'map_grow': W.width = e.width; W.height = e.height; note(e, 'grow', `El mapa crece a ${e.width}×${e.height}`); fitIfWhole(); break;
+    case 'colony_found': if (e.bud) { const o = W.objects.get(e.to); if (o && e.habitat) o.habitat = e.habitat; note(e, 'bud', `Un grupo de ${e.party} funda un nido nuevo${e.habitat ? ` (${HABITAT_ES[e.habitat] ?? e.habitat})` : ''}`); } break;
+    case 'disperse': note(e, '', `Un macho se muda a otro nido para aparearse`); break;
+    case 'born': W.births++; if (W.births % 5 === 1) note(e, '', `Nace ${nameOf(e, e.id)} (gen. ${e.generation})`); break;
+    case 'death': W.deaths++; note(e, 'death', `Muere ${nameOf(Y.people.get(e.id), e.id)} (${CAUSE[e.cause] ?? e.cause}, ${(e.age / 180).toFixed(0)} días)`); break;
+    case 'season': W.season = SEASON[e.name] ?? e.name; break;
+    case 'rain': W.rain = Boolean(e.on); break;
+  }
+}
+function advanceTo(t) {
+  if (t < now) { reset(); }
+  while (W.cursor < Y.events.length && Y.events[W.cursor].t <= t) apply(Y.events[W.cursor++]);
+  now = t;
+}
+
+// Where each Fagi is at time t: the two frames around it, blended.
+function frameAt(t) {
+  const f = Y.frames;
+  let lo = 0, hi = f.length - 1;
+  if (!f.length) return -1;
+  if (t < f[0].t) return 0;   // before the year's first frame: where they were then
+  while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (f[mid].t <= t) lo = mid; else hi = mid - 1; }
+  return lo;
+}
+const nextIndex = new Map();
+let nextFor = -1;
+function fagisAt(t) {
+  const i = frameAt(t);
+  if (i < 0) return [];
+  const a = Y.frames[i], b = Y.frames[i + 1];
+  const k = b ? Math.min(1, Math.max(0, (t - a.t) / (b.t - a.t))) : 0;
+  const v = Y.view;
+  if (b && nextFor !== i + 1) {
+    nextIndex.clear();
+    for (let j = 0; j < b.n; j++) nextIndex.set(v.getUint32(b.off + j * 12, true), j);
+    nextFor = i + 1;
+  }
+  const out = new Array(a.n);
+  for (let j = 0; j < a.n; j++) {
+    const o = a.off + j * 12;
+    const id = v.getUint32(o, true);
+    let x = v.getUint16(o + 4, true), y = v.getUint16(o + 6, true);
+    const jb = b ? nextIndex.get(id) : undefined;
+    if (jb !== undefined && k > 0) {
+      const ob = b.off + jb * 12;
+      const xb = v.getUint16(ob + 4, true), yb = v.getUint16(ob + 6, true);
+      if (Math.hypot(xb - x, yb - y) < 400) { x += (xb - x) * k; y += (yb - y) * k; }
+    }
+    out[j] = { id, x, y, heading: v.getUint8(o + 8) / 256 * 2 * Math.PI, action: v.getUint8(o + 9), flags: v.getUint8(o + 10), nest: v.getUint8(o + 11) };
+  }
+  return out;
+}
+
+// The camera: the whole map by default; wheel to zoom, drag to move.
+const cam = { x: 0, y: 0, k: 1, whole: true };
+function size() {
+  const r = canvas.getBoundingClientRect(), dpr = devicePixelRatio || 1;
+  canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
+  const cr = chart.getBoundingClientRect();
+  chart.width = Math.round(cr.width * dpr); chart.height = Math.round(cr.height * dpr);
+  if (cam.whole) fit();
+}
+function fit() {
+  const k = Math.min(canvas.width / W.width, canvas.height / W.height) * 0.96;
+  cam.k = k; cam.x = W.width / 2; cam.y = W.height / 2; cam.whole = true;
+}
+function fitIfWhole() { if (cam.whole) fit(); }
+const toScreen = (x, y) => [(x - cam.x) * cam.k + canvas.width / 2, (y - cam.y) * cam.k + canvas.height / 2];
+const toWorld = (sx, sy) => [(sx - canvas.width / 2) / cam.k + cam.x, (sy - canvas.height / 2) / cam.k + cam.y];
+addEventListener('resize', size);
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const dpr = devicePixelRatio || 1;
+  const [wx, wy] = toWorld(e.offsetX * dpr, e.offsetY * dpr);
+  cam.k *= Math.exp(-e.deltaY * 0.0015);
+  cam.k = Math.max(0.02, Math.min(8, cam.k));
+  const [sx, sy] = toScreen(wx, wy);
+  cam.x += (sx - e.offsetX * dpr) / cam.k; cam.y += (sy - e.offsetY * dpr) / cam.k;
+  cam.whole = false;
+}, { passive: false });
+let drag = null;
+canvas.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, moved: false }; canvas.setPointerCapture(e.pointerId); canvas.classList.add('drag'); });
+canvas.addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  const dpr = devicePixelRatio || 1;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+  cam.x -= dx * dpr / cam.k; cam.y -= dy * dpr / cam.k; drag.x = e.clientX; drag.y = e.clientY;
+  if (drag.moved) cam.whole = false;
+});
+canvas.addEventListener('pointerup', (e) => {
+  canvas.classList.remove('drag');
+  if (drag && !drag.moved) pick(e);
+  drag = null;
+});
+$('fit').onclick = fit;
+
+// Clicking a Fagi: who she is.
+let selected = null;
+function pick(e) {
+  const dpr = devicePixelRatio || 1;
+  const [wx, wy] = toWorld(e.offsetX * dpr, e.offsetY * dpr);
+  let best = null, bd = 14 / cam.k;
+  for (const f of fagisAt(now)) { const d = Math.hypot(f.x - wx, f.y - wy); if (d < bd) { bd = d; best = f; } }
+  selected = best?.id ?? null;
+  showWho();
+}
+function showWho() {
+  if (selected == null) { $('who').textContent = 'Haz clic en una Fagi.'; return; }
+  const p = Y.people.get(selected);
+  const f = fagisAt(now).find((x) => x.id === selected);
+  const s = Y.summary;
+  if (!f) { $('who').innerHTML = `<b>${fullNameOf(p, selected)}</b><br>Ya no está viva en este momento.`; return; }
+  const act = s.actions?.[f.action] ?? '–';
+  $('who').innerHTML = `<b>${fullNameOf(p, selected)}</b> · ${f.flags & 8 ? 'macho' : 'hembra'}${f.flags & 1 ? ' · juvenil' : ''}<br>`
+    + `Generación ${p?.generation ?? '–'} · nido ${f.nest === 255 ? '–' : f.nest + 1}<br>Haciendo: ${act}${f.flags & 2 ? ' · cargando' : ''}${f.flags & 4 ? ' · en su nido' : ''}`;
+}
+
+// Drawing.
+const nestHue = (i) => (i * 137.508) % 360;
+const HABITAT = { cold: '#6fa8dc', hot: '#e8912d', toxic: '#a86fd6', lean: '#c9b458' };
+function draw() {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = '#1b1f26';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const [x0, y0] = toScreen(0, 0);
+  ctx.fillStyle = '#232a22';
+  ctx.fillRect(x0, y0, W.width * cam.k, W.height * cam.k);
+  // The base map's outline: where the century began.
+  ctx.strokeStyle = 'rgba(240,138,75,.35)'; ctx.lineWidth = 1;
+  ctx.strokeRect(x0, y0, index.base.width * cam.k, index.base.height * cam.k);
+  ctx.setTransform(cam.k, 0, 0, cam.k, canvas.width / 2 - cam.x * cam.k, canvas.height / 2 - cam.y * cam.k);
+  const order = { water: 0, rock: 1, nest: 2, tree: 3 };
+  const objs = [...W.objects.values()].sort((a, b) => (order[a.what] ?? 4) - (order[b.what] ?? 4));
+  const nestIds = Y.summary.nestIds ?? [];
+  for (const o of objs) {
+    ctx.beginPath();
+    ctx.arc(o.x, o.y, o.r ?? 10, 0, Math.PI * 2);
+    if (o.what === 'water') { ctx.fillStyle = '#3a78b5'; ctx.fill(); }
+    else if (o.what === 'rock') { ctx.fillStyle = '#5d616a'; ctx.fill(); }
+    else if (o.what === 'tree') { ctx.fillStyle = o.fruit === 'toxic' ? 'rgba(150,90,180,.55)' : 'rgba(63,143,78,.6)'; ctx.fill(); }
+    else if (o.what === 'nest') {
+      const i = nestIds.indexOf(o.id);
+      ctx.fillStyle = '#6b4a2b'; ctx.fill();
+      ctx.lineWidth = 4 / Math.max(cam.k, 0.25); ctx.strokeStyle = i >= 0 ? `hsl(${nestHue(i)} 70% 60%)` : '#b07a43'; ctx.stroke();
+      if (o.habitat) { ctx.beginPath(); ctx.arc(o.x, o.y, (o.r ?? 20) + 10, 0, Math.PI * 2); ctx.lineWidth = 2 / Math.max(cam.k, 0.25); ctx.strokeStyle = HABITAT[o.habitat] ?? '#888'; ctx.stroke(); }
+    }
+  }
+  ctx.fillStyle = '#e3c15a';
+  const fr = Math.max(2, 1.5 / cam.k);
+  for (const p of W.points.values()) { ctx.fillRect(p.x - fr / 2, p.y - fr / 2, fr, fr); }
+  const fs = fagisAt(now);
+  const base = 3.2 * (devicePixelRatio || 1) / cam.k;   // a few screen px at any zoom
+  for (const f of fs) {
+    const r = f.flags & 1 ? base * 0.65 : base;
+    ctx.fillStyle = f.nest === 255 ? '#ddd' : `hsl(${nestHue(f.nest)} 75% 62%)`;
+    ctx.beginPath(); ctx.arc(f.x, f.y, r, 0, Math.PI * 2); ctx.fill();
+    if (cam.k > 0.6) { ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineWidth = 1 / cam.k; ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x + Math.cos(f.heading) * r * 1.8, f.y + Math.sin(f.heading) * r * 1.8); ctx.stroke(); }
+    if (f.id === selected) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2 / cam.k; ctx.beginPath(); ctx.arc(f.x, f.y, r + 5 / cam.k, 0, Math.PI * 2); ctx.stroke(); }
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  if (W.rain) { ctx.fillStyle = 'rgba(120,150,200,.08)'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+  // The header.
+  const frac = (now - Y.t0) / YEAR;
+  $('s-year').textContent = `${Y.y}${frac > 0.001 ? ` · ${(frac * 100).toFixed(0)} %` : ''}`;
+  $('s-season').textContent = W.season || '';
+  $('s-alive').textContent = fs.length;
+  let nests = 0, trees = 0, water = 0;
+  for (const o of W.objects.values()) { if (o.what === 'nest') nests++; else if (o.what === 'tree') trees++; else if (o.what === 'water') water++; }
+  $('s-nests').textContent = nests; $('s-trees').textContent = trees; $('s-water').textContent = water;
+  $('s-map').textContent = `${W.width}×${W.height} px (${(W.width / index.base.width).toFixed(1)}×)`;
+  $('s-births').textContent = W.births; $('s-deaths').textContent = W.deaths;
+}
+
+// The population over the century, and where the player is.
+function drawChart() {
+  const w = chart.width, h = chart.height, dpr = devicePixelRatio || 1;
+  cctx.clearRect(0, 0, w, h);
+  const vals = [4, ...summaries.map((s) => s.alive)];
+  const max = Math.max(...vals, 10);
+  const span = Math.max(index.years, summaries.length);
+  const X = (i) => 6 * dpr + (i / span) * (w - 12 * dpr), Yp = (v) => h - 14 * dpr - (v / max) * (h - 24 * dpr);
+  cctx.strokeStyle = '#2e333d'; cctx.lineWidth = dpr; cctx.beginPath(); cctx.moveTo(X(0), Yp(0)); cctx.lineTo(X(span), Yp(0)); cctx.stroke();
+  cctx.strokeStyle = '#f08a4b'; cctx.lineWidth = 2 * dpr; cctx.beginPath();
+  vals.forEach((v, i) => (i ? cctx.lineTo(X(i), Yp(v)) : cctx.moveTo(X(i), Yp(v)))); cctx.stroke();
+  if (Y) { const xi = X(Y.y - 1 + (now - Y.t0) / YEAR); cctx.strokeStyle = '#e6e3da'; cctx.lineWidth = dpr; cctx.beginPath(); cctx.moveTo(xi, 4 * dpr); cctx.lineTo(xi, h - 14 * dpr); cctx.stroke(); }
+  cctx.fillStyle = '#737885'; cctx.font = `${10 * dpr}px system-ui`;
+  cctx.fillText(`máx. ${max}`, 6 * dpr, 11 * dpr);
+  cctx.fillText(`${summaries.length} de ${index.years} años`, w - 90 * dpr, h - 2 * dpr);
+  chart.onclick = (e) => { const i = Math.round(((e.offsetX * dpr - 6 * dpr) / (w - 12 * dpr)) * span); goYear(Math.max(1, Math.min(summaries.length, i))); };
+}
+function renderTicker() {
+  $('ticker').innerHTML = ticker.slice(-40).reverse().map((n) => `<li class="${n.cls}"><span class="t">${(((n.t - Y.t0) / YEAR) * 100).toFixed(0)}%</span>${n.text}</li>`).join('');
+}
+
+// Playing.
+let now = 0, playing = false, last = performance.now(), lastTicker = 0;
+async function goYear(y) {
+  playing = false; $('play').textContent = '▶ Reproducir';
+  $('year').value = y;
+  await loadYear(y);
+  fitIfWhole(); drawChart();
+}
+$('year').oninput = (e) => goYear(Number(e.target.value));
+$('time').oninput = (e) => { if (Y) advanceTo(Y.t0 + (Number(e.target.value) / 1000) * YEAR); };
+$('play').onclick = () => { playing = !playing; $('play').textContent = playing ? '❚❚ Pausa' : '▶ Reproducir'; last = performance.now(); };
+async function frame(ts) {
+  const dt = Math.min(0.1, (ts - last) / 1000); last = ts;
+  if (Y && playing) {
+    const t = now + dt * Number($('speed').value);
+    if (t >= Y.t1) {
+      if (Y.y < summaries.length) { const keep = playing; await goYear(Y.y + 1); playing = keep; $('play').textContent = playing ? '❚❚ Pausa' : '▶ Reproducir'; last = performance.now(); }
+      else { advanceTo(Y.t1 - 0.01); playing = false; $('play').textContent = '▶ Reproducir'; }
+    } else advanceTo(t);
+    $('time').value = Math.round(((now - Y.t0) / YEAR) * 1000);
+  }
+  if (Y) {
+    draw();
+    if (ts - lastTicker > 250) { renderTicker(); drawChart(); if (selected != null) showWho(); lastTicker = ts; }
+  }
+  requestAnimationFrame(frame);
+}
+size();
+await goYear(Number(q.get('year') ?? 1));
+size();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
