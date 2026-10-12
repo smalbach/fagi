@@ -163,6 +163,7 @@
       <li><a href="#cuerpo">Colonias que evolucionan</a></li>
       <li><a href="#saltos">Saltos en el cuerpo</a></li>
       <li><a href="#metodo">Método</a></li>
+      <li><a href="#programado">¿No está todo programado?</a></li>
       <li><a href="#limites">Limitaciones</a></li>
       <li><a href="#ruta">Hoja de ruta</a></li>
       <li><a href="#reproducir">Reproducir</a></li>
@@ -973,9 +974,33 @@
     </section>
 
 
+    <!-- 10b -->
+    <section id="programado">
+      <h2><span class="num">14</span>¿No está todo programado?</h2>
+      <p>Sí, y conviene decirlo primero. Lo programado son las <strong>reglas</strong>: cómo es un cuerpo, qué siente, cómo se forma una sinapsis, cómo pasa una regla de madre a hija. Lo que ninguna línea dice es lo que cada Fagi <strong>hace</strong> con ellas. Es la misma distancia que hay entre las leyes de la química y lo que hace un animal.</p>
+      <div class="grid2">
+        <div>
+          <h3>Nadie escribió el resultado</h3>
+          <p>No hay una línea que diga «la hija que hereda vive más». La ventaja de +22 puntos salió de correr el mundo, y la hipótesis se congeló antes de correrlo precisamente porque podía salir al revés.</p>
+          <h3>Las predicciones fallan</h3>
+          <p>Si el resultado estuviera escrito de antemano, ninguna predicción fallaría. Fallaron muchas: seis pruebas no encontraron adaptación local, filtrar la herencia por evidencia no fue viable y heredar con el programa intacto resultó costar. Están en la <a href="#negativos">sección 11</a>.</p>
+        </div>
+        <div>
+          <h3>Conductas que nadie quería</h3>
+          <p>En los tres primeros estudios las Fagis caminaban en círculo el 18 % del tiempo. Nadie lo escribió: salió del encuentro entre olfato, árboles y charcos, y hubo que buscarlo y corregirlo. En la primera versión de los árboles, el bosque se alejó de los nidos y 5 de 16 mapas se extinguieron. Son conductas de conjunto, no de una línea.</p>
+          <h3>Mismo código, vidas distintas</h3>
+          <p>Con el mismo código, cambiar solo la semilla del mundo da otras vidas, otros linajes y otras reglas aprendidas. Por eso los estudios cuentan decenas de poblaciones por condición: el resultado no se puede leer en el código, hay que medirlo.</p>
+        </div>
+      </div>
+      <h3>Qué quiere decir aquí «espontáneo»</h3>
+      <p>No que no tenga causa: nada vivo funciona sin causa, y un animal es genes, ambiente e historia. Aquí espontáneo quiere decir algo comprobable: <strong>una conducta que nadie escribió y que no se puede predecir sin correr la simulación</strong>. En ese sentido Fagi es espontánea. En el sentido de libre de causas no lo es, como no lo es nada.</p>
+      <div class="note"><b>Lo que no decimos</b>Su repertorio está acotado por lo que su cuerpo puede sentir y hacer; reordena su programa con una gramática fija y aún no inventa estructura de conducta nueva (ver «Dónde estamos con la auto-reescritura»). El LLM que reescribía su código no aprendió de lo vivido (0 de 10 linajes). No afirmamos consciencia ni experiencia: la medida del proyecto es si se comporta y aprende como algo vivo, no si lo está.</div>
+    </section>
+
+
     <!-- 11 -->
     <section id="limites">
-      <h2><span class="num">14</span>Limitaciones</h2>
+      <h2><span class="num">15</span>Limitaciones</h2>
       <ul>
         <li><strong>Heredar lo aprendido solo ayuda cuando hay algo roto.</strong> La ganancia se midió reparando daños puestos a propósito (<code>dusk</code> y <code>shelter</code> al final); con el programa intacto, aprender y heredar cuestan. No demuestra que el aprendizaje encuentre algo que el programa innato no tenga. Los tres primeros estudios corrieron con un fallo de movimiento (vueltas en círculo, 18 % del tiempo); el cuarto lo corrigió en dos mundos recalibrados (un fruto cada 550 y 570 s). Vidas de 2 horas; las hijas viven solas, no en colonia.</li>
         <li><strong>Los saltos son limpios.</strong> En el quinto estudio un salto cambia uno a tres órganos y nada más; las mutaciones grandes reales tienen efectos secundarios. Un solo ritmo de saltos (5 %) y cuatro años.</li>
@@ -994,7 +1019,7 @@
 
     <!-- 12 -->
     <section id="ruta">
-      <h2><span class="num">15</span>Hoja de ruta</h2>
+      <h2><span class="num">16</span>Hoja de ruta</h2>
       <p><strong>Hecho desde la versión anterior:</strong> métricas de realismo de Tyrrell como línea base; noche científica, impulsos aprendidos y selector de flujo libre probados (los dos primeros encendidos en el juego); igualar presupuestos por cobertura de especies; un cuerpo que evoluciona con presiones reales; heredar lo aprendido, preregistrado; un segundo estudio que lo replica, lo extiende a otro daño y mide su coste con el programa intacto; el fallo de las vueltas corregido y un cuarto estudio que duplica la ventaja (+22) y muestra que lo que se hereda es la reparación; saltos raros en el cuerpo, preregistrados; árboles que nacen y mueren en el juego.</p>
       <ol>
         <li><strong>Aprender sin estropear lo que funciona</strong> (sigue abierto tras H5): ensayar solo tras un mal momento redujo el coste de heredar de 9 a 5 puntos; sin el fallo de movimiento aprender y heredar cuestan unos 5, y ese coste son los ensayos. Lo siguiente: que un mal momento abra ensayos solo si se repite, o que los ensayos dependan de cuánto lleva sin comer el nido.</li>
@@ -1008,7 +1033,7 @@
 
     <!-- 13 -->
     <section id="reproducir">
-      <h2><span class="num">16</span>Reproducir</h2>
+      <h2><span class="num">17</span>Reproducir</h2>
       <p>Muchas filas crudas no se versionan: <code>research/run.js</code> escribe junto a ellas un <code>manifest.json</code> con el diseño, las semillas y el commit, para repetirlas con la misma revisión y entorno de ejecución. Los comandos siguientes usan el código del checkout; para reproducir cifras históricas, hay que usar el commit de cada estudio. Node ≥ 22.</p>
 <pre><code><span class="c"># estudio principal de laboratorio (12 800 linajes, ~5 min)</span>
 node research/run.js --design research/designs/main.json
@@ -1046,7 +1071,7 @@ npm test</code></pre>
 
     <!-- 14 -->
     <section id="referencias">
-      <h2><span class="num">17</span>Referencias</h2>
+      <h2><span class="num">18</span>Referencias</h2>
       <p class="muted">Agrupadas por la idea que el proyecto toma de cada una. La revisión completa está en <code>reports/Razones frente a conclusiones culturales.md</code>, que trabajó mayormente con resúmenes.</p>
 
       <h3>Transmitir teorías y cultura acumulativa</h3>
