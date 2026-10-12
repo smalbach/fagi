@@ -411,6 +411,9 @@ details.more { margin: 1.4rem 0; border: 1px solid var(--rule); background: var(
 details.more > summary { cursor: pointer; padding: 1rem 0; font: 600 .9rem/1.4 var(--sans); color: var(--ink); }
 details.more[open] > summary { border-bottom: 1px solid var(--rule); margin-bottom: 1rem; }
 details.more > :last-child { margin-bottom: 1.2rem; }
+details.how-read { margin: 1rem 0 1.2rem; }
+details.how-read ul { margin: 0; padding-left: 1.1rem; font: .86rem/1.5 var(--sans); color: var(--ink-2); }
+details.how-read li + li { margin-top: .4rem; }
 /* the culture lab, one panel under the other so its text stays legible */
 .lab-grid.lab-stack { grid-template-columns: 1fr; }
 main h4 { margin: 1.4rem 0 .5rem; font: 600 .95rem/1.4 var(--sans); color: var(--ink); }
