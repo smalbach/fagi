@@ -9,7 +9,7 @@ const LANG = document.documentElement.lang === 'en' ? 'en' : 'es';
 const L = (es, en) => (LANG === 'en' ? en : es);
 
 const W = 520;
-const H = 440;
+const H = 520;
 const TOP = 34;      // below the column headings
 const BOTTOM = 14;
 const X = { sense: 84, key: 236, right: 356 };
