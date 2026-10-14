@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { execSync, spawn } from 'node:child_process'
@@ -67,8 +67,32 @@ function siteAtRoot() {
   }
 }
 
+// Microsoft Clarity (visits, heatmaps, recordings). The project ID comes from
+// CLARITY_PROJECT_ID (Railway service variable, or .env locally) and is read at
+// build time, so changing it needs a redeploy. Without it, nothing is added.
+// Only built pages get it: `npm run dev` never sends visits to Clarity.
+function clarity() {
+  let id = ''
+  return {
+    name: 'fagi-clarity',
+    apply: 'build',
+    configResolved(config) {
+      id = (process.env.CLARITY_PROJECT_ID ?? loadEnv(config.mode, process.cwd(), '').CLARITY_PROJECT_ID ?? '').trim()
+      if (id && !/^[a-z0-9]+$/i.test(id)) throw new Error(`CLARITY_PROJECT_ID is not a valid Clarity project ID: "${id}"`)
+    },
+    transformIndexHtml() {
+      if (!id) return []
+      return [{
+        tag: 'script',
+        injectTo: 'head',
+        children: `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","${id}");`,
+      }]
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [siteAtRoot(), apiServer()],
+  plugins: [siteAtRoot(), apiServer(), clarity()],
   define: {
     __APP_VERSION__: JSON.stringify(version),
     __APP_COMMIT__: JSON.stringify(commit()),

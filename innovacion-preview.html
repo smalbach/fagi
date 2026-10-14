@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evaluación de innovación</title>
+<style>
+:root{--bg:#f7f5f0;--fg:#1d1c1a;--muted:#6b675f;--card:#fff;--line:#e3dfd5;--bad:#b3261e;--ok:#1f7a4a;--mid:#a86b00;--accent:#2f5d8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#151514;--fg:#ecebe7;--muted:#a19d94;--card:#1f1f1d;--line:#33322e;--bad:#ff8a80;--ok:#6fd39b;--mid:#f0b54a;--accent:#8ab4e0}}
+:root[data-theme="dark"]{--bg:#151514;--fg:#ecebe7;--muted:#a19d94;--card:#1f1f1d;--line:#33322e;--bad:#ff8a80;--ok:#6fd39b;--mid:#f0b54a;--accent:#8ab4e0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 Georgia,"Iowan Old Style",serif}
+main{max-width:760px;margin:0 auto;padding:48px 16px 80px}
+h1{font-size:2.1rem;line-height:1.15;margin:0 0 8px}
+h2{font:600 1.05rem/1.3 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:48px 0 12px;border-top:1px solid var(--line);padding-top:20px}
+.sub{color:var(--muted);font-family:system-ui,sans-serif;font-size:.9rem}
+.scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:28px 0}
+.score{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+.score b{display:block;font:700 2rem/1 system-ui,sans-serif}
+.score span{font:.85rem/1.4 system-ui,sans-serif;color:var(--muted)}
+.bad b{color:var(--bad)}.ok b{color:var(--ok)}.mid b{color:var(--mid)}
+ol,ul{padding-left:1.3em}li{margin:6px 0}
+.call{background:var(--card);border-left:4px solid var(--accent);padding:14px 18px;border-radius:0 8px 8px 0;margin:20px 0}
+.call.bad{border-color:var(--bad)}
+table{width:100%;border-collapse:collapse;font:.9rem/1.45 system-ui,sans-serif;margin:12px 0}
+td,th{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600}
+.refs li{font-size:.92rem}
+@media (max-width:520px){h1{font-size:1.6rem}table{font-size:.82rem}}
+</style>
+</head>
+<body>
+<main>
+<p class="sub">Fagi · revisión interna · 9 oct 2026</p>
+<h1>¿Cuánto tiene de innovación?</h1>
+<p class="sub">Evaluación sincera antes de publicar: sitio, dos estudios preregistrados de herencia, líneas cerradas (LIBERA, plan C, adaptación local) y notas del proyecto.</p>
+
+<div class="scores">
+  <div class="score bad"><b>3/10</b><span>Novedad científica. El resultado principal era previsible y ya está en la literatura.</span></div>
+  <div class="score ok"><b>7/10</b><span>Método. Preregistro, nulos publicados, determinismo, procedencia de cada creencia.</span></div>
+  <div class="score bad"><b>No</b><span>Meta original: entes que reescriben su propio código.</span></div>
+</div>
+
+<h2>El titular es el punto débil</h2>
+<div class="call bad"><strong>«Heredar supera a aprender»</strong>, dicho sin condición, contradice tus propios datos: con el programa intacto heredar <strong>pierde 9 puntos</strong>. Solo gana cuando hay un daño puesto a propósito.</div>
+<ol>
+  <li><strong>Casi una tautología por diseño.</strong> Rompes una línea, la madre la repara y la hija nace con la reparación. Que viva más que una hija que tiene que repararla otra vez era lo esperable.</li>
+  <li><strong>Es Lamarck contra Darwin en un mundo estable, y eso ya está publicado.</strong> Ackley y Littman (1994), Whitley y colegas (1994) y Sasaki y Tokoro (1997, 2000) lo mostraron: la herencia lamarckiana gana si el mundo no cambia y pierde si cambia. El sitio cita a Ackley y Littman solo como «sistema cercano», sin comparar tu resultado con el suyo.</li>
+  <li><strong>«También se heredan los errores» es conocido.</strong> Es la paradoja de Rogers (1988), la estufa caliente de Denrell y March (2001) y el resultado de Sasaki y Tokoro. Tú mismo los citas.</li>
+  <li><strong>Es reparar, no descubrir.</strong> El daño es deliberado, la gramática es fija (una conducta delante de otra bajo una condición), hay un solo mundo calibrado al borde (575 s) y las hijas viven solas.</li>
+  <li><strong>Contradicción visible.</strong> El preregistro dice que el juego no debería tener la herencia encendida sin un arreglo, y el juego la tiene encendida por defecto.</li>
+</ol>
+
+<h2>Lo que sí aporta</h2>
+<table>
+  <tr><th>Elemento</th><th>Valor</th><th>Nota</th></tr>
+  <tr><td>Razones frente a conclusiones</td><td>La pregunta más original</td><td>La réplica con la misma información redujo la brecha un 80 % (era sobre todo cobertura). Sobrevive esto: las razones cargan más mitos y la evidencia los corta. Ahora está enterrado como «estudio anterior».</td></tr>
+  <tr><td>Creencias con procedencia, mundo determinista, semillas pareadas</td><td>Buena plataforma</td><td>Es una herramienta, no un hallazgo.</td></tr>
+  <tr><td>Rigor y honestidad</td><td>Poco común</td><td>27 protocolos congelados; nulos publicados (adaptación local tras 5 nulos, LLM, LIBERA); documento de crisis corregido cuando no se reprodujo.</td></tr>
+  <tr><td>Evolución en el juego en 20 años</td><td>Modesto</td><td>Más músculo y menos cerebro en 8 de 8 mapas, pero no hay adaptación local.</td></tr>
+</table>
+
+<h2>Riesgos antes de publicar</h2>
+<ul>
+  <li><strong>Referencias de 2025–2026 marcadas como «no verificadas»</strong> (de Bruin 2026, Saral y colegas 2026, entre otras). Verifícalas o quítalas.</li>
+  <li><strong>Un solo autor, sin revisión externa</strong> y sin comparación con modelos de referencia de la literatura.</li>
+  <li><strong>Retórica por encima del dato:</strong> «Lo que una vida descubre demasiado tarde para salvarse salva a sus hijas» se lee como venta.</li>
+  <li><strong>La autorreescritura se quedó en reordenar líneas.</strong> El LLM no extrajo reglas de la vida (el paso 3c falló según el criterio escrito de antemano) y borraba las reglas que se le daban (paso 4). Vender el proyecto como «entes que se reescriben» atraería una crítica justa.</li>
+</ul>
+
+<h2>Cómo encuadrarlo</h2>
+<div class="call">«Plataforma determinista e inspeccionable para estudiar la transmisión de lo aprendido. Replicamos con preregistro resultados conocidos de herencia lamarckiana (ventaja en un mundo estable, coste por heredar errores) y reportamos los resultados nulos.»</div>
+<p>Titular alternativo: <strong>«La herencia amplifica lo que hereda: la reparación o el error.»</strong> Es más honesto y más interesante.</p>
+<table>
+  <tr><th>Destino</th><th>¿Encaja?</th></tr>
+  <tr><td>Revista de primer nivel, presentado como descubrimiento</td><td>No</td></tr>
+  <tr><td>Preprint en arXiv (cs.NE o q-bio.PE)</td><td>Sí</td></tr>
+  <tr><td>Late-breaking abstract o workshop de ALIFE</td><td>Sí</td></tr>
+  <tr><td>Sitio como cuaderno de laboratorio abierto</td><td>Sí, ya está casi listo</td></tr>
+</table>
+
+<h2>Qué lo haría innovador</h2>
+<ol>
+  <li><strong>Un mundo que cambia y una herencia selectiva que decide la entidad,</strong> por ejemplo heredar solo las revisiones que vencieron al orden innato en la vida de la madre. Eso enfrenta de verdad a Sasaki y Tokoro.</li>
+  <li><strong>Descubrimiento en vez de reparación:</strong> un mundo donde el orden innato no sea el óptimo y la población encuentre algo que no programaste.</li>
+  <li><strong>Retomar razones frente a conclusiones con los mitos como medida principal.</strong> Ahí hay una pregunta abierta en evolución cultural.</li>
+</ol>
+
+<h2>Citas que faltan o hay que poner al frente</h2>
+<ul class="refs">
+  <li>Ackley, D. H. y Littman, M. L. (1994). A case for Lamarckian evolution. En C. Langton (ed.), <em>Artificial Life III</em>, 3–10. Addison-Wesley.</li>
+  <li>Whitley, D., Gordon, V. S. y Mathias, K. (1994). Lamarckian evolution, the Baldwin effect and function optimization. <em>PPSN III</em>, LNCS 866, 6–15.</li>
+  <li>Sasaki, T. y Tokoro, M. (1997). Adaptation toward changing environments: Why Darwinian in nature? <em>Fourth European Conference on Artificial Life</em>, 145–153.</li>
+  <li>Sasaki, T. y Tokoro, M. (2000). Comparison between Lamarckian and Darwinian evolution on a model using neural networks and genetic algorithms. <em>Knowledge and Information Systems</em>, 2, 201–222.</li>
+  <li>Rogers, A. R. (1988). Does biology constrain culture? <em>American Anthropologist</em>, 90, 819–831. (Ya citado.)</li>
+  <li>Denrell, J. y March, J. G. (2001). Adaptation as information restriction: The hot stove effect. <em>Organization Science</em>, 12, 523–538. (Ya citado.)</li>
+  <li>Hinton, G. E. y Nowlan, S. J. (1987). How learning can guide evolution. <em>Complex Systems</em>, 1, 495–502. (Ya citado.)</li>
+</ul>
+
+<p class="sub" style="margin-top:48px">En resumen: un trabajo serio y honesto con un hallazgo poco novedoso. Publicado como plataforma, réplica rigurosa y lista de nulos, gana credibilidad. Publicado como «heredar supera a aprender» a secas, se desarma en la primera revisión.</p>
+</main>
+</body>
+</html>
